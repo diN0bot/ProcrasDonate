@@ -44,6 +44,10 @@ p { text-align: left; }
 	letter-spacing: .2em;
 	word-spacing: .3em;
 }
+
+.StageBar	{ width: 4em; height: 2em; margin: 0 -1em 0 -1em; }
+.StageCircle { width: 4.5em; }
+
 #logo { width: 10em; margin-top: .8em; }
 
 .page_menu { position: absolute; left: 0em; top: 10.6em; }
