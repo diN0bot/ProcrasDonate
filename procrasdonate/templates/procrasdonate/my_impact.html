@@ -1,0 +1,21 @@
+{% extends 'procrasdonate/base.html' %}
+
+{% block head %}
+	{{ block.super }}
+	<script language="javascript" type="text/javascript" src="{{ MEDIA_URL }}js/flot/jquery.flot.js"></script>
+	<!--[if IE]>
+		<script language="javascript" type="text/javascript" src="{{ MEDIA_URL }}js/flot/excanvas.min.js"></script>
+	<![endif]--> 
+{% endblock %}
+
+{% comment %} 
+	the content block is replaced by firefox extension javascript if installed  
+{% endcomment %}
+
+{% block content %}
+	<div id="thin_column">
+		* meter for today's goal achievement
+		* pie chart for today's division of time, broken down by category and then site
+		* layered bar chart (or line) of category time across days
+	</div>
+{% endblock %}
