@@ -6,21 +6,13 @@ body {
 	font-family:Verdana, Arial, Helvetica, sans-serif;
 	font-size:12px;
 }
-.DJANGO_SERVER { background: url(/twitter/media/twitter/img/django_server.png) no-repeat fixed; }
-#browser_upgrade {
-	visibility: visible;
-	position: absolute;
-	top: 11em;
-	left: 0em;
-	padding: 2em;
-	width: 15em;
-	background: #FFBB77;
-	border: 3px solid #F37F19;
-}
 
 a, .link { color:#1C5492; text-decoration:underline; cursor: pointer; }
 a:hover, .link:hover { color:#FF9900; text-decoration:underline; cursor: pointer; }
 a img { border: none; }
+
+p { text-align: left; }
+.paragraph_list li { text-align: left; margin-top: 1em; }
 
 /*
  colors (solid, dark unless stated otherwise):
@@ -43,36 +35,22 @@ a img { border: none; }
 .error, .errors, #error, #errors { color: red; text-align: center; }
 .success, #success { color: green; text-align: center; }
 
-#apps_menu { padding: 1em 0em .5em 0em; background: #FAF3F4; border-bottom: 1px solid #DAD3D4; }
-/*#apps_menu a { color: #FFFFFF; }*/
-#apps_menu div { display: inline; padding: 0em 0em 1em 1em; }
-#apps_menu .here_we_are a { text-decoration: none; }
-
-#account {float: right; padding-right: 2em; }
-
-/*
-#app_menu { text-align: left; top: 6.4em; position: relative; }
-#app_menu div { display: inline; padding: 0em 0em 1em 1em; }
-#app_menu .here_we_are a { text-decoration: none; }
-
-#title {color:#000000; border-bottom:1px dashed #999999; }
-#title h2 { font-family:Georgia, "Times New Roman", Times, serif; font-size:4em; margin: .6em 0em 0em 0em; letter-spacing: .2em; word-spacing: .3em; }
-*/
-
-#app_menu {
-	border-bottom:1px dashed #999999;
-	margin-top: 3em;
+#static_menu {
+	position: absolute; left: 2em; top: 10em;
 }
-#app_menu div {
-	display: inline; padding: 0em 0em 1em 1em;
+#static_menu div {
+	display: block; text-align: left;
 }
-#app_menu .here_we_are a {
+#static_menu .here_we_are a {
 	font-family:Georgia, "Times New Roman", Times, serif;
 	text-decoration: none;
-	font-size:4em;
+	font-size:2em;
 	letter-spacing: .2em;
 	word-spacing: .3em;
 }
+
+#logo { position: absolute; left: 2em; top: 1em; }
+#logo img { background: none; width: 10em; }
 
 .page_menu { position: absolute; left: 0em; top: 10.6em; }
 .page_menu h3 { text-align: right; }
@@ -106,88 +84,20 @@ h4 {
   color: #156451;
   text-align: left;
 }
-.needs_info { color: #8A4304; }
-p { text-align: left; }
-.paragraph_list li { text-align: left; margin-top: 1em; }
+
 
 #footer { height: 5em; }
 
-/********************************/
-
 #thin_column { width: 50%; margin: auto; }
 
-#comments { text-align: left; margin-top: 2em; }
-.day { float: left; padding-right: 2.2em; margin-top: -1em; text-align: center; }
-.day .month_name { color:#156451; line-height:1.5em; position: relative; bottom: -.9em; }
-.day .day_number { font-size: 3em; font-weight: bold; color: #cccccc; padding: 0em; margin: 0em; }
-.day .day_name { color:#156451; line-height:1.5em; position: relative; top: -.9em; }
-
-.day { padding: 0em 1em 0em 0em; }
-.day img { text-align: center; margin: 0em; padding: 0em; }
-.time_ago { color: #999999; }
-.reply { margin: -.2em -.8em 0em 0em; float: right; }
-.message { background: #FAF3F4; border: 1px solid #DAD3D4; padding: .2em 1em .6em 1em; margin: .5em 0em 0em 0em; }
-.message p { margin: .4em 0em .4em 0em; }
-
-.comment { padding: 1.7em 0em 0em 2em; text-align: left; }
-.indent1 { margin-left: 0em; padding-left: 0em; }
-.indent2 { margin-left: 2em; border-left: 1px dotted #cccccc; }
-.indent3 { margin-left: 2em; border-left: 1px dotted #cccccc; }
-.indent4 { margin-left: 2em; border-left: 1px dotted #cccccc; }
-.indent5 { margin-left: 2em; margin-right: -4em; border-left: 1px dotted #cccccc; }
-.indent6 { margin-left: 2em; margin-right: -6em; border-left: 1px dotted #cccccc; }
-.indent8 { margin-left: 2em; margin-right: -8em; border-left: 1px dotted #cccccc; }
-.indent9 { margin-left: 2em; margin-right: -10em; border-left: 1px dotted #cccccc; }
-.indent10 { margin-left: 0em; margin-right: -12em; border-left: 1px dotted #cccccc; }
-
-#comment_twitter_username { margin-top: 1em; text-align: left; }
-#comment_submit { float: right; margin-top: 1.3em; }
-
+/************ REGISTER/SETTINGS FORM ********/
 form, form p { text-align: center; }
-
-.paragraph_logo { width: 9em; float: left; }
-.paragraph_text { padding-top: 3em; }
-
-/********/
-
-#apps_menu { display: none; }
-
-#app_menu { border: none; position: absolute; left: 2em; top: 10em; }
-#app_menu div { display: block; text-align: left; }
-#app_menu .here_we_are a { font-size: 2em; }
-
-#logo { position: absolute; left: 2em; top: 1em; }
-#logo img { background: none; width: 10em; }
-
-h5 {
-  font-family:Georgia, "Times New Roman", Times, serif;
-  font-size: 1.2em;
-  font-weight: normal;
-  text-align: left;
-  margin: 0em;
-  padding: 0em;
-}
-
-.link { cursor: pointer; }
-.right { float: right; }
-.left { float: left; font-size: 1.5em; padding: 2px; }
-
-.annotated_url { float: right; margin-right: -10em; }
 
 .help { text-align: right; color: #777777; }
 .summaryhelp { float: left; padding: .5em 0em 0em .5em; color: #777777; }
 td { padding: 1em 0em 1em 0em; vertical-align: middle; }
-.above_helprow td { padding-bottom: 0em; }
-.helprow td { padding-top: 0em; }
+
 label { padding-right: 1em; }
-
-#edit_account_info { font-size: 1.6em; margin: 0em; padding: 1em 0em 0em 9.8em; }
-#process_account_form { margin-right: 2em; }
-
-/*
-ul { list-style-type: none; }
-ul li input { display: block; text-align: center; }
-*/
 
 .horizontal { margin-right: 1em; }
 
