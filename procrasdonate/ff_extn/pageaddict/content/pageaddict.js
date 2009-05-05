@@ -135,17 +135,17 @@ function CONSTANTS() {
 	 */
 	PD_DOMAIN = 'http://localhost:8000'
 	
-	PROCRASDONATE_URL = PD_DOMAIN+'/twitter/twitter.procrasdonate/';
-	START_URL = PD_DOMAIN+'/twitter/twitter.procrasdonate/start_now/';
-	LEARN_URL = PD_DOMAIN+'/twitter/twitter.procrasdonate/learn_more/';
-	IMPACT_URL = PD_DOMAIN+'/twitter/twitter.procrasdonate/my_impact/';
-	SETTINGS_URL = PD_DOMAIN+'/twitter/twitter.procrasdonate/settings/';
-	FEEDBACK_URL = PD_DOMAIN+'/twitter/twitter/feedback/procrasdonate/';
-	
-	COMMUNITY_URL = PD_DOMAIN+'/twitter/twitter.procrasdonate/our_community';
-	PRIVACY_URL = PD_DOMAIN+'/twitter/twitter.procrasdonate/privacy_guarantee/';
-	RECIPIENTS_URL = PD_DOMAIN+'/twitter/twitter.procrasdonate/recipients';
-	POST_DATA_URL = PD_DOMAIN+'/twitter/twitter.procrasdonate/data/';
+	PROCRASDONATE_URL = PD_DOMAIN+'/';
+	START_URL = PD_DOMAIN+'/start_now/';
+	LEARN_URL = PD_DOMAIN+'/home/';
+	IMPACT_URL = PD_DOMAIN+'/my_impact/';
+	SETTINGS_URL = PD_DOMAIN+'/settings/';
+	FEEDBACK_URL = 'http://bilumi.org';
+		
+	COMMUNITY_URL = PD_DOMAIN+'/our_community';
+	PRIVACY_URL = PD_DOMAIN+'/privacy_guarantee/';
+	RECIPIENTS_URL = PD_DOMAIN+'/recipients';
+	POST_DATA_URL = PD_DOMAIN+'/data/';
 
 	// enumeration of settings page state
 	SETTINGS_STATE_ENUM = ['twitter_account', 'recipients', 'donation_amounts', 'support', 'site_classifications', 'balance'];
