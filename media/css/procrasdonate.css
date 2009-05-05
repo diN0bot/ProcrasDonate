@@ -35,22 +35,16 @@ p { text-align: left; }
 .error, .errors, #error, #errors { color: red; text-align: center; }
 .success, #success { color: green; text-align: center; }
 
-#static_menu {
-	position: absolute; left: 2em; top: 10em;
-}
-#static_menu div {
-	display: block; text-align: left;
-}
+#static_menu { position: absolute; left: 1em; top: 2em; width: 15em; }
+#static_menu div { display: block; padding: 0.8em 0em; }
 #static_menu .here_we_are a {
 	font-family:Georgia, "Times New Roman", Times, serif;
 	text-decoration: none;
-	font-size:2em;
+	font-size:1.2em;
 	letter-spacing: .2em;
 	word-spacing: .3em;
 }
-
-#logo { position: absolute; left: 2em; top: 1em; }
-#logo img { background: none; width: 10em; }
+#logo { width: 10em; margin-top: .8em; }
 
 .page_menu { position: absolute; left: 0em; top: 10.6em; }
 .page_menu h3 { text-align: right; }
@@ -58,6 +52,8 @@ p { text-align: left; }
 .page_menu ul li { text-align: right; }
 
 #content { margin: auto; width: 90em; text-align:center; margin-top: 1em; }
+#thin_column { width: 50%; margin: auto; padding-bottom: 5em; border-bottom: solid 1px #DDDDDD; }
+#footer { height: 3em;  margin: auto; margin-top: 4em; }
 
 h3 {
   clear: both;
@@ -84,11 +80,6 @@ h4 {
   color: #156451;
   text-align: left;
 }
-
-
-#footer { height: 5em; }
-
-#thin_column { width: 50%; margin: auto; }
 
 /************ REGISTER/SETTINGS FORM ********/
 form, form p { text-align: center; }

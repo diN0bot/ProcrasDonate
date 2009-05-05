@@ -31,16 +31,12 @@
 	<body>
 		<div id="wrapper">
 			
-			<div id="logo">
-				<img alt="" src="{{ MEDIA_URL }}img/ProcrasDonateLogoText.png">
-			</div>
-
 			<div id="static_menu">
 				<div {% ifequal selected "home" %}class="here_we_are"{% endifequal %}><a href="{% url home %}">Home</a></div>
 				<div {% ifequal selected "start_now" %}class="here_we_are"{% endifequal %}><a href="{% url start_now %}">Start Now</a></div>
 				<div {% ifequal selected "my_impact" %}class="here_we_are"{% endifequal %}><a href="{% url my_impact %}">My Impact</a></div>
 				<div {% ifequal selected "community" %}class="here_we_are"{% endifequal %}><a href="{% url community %}">Community</a></div>
-				<div {% ifequal selected "feedback" %}class="here_we_are"{% endifequal %}><a href="">Feedback</a></div>
+				<img id="logo" alt="" src="{{ MEDIA_URL }}img/ProcrasDonateLogoText.png">
 			</div> 
 		
 			<div id="content">
@@ -48,9 +44,14 @@
 				{% endblock %}
 			</div>
 			
+			<div id="footer">
+				&copy; 2009 ProcrasDonate &nbsp;&nbsp;&nbsp; 
+				<a href="">about us</a> | 
+				<a href="">feedback</a> |
+				<a href="">press</a> |
+			</div>
+			
 		</div>
-		
-		<div id="footer"></div>
 	</body>
 
 </html>
