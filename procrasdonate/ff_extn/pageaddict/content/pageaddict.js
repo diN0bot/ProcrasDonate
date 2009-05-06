@@ -133,6 +133,7 @@ function CONSTANTS() {
 	/*
 	 * Define all global variables here. 
 	 */
+	MEDIA_URL = '/procrasdonate_media/'
 	PD_DOMAIN = 'http://localhost:8000'
 	
 	PROCRASDONATE_URL = PD_DOMAIN+'/';
@@ -1431,11 +1432,10 @@ function _tab_snippet(state_name, state_enums, tab_names) {
 	 * Currently, developers must call activate_<state_name>_tab_events() whenever
 	 * this html is inserted into the DOM.
 	 *
-	 * @param state_name: string. one of 'settings', 'register' or 'impact
-	 * @param state_enums: array. state enumeration. one of 'SETTINGS_STATE_ENUM',
-	 * 		'REGISTER_STATE_ENUM' or 'IMPACT_STATE_ENUM'
+	 * @param state_name: string. one of 'settings' or 'impact
+	 * @param state_enums: array. state enumeration. one of 'SETTINGS_STATE_ENUM' or 'IMPACT_STATE_ENUM'
 	 * @param tab_names: array. tab names corresponding to enums. one of 
-	 * 		'SETTINGS_STATE_TAB_NAMES', 'IMPACT_STATE_TAB_NAMES', 'REGISTER_STATE_TAB_NAMES'
+	 * 		'SETTINGS_STATE_TAB_NAMES' or 'IMPACT_STATE_TAB_NAMES'
 	 */
 	var tabs_text = "<div id='" + state_name + "_tabs' class='tabs'>";
 	
@@ -1443,7 +1443,6 @@ function _tab_snippet(state_name, state_enums, tab_names) {
     
     for (i = 0; i < state_enums.length; i += 1) {
     	var tab_state = state_enums[i];
-    	if ( tab_names[i] == 'XXX') { continue; }
     	
     	var tab_selected_class = '';
     	if ( tab_state == selected ) { tab_selected_class = 'selected'; }
@@ -1458,8 +1457,73 @@ function _tab_snippet(state_name, state_enums, tab_names) {
 }
 
 function register_tab_snippet() {
-    /* Calls _tab_snippet for register state */
-	var ret = _tab_snippet('register', REGISTER_STATE_ENUM, REGISTER_STATE_TAB_NAMES);
+    /* Creates register state track. Does not call _tab_snippet! */
+	var tracks_text = "<table id='register_track'><tbody><tr>";
+	
+    var current_state = GM_getValue('register_state', '');
+    var current_state_index = REGISTER_STATE_ENUM.length;
+    
+    for (i = 0; i < REGISTER_STATE_ENUM.length && i < 6; i += 1) {
+    	var track_state = REGISTER_STATE_ENUM[i];
+    	var track_name = REGISTER_STATE_TAB_NAMES[i];
+    	var image_number = i+1;
+    	
+    	var selected_class = '';
+    	if ( track_state == current_state ) {
+    		current_state_index = i;
+    		selected_class = 'selected';
+    	}
+    	
+    	var done_class = 'done';
+    	if ( i >= current_state_index ) {
+    		done_class = '';
+    	}
+    	
+    	var circle_image_name = MEDIA_URL + "img/StepCircle" + image_number;
+    	var bar_image_name = MEDIA_URL + "img/";
+    	if ( done_class || selected_class ) {
+    		circle_image_name += "Done";
+    		bar_image_name += "DashGreen";
+    	} else {
+    		bar_image_name += "Arrow";
+    	}
+    	circle_image_name += ".png";
+    	bar_image_name += ".png";
+
+    	if ( i != 0 ) {
+    		tracks_text += "<td><img src='"+ bar_image_name +"' class='StageBar'></td>";
+    	}
+    	
+    	tracks_text += "<td id='" + track_state + "_track' class='" + selected_class +" "+ done_class +"'>";
+
+	    	tracks_text += "<img src='"+ circle_image_name +"' class='StageCircle "+ done_class +"'>"
+
+    	tracks_text += "</td>";
+    }    
+    tracks_text += "</tr><tr>";
+    
+    for (i = 0; i < REGISTER_STATE_ENUM.length && i < 6; i += 1) {
+    	var track_state = REGISTER_STATE_ENUM[i];
+    	var track_name = REGISTER_STATE_TAB_NAMES[i];
+    	
+    	var selected_class = '';
+    	if ( track_state == current_state ) {
+    		current_state_index = i;
+    		selected_class = 'selected';
+    	}
+    	
+    	var done_class = 'done';
+    	if ( i >= current_state_index ) {
+    		done_class = '';
+    	}
+    	
+    	if ( i != 0 ) { tracks_text += "<td></td>"; }
+    	tracks_text += "<td class='track_text " + selected_class +" "+ done_class +"'>" + track_name + "</td>";
+    }
+    
+    tracks_text += "</tr></tbody></table>";
+    
+	var ret = tracks_text;
 	var next_value = "Next";
 	if ( GM_getValue('register_state','') == 'tipjoy_account' ) {
 		next_value = "Done!";
