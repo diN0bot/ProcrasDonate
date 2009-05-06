@@ -140,12 +140,14 @@ function CONSTANTS() {
 	LEARN_URL = PD_DOMAIN+'/home/';
 	IMPACT_URL = PD_DOMAIN+'/my_impact/';
 	SETTINGS_URL = PD_DOMAIN+'/settings/';
-	FEEDBACK_URL = 'http://bilumi.org';
 		
 	COMMUNITY_URL = PD_DOMAIN+'/our_community';
 	PRIVACY_URL = PD_DOMAIN+'/privacy_guarantee/';
 	RECIPIENTS_URL = PD_DOMAIN+'/recipients';
 	POST_DATA_URL = PD_DOMAIN+'/data/';
+	
+	// these don't exist. used for development testing
+	RESET_URL = PD_DOMAIN+'/reset/';
 
 	// enumeration of settings page state
 	SETTINGS_STATE_ENUM = ['twitter_account', 'recipients', 'donation_amounts', 'support', 'site_classifications', 'balance'];
@@ -465,7 +467,7 @@ function stop_recording() {
 
     // window.count_seconds=0;
     
-    // check_status();
+    // check_exists();
     // make_payment(GM_getValue('cents_per_hour', ''));
     // create_account();
 }
@@ -505,17 +507,18 @@ function make_payment(amt) {
     var text = "p " + amt + "¢ @" + GM_getValue('recipient') + " " + escape(reason);
     var username = GM_getValue('twitter_username', '')
     var password = GM_getValue('twitter_password', '')
-    var params = "twitter_username=" + username + "&twitter_password=" + password + "&text=" + text;
+    //var params = "twitter_username=" + username + "&twitter_password=" + password + "&text=" + text;
+    var params = { twitter_username: username, twitter_password: password, text: text };
     
     make_request(
         'http://tipjoy.com/api/tweetpayment/',
         params,
         'POST',
         function(r) {
-            GM_log('PAYMENT worked ' + r.status + ' ' + r.responseText);
+            GM_log('PAYMENT onload ' + r.status + ' ' + r.responseText);
         },
         function(r) {
-            GM_log('PAYMENT failed');
+            GM_log('PAYMENT onerror' + r.responseText);
         }
     );
 }
@@ -530,9 +533,24 @@ function check_balance(onload, onerror) {
         return false;
     }
     make_request(
-        'http://tipjoy.com/api/user/balance/',
-        "twitter_username=" + username + "&twitter_password=" + password,
-        'POST',
+        "http://tipjoy.com/api/user/balance/",
+        { twitter_username: username, twitter_password: password },
+        "GET",
+        onload,
+        onerror
+    );
+}
+
+function check_exists(onload, onerror) {
+    /*
+	 * Checks whether user's twitter credentials match a user account on TipJoy.
+	 * If so, returns TipJoy user information.
+	 */
+    GM_log("inside exists");
+    make_request(
+        "http://tipjoy.com/api/user/exists/",
+        { twitter_username: GM_getValue("twitter_username", "") },
+        "GET",
         onload,
         onerror
     );
@@ -543,65 +561,46 @@ function make_request(url, params, method, onload, onerror) {
 	 * Helper method for making XmlHttpRequests @param params: string eg,
 	 * a=3&b=4 @param method: string, either 'GET' or 'POST'
 	 */
+	var data = "";
+	var remove_last = false;
+	for (var prop in params) {
+		data += encodeURIComponent(prop) + "=" + encodeURIComponent(params[prop]) + "&";
+		remove_last = true;
+	}
+	if ( remove_last ) { data = data.substring(0, data.length-1); }
+	
     var headers = {
         "User-agent" :"Mozilla/4.0 (compatible) ProcrasDonate",
-        "Content-length" :params.length
+        "Content-length" :data.length
     }
     if ( method == 'POST' ) headers["Content-type"] = "application/x-www-form-urlencoded";
-    // alert(url + " " +params + " "+method+ " "+headers["User-agent"]+"
+    // alert(url + " " +data + " "+method+ " "+headers["User-agent"]+"
 	// "+headers["Content-length"]+" "+headers["Content-type"]);
     GM_xmlhttpRequest( {
         method : method,
         url : url,
-        data : params,
+        data : data,
         headers : headers, 
         onload : onload,
         onerror : onerror
     });
 }
 
-function check_status() {
-    /*
-	 * Checks whether user's twitter credentials match a user account on TipJoy.
-	 * If so, returns TipJoy user information.
-	 */
-    GM_log("inside status");
-    make_request(
-        'http://tipjoy.com/api/user/exists/',
-        'twitter_username=' + GM_getValue('twitter_username', ''),
-        'GET',
-        function(r) {
-            GM_log('STATUS worked '+r.result);
-        },
-        function(r) {
-            GM_log('STATUS failed');
-        }
-    );
-    GM_log("leaving status");
-}
-
-function create_account() {
+function create_account(onload, onerror) {
     /*
 	 * Creates TipJoy account. Not sure what happens if user already exists.
 	 */
-    var send_to_url = 'http://tipjoy.com/api/createTwitterAccount/';
-    var params = 'twitter_username=weatherizer&twitter_password=pea15nut';
-    GM_xmlhttpRequest( {
-        method :'POST',
-        url :send_to_url,
-        data :params,
-        headers : {
-            "User-agent" :"Mozilla/4.0 (compatible) ProcrasDonate",
-            "Content-type" :"application/x-www-form-urlencoded",
-            "Content-length" :params.length
-        },
-        onload : function(r) {
-            GM_log('CREATE worked ' + r.status + ' ' + r.responseText);
-        },
-        onerror : function(r) {
-            GM_log('CREATE failed');
-        }
-    });
+    var username = GM_getValue('twitter_username', '')
+    var password = GM_getValue('twitter_password', '')
+    var params = { twitter_username: username, twitter_password: password }
+    
+    make_request(
+    	"http://tipjoy.com/api/createTwitterAccount/",
+        params,
+        "POST",
+        onload,
+        onerror
+    );
 }
 
 function add_to_list(item, list) {
@@ -829,7 +828,7 @@ function check_page_inserts() {
         	// Page is replaced by impact tabs
         	insert_based_on_state('impact', IMPACT_STATE_ENUM, IMPACT_STATE_INSERTS);
         }
-        else if ( href == FEEDBACK_URL ) {
+        else if ( href == RESET_URL ) {
         	reset_state_to_defaults();
         	reset_account_to_defaults();
         }
@@ -902,11 +901,46 @@ function insert_register_balance() {
 	 * Inserts balance/TipJoy info.
 	 */
 	GM_setValue('register_state', 'balance');
+	
+	var middle = "" +
+		"exists: <span id='exists'></span>" +
+		"<br /><br />" +
+		"balance: <span id='balance_here'></span>";
 
-    var middle = "";
-    
-    $("#content").html( register_wrapper_snippet(middle) );
+	$("#content").html( register_wrapper_snippet(middle) );
     activate_register_tab_events();
+    
+	/*check_exists(
+		function(r) {
+			var str = ""; for (var prop in r) {	str += prop + " value :" + r[prop]+ + "\n\n"; }
+			$("#exists").append(str);
+			if ( r.responseText.result == "success" ) {
+				$("#exists").append(r.responseText.result + str);
+			} else {
+				$("#exists").append("creating account...");
+			}
+			
+		},
+		function(r) {
+			var str = ""; for (var prop in r) {	str += prop + " value :" + r[prop]+ + "\n\n"; }
+			$("#exists").append(str);
+		}
+	);*/
+
+	check_balance(
+		function(r) {
+			var str = ""; for (var prop in r) {	str += prop + " value :" + r[prop]+ + "\n\n"; }
+			alert("BALANCE !!!!! onload "+str);
+			//alert("onload rt"+r.responseText);
+			$("#balance_here").append(r.responseText.balance);
+		},
+		function(r) {
+			var str = ""; for (var prop in r) {	str += prop + " value :" + r[prop]+ + "\n\n"; }
+			$("#balance_here").append(str);
+		}
+	);
+
+	//make_payment(4);
 }
 
 function insert_register_support() {
@@ -1264,7 +1298,7 @@ function insert_settings_balance() {
 	 * "+r.currency); } );
 	 */
     
-    // check_status();
+    // check_exists();
         /*
 		 * function(r) { GM_log('STATUS worked ' + r.result + ' ' + r.reason + ' ' +
 		 * r.exists + ' ' + r.user + ' ' + r.is_private); }
@@ -1273,7 +1307,8 @@ function insert_settings_balance() {
 }
 
 function process_support() {
-	
+	GM_log("process_support()");
+	return true;
 }
 
 function validate_cents_input(v) {
@@ -1326,6 +1361,7 @@ function process_donation() {
 	 * hr_per_day_goal: pos float < 25
 	 * hr_per_day_max: pos float < 25
 	 */
+	GM_log("process_donation()");
 	var cents_per_hour = parseInt($("input[name='cents_per_hour']").attr("value"));
 	var hr_per_day_goal = parseFloat($("input[name='hr_per_day_goal']").attr("value"));
 	var hr_per_day_max = parseFloat($("input[name='hr_per_day_max']").attr("value"));
@@ -1346,18 +1382,22 @@ function process_donation() {
 }
 
 function process_balance() {
+	GM_log("process_balance()");
 	return true;
 }
 
 function process_site_classifications() {
+	GM_log("process_site_classifications()");
 	return true;
 }
 
 function process_recipients() {
+	GM_log("process_recipients()");
 	return true;
 }
 
 function process_done() {
+	GM_log("process_done()");
 	return true;
 }
 
@@ -1367,6 +1407,8 @@ function process_twitter_account() {
 	 * @TODO twitter credentials and recipient twitter name should be verified. 
 	 * @TODO all fields should be validated as soon as user tabs to next field.
 	 */
+	GM_log("process_twitter_account()");
+	
     $("#errors").html("");
     $("#success").html("");
     
@@ -1439,7 +1481,25 @@ function impact_tab_snippet() {
 	return _tab_snippet('impact', IMPACT_STATE_ENUM, IMPACT_STATE_TAB_NAMES);   
 }
 
-function _activate_tab_events(state_name, state_enums, event_inserts) {
+function _process_before_proceeding(state_name, state_enums, processors, event) {
+	return function() {
+		//alert("state name "+state_name);
+		for (var i = 0; i < state_enums.length; i += 1) {
+			var tab_state = state_enums[i];
+			//alert("i "+i+" tab_state "+tab_state);
+			if ( GM_getValue(state_name+"_state", "") == tab_state ) {
+				var processor = processors[i];
+				//alert("yes");
+				if ( processor() ) {
+					//alert("processor returned True");
+					event();
+				}
+			}
+		}
+	}
+}
+
+function _activate_tab_events(state_name, state_enums, event_inserts, processors) {
 	/* Attaches EventListeners to tabs
 	 *
 	 * @param state_name: string. one of 'settings', 'register' or 'impact
@@ -1447,30 +1507,29 @@ function _activate_tab_events(state_name, state_enums, event_inserts) {
 	 * 		'REGISTER_STATE_ENUM' or 'IMPACT_STATE_ENUM'
 	 * @param event_inserts: array. functions corresponding to enums. one of 
 	 * 		'SETTINGS_STATE_INSERTS', 'IMPACT_STATE_INSERTS', 'REGISTER_STATE_INSERTS'
+	 * @param processors: array. functions corresponding to enums. one of
+	 *		'SETTINGS_STATE_PROCESSORS', 'IMPACT_STATE_PROCESSORS', 'REGISTER_STATE_PROCESSORS'
 	 */
 	for (var i = 0; i < state_enums.length; i += 1) {
 		var tab_state = state_enums[i];
 		var event = event_inserts[i];
 		// closure
-		$("#"+tab_state+"_tab").click( (function(event) {
-			return event;
-		})(event) );
+		$("#"+tab_state+"_tab").click( 
+				(_process_before_proceeding)(state_name, state_enums, processors, event) );
 		
 		if ( state_name == 'register' ) {
 			var current_state = GM_getValue(state_name+'_state', '');
 			if ( tab_state == current_state ) {
 				if ( i > 0 ) {
 					var prev = event_inserts[i-1];
-					$("#prev_register_track").show().click( (function(prev) {
-						return prev;
-					})(prev) );
+					$("#prev_register_track").show().click( 
+							(_process_before_proceeding)(state_name, state_enums, processors, prev) );
 				} else { $("#prev_register_track").hide(); }
 				
 				if ( i < state_enums.length ) {
 					var next = event_inserts[i+1];
-					$("#next_register_track").show().click( (function(next) {
-						return next;
-					})(next) );
+					$("#next_register_track").show().click( 
+							(_process_before_proceeding)(state_name, state_enums, processors, next) );
 				} else { $("#next_register_track").hide(); }
 			}
 		}
@@ -1479,17 +1538,17 @@ function _activate_tab_events(state_name, state_enums, event_inserts) {
 
 function activate_settings_tab_events() {
     /* Attaches EventListeners to settings tabs */
-    _activate_tab_events('settings', SETTINGS_STATE_ENUM, SETTINGS_STATE_INSERTS);
+    _activate_tab_events('settings', SETTINGS_STATE_ENUM, SETTINGS_STATE_INSERTS, SETTINGS_STATE_PROCESSORS);
 }
 
 function activate_impact_tab_events() {
     /* Attaches EventListeners to impact tabs */
-    _activate_tab_events('impact', IMPACT_STATE_ENUM, IMPACT_STATE_INSERTS);
+    _activate_tab_events('impact', IMPACT_STATE_ENUM, IMPACT_STATE_INSERTS, IMPACT_STATE_PROCESSORS);
 }
 
 function activate_register_tab_events() {
     /* Attaches EventListeners to register tabs */
-    _activate_tab_events('register', REGISTER_STATE_ENUM, REGISTER_STATE_INSERTS);
+    _activate_tab_events('register', REGISTER_STATE_ENUM, REGISTER_STATE_INSERTS, REGISTER_STATE_PROCESSORS);
 }
 
 function insert_register_twitter_account() {
