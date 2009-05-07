@@ -293,7 +293,6 @@ function house_keeping() {
     chover = Math.round(chover.getTime() / 1000);
     // GM_log('chover='+chover, ' las');
     if (first < chover) {
-        // alert('resetting, first='+first);
         reset_visits();
     }
     // var currentTime = new Date();
@@ -406,7 +405,6 @@ function stop_recording() {
     // var href = window.location.host;
     var href = get_this_url();
     // href = href.replace(/\./g, '_');
-    // alert(href);
     if (href.length == 0)
         return;
     // if(unsafeWindow.page_addict_start==null) return;
@@ -752,36 +750,6 @@ function check_page_inserts() {
     var host = window.location.host;
     var href = window.location.href;
 
-    function is_required_account_info_missing() {
-        /*
-		 * Returns True if required account information is missing. Required:
-		 * twitter_username twitter_password
-		 */
-        return !GM_getValue('twitter_username', false) || 
-            !GM_getValue('twitter_password', false) ||
-            !GM_getValue('recipients', false) ||
-            !GM_getValue('cents_per_hour', false) || 
-            !GM_getValue('hr_per_day_goal', false) || 
-            !GM_getValue('hr_per_day_max', false)
-    }
-    function replace_start_menu_item_with_settings() {
-    	/*
-    	 * 
-    	 */
-        $("#app_menu div a").each(function() {
-            var href = $(this).attr("href");
-            if ( href == START_URL ) {
-                href = SETTINGS_URL;
-                $(this).attr("href", href);
-                $(this).text("Settings");
-            }
-        });
-    }
-    function insert_registration_warning() {
-    	/*
-    	 * 
-    	 */
-    }
     function insert_based_on_state(state_name, state_enums, event_inserts) {
 		/* Calls appropriate insert method based on current state
 		 * 
@@ -792,6 +760,7 @@ function check_page_inserts() {
 		 * 		'SETTINGS_STATE_INSERTS', 'IMPACT_STATE_INSERTS', 'REGISTER_STATE_INSERTS'
 		 */
     	GM_log("INSERT BASED ON "+state_name);
+    	GM_setValue('site_classifications_settings_activated', true);
     	for (i = 0; i < state_enums.length; i += 1) {
     		var state = state_enums[i];
     		//GM_log("     "+state+" "+GM_getValue(state_name + '_state', '')+" "+(GM_getValue(state_name + '_state', '')==state)
@@ -803,14 +772,13 @@ function check_page_inserts() {
     }
     
     if (host.match(/localhost:8000/) || host.match(/procrasdonate\.com/)) {
-
-        // If done registering, change Start menu item to Settings.
-    	// Else, if not working on registration track, give registration warning.
-        /*if ( is_required_account_info_missing() && href != START_URL ) {
-            insert_registration_warning();
+    	//reset_state_to_defaults();
+    	if ( GM_getValue('register_state', '') == 'done' ) {
+            // If done registering, change Start menu item to Settings.
+        	$("#start_now_menu_item a").attr("href", SETTINGS_URL).text("Settings");
         } else {
-        	replace_start_menu_item_with_settings();
-        }*/
+        	// Else, if not working on registration track, give registration warning.
+        }
         
         if ( href == START_URL ) {
         	// Page is replaced by registration track (or nothing if not
@@ -878,23 +846,26 @@ function make_site_box(name, url, tag) {
     return text;
 }
 
-function activate_site_box_events() {
-    var f = function(elem, tag) {
-        var site_name = elem.siblings(".name").text();
-        // if ( elem.hasClass("move_to_left") ) { }
-        elem.parent().fadeOut("slow");
-        $("#"+tag+"_col").prepend(make_site_box(site_name, site_name, tag))
-        .next().hide().fadeIn("slow");
-    }
-    $(".move_to_timewellspent").live("click", function() {
-        f($(this), "timewellspent");
-    });
-    $(".move_to_undefined").live("click", function() {
-        f($(this), "undefined");
-    });
-    $(".move_to_procrasdonate").live("click", function() {
-        f($(this), "procrasdonate");
-    });
+function activate_site_classifications_middle() {
+	if ( GM_getValue('site_classifications_settings_activated', false) ) {
+	    var f = function(elem, tag) {
+	        var site_name = elem.siblings(".name").text();
+	        //elem.parent().fadeOut("slow");
+	        elem.parent().remove()
+	        $("#"+tag+"_col").prepend(make_site_box(site_name, site_name, tag))
+	        //.next().hide().fadeIn("slow");
+	    }
+	    $(".move_to_timewellspent").live("click", function() {
+	        f($(this), "timewellspent");
+	    });
+	    $(".move_to_undefined").live("click", function() {
+	        f($(this), "undefined");
+	    });
+	    $(".move_to_procrasdonate").live("click", function() {
+	        f($(this), "procrasdonate");
+	    });
+	    GM_setValue('site_classifications_settings_activated', false);
+	}
 }
 
 function insert_register_balance() {
@@ -908,7 +879,7 @@ function insert_register_balance() {
 		"<br /><br />" +
 		"balance: <span id='balance_here'></span>";
 
-	$("#content").html( register_wrapper_snippet(middle) );
+	$("#content").html( register_wrapper_snippet(middle, true) );
     activate_register_tab_events();
     
 	/*check_exists(
@@ -944,27 +915,23 @@ function insert_register_balance() {
 	//make_payment(4);
 }
 
-function insert_register_support() {
-    /*
-	 * Inserts support ProcrasDonate info.
-	 */
-	GM_setValue('register_state', 'support');
-
+function support_middle() {
 	var pct = GM_getValue('support_pct', DEFAULT_SUPPORT_PCT);
-    var middle = "" +
+	return "" +
     "<h3>Help us grow and develop</h3>" +
     "<p>Give back to the cause that lets you help the non-profits and content-providers you care about.</p>" +
-    "<tr class='above_helprow'><td><label class='right'>Support ProcrasDonate: </label></td>" +
-    "<td>" +
-    	"<div id='support_slider' class='slider' alt='" + pct + "'></div>" +
-		"<input id='support_input' class='input' alt='" + pct + "' value='" + pct + "' size='1'/>" +
-	"</td></tr>" +
-    "<tr class='helprow'><td></td><td><div class='help'>% of total donation</div></td></tr>";
-
-    $("#content").html( register_wrapper_snippet(middle) );
-    activate_register_tab_events();
     
-    $("#support_slider").slider({
+    "<table<tbody><tr>" +
+	    "<td><label class='right'>Support ProcrasDonate: </label></td>" +
+	    "<td><div id='support_slider' class='slider' alt='" + pct + "'></div></td>" +
+		"<td><input id='support_input' class='press_enter_for_next input' alt='" + pct + "' value='" + pct + "' size='1'/></td>" +
+	    "<td><span class='help'>% of total donation</span></td>" +
+    "</tr></tbody></table";
+}
+
+function activate_support_middle() {
+	var pct = GM_getValue('support_pct', DEFAULT_SUPPORT_PCT);
+	$("#support_slider").slider({
 		//animate: true,
 		min: 0,
 		max: 10,
@@ -990,18 +957,20 @@ function insert_register_support() {
 	}
 }
 
+function insert_register_support() {
+    /* Inserts support ProcrasDonate info. */
+	GM_setValue('register_state', 'support');
+    $("#content").html( register_wrapper_snippet(support_middle(), false) );
+    activate_register_tab_events();
+    activate_support_middle();
+}
+
 function insert_register_done() {
 	GM_setValue('register_state', 'done');
-	window.location.href = SETTINGS_URL;
+	window.location.href = IMPACT_URL;
 }
-function insert_register_site_classifications() {
-    /*
-	 * Inserts site classification html into page
-	 */
-	GM_log("irsc");
-	GM_setValue('register_state', 'site_classifications');
-	
-    var cell_text = "<div id='thin_column'>" + register_tab_snippet();
+
+function site_classifications_middle() {
     var procrasdonate_text = "";
     var undefined_text = "";
     var timewellspent_text = "";
@@ -1029,21 +998,27 @@ function insert_register_site_classifications() {
         }
     }
     
-    $("#content").html(cell_text +
-    "<div id='site_classifications'>" +
-    	"<table<tbody>" +
-    		"<tr><td>Procras Donate</td><td>&lt;-- --&gt;</td><td>Time Well Spent</td></tr>" +
-    		"<tr><td id='procrasdonate_col'>" +
-        		procrasdonate_text + 
-        	"</td><td id='undefined_col'>" +
-        		undefined_text +
-        	"</td><td id='timewellspent_col'>" +
-        		timewellspent_text +
-        	"</td></tr>" +
-        "</tbody></table>" +
-    "</div></div>");
+    return "" +
+	    "<div id='site_classifications'>" +
+	    	"<table<tbody>" +
+	    		"<tr><td>Procras Donate</td><td>&lt;-- --&gt;</td><td>Time Well Spent</td></tr>" +
+	    		"<tr><td id='procrasdonate_col'>" +
+	        		procrasdonate_text + 
+	        	"</td><td id='undefined_col'>" +
+	        		undefined_text +
+	        	"</td><td id='timewellspent_col'>" +
+	        		timewellspent_text +
+	        	"</td></tr>" +
+	        "</tbody></table>" +
+	    "</div>"
+}
+
+function insert_register_site_classifications() {
+	/* Inserts site classification html into page */
+	GM_setValue('register_state', 'site_classifications');
+	$("#content").html(register_wrapper_snippet(site_classifications_middle(), false));
     activate_register_tab_events();
-    activate_site_box_events();
+    activate_site_classifications_middle();
 }
 
 function recipient_snippet(name, url, description) {
@@ -1053,22 +1028,7 @@ function recipient_snippet(name, url, description) {
 			"</div>";
 }
 
-function insert_register_recipients() {
-    /*
-	 * Inserts form so that user may select recipients.
-	 * 
-	 * Slider input's alt must contain "last" value of input, so when do keyboard presses we can compute how to alter the other tabs.
-	 */
-	GM_setValue('register_state', 'recipients');
-	
-	var user_recipients_ary = [{'name':'Bilumi','url':'http://bilumi.org','description':'Enabling the socially conscious consumer','pct':60},
-	                           {'name':'CNC Mill','url':'http://cnc.org','description':'Every hacker should have one','pct':20},
-							   {'name':'Save The News','url':'http://cnc.org','description':'La lallaala LAlAla','pct':20}];
-	var potential_recipients_ary = [{'name':'Red Cross','url':'http://redcross.org','description':'Exploring mono-chromatic orthoganal artwork since the 1800s'},
-	                                {'name':'Green Peace','url':'http://greenpeace.org','description':'Expanding greener pastures'},
-	                                {'name':'Act Blue','url':'http://actblue.org','description':'Earning money for democrats and making longer, longer, much longer descriptions for profit.'}
-	                                ];
-
+function recipients_middle(user_recipients_ary, potential_recipients_ary) {
 	var user_recipients = "";
 	for (var i = 0; i < user_recipients_ary.length; i += 1) {
 		var name = user_recipients_ary[i].name;
@@ -1104,20 +1064,17 @@ function insert_register_recipients() {
 	}
 	
 	var cell_text =
-        "<div id='thin_column'" +
-        	register_tab_snippet() +
-        	"<div id='user_recipients'>" +
-        		user_recipients +
-        	"</div>" +
-        	"<div id='potential_recipients'>" +
-        		add_your_own +
-        		potential_recipients +
-        	"</div>" +
-        "</div>";
-    
-	$("#content").html(cell_text)
-    activate_register_tab_events();
-	
+        "<div id='user_recipients'>" +
+    		user_recipients +
+    	"</div>" +
+    	"<div id='potential_recipients'>" +
+    		add_your_own +
+    		potential_recipients +
+    	"</div>";
+	return cell_text;
+}
+
+function activate_recipients_middle(user_recipients_ary, potential_recipients_ary) {
 	$(".remove").click(function() {
 		$(this).css("background","green");
 		$(this).siblings().css("background","yellow");
@@ -1170,111 +1127,149 @@ function insert_register_recipients() {
 	}
 }
 
-function insert_register_donation_amounts() {
+function insert_register_recipients() {
     /*
-	 * Inserts form so that user may enter donation information.
+	 * Inserts form so that user may select recipients.
+	 * 
+	 * Slider input's alt must contain "last" value of input, so when do keyboard presses we can compute how to alter the other tabs.
 	 */
+	GM_setValue('register_state', 'recipients');
+	var user_recipients_ary = [{'name':'Bilumi','url':'http://bilumi.org','description':'Enabling the socially conscious consumer','pct':60},
+	                           {'name':'CNC Mill','url':'http://cnc.org','description':'Every hacker should have one','pct':20},
+							   {'name':'Save The News','url':'http://cnc.org','description':'La lallaala LAlAla','pct':20}];
+	var potential_recipients_ary = [{'name':'Red Cross','url':'http://redcross.org','description':'Exploring mono-chromatic orthoganal artwork since the 1800s'},
+	                                {'name':'Green Peace','url':'http://greenpeace.org','description':'Expanding greener pastures'},
+	                                {'name':'Act Blue','url':'http://actblue.org','description':'Earning money for democrats and making longer, longer, much longer descriptions for profit.'}
+	                                ];
+	$("#content").html(register_wrapper_snippet(recipients_middle(user_recipients_ary, potential_recipients_ary), false));
+    activate_register_tab_events();
+	activate_recipients_middle(user_recipients_ary, potential_recipients_ary);
+}
+
+function insert_register_donation_amounts() {
+	/* Inserts form so that user may enter donation information */
 	GM_setValue('register_state', 'donation_amounts');
-
-    function update_cents_per_day_goal() {
-        $("#cents_per_day_goal").text(calculate_cents_per_day_goal());
-    }
-    function update_cents_per_day_max() {
-        $("#cents_per_day_max").text(calculate_cents_per_day_max());
-    }
-    var middle = "" +
-	    "<tr class='above_helprow'><td><label class='right'>ProcrasDonation rate</label></td>" +
-	    "<td><input class='left' type='text' name='cents_per_hour' value='"+GM_getValue('cents_per_hour','')+"'></td></tr>" +
-	    "<tr class='helprow'><td></td><td><div class='help'>&cent; per hour</div></td></tr>" +
-	
-	    "<tr class='above_helprow'><td><label class='right'>ProcrasDonation goal</label></td>" +
-	    "<td><input class='left' id='hr_per_day_goal' type='text' name='hr_per_day_goal' value='"+GM_getValue('hr_per_day_goal','')+"'></td></tr>" +
-	    "<tr class='helprow'><td></td><td><div class='help'>hours per day</span><span id='cents_per_day_goal'></div></td></tr>" +
-	    
-	    "<tr class='above_helprow'><td><label class='right'>ProcrasDonation limit</label></td>" +
-	    "<td><input class='left' id='hr_per_day_max' type='text' name='hr_per_day_max' value='"+GM_getValue('hr_per_day_max','')+"'></td></tr>" +
-	    "<tr class='helprow'><td></td><td><div class='help'>hours per day</div></td></tr>";
-
-    $("#content").html( register_wrapper_snippet(middle) );
+    $("#content").html( register_wrapper_snippet(donation_amounts_middle(), true) );
     activate_register_tab_events();
 }
 
-function register_wrapper_snippet(form_middle) {
-    var cell_text =
-        "<div id='thin_column'" +
-        register_tab_snippet() +
-        "<form name=\"account_form\" onSubmit=\"return false\">" +
-  
-            "<div id='errors'></div>" +
-            "<div id='success'></div>" +
-            
-            "<table>" +
-            "<tbody>" +
-            
-            	form_middle +
+function donation_amounts_middle() {
+	return "" +
+	"<tr>" +
+	    "<td><label class='right'>ProcrasDonation rate</label></td>" +
+	    "<td><input class='left' type='text' size='4' name='cents_per_hour' value='"+GM_getValue('cents_per_hour','')+"'></td>" +
+	    "<td><div class='help'>&cent; per hour</div></td>" +
+    "</tr>" +
+    
+    "<tr>" +
+    	"<td><label class='right'>ProcrasDonation goal</label></td>" +
+    	"<td><input class='left' id='hr_per_day_goal' type='text' size='4' name='hr_per_day_goal' value='"+GM_getValue('hr_per_day_goal','')+"'></td>" +
+    	"<td><div class='help'>hours per day</span><span id='cents_per_day_goal'></div></td>" +
+    "</tr>" +
+    
+    "<tr" +
+    	"<td><label class='right'>ProcrasDonation limit</label></td>" +
+    	"<td><input class='press_enter_for_next left' id='hr_per_day_max' type='text' size='4' name='hr_per_day_max' value='"+GM_getValue('hr_per_day_max','')+"'></td>" +
+    	"<td><div class='help'>hours per day</div></td>" +
+    "</tr>";
+}
 
-            "</tbody>" +
-            "</table>" +
-        "</form>" +
-        "</div>";
+function impact_wrapper_snippet(middle) {
+	var cell_text = "<div id='thin_column'" + impact_tab_snippet();
+    cell_text += "<div id='errors'></div><div id='success'></div>";
+    cell_text += middle;
+    cell_text += "</div>";
     return cell_text;
+}
+
+function register_wrapper_snippet(middle, in_form) {
+	return _wrapper_snippet(middle, in_form, register_tab_snippet());
+}
+
+function settings_wrapper_snippet(middle, in_form) {
+	return _wrapper_snippet(middle, in_form, settings_tab_snippet());
+}
+
+function _wrapper_snippet(middle, in_form, tab_snippet) {
+	/*
+	 * @param in_form: if true, will wrap middle inside a form containing a table.
+	 * 				   otherwise, will not.
+	 * @param middle: If in_form is true, middle should contain table rows:
+	 *    "<tr><td>...</td></tr>" 
+	 * 
+	 */
+    var cell_text = "<div id='thin_column'>" + tab_snippet;
+    cell_text += "<div id='errors'></div><div id='success'></div>";
+    if ( in_form ) {
+        cell_text += "<form name='account_form' onSubmit='return false'>";
+    	cell_text += "<table><tbody>";
+    }
+    cell_text += middle;
+    if ( in_form) { 
+    	cell_text += "</tbody></table></form>";
+    }
+    cell_text += "</div>";
+    return cell_text;
+}
+
+function twitter_account_middle() {
+	return "" +
+    "<tr><td><label class='right'>Twitter username </label></td>" +
+    "<td><input class='left' type='text' name='twitter_username' value='"+GM_getValue('twitter_username','')+"'></td></tr>" +
+    
+    "<tr class='above_helprow'><td><label class='right'>Twitter password</label></td>" +
+    "<td><input class='press_enter_for_next left' type='password' name='twitter_password' value='"+GM_getValue('twitter_password','')+"'></td></tr>" +
+    "<tr class='helprow'><td></td><td><div class='help'><a href='" + PRIVACY_URL + "'>Privacy Guarantee</a></div></td></tr>";
 }
 
 function insert_settings_twitter_account() {
 	/* Inserts user's twitter account form into page */
-	GM_setValue('settings_state','twitter_account');
-	GM_log("twit account"+GM_getValue('settings_state','none'));
-    var cell_text =
-        "<div id='thin_column'" +
-        settings_tab_snippet() +
-        "</div>";
+	GM_setValue('settings_state', 'twitter_account');
     
-    $("#content").html(cell_text);
+    $("#content").html( settings_wrapper_snippet(twitter_account_middle(), true) );
     activate_settings_tab_events();
 }
 
 function insert_settings_recipients() {
+    /*
+	 * Inserts form so that user may select recipients.
+	 * 
+	 * Slider input's alt must contain "last" value of input, so when do keyboard presses we can compute how to alter the other tabs.
+	 */
 	GM_setValue('settings_state', 'recipients');
-    var cell_text =
-        "<div id='thin_column'" +
-        settings_tab_snippet() +
-        "</div>";
-    
-    $("#content").html(cell_text);
+	var user_recipients_ary = [{'name':'Bilumi','url':'http://bilumi.org','description':'Enabling the socially conscious consumer','pct':60},
+	                           {'name':'CNC Mill','url':'http://cnc.org','description':'Every hacker should have one','pct':20},
+							   {'name':'Save The News','url':'http://cnc.org','description':'La lallaala LAlAla','pct':20}];
+	var potential_recipients_ary = [{'name':'Red Cross','url':'http://redcross.org','description':'Exploring mono-chromatic orthoganal artwork since the 1800s'},
+	                                {'name':'Green Peace','url':'http://greenpeace.org','description':'Expanding greener pastures'},
+	                                {'name':'Act Blue','url':'http://actblue.org','description':'Earning money for democrats and making longer, longer, much longer descriptions for profit.'}
+	                                ];
+	$("#content").html(settings_wrapper_snippet(recipients_middle(user_recipients_ary, potential_recipients_ary), false));
     activate_settings_tab_events();
+	activate_recipients_middle(user_recipients_ary, potential_recipients_ary);
 }
 
 function insert_settings_donation_amounts() {
+	/* Inserts form so that user may enter donation information */
 	GM_setValue('settings_state', 'donation_amounts');
-    var cell_text =
-        "<div id='thin_column'" +
-        settings_tab_snippet() +
-        "</div>";
-    
-    $("#content").html(cell_text);
+    $("#content").html( settings_wrapper_snippet(donation_amounts_middle(), true) );
     activate_settings_tab_events();
 }
 
 function insert_settings_site_classifications() {
+	/* Inserts site classification html into page */
 	GM_setValue('settings_state', 'site_classifications');
-    var cell_text =
-        "<div id='thin_column'" +
-        settings_tab_snippet() +
-        "</div>";
-    
-    $("#content").html(cell_text);
+	$("#content").html(settings_wrapper_snippet(site_classifications_middle(), false));
     activate_settings_tab_events();
+    activate_site_classifications_middle();
 }
 
 function insert_settings_support() {
+    /* Inserts support ProcrasDonate info. */
 	GM_setValue('settings_state', 'support');
-    var cell_text =
-        "<div id='thin_column'" +
-        settings_tab_snippet() +
-        "</div>";
-    
-    $("#content").html(cell_text);
+    $("#content").html( settings_wrapper_snippet(support_middle(), false) );
     activate_settings_tab_events();
+    activate_support_middle();
 }
 
 function insert_settings_balance() {
@@ -1308,8 +1303,15 @@ function insert_settings_balance() {
 }
 
 function process_support() {
-	GM_log("process_support()");
-	return true;
+	var support_input = parseFloat($("input[name='support_input']").attr("value"))
+	
+	if ( support_input < 0 || support_input > 100 ) {
+	    $("#errors").text("<p>Please enter a percent between 0 and 10.</p>");
+	} else {
+		GM_setValue('support', 4);
+		return true;
+	}
+	return false;
 }
 
 function validate_cents_input(v) {
@@ -1362,11 +1364,11 @@ function process_donation() {
 	 * hr_per_day_goal: pos float < 25
 	 * hr_per_day_max: pos float < 25
 	 */
-	GM_log("process_donation()");
 	var cents_per_hour = parseInt($("input[name='cents_per_hour']").attr("value"));
 	var hr_per_day_goal = parseFloat($("input[name='hr_per_day_goal']").attr("value"));
 	var hr_per_day_max = parseFloat($("input[name='hr_per_day_max']").attr("value"));
 	
+	$("#errors").text("");
 	if ( !validate_cents_input(cents_per_hour) ) {
 	    $("#errors").append("<p>Please enter a valid dollar amount. For example, to donate $2.34 an hour, please enter 2.34</p>");
 	} else if ( !validate_hours_input(hr_per_day_goal) ) {
@@ -1458,14 +1460,31 @@ function _tab_snippet(state_name, state_enums, tab_names) {
 
 function register_tab_snippet() {
     /* Creates register state track. Does not call _tab_snippet! */
-	var tracks_text = "<table id='register_track'><tbody><tr>";
+	var ret = _track_snippet('register', REGISTER_STATE_ENUM, REGISTER_STATE_TAB_NAMES, true);
+	var next_value = "Next";
+	if ( GM_getValue('register_state','') == 'balance' ) {
+		next_value = "Done!";
+	}
+	ret += "" +
+		"<input id='prev_register_track' class='link' type='button' name='save' value='Prev'>" +
+		"<input id='next_register_track' class='link' type='button' name='save' value='" + next_value + "'>";
+	return ret; 
+}
+
+function settings_tab_snippet() {
+    /* Creates settings state track.*/
+	return _track_snippet('settings', SETTINGS_STATE_ENUM, SETTINGS_STATE_TAB_NAMES, false);
+}
+
+function _track_snippet(state_name, state_enum, tab_names, track_progress) {
+	var tracks_text = "<table id='"+state_name+"_track' class='tracks'><tbody><tr>";
 	
-    var current_state = GM_getValue('register_state', '');
-    var current_state_index = REGISTER_STATE_ENUM.length;
+    var current_state = GM_getValue(state_name+'_state', '');
+    var current_state_index = state_enum.length;
     
-    for (i = 0; i < REGISTER_STATE_ENUM.length && i < 6; i += 1) {
-    	var track_state = REGISTER_STATE_ENUM[i];
-    	var track_name = REGISTER_STATE_TAB_NAMES[i];
+    for (i = 0; i < state_enum.length && i < 6; i += 1) {
+    	var track_state = state_enum[i];
+    	var track_name = tab_names[i];
     	var image_number = i+1;
     	
     	var selected_class = '';
@@ -1481,11 +1500,16 @@ function register_tab_snippet() {
     	
     	var circle_image_name = MEDIA_URL + "img/StepCircle" + image_number;
     	var bar_image_name = MEDIA_URL + "img/";
-    	if ( done_class || selected_class ) {
+    	
+    	if ( (track_progress && done_class) || selected_class ) {
     		circle_image_name += "Done";
-    		bar_image_name += "DashGreen";
+    		bar_image_name += "DashGreen";	
     	} else {
-    		bar_image_name += "Arrow";
+    		if ( track_progress ) {
+    			bar_image_name += "Arrow";
+    		} else {
+    			bar_image_name += "DashGreen";
+    		}
     	}
     	circle_image_name += ".png";
     	bar_image_name += ".png";
@@ -1494,7 +1518,7 @@ function register_tab_snippet() {
     		tracks_text += "<td><img src='"+ bar_image_name +"' class='StageBar'></td>";
     	}
     	
-    	tracks_text += "<td id='" + track_state + "_track' class='" + selected_class +" "+ done_class +"'>";
+    	tracks_text += "<td id='" + track_state + "_track' class='track " + selected_class +" "+ done_class +"'>";
 
 	    	tracks_text += "<img src='"+ circle_image_name +"' class='StageCircle "+ done_class +"'>"
 
@@ -1502,9 +1526,9 @@ function register_tab_snippet() {
     }    
     tracks_text += "</tr><tr>";
     
-    for (i = 0; i < REGISTER_STATE_ENUM.length && i < 6; i += 1) {
-    	var track_state = REGISTER_STATE_ENUM[i];
-    	var track_name = REGISTER_STATE_TAB_NAMES[i];
+    for (i = 0; i < state_enum.length && i < 6; i += 1) {
+    	var track_state = state_enum[i];
+    	var track_name = tab_names[i];
     	
     	var selected_class = '';
     	if ( track_state == current_state ) {
@@ -1518,26 +1542,11 @@ function register_tab_snippet() {
     	}
     	
     	if ( i != 0 ) { tracks_text += "<td></td>"; }
-    	tracks_text += "<td class='track_text " + selected_class +" "+ done_class +"'>" + track_name + "</td>";
+    	tracks_text += "<td id='" + track_state + "_text' class='track_text " + selected_class +" "+ done_class +"'>" + track_name + "</td>";
     }
     
     tracks_text += "</tr></tbody></table>";
-    
-	var ret = tracks_text;
-	var next_value = "Next";
-	if ( GM_getValue('register_state','') == 'tipjoy_account' ) {
-		next_value = "Done!";
-	}
-	ret += "" +
-		"<input id='prev_register_track' class='link' type='button' name='save' value='Prev'>" +
-		"<input id='next_register_track' class='link' type='button' name='save' value='" + next_value + "'>";
-	return ret;
-
-}
-
-function settings_tab_snippet() {
-    /* Calls _tab_snippet for settings state */
-	return _tab_snippet('settings', SETTINGS_STATE_ENUM, SETTINGS_STATE_TAB_NAMES);
+    return tracks_text;
 }
 
 function impact_tab_snippet() {
@@ -1547,54 +1556,14 @@ function impact_tab_snippet() {
 
 function _process_before_proceeding(state_name, state_enums, processors, event) {
 	return function() {
-		//alert("state name "+state_name);
 		for (var i = 0; i < state_enums.length; i += 1) {
 			var tab_state = state_enums[i];
-			//alert("i "+i+" tab_state "+tab_state);
 			if ( GM_getValue(state_name+"_state", "") == tab_state ) {
 				var processor = processors[i];
-				//alert("yes");
 				if ( processor() ) {
-					//alert("processor returned True");
 					event();
 				}
-			}
-		}
-	}
-}
-
-function _activate_tab_events(state_name, state_enums, event_inserts, processors) {
-	/* Attaches EventListeners to tabs
-	 *
-	 * @param state_name: string. one of 'settings', 'register' or 'impact
-	 * @param state_enums: array. state enumeration. one of 'SETTINGS_STATE_ENUM',
-	 * 		'REGISTER_STATE_ENUM' or 'IMPACT_STATE_ENUM'
-	 * @param event_inserts: array. functions corresponding to enums. one of 
-	 * 		'SETTINGS_STATE_INSERTS', 'IMPACT_STATE_INSERTS', 'REGISTER_STATE_INSERTS'
-	 * @param processors: array. functions corresponding to enums. one of
-	 *		'SETTINGS_STATE_PROCESSORS', 'IMPACT_STATE_PROCESSORS', 'REGISTER_STATE_PROCESSORS'
-	 */
-	for (var i = 0; i < state_enums.length; i += 1) {
-		var tab_state = state_enums[i];
-		var event = event_inserts[i];
-		// closure
-		$("#"+tab_state+"_tab").click( 
-				(_process_before_proceeding)(state_name, state_enums, processors, event) );
-		
-		if ( state_name == 'register' ) {
-			var current_state = GM_getValue(state_name+'_state', '');
-			if ( tab_state == current_state ) {
-				if ( i > 0 ) {
-					var prev = event_inserts[i-1];
-					$("#prev_register_track").show().click( 
-							(_process_before_proceeding)(state_name, state_enums, processors, prev) );
-				} else { $("#prev_register_track").hide(); }
-				
-				if ( i < state_enums.length ) {
-					var next = event_inserts[i+1];
-					$("#next_register_track").show().click( 
-							(_process_before_proceeding)(state_name, state_enums, processors, next) );
-				} else { $("#next_register_track").hide(); }
+				break;
 			}
 		}
 	}
@@ -1602,42 +1571,71 @@ function _activate_tab_events(state_name, state_enums, event_inserts, processors
 
 function activate_settings_tab_events() {
     /* Attaches EventListeners to settings tabs */
-    _activate_tab_events('settings', SETTINGS_STATE_ENUM, SETTINGS_STATE_INSERTS, SETTINGS_STATE_PROCESSORS);
+	for (var i = 0; i < SETTINGS_STATE_ENUM.length; i += 1) {
+		var tab_state = SETTINGS_STATE_ENUM[i];
+		var event = SETTINGS_STATE_INSERTS[i];
+		// closure
+		$("#"+tab_state+"_track, #"+tab_state+"_text").click( 
+				(_process_before_proceeding)('settings', SETTINGS_STATE_ENUM, SETTINGS_STATE_PROCESSORS, event) );
+	}
+	// cursor pointer to tracks
+	$(".track, .track_text").css("cursor","pointer");
+	
+	//@TODO
+    $(".press_enter_for_next").bind( 'keypress', function(e) {
+    	var code = (e.keyCode ? e.keyCode : e.which);
+		if(code == 13) { //Enter keycode
+			$("#next_register_track").click();
+		}
+	});
 }
 
 function activate_impact_tab_events() {
     /* Attaches EventListeners to impact tabs */
-    _activate_tab_events('impact', IMPACT_STATE_ENUM, IMPACT_STATE_INSERTS, IMPACT_STATE_PROCESSORS);
+    for (var i = 0; i < IMPACT_STATE_ENUM.length; i += 1) {
+		var tab_state = IMPACT_STATE_ENUM[i];
+		var event = IMPACT_STATE_INSERTS[i];
+		// closure
+		$("#"+tab_state+"_tab").click( 
+				(function (event) { return event; })(event)
+		);
+	}
 }
 
 function activate_register_tab_events() {
     /* Attaches EventListeners to register tabs */
-    _activate_tab_events('register', REGISTER_STATE_ENUM, REGISTER_STATE_INSERTS, REGISTER_STATE_PROCESSORS);
+    for (var i = 0; i < REGISTER_STATE_ENUM.length; i += 1) {
+    	var tab_state = REGISTER_STATE_ENUM[i];
+		var current_state = GM_getValue('register_state', '');
+		
+		if ( tab_state == current_state ) {
+			if ( i > 0 ) {
+				var prev = REGISTER_STATE_INSERTS[i-1];
+				$("#prev_register_track").click( 
+						(_process_before_proceeding)('register', REGISTER_STATE_ENUM, REGISTER_STATE_PROCESSORS, prev) );
+			} else { $("#prev_register_track").hide(); }
+			
+			if ( i < REGISTER_STATE_ENUM.length ) {
+				var next = REGISTER_STATE_INSERTS[i+1];
+				$("#next_register_track").click(
+						(_process_before_proceeding)('register', REGISTER_STATE_ENUM, REGISTER_STATE_PROCESSORS, next) );
+			} else { $("#next_register_track").hide(); }
+		}
+	}
+    $(".press_enter_for_next").bind( 'keypress', function(e) {
+    	var code = (e.keyCode ? e.keyCode : e.which);
+		if(code == 13) { //Enter keycode
+			$("#next_register_track").click();
+		}
+	});
 }
 
+/************************************************************************/
+
 function insert_register_twitter_account() {
-    /*
-	 * Inserts form so that user may enter account information. Required:
-	 * twitter_username twitter_password Optional: recipient cents_per_hour
-	 * hr_per_day_goal hr_per_day_max
-	 */
+	/* Inserts user's twitter account form into page */
 	GM_setValue('register_state', 'twitter_account');
-	
-    function update_cents_per_day_goal() {
-        $("#cents_per_day_goal").text(calculate_cents_per_day_goal());
-    }
-    function update_cents_per_day_max() {
-        $("#cents_per_day_max").text(calculate_cents_per_day_max());
-    }
-    var middle = "" +
-        "<tr><td><label class='right'>Twitter username </label></td>" +
-        "<td><input class='left' type='text' name='twitter_username' value='"+GM_getValue('twitter_username','')+"'></td></tr>" +
-        
-        "<tr class='above_helprow'><td><label class='right'>Twitter password</label></td>" +
-        "<td><input class='left' type='password' name='twitter_password' value='"+GM_getValue('twitter_password','')+"'></td></tr>" +
-        "<tr class='helprow'><td></td><td><div class='help'><a href='" + PRIVACY_URL + "'>Privacy Guarantee</a></div></td></tr>";
-    
-    $("#content").html( register_wrapper_snippet(middle) );
+    $("#content").html( register_wrapper_snippet(twitter_account_middle(), true) );
     activate_register_tab_events();
 }
 
@@ -1645,6 +1643,7 @@ function insert_impact_site_ranks() {
     /*
 	 * Inserts site ranks information into impact.site_ranks page
 	 */
+	GM_setValue('impact_state', 'site_ranks');
     var sort_arr = [
                     ['www.ycombinator.com', 120, 200],
                     ['bilumi.org', 100, 100],
@@ -1654,26 +1653,23 @@ function insert_impact_site_ranks() {
                     ['news.ycombinator.com', 2, 2],
                     ['hulu.com', 1, 1],
                      ];
-    
-    var cell_text = "<div id='thin_column'>" + impact_tab_snippet();
-    cell_text += "<div id='ranks'>";
-    cell_text += "<table><tbody>";
+        
+    var middle = "<div id='ranks'>";
+    middle += "<table><tbody>";
     
     var max = null;
     for (i = 0; i < sort_arr.length; i += 1) {
         if ( i == 0 ) max = sort_arr[i][1];
-        cell_text += "<tr class='site_rank'>";
-        cell_text += "<td class='site_name'>" + sort_arr[i][0] + "</td>";
-        cell_text += "<td class='rank'><div class='bar' style='width:" + parseInt( (sort_arr[i][1]/max)*100.0 ) + "%'></div></td>";
-        cell_text += "<td class='rank_text'>" + sort_arr[i][1] + " min</td>";
-        cell_text += "<td class='rank_text'>$" + sort_arr[i][2] + "</td>";
-        cell_text += "</tr>";
+        middle += "<tr class='site_rank'>";
+        middle += "<td class='site_name'>" + sort_arr[i][0] + "</td>";
+        middle += "<td class='rank'><div class='bar' style='width:" + parseInt( (sort_arr[i][1]/max)*100.0 ) + "%'></div></td>";
+        middle += "<td class='rank_text'>" + sort_arr[i][1] + " min</td>";
+        middle += "<td class='rank_text'>$" + sort_arr[i][2] + "</td>";
+        middle += "</tr>";
     }
-    cell_text += "</tbody></table>";
+    middle += "</tbody></table>";
     
-    cell_text += "</div>";
-    
-    $("#content").html(cell_text);
+    $("#content").html( impact_wrapper_snippet(middle) );
     activate_impact_tab_events();
 }
 
@@ -1681,10 +1677,10 @@ function insert_impact_visits() {
     /*
 	 * Inserts visits information into impact.visits page
 	 */
-    var cell_text = "<div id='thin_column'>" + impact_tab_snippet();
-    cell_text += "<div id='procrasdonation_chart' style='width:100%;height:300px'></div>";
-    cell_text += "</div>";
-    $("#content").html(cell_text);
+	GM_setValue('impact_state', 'visits');
+	
+    var middle = "<div id='procrasdonation_chart' style='width:100%;height:300px'></div>";
+    $("#content").html( impact_wrapper_snippet(middle) );
     activate_impact_tab_events();
     
     var rawdata = [ [10, 1], [17, -14], [30, 5] ];
@@ -1711,17 +1707,17 @@ function insert_impact_visits() {
         selection: { mode: "x", },
         // crosshair: { mode: "xy", },
     };
-    $.plot($("#procrasdonation_chart"), data, options);
+    //$.plot($("#procrasdonation_chart"), data, options);
 }
 
 function insert_impact_history() {
     /*
 	 * Inserts historic information into impact.historic page
 	 */
-    var cell_text = "<div id='thin_column'>" + impact_tab_snippet();
-    cell_text += "<div id='procrasdonation_chart' style='width:100%;height:300px'></div>";
-    cell_text += "</div>";
-    $("#content").html(cell_text);
+	GM_setValue('impact_state', 'history');
+	
+    var middle = "<div id='procrasdonation_chart' style='width:100%;height:300px'></div>";
+    $("#content").html( impact_wrapper_snippet(middle) );
     activate_impact_tab_events();
     
     var rawdata_procrasdonate = [ [1, 1], [2, 2], [3, 3] ];
@@ -1748,7 +1744,7 @@ function insert_impact_history() {
         selection: { mode: "x", },
         // crosshair: { mode: "xy", },
     };
-    $.plot($("#procrasdonation_chart"), data, options);
+    //$.plot($("#procrasdonation_chart"), data, options);
 }
 
 /**
@@ -2467,7 +2463,6 @@ function enforce_restriction() {
 
 function drop_watch() {
     var menu = document.getElementById("tag_drop").value;
-    // alert(menu.value);
     if (menu == '_new_tag') {
         document.getElementById("new_tag_name").style.display = 'inline';
         document.getElementById("new_tag_name").focus();

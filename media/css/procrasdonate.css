@@ -45,11 +45,11 @@ p { text-align: left; }
 	word-spacing: .3em;
 }
 
-#register_track {}
-#register_track tr td { padding: 0em; vertical-align: bottom }
-#register_track tr .track_text { width: 4.5em; max-width: 4.5em; overflow: visible; }
-#register_track tr .done { color: green; }
-#register_track tr .selected { color: blue; }
+.tracks {}
+.tracks tr td { padding: 0em; vertical-align: bottom }
+.tracks tr .track_text { width: 4.5em; max-width: 4.5em; overflow: visible; }
+.tracks tr .done { color: green; }
+.tracks tr .selected { color: blue; }
 .StageBar	{ width: 4em; height: 2em; margin: 0 -1em; }
 .StageCircle { width: 4.5em; }
 
@@ -61,8 +61,8 @@ p { text-align: left; }
 .page_menu ul li { text-align: right; }
 
 #content { margin: auto; width: 90em; text-align:center; margin-top: 1em; }
-#thin_column { width: 50%; margin: auto; padding-bottom: 5em; border-bottom: solid 1px #DDDDDD; }
-#footer { height: 3em;  margin: auto; margin-top: 4em; }
+#thin_column { width: 50%; margin: auto; padding-bottom: 5em; /*border-bottom: solid 1px #DDDDDD;*/ }
+#footer { font-size: .9em; height: 3em;  margin: auto; margin-top: 4em; }
 
 h3 {
   clear: both;
@@ -157,5 +157,22 @@ label { padding-right: 1em; }
 .recipient_row .input { float: left; margin: 0em 1em; }
 
 /**** SUPPORT ****/
-#support_slider { width: 10em; float: left; }
-#support_input { float: left; } 
+#support_slider { width: 10em; }
+#support_input {} 
+
+/***** SLIDER ******/
+.ui-slider { position: relative; text-align: left; }
+.ui-slider .ui-slider-handle { position: absolute; z-index: 2; width: 1.2em; height: 1.2em; cursor: default; }
+.ui-slider .ui-slider-range { position: absolute; z-index: 1; font-size: .7em; display: block; border: 0; }
+
+.ui-slider-horizontal { height: .8em; }
+.ui-slider-horizontal .ui-slider-handle { top: -.3em; margin-left: -.6em; }
+.ui-slider-horizontal .ui-slider-range { top: 0; height: 100%; }
+.ui-slider-horizontal .ui-slider-range-min { left: 0; }
+.ui-slider-horizontal .ui-slider-range-max { right: 0; }
+
+.ui-slider-vertical { width: .8em; height: 100px; }
+.ui-slider-vertical .ui-slider-handle { left: -.3em; margin-left: 0; margin-bottom: -.6em; }
+.ui-slider-vertical .ui-slider-range { left: 0; width: 100%; }
+.ui-slider-vertical .ui-slider-range-min { bottom: 0; }
+.ui-slider-vertical .ui-slider-range-max { top: 0; }
