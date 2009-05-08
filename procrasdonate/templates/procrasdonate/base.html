@@ -15,13 +15,12 @@
 		
 		<link rel="shortcut icon" href="{{ MEDIA_URL }}img/pd_icon.jpg" type="image/x-icon" >
 
+		<link rel="stylesheet" type="text/css" href="{{ MEDIA_URL }}css/ui.theme.css">
 		<link rel="stylesheet" type="text/css" href="{{ MEDIA_URL }}css/procrasdonate.css">
 	
-		<link type="text/css" href="http://jqueryui.com/latest/themes/base/ui.all.css" rel="stylesheet" />
-		
-		<script type="text/javascript" charset="utf-8" src="http://ajax.googleapis.com/ajax/libs/jquery/1.3.0/jquery.min.js"></script>
-		<script type="text/javascript" src="http://jqueryui.com/latest/ui/ui.core.js"></script>
-	 	<script type="text/javascript" src="http://jqueryui.com/latest/ui/ui.slider.js"></script>
+		<script type="text/javascript" charset="utf-8" src="{{ MEDIA_URL }}js/jquery.min.js"></script>
+		<script type="text/javascript" charset="utf-8" src="{{ MEDIA_URL }}js/ui.core.js"></script>
+	 	<script type="text/javascript" charset="utf-8" src="{{ MEDIA_URL }}js/ui.slider.js"></script>
 		
 		<script type="text/javascript" charset="utf-8" src="{{ MEDIA_URL }}js/procrasdonate.js"></script>
 		{% block head %}{% endblock %}
@@ -32,23 +31,23 @@
 		<div id="wrapper">
 			
 			<div id="static_menu">
-				<div {% ifequal selected "home" %}class="here_we_are"{% endifequal %}><a href="{% url home %}">Home</a></div>
-				<div {% ifequal selected "start_now" %}class="here_we_are"{% endifequal %}><a href="{% url start_now %}">Start Now</a></div>
-				<div {% ifequal selected "my_impact" %}class="here_we_are"{% endifequal %}><a href="{% url my_impact %}">My Impact</a></div>
-				<div {% ifequal selected "community" %}class="here_we_are"{% endifequal %}><a href="{% url community %}">Community</a></div>
 				<img id="logo" alt="" src="{{ MEDIA_URL }}img/ProcrasDonateLogoText.png">
+
+				<div {% ifequal selected "home" %}class="here_we_are"{% endifequal %} id='home_menu_item'><a href="{% url home %}">Home</a></div>
+				<div {% ifequal selected "start_now" %}class="here_we_are"{% endifequal %} id='start_now_menu_item'><a href="{% url start_now %}">Start Now</a></div>
+				<div {% ifequal selected "my_impact" %}class="here_we_are"{% endifequal %} id='my_impact_menu_item'><a href="{% url my_impact %}">My Impact</a></div>
+				<div {% ifequal selected "community" %}class="here_we_are"{% endifequal %} id='community_menu_item'><a href="{% url community %}">Community</a></div>
+				
+				<div id="footer">
+					<a href="">about us</a> | 
+					<a href="">feedback</a>
+					<div class="copyright">&copy; 2009 ProcrasDonate</div> 
+				</div>
 			</div> 
 		
 			<div id="content">
 				{% block content %}
 				{% endblock %}
-			</div>
-			
-			<div id="footer">
-				&copy; 2009 ProcrasDonate &nbsp;&nbsp;&nbsp; 
-				<a href="">about us</a> | 
-				<a href="">feedback</a> |
-				<a href="">press</a> |
 			</div>
 			
 		</div>
