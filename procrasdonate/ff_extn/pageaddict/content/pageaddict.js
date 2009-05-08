@@ -30,9 +30,32 @@
  * 
  * For more details visit http://ProcrasDonate.com
  * 
- * __DETAILS__
+ * __POSTS TO TIPJOY AND PROCRASDONATE.COM__
  * 
- * __HTML INSERTION__ This extension stores user information locally on the
+ * Every day, the previous day's url visits are aggregated into
+ * total time spent and total donation amounts for site and recipients.
+ * 
+ * POST 1: This information is sent to the ProcrasDonation server so that it 
+ * may pay recipients and update the leader boards.
+ * 
+ * POST 2: The total amount owed is paid to ProcrasDonate via TipJoy. 
+ * 
+ * (ProcrasDoante aggregates across all users and sends one daily donation
+ * to recipients)
+ * 
+ * __PAYMENTS__
+ * 
+ * Users can select multiple recipients. Each recipient takes a user-specified
+ * percent of the total rate (cents per hour) donated.
+ * 
+ * Users can also choose to support ProcrasDonate by donating some percentage to
+ * ProcrasDonate. This is not done by making ProcrasDonate a recipient, but by
+ * specifying a support amount (currently between 0 and 10%). The support amount
+ * skims the top.
+ * 
+ * __HTML INSERTION__ 
+ * 
+ * This extension stores user information locally on the
  * user's browser. The ProcrasDonate.com server serves the general website, but
  * certain user-specific pages are necessarily overwritten by the extension.
  * 
@@ -42,13 +65,6 @@
  * 
  * Note that CSS is still served by the ProcrasDonate.com server
  * 
- * __POSTS SCHEDULING__ Every day (or every week?), the previous day's donation
- * amounts are donated. That is, a POST is made to TipJoy's API for the
- * aggregated donation per recipient.
- * 
- * Information is also sent to the ProcrasDonation.com server for updating the
- * sites and recipients leader boards.
- * 
  * __KNOWN PROBLEMS__
  * 
  * Almost every page loads gives the following error: Error: start_recording is
@@ -56,9 +72,34 @@
  * any actual bugs. Would be nice to keep this from happening so as not to
  * pollute the error list.
  * 
+ * GETs hang
+ * 
+ * can't seem to include jquery or json2 from script-compiler-overlay.xul
  * 
  * 
  * __VARIABLES IN GM STORE__
+ * 
+ * 'last_24hr_mark' -> int = seconds since epoch. marks start of 24hr period. if current time
+ * 		is more than 24hrs since mark, then daily tasks are performed and last_24hrs_mark 
+ * 		is updated. note that the hour and minute should remain constant. only the day 
+ * 		and year need change. this is to maintain a random distribution of daily marks.
+ * 
+ * 'last_week_mark' -> int = seconds since epoch. like last_24hr_mark but marks start of week.
+ * 
+ * 'twitter_username'
+ * 'twitter_password'
+ * 'recipients' = uncertain format
+ * 'cents_per_hour'
+ * 'hr_per_day_goal' = goal number of hours to donate each day
+ * 'hr_per_day_max' = max number of hours from which to donate each day
+ * 
+ * 'settings_state' = enumeration of settings page state 
+ * 
+ * 'impact_state' = enumeration of impact page state
+ * 
+ * 'register_state' = enumeration of registration state 
+ * 
+ * __UN-USED OR TO-BE-CLASSIFIED VARIABLES__
  * 
  * href = something like 'bilumi_org' or 'www_google_com__search' tag = user
  * generated string like 'work' or 'games'
@@ -75,23 +116,16 @@
  * 'visited' = list of href's visited for < 1 second. ';' separated
  * 'tagmatch_list' = list of "pattern=tag" pairs, ';' separated 'tag_list' =
  * 
- * tag+'_times' tag+'_spent' tag+'_restricted' = use of tag is restricted
+ * tag+'_times'
+ * tag+'_spent' tag+'_restricted' = use of tag is restricted
  * tag+'_max_time' = max time in minutes before content is blocked
  * 
- * 'total_times' 'total_spent'
+ * 'total_times'
+ * 'total_spent'
  * 
  * 'idle_timeout_mode' = boolean. based on preferences. if hasn't been set yet,
  * is based on platform.
  * 
- * 'twitter_username' 'twitter_password' 'recipient' 'cents_per_hour'
- * 'hr_per_day_goal' = goal number of hours to donate each day 'hr_per_day_max' =
- * max number of hours from which to donate each day
- * 
- * 'settings_state' = enumeration of settings page state 
- * 
- * 'impact_state' = enumeration of impact page state
- * 
- * 'register_state' = enumeration of registration state 
  * 
  * __WINDOW STORE__
  * 
@@ -133,22 +167,23 @@ function CONSTANTS() {
 	/*
 	 * Define all global variables here. 
 	 */
-	MEDIA_URL = '/procrasdonate_media/'
-	PD_DOMAIN = 'http://localhost:8000'
+	MEDIA_URL = '/procrasdonate_media/';
+	PD_HOST = 'localhost:8000';
+	PD_URL = 'http://' + PD_HOST;
 	
-	PROCRASDONATE_URL = PD_DOMAIN+'/';
-	START_URL = PD_DOMAIN+'/start_now/';
-	LEARN_URL = PD_DOMAIN+'/home/';
-	IMPACT_URL = PD_DOMAIN+'/my_impact/';
-	SETTINGS_URL = PD_DOMAIN+'/settings/';
+	PROCRASDONATE_URL = PD_URL+'/';
+	START_URL = PD_URL+'/start_now/';
+	LEARN_URL = PD_URL+'/home/';
+	IMPACT_URL = PD_URL+'/my_impact/';
+	SETTINGS_URL = PD_URL+'/settings/';
 		
-	COMMUNITY_URL = PD_DOMAIN+'/our_community';
-	PRIVACY_URL = PD_DOMAIN+'/privacy_guarantee/';
-	RECIPIENTS_URL = PD_DOMAIN+'/recipients';
-	POST_DATA_URL = PD_DOMAIN+'/data/';
+	COMMUNITY_URL = PD_URL+'/our_community';
+	PRIVACY_URL = PD_URL+'/privacy_guarantee/';
+	RECIPIENTS_URL = PD_URL+'/recipients';
+	POST_DATA_URL = PD_URL+'/data/';
 	
 	// these don't exist. used for development testing
-	RESET_URL = PD_DOMAIN+'/reset/';
+	RESET_URL = PD_URL+'/reset/';
 
 	// enumeration of settings page state
 	SETTINGS_STATE_ENUM = ['twitter_account', 'recipients', 'donation_amounts', 'support', 'site_classifications', 'balance'];
@@ -263,43 +298,93 @@ function house_keeping() {
 	 * 1. If loading restricted page tag and time limit is exceeded, block page
 	 * 2. If loading a pageaddict page, then insert data if necessary 
 	 * 3. Updated ProcrasDonate version available for download? 
-	 * 4. Update daily state
+	 * 4. Do daily and weekly tasks if necessary
 	 */
     // 0.
 	CONSTANTS();
     initialize_account_defaults_if_necessary();
     initialize_state_if_necessary();
+    set_default_idle_mode_if_necessary();
     
-    // 1.
-    var href = window.location.host;
-    href = href.replace(/\./g, '_');
-    if (!(href.match(/pageaddict_com$/))) {
+    var host = window.location.host;
+    if (!(host.match(/pageaddict\.com$/)) && !(host.match(new RegExp(PD_HOST)))) {
+        // 1.
         check_restriction();
+    } else {
+    	// 2.
+    	check_page_inserts();
     }
-
-    // 2.
-    check_page_inserts();
     
     // 3.
     check_latest_version();
-    // GM_setValue('page_addict_start', false);
 
     // 4.
+    if ( is_new_24hr_period() ) {
+    	do_once_daily_tasks();
+    }
+    if ( is_new_week_period() ) {
+    	do_once_weekly_tasks();
+    }
+    
     var last_global = GM_getValue('last_visit', 0);
     var first = GM_getValue('first_visit', 0);
     // chover = change over, as in change over the day ...?
     var chover = new Date();
     chover.setHours(0, 0, 0);
     chover = Math.round(chover.getTime() / 1000);
-    // GM_log('chover='+chover, ' las');
     if (first < chover) {
         reset_visits();
     }
     // var currentTime = new Date();
     // var t_in_s = Math.round(currentTime.getTime()/1000);
-
     // GM_setValue('last_visit', t_in_s);
-    set_default_idle_mode();
+}
+
+function is_new_24hr_period() {
+	/* @returns: true if it is at least 24 hrs past the last 24hr mark */
+	var two_four_hr = new Date(GM_getValue('last_24hr_mark', '')*1000);
+	var now = new Date();
+	two_four_hr.setHours(two_four_hr.getHours() + 24);
+	return now > two_four_hr
+}
+
+function do_once_daily_tasks() {
+	// reset last_24hr_mark to now
+	var two_four_hr = new Date(GM_getValue('last_24hr_mark', '')*1000);
+	var now = new Date();
+	now.setHours(two_four_hr.getHours());
+	now.setMinutes(two_four_hr.getMinutes());
+	now.setSeconds(two_four_hr.getSeconds());
+	if ( now > new Date() ) {
+		now.setDate( now.getDate() - 1 );
+	}
+	GM_setValue('last_24hr_mark', Math.floor(now.getTime()/1000));
+	
+	alert("ding! last 24hr "+two_four_hr+" new 24hr "+now+"  now  "+new Date());
+}
+
+
+function is_new_week_period() {
+	/* @returns: true if it is at least 1 week past the last week mark */
+	var week_hr = new Date(GM_getValue('last_week_mark', '')*1000);
+	var now = new Date();
+	week_hr.setDate(week_hr.getDate() + 7);
+	return now > week_hr
+}
+
+function do_once_weekly_tasks() {
+	// reset last_week_mark to now
+	var week_hr = new Date(GM_getValue('last_week_mark', '')*1000);
+	var now = new Date();
+	now.setHours(week_hr.getHours());
+	now.setMinutes(week_hr.getMinutes());
+	now.setSeconds(week_hr.getSeconds());
+	if ( now > new Date() ) {
+		now.setDate( now.getDate() - 1 );
+	}
+	GM_setValue('last_week_mark', Math.floor(now.getTime()/1000));
+	
+	alert("ding! last week "+week_hr+" new week "+now+"  now  "+new Date());
 }
 
 function check_latest_version() {
@@ -657,6 +742,33 @@ function reset_visits() {
     GM_savePrefs();
 }
 
+toJSON = function (key) {
+	/* serialize Dates as ISO strings */
+    function f(n) {
+    	/* Format integers to have at least two digits. */
+        return n < 10 ? '0' + n : n;
+    }
+    return this.getUTCFullYear()   + '-' +
+         f(this.getUTCMonth() + 1) + '-' +
+         f(this.getUTCDate())      + 'T' +
+         f(this.getUTCHours())     + ':' +
+         f(this.getUTCMinutes())   + ':' +
+         f(this.getUTCSeconds())   + 'Z';
+};
+
+fromJSON = function (key, value) {
+	/* Values that look like ISO Dates will be converted to Dates */
+    var a;
+    if (typeof value === 'string') {
+        a = /^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2}):(\d{2}(?:\.\d*)?)Z$/.exec(value);
+        if (a) {
+            return new Date(Date.UTC(+a[1], +a[2] - 1, +a[3], +a[4],
+                +a[5], +a[6]));
+        }
+    }
+    return value;
+}
+
 function initialize_state_if_necessary() {
     /*
 	 * Initialize settings and impact state enumerations. Other inits?
@@ -664,6 +776,27 @@ function initialize_state_if_necessary() {
     if (!GM_getValue('settings_state', '')) { GM_setValue('settings_state', DEFAULT_SETTINGS_STATE); }
     if (!GM_getValue('impact_state', '')) { GM_setValue('impact_state', DEFAULT_REGISTER_STATE); }
     if (!GM_getValue('register_state', '')) { GM_setValue('register_state', DEFAULT_IMPACT_STATE); }
+    
+    if (!GM_getValue('last_24hr_mark', '')) {
+    	GM_setValue('last_24hr_mark', (Math.floor(get_semi_random_date().getTime() / 1000)));
+    	// todo once json gets included ok.
+    	//GM_setValue('last_24hr_mark', JSON.stringify(get_semi_random_date(), toJSON));
+    }
+    if (!GM_getValue('last_week_mark', '')) {
+    	//var two_four_hr = JSON.parse(GM_getValue('last_24hr_mark', ''), fromJSON);
+    	var two_four_hr = new Date(GM_getValue('last_24hr_mark', '')*1000);
+    	GM_setValue('last_week_mark', two_four_hr);
+    }
+}
+
+function get_semi_random_date() {
+	/* @returns: Date object for current day, month and fullyear with random hours, minutes and seconds */
+	var d = new Date();
+	// Math.floor(Math.random()*X) generates random ints, x: 0 <= x < X
+	d.setHours(Math.floor(Math.random()*24));
+	d.setMinutes(Math.floor(Math.random()*60));
+	d.setSeconds(Math.floor(Math.random()*60));
+	return d;
 }
 
 function initialize_account_defaults_if_necessary() {
@@ -743,7 +876,7 @@ function check_page_inserts() {
     /*
 	 * Insert data into matching webpage
 	 *    pageaddict.com and (localhost:8000 or procrasdonate.com)
-	 * See PD_DOMAIN in global constants at top of page.
+	 * See PD_HOST in global constants at top of page.
 	 * 
 	 * @SNOOPY here for developer grep purposes
 	 */
@@ -771,7 +904,7 @@ function check_page_inserts() {
     	}
     }
     
-    if (host.match(/localhost:8000/) || host.match(/procrasdonate\.com/)) {
+    if (host.match(new RegExp(PD_HOST))) {
     	//reset_state_to_defaults();
     	if ( GM_getValue('register_state', '') == 'done' ) {
             // If done registering, change Start menu item to Settings.
@@ -1830,7 +1963,7 @@ function add_tagmatch_observe() {
     }
 }
 
-function set_default_idle_mode() {
+function set_default_idle_mode_if_necessary() {
     /*
 	 * Called in house_keeping() (everytime a page loads) Sets
 	 * 'idle_timeout_mode' if not true and not false to something.
