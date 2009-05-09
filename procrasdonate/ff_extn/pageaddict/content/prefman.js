@@ -31,10 +31,16 @@ function pageaddict_PrefManager() {
 			case pref.PREF_BOOL: return pref.getBoolPref(prefName);
 			case pref.PREF_INT: return pref.getIntPref(prefName);
 		}
+		
+		/*
+https://developer.mozilla.org/En/Code_snippets/Preferences
+void getComplexValue(in string aPrefName, in nsIIDRef aType, [iid_is(aType), retval] out nsQIResult aValue);
+void setComplexValue(in string aPrefName, in nsIIDRef aType, in nsISupports aValue);
+		 */
 	}
 
 	// sets the named preference to the specified value. values must be strings,
-	// booleans, or integers.
+	// booleans, or integers. Dates are converted to string representations of milliseconds since 1970.
 	this.setValue=function(prefName, value) {
 		var prefType=typeof(value);
 
@@ -46,6 +52,12 @@ function pageaddict_PrefManager() {
 				if (value % 1 != 0) {
 					throw new Error("Cannot set preference to non integral number");
 				}
+				break;
+			case "object":
+				prefType = "string";
+				//value = JSON.stringify(value);
+				//alert("value: "+value+" string: "+JSON.stringify(value));
+				value = "2";
 				break;
 			default:
 				throw new Error("Cannot set preference with datatype: " + prefType);
