@@ -1,5 +1,6 @@
 body {
-	background: #FFFFFF;
+	background-image: url("{{ MEDIA_URL }}img/StripeBG.png");			
+	color: #330000;
 	margin:0em;
 	padding:0em;
 	text-align:center;
@@ -7,7 +8,7 @@ body {
 	font-size:12px;
 }
 
-a, .link { color:#1C5492; text-decoration:underline; cursor: pointer; }
+a, .link { color:#336699; text-decoration:underline; cursor: pointer; }
 a:hover, .link:hover { color:#FF9900; text-decoration:underline; cursor: pointer; }
 a img { border: none; }
 
@@ -20,13 +21,17 @@ p { text-align: left; }
    bright blue 00B0F0
    middle blue 0099D8
    dark blue 1C5492
+   deep blue (sidebar) 003366
+   soft blue (sidebar and links) 336699
    
    green 156451
+   soft green (sidebar) 669933
    purple 6C0B5D
-   red 8A4304
+   red (menu border) 8A4304
    bright orange FF9900
-   darker orange F37F19
-   
+   darker orange 
+	brown header text cc9966
+   dark brown text 330000
 */
 
 .new { color: #F37F19; }
@@ -35,13 +40,17 @@ p { text-align: left; }
 .error, .errors, #error, #errors { color: red; text-align: center; }
 .success, #success { color: green; text-align: center; }
 
-#static_menu { position: absolute; left: 1em; top: 2em; width: 15em; }
-#static_menu div { display: block; padding: 0.8em 0em; }
-#static_menu .here_we_are a {
-	font-family:Georgia, "Times New Roman", Times, serif;
+#static_menu { font-size: 1.2em; position: absolute; left: 1.7em; top: 2em; font-weight: bold; width: 8.5em; }
+#static_menu div { display: block; padding: 0.3em 0em; margin: 1em 0em; }
+
+#MainMenu { background: #bb8230; border: double .5em #8A4304;}
+#MainMenu div { background: #b47925; border-top: 0.1em dotted #DBBF75; }
+#MainMenu div a { font-variant: small-caps; letter-spacing: .1em; text-decoration: none; color: #f9fdf4; }
+#MainMenu .here_we_are { background: #dbbf75; border-top: 0.1em dotted white; }
+#MainMenu .here_we_are a {
+	color: #0A224D; 
 	text-decoration: none;
-	font-size:1.2em;
-	letter-spacing: .2em;
+	letter-spacing: .15em;
 	word-spacing: .3em;
 }
 
@@ -49,34 +58,42 @@ p { text-align: left; }
 .tracks tr td { padding: 0em; vertical-align: bottom }
 .tracks tr .track_text { width: 4.5em; max-width: 4.5em; overflow: visible; }
 .tracks tr .done { color: green; }
-.tracks tr .selected { color: blue; }
+.tracks tr .selected { color: #336699; }
 .StageBar	{ width: 4em; height: 2em; margin: 0 -1em; }
 .StageCircle { width: 4.5em; }
 
-#logo { width: 10em; margin-top: .8em; }
+#logo { width: 8.5em; margin-left: .05em; }
 
 .page_menu { position: absolute; left: 0em; top: 10.6em; }
 .page_menu h3 { text-align: right; }
 .page_menu ul { list-style-type: none; }
 .page_menu ul li { text-align: right; }
 
+.StartButton { width: 17em; margin-bottom: -3em; margin-right: 2em; }
+
+.Spacer {width: 14em; height: 2em; }
+.SmallSpacer {width: 14em; height: 1.2em; }
+
+.DivRight {text-align: right; }	
+.DivLeft {text-align: left; }
+
 #content { margin: auto; width: 90em; text-align:center; margin-top: 1em; }
-#thin_column { width: 50%; margin: auto; padding-bottom: 5em; /*border-bottom: solid 1px #DDDDDD;*/ }
-#footer { font-size: .9em; height: 3em;  margin: auto; margin-top: 4em; }
+#thin_column { width: 50%; margin: auto; padding-top: 1em; padding-left: 2em; padding-bottom: 5em; }
+#footer { font-size: .8em; height: 5em;  font-weight: normal; margin: auto; padding-top: 2em; }
 
 h3 {
   clear: both;
   text-align: left;
-  font-family:Georgia, "Times New Roman", Times, serif;
-  font-size: 2em;
-  color: #777777;
+  font-family:"Trebuchet MS",Helvetica,Jamrul,sans-serif;
+  font-size: 1.7em;
+  color: #cc9966;
   margin: 1.5em 0em .5em 0em;
   font-variant: small-caps;
-  font-weight: normal;
+  font-weight: bold;
   letter-spacing: .2em;
-  border-bottom: 1px dashed #DAD3D4; /*FAF3F4;*/
+  border-bottom: .5px solid #ccff99; /*FAF3F4;*/
   /*background: #FAF3F4;*/
-  padding: .1em 0em 0em .5em;
+  padding: 1em 0em 0em .5em;
   margin-left: -.5em;
 }
 h4 {
