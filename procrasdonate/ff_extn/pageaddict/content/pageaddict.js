@@ -898,7 +898,7 @@ function check_page_inserts() {
 			else { $ = unsafeWindow.jQuery; }
 		}
 		GM_wait(); 
-		
+
 		//reset_state_to_defaults();
 		if ( GM_getValue('register_state', '') == 'done' ) {
 			// If done registering, change Start menu item to Settings.
