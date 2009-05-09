@@ -22,7 +22,7 @@
 		<script type="text/javascript" charset="utf-8" src="{{ MEDIA_URL }}js/ui.core.js"></script>
 	 	<script type="text/javascript" charset="utf-8" src="{{ MEDIA_URL }}js/ui.slider.js"></script>
 		
-		<script type="text/javascript" charset="utf-8" src="{{ MEDIA_URL }}js/json2.js"></script>
+		{# <script type="text/javascript" charset="utf-8" src="{{ MEDIA_URL }}js/json2.js"></script> #}
 		<script type="text/javascript" charset="utf-8" src="{{ MEDIA_URL }}js/procrasdonate.js"></script>
 		{% block head %}{% endblock %}
 
@@ -33,16 +33,20 @@
 			
 			<div id="static_menu">
 				<img id="logo" alt="" src="{{ MEDIA_URL }}img/ProcrasDonateLogoText.png">
+				<img src="{{ MEDIA_URL }}img/ClearBox.png" class="Spacer">			
 
-				<div {% ifequal selected "home" %}class="here_we_are"{% endifequal %} id='home_menu_item'><a href="{% url home %}">Home</a></div>
-				<div {% ifequal selected "start_now" %}class="here_we_are"{% endifequal %} id='start_now_menu_item'><a href="{% url start_now %}">Start Now</a></div>
-				<div {% ifequal selected "my_impact" %}class="here_we_are"{% endifequal %} id='my_impact_menu_item'><a href="{% url my_impact %}">My Impact</a></div>
-				<div {% ifequal selected "community" %}class="here_we_are"{% endifequal %} id='community_menu_item'><a href="{% url community %}">Community</a></div>
+				<div id="MainMenu">
+					<div {% ifequal selected "home" %}class="here_we_are"{% endifequal %} id='home_menu_item'><a href="{% url home %}">Home</a></div>
+					<div {% ifequal selected "start_now" %}class="here_we_are"{% endifequal %} id='start_now_menu_item'><a href="{% url start_now %}">Start Now</a></div>
+					<div {% ifequal selected "my_impact" %}class="here_we_are"{% endifequal %} id='my_impact_menu_item'><a href="{% url my_impact %}">My Impact</a></div>
+					<div {% ifequal selected "community" %}class="here_we_are"{% endifequal %} id='community_menu_item'><a href="{% url community %}">Community</a></div>
+				</div
+				<img src="{{ MEDIA_URL }}img/ClearBox.png" class="SmallSpacer">			
 				
 				<div id="footer">
 					<a href="">about us</a> | 
 					<a href="">feedback</a>
-					<div class="copyright">&copy; 2009 ProcrasDonate</div> 
+					<div class="copyright">&copy; '09 ProcrasDonate</div> 
 				</div>
 			</div> 
 		
