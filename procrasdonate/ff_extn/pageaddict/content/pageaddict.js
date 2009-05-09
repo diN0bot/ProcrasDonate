@@ -142,24 +142,6 @@
  * which is called every second from start_recording
  ******************************************************************************/
 
-function add_script(src) {
-	var GM_JQ = document.createElement('script');
-	GM_JQ.src = src;
-	GM_JQ.type = 'text/javascript';
-	document.getElementsByTagName('head')[0].appendChild(GM_JQ);
-}
-///////// Defined in procrasdonate.com
-// Add jQuery
-//add_script('http://jquery.com/src/jquery-latest.js');
-// Add jQuery UI
-//add_script('http://jqueryui.com/latest/ui/ui.core.js');
-//add_script('http://jqueryui.com/latest/ui/ui.slider.js');
-
-function GM_wait() {
-    if(typeof unsafeWindow.jQuery == 'undefined') { window.setTimeout (GM_wait,100); }
-    else { $ = unsafeWindow.jQuery; }
-}
-GM_wait(); 
 
 /** *********************** GLOBAL VARIABLES ********************************* */
 
@@ -905,6 +887,25 @@ function check_page_inserts() {
     }
     
     if (host.match(new RegExp(PD_HOST))) {
+    	function add_script(src) {
+    		var GM_JQ = document.createElement('script');
+    		GM_JQ.src = src;
+    		GM_JQ.type = 'text/javascript';
+    		document.getElementsByTagName('head')[0].appendChild(GM_JQ);
+    	}
+    	///////// Defined in procrasdonate.com
+    	// Add jQuery
+    	//add_script('http://jquery.com/src/jquery-latest.js');
+    	// Add jQuery UI
+    	//add_script('http://jqueryui.com/latest/ui/ui.core.js');
+    	//add_script('http://jqueryui.com/latest/ui/ui.slider.js');
+
+    	function GM_wait() {
+    	    if(typeof unsafeWindow.jQuery == 'undefined') { window.setTimeout (GM_wait,100); }
+    	    else { $ = unsafeWindow.jQuery; }
+    	}
+    	GM_wait(); 
+
     	//reset_state_to_defaults();
     	if ( GM_getValue('register_state', '') == 'done' ) {
             // If done registering, change Start menu item to Settings.
