@@ -971,7 +971,7 @@ function make_site_box(name, url, tag) {
     }
     
     var text = "<div class='site'>";
-    var site_text = "<span class='name'>" + name.replace(/__/g, '/').replace(/_/g,'.') + "</span>";
+    var site_text = "<span class='name'>" + name.replace(/__/g, '/').replace(/\_/g,'.') + "</span>";
     if ( tag == 'undefined') text += undefined_wrap(site_text);
     else if ( tag == 'timewellspent') text += timewellspent_wrap(site_text);
     else if ( tag == 'procrasdonate') text += procrasdonate_wrap(site_text);
