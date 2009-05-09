@@ -1,3 +1,8 @@
+var includedScripts = [
+	//'chrome://pageaddict/content/json2.js',
+	'chrome://pageaddict/content/pageaddict.js'
+];
+
 var pageaddict_gmCompiler={
 
 // getUrlContents adapted from Greasemonkey Compiler
@@ -47,10 +52,12 @@ contentLoad: function(e) {
 		&& ( /.*/.test(href) )
 		&& true
 	) {
-		var script=pageaddict_gmCompiler.getUrlContents(
-			'chrome://pageaddict/content/pageaddict.js'
-		);
-		pageaddict_gmCompiler.injectScript(script, href, unsafeWin);
+		var scripts = [];
+		for (var i in includedScripts) {
+			var script = pageaddict_gmCompiler.getUrlContents(includedScripts[i]);
+			scripts.push(script);
+		}
+		pageaddict_gmCompiler.injectScript(scripts.join("\n"), href, unsafeWin);
 	}
 },
 
