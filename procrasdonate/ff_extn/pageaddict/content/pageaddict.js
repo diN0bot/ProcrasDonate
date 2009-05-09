@@ -146,7 +146,7 @@
 
 function CONSTANTS() {
 	/*
-	 * Define all global variables here. 
+	 * Define all global variables here.
 	 */
 	MEDIA_URL = '/procrasdonate_media/';
 	PD_HOST = 'localhost:8000';
@@ -640,7 +640,7 @@ function make_request(url, params, method, onload, onerror) {
 		method : method,
 		url : url,
 		data : data,
-		headers : headers, 
+		headers : headers,
 		onload : onload,
 		onerror : onerror
 	});
@@ -809,7 +809,7 @@ function reset_state_to_defaults() {
 	GM_setValue('impact_state', DEFAULT_IMPACT_STATE);
 	GM_setValue('register_state', DEFAULT_REGISTER_STATE);
 }
- 
+
 function store_old_visits() {
 	/*
 	 * Store old visits in tag_times and tag_spent
@@ -879,7 +879,7 @@ function check_page_inserts() {
 	}
 	
 	if (host.match(new RegExp(PD_HOST))) {
-
+		
 		function add_script(src) {
 			var GM_JQ = document.createElement('script');
 			GM_JQ.src = src;
@@ -892,13 +892,13 @@ function check_page_inserts() {
 		// Add jQuery UI
 		//add_script('http://jqueryui.com/latest/ui/ui.core.js');
 		//add_script('http://jqueryui.com/latest/ui/ui.slider.js');
-
+		
 		function GM_wait() {
 			if(typeof unsafeWindow.jQuery == 'undefined') { window.setTimeout (GM_wait,100); }
 			else { $ = unsafeWindow.jQuery; }
 		}
-		GM_wait(); 
-
+		GM_wait();
+		
 		//reset_state_to_defaults();
 		if ( GM_getValue('register_state', '') == 'done' ) {
 			// If done registering, change Start menu item to Settings.
@@ -954,14 +954,14 @@ function make_site_box(name, url, tag) {
 	 * 
 	 */
 	function undefined_wrap(inner) {
-		return "<span class='move_to_left move_to_procrasdonate'>&lt;</span>" + 
+		return "<span class='move_to_left move_to_procrasdonate'>&lt;</span>" +
 			inner + "<span class='move_to_right move_to_timewellspent'>&gt;</span>";
 	}
 	function procrasdonate_wrap(inner) {
 		return inner + "<span class='move_to_right move_to_undefined'>&gt;</span>";
 	}
 	function timewellspent_wrap(inner) {
-		return "<span class='move_to_left move_to_undefined'>&lt;</span>" + inner; 
+		return "<span class='move_to_left move_to_undefined'>&lt;</span>" + inner;
 	}
 	
 	var text = "<div class='site'>";
@@ -1130,7 +1130,7 @@ function site_classifications_middle() {
 			"<table<tbody>" +
 				"<tr><td>Procras Donate</td><td>&lt;-- --&gt;</td><td>Time Well Spent</td></tr>" +
 				"<tr><td id='procrasdonate_col'>" +
-					procrasdonate_text + 
+					procrasdonate_text +
 				"</td><td id='undefined_col'>" +
 					undefined_text +
 				"</td><td id='timewellspent_col'>" +
@@ -1334,7 +1334,7 @@ function _wrapper_snippet(middle, in_form, tab_snippet) {
 		cell_text += "<table><tbody>";
 	}
 	cell_text += middle;
-	if ( in_form) { 
+	if ( in_form) {
 		cell_text += "</tbody></table></form>";
 	}
 	cell_text += "</div>";
@@ -1583,7 +1583,7 @@ function _tab_snippet(state_name, state_enums, tab_names) {
 		tabs_text += "<div id='" + tab_state + "_tab' class='tab link " + tab_selected_class +"'>";
 		tabs_text += tab_names[i];
 		tabs_text += "</div>";
-	}    
+	}
 	tabs_text += "</div>";
 	
 	return tabs_text
@@ -1599,7 +1599,7 @@ function register_tab_snippet() {
 	ret += "" +
 		"<input id='prev_register_track' class='link' type='button' name='save' value='Prev'>" +
 		"<input id='next_register_track' class='link' type='button' name='save' value='" + next_value + "'>";
-	return ret; 
+	return ret;
 }
 
 function settings_tab_snippet() {
@@ -1654,7 +1654,7 @@ function _track_snippet(state_name, state_enum, tab_names, track_progress) {
 			tracks_text += "<img src='"+ circle_image_name +"' class='StageCircle "+ done_class +"'>"
 		
 		tracks_text += "</td>";
-	}    
+	}
 	tracks_text += "</tr><tr>";
 	
 	for (i = 0; i < state_enum.length && i < 6; i += 1) {
@@ -1682,7 +1682,7 @@ function _track_snippet(state_name, state_enum, tab_names, track_progress) {
 
 function impact_tab_snippet() {
 	/* Calls _tab_snippet for impact state */
-	return _tab_snippet('impact', IMPACT_STATE_ENUM, IMPACT_STATE_TAB_NAMES);   
+	return _tab_snippet('impact', IMPACT_STATE_ENUM, IMPACT_STATE_TAB_NAMES);
 }
 
 function _process_before_proceeding(state_name, state_enums, processors, event) {
@@ -1706,7 +1706,7 @@ function activate_settings_tab_events() {
 		var tab_state = SETTINGS_STATE_ENUM[i];
 		var event = SETTINGS_STATE_INSERTS[i];
 		// closure
-		$("#"+tab_state+"_track, #"+tab_state+"_text").click( 
+		$("#"+tab_state+"_track, #"+tab_state+"_text").click(
 				(_process_before_proceeding)('settings', SETTINGS_STATE_ENUM, SETTINGS_STATE_PROCESSORS, event) );
 	}
 	// cursor pointer to tracks
@@ -1727,7 +1727,7 @@ function activate_impact_tab_events() {
 		var tab_state = IMPACT_STATE_ENUM[i];
 		var event = IMPACT_STATE_INSERTS[i];
 		// closure
-		$("#"+tab_state+"_tab").click( 
+		$("#"+tab_state+"_tab").click(
 				(function (event) { return event; })(event)
 		);
 	}
@@ -1742,7 +1742,7 @@ function activate_register_tab_events() {
 		if ( tab_state == current_state ) {
 			if ( i > 0 ) {
 				var prev = REGISTER_STATE_INSERTS[i-1];
-				$("#prev_register_track").click( 
+				$("#prev_register_track").click(
 						(_process_before_proceeding)('register', REGISTER_STATE_ENUM, REGISTER_STATE_PROCESSORS, prev) );
 			} else { $("#prev_register_track").hide(); }
 			
