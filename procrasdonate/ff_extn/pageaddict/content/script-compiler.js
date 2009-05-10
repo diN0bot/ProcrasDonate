@@ -1,5 +1,9 @@
 var includedScripts = [
 	//'chrome://pageaddict/content/json2.js',
+	'chrome://pageaddict/content/procrasdonate.js',
+	'chrome://pageaddict/content/procrasdonate/constants.js',
+	'chrome://pageaddict/content/procrasdonate/main.js',
+	'chrome://pageaddict/content/procrasdonate/html.js',
 	'chrome://pageaddict/content/pageaddict.js'
 ];
 
