@@ -198,7 +198,7 @@ function start_recording(no_retry) {
 	if (GM_getValue('page_addict_start', false) == true) {
 		// GM_log('cant start recording: global');
 		if (!no_retry) {
-			setTimeout("start_recording(true)", 200);
+			setTimeout(function(){ start_recording(true); }, 200);
 		}
 		return;
 	}
