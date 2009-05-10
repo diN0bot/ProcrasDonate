@@ -8,8 +8,8 @@
 // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 // GNU General Public License for more details
 
-// ProcrasDonate is built on top of PageAddict, which is likewise GPL 
-// licensed. Some aspects of PageAddict are used directly, enhanced, 
+// ProcrasDonate is built on top of PageAddict, which is likewise GPL
+// licensed. Some aspects of PageAddict are used directly, enhanced,
 // rewritten or completely new.
 
 /*******************************************************************************
@@ -35,10 +35,10 @@
  * Every day, the previous day's url visits are aggregated into
  * total time spent and total donation amounts for site and recipients.
  * 
- * POST 1: This information is sent to the ProcrasDonation server so that it 
+ * POST 1: This information is sent to the ProcrasDonation server so that it
  * may pay recipients and update the leader boards.
  * 
- * POST 2: The total amount owed is paid to ProcrasDonate via TipJoy. 
+ * POST 2: The total amount owed is paid to ProcrasDonate via TipJoy.
  * 
  * (ProcrasDoante aggregates across all users and sends one daily donation
  * to recipients)
@@ -53,7 +53,7 @@
  * specifying a support amount (currently between 0 and 10%). The support amount
  * skims the top.
  * 
- * __HTML INSERTION__ 
+ * __HTML INSERTION__
  * 
  * This extension stores user information locally on the
  * user's browser. The ProcrasDonate.com server serves the general website, but
@@ -80,8 +80,8 @@
  * __VARIABLES IN GM STORE__
  * 
  * 'last_24hr_mark' -> int = seconds since epoch. marks start of 24hr period. if current time
- * 		is more than 24hrs since mark, then daily tasks are performed and last_24hrs_mark 
- * 		is updated. note that the hour and minute should remain constant. only the day 
+ * 		is more than 24hrs since mark, then daily tasks are performed and last_24hrs_mark
+ * 		is updated. note that the hour and minute should remain constant. only the day
  * 		and year need change. this is to maintain a random distribution of daily marks.
  * 
  * 'last_week_mark' -> int = seconds since epoch. like last_24hr_mark but marks start of week.
@@ -93,11 +93,11 @@
  * 'hr_per_day_goal' = goal number of hours to donate each day
  * 'hr_per_day_max' = max number of hours from which to donate each day
  * 
- * 'settings_state' = enumeration of settings page state 
+ * 'settings_state' = enumeration of settings page state
  * 
  * 'impact_state' = enumeration of impact page state
  * 
- * 'register_state' = enumeration of registration state 
+ * 'register_state' = enumeration of registration state
  * 
  * __UN-USED OR TO-BE-CLASSIFIED VARIABLES__
  * 
@@ -144,57 +144,59 @@
 
 /** *********************** GLOBAL VARIABLES ********************************* */
 
+var constants = {};
+
 function CONSTANTS() {
 	/*
-	 * Define all global variables here. 
+	 * Define all global variables here.
 	 */
-	MEDIA_URL = '/procrasdonate_media/';
-	PD_HOST = 'localhost:8000';
-	PD_URL = 'http://' + PD_HOST;
+	constants.MEDIA_URL = '/procrasdonate_media/';
+	constants.PD_HOST = 'localhost:8000';
+	constants.PD_URL = 'http://' + constants.PD_HOST;
 	
-	PROCRASDONATE_URL = PD_URL+'/';
-	START_URL = PD_URL+'/start_now/';
-	LEARN_URL = PD_URL+'/home/';
-	IMPACT_URL = PD_URL+'/my_impact/';
-	SETTINGS_URL = PD_URL+'/settings/';
-		
-	COMMUNITY_URL = PD_URL+'/our_community';
-	PRIVACY_URL = PD_URL+'/privacy_guarantee/';
-	RECIPIENTS_URL = PD_URL+'/recipients';
-	POST_DATA_URL = PD_URL+'/data/';
+	constants.PROCRASDONATE_URL = constants.PD_URL+'/';
+	constants.START_URL = constants.PD_URL+'/start_now/';
+	constants.LEARN_URL = constants.PD_URL+'/home/';
+	constants.IMPACT_URL = constants.PD_URL+'/my_impact/';
+	constants.SETTINGS_URL = constants.PD_URL+'/settings/';
+	
+	constants.COMMUNITY_URL = constants.PD_URL+'/our_community';
+	constants.PRIVACY_URL = constants.PD_URL+'/privacy_guarantee/';
+	constants.RECIPIENTS_URL = constants.PD_URL+'/recipients';
+	constants.POST_DATA_URL = constants.PD_URL+'/data/';
 	
 	// these don't exist. used for development testing
-	RESET_URL = PD_URL+'/reset/';
-
-	// enumeration of settings page state
-	SETTINGS_STATE_ENUM = ['twitter_account', 'recipients', 'donation_amounts', 'support', 'site_classifications', 'balance'];
-	SETTINGS_STATE_TAB_NAMES = ['Twitter', 'Recipients', 'Donations', 'Support', 'Sites', 'Balance'];
-	SETTINGS_STATE_INSERTS = [insert_settings_twitter_account, insert_settings_recipients, insert_settings_donation_amounts, insert_settings_support, insert_settings_site_classifications, insert_settings_balance];
-	SETTINGS_STATE_PROCESSORS = [process_twitter_account, process_recipients, process_donation, process_support, process_site_classifications, process_balance];
-	//enumeration of impact page state
-	IMPACT_STATE_ENUM = ['site_ranks', 'visits', 'history'];
-	IMPACT_STATE_TAB_NAMES = ['Site Rankings', 'Current Activity', 'History'];
-	IMPACT_STATE_INSERTS = [insert_impact_site_ranks, insert_impact_visits, insert_impact_history];
-	// enumeration of register track state
-	REGISTER_STATE_ENUM = ['twitter_account', 'recipients', 'donation_amounts', 'support', 'site_classifications', 'balance', 'done'];
-	REGISTER_STATE_TAB_NAMES = ['Twitter', 'Recipients', 'Donation', 'Support', 'Sites', 'Balance', 'XXX'];
-	REGISTER_STATE_INSERTS = [insert_register_twitter_account, insert_register_recipients, insert_register_donation_amounts, insert_register_support, insert_register_site_classifications, insert_register_balance, insert_register_done];
-	REGISTER_STATE_PROCESSORS = [process_twitter_account, process_recipients, process_donation, process_support, process_site_classifications, process_balance, process_done];
+	constants.RESET_URL = constants.PD_URL+'/reset/';
 	
-	DEFAULT_USERNAME = "";
-	DEFAULT_PASSWORD = "";
-	DEFAULT_RECIPIENTS = "Bilumi*http://bilumi.org*80;ProcrasDonate*http://ProcrasDonate.com*20')";
-	DEFAULT_SUPPORT_PCT = 5;
-	DEFAULT_CENTS_PER_HOUR = "95";
-	DEFAULT_HOUR_PER_DAY_GOAL = "2";
-	DEFAULT_HOUR_PER_DAY_MAX = "3";
-
-	DEFAULT_SETTINGS_STATE = "twitter_account";
-	DEFAULT_REGISTER_STATE = "twitter_account";
-	DEFAULT_IMPACT_STATE = "visits";
+	// enumeration of settings page state
+	constants.SETTINGS_STATE_ENUM = ['twitter_account', 'recipients', 'donation_amounts', 'support', 'site_classifications', 'balance'];
+	constants.SETTINGS_STATE_TAB_NAMES = ['Twitter', 'Recipients', 'Donations', 'Support', 'Sites', 'Balance'];
+	constants.SETTINGS_STATE_INSERTS = [insert_settings_twitter_account, insert_settings_recipients, insert_settings_donation_amounts, insert_settings_support, insert_settings_site_classifications, insert_settings_balance];
+	constants.SETTINGS_STATE_PROCESSORS = [process_twitter_account, process_recipients, process_donation, process_support, process_site_classifications, process_balance];
+	//enumeration of impact page state
+	constants.IMPACT_STATE_ENUM = ['site_ranks', 'visits', 'history'];
+	constants.IMPACT_STATE_TAB_NAMES = ['Site Rankings', 'Current Activity', 'History'];
+	constants.IMPACT_STATE_INSERTS = [insert_impact_site_ranks, insert_impact_visits, insert_impact_history];
+	// enumeration of register track state
+	constants.REGISTER_STATE_ENUM = ['twitter_account', 'recipients', 'donation_amounts', 'support', 'site_classifications', 'balance', 'done'];
+	constants.REGISTER_STATE_TAB_NAMES = ['Twitter', 'Recipients', 'Donation', 'Support', 'Sites', 'Balance', 'XXX'];
+	constants.REGISTER_STATE_INSERTS = [insert_register_twitter_account, insert_register_recipients, insert_register_donation_amounts, insert_register_support, insert_register_site_classifications, insert_register_balance, insert_register_done];
+	constants.REGISTER_STATE_PROCESSORS = [process_twitter_account, process_recipients, process_donation, process_support, process_site_classifications, process_balance, process_done];
+	
+	constants.DEFAULT_USERNAME = "";
+	constants.DEFAULT_PASSWORD = "";
+	constants.DEFAULT_RECIPIENTS = "Bilumi*http://bilumi.org*80;ProcrasDonate*http://ProcrasDonate.com*20')";
+	constants.DEFAULT_SUPPORT_PCT = 5;
+	constants.DEFAULT_CENTS_PER_HOUR = "95";
+	constants.DEFAULT_HOUR_PER_DAY_GOAL = "2";
+	constants.DEFAULT_HOUR_PER_DAY_MAX = "3";
+	
+	constants.DEFAULT_SETTINGS_STATE = "twitter_account";
+	constants.DEFAULT_REGISTER_STATE = "twitter_account";
+	constants.DEFAULT_IMPACT_STATE = "visits";
 	
 	// then we can call CONSTANTS() whenever and it's not going to overwrite stuff 	
-	CONSTANTS = function() {}
+	CONSTANTS = function() { return constants; }
 }
 
 /** *************************************************************************** */
@@ -273,10 +275,10 @@ function house_keeping() {
 	/*
 	 * Called on every page load.
 	 * 
-	 * 0. Set setup account if necessary 
+	 * 0. Set setup account if necessary
 	 * 1. If loading restricted page tag and time limit is exceeded, block page
-	 * 2. If loading a pageaddict page, then insert data if necessary 
-	 * 3. Updated ProcrasDonate version available for download? 
+	 * 2. If loading a pageaddict page, then insert data if necessary
+	 * 3. Updated ProcrasDonate version available for download?
 	 * 4. Do daily and weekly tasks if necessary
 	 */
 	// 0.
@@ -286,7 +288,7 @@ function house_keeping() {
 	set_default_idle_mode_if_necessary();
 	
 	var host = window.location.host;
-	if (!(host.match(/pageaddict\.com$/)) && !(host.match(new RegExp(PD_HOST)))) {
+	if (!(host.match(/pageaddict\.com$/)) && !(host.match(new RegExp(constants.PD_HOST)))) {
 		// 1.
 		check_restriction();
 	} else {
@@ -409,7 +411,7 @@ function start_recording(no_retry) {
 	var t_in_s = Math.round(currentTime.getTime() / 1000);
 	window.page_addict_start = t_in_s;
 	GM_setValue('page_addict_start', true);
-
+	
 	GM_log('start recording ' + window.location.host + ' @ ' + t_in_s);
 	// dump('start recording '+window.location.host);
 	// window.page_addict_recording=1;
@@ -547,7 +549,7 @@ function post_anonymous_info_to_procrasdonate(site, time_spent, amt, recipient, 
 	}
 	
 	make_request(
-		POST_DATA_URL,
+		constants.POST_DATA_URL,
 		params,
 		'POST',
 		function(r) {
@@ -640,7 +642,7 @@ function make_request(url, params, method, onload, onerror) {
 		method : method,
 		url : url,
 		data : data,
-		headers : headers, 
+		headers : headers,
 		onload : onload,
 		onerror : onerror
 	});
@@ -749,9 +751,9 @@ function initialize_state_if_necessary() {
 	/*
 	 * Initialize settings and impact state enumerations. Other inits?
 	 */
-	if (!GM_getValue('settings_state', '')) { GM_setValue('settings_state', DEFAULT_SETTINGS_STATE); }
-	if (!GM_getValue('impact_state', '')) { GM_setValue('impact_state', DEFAULT_REGISTER_STATE); }
-	if (!GM_getValue('register_state', '')) { GM_setValue('register_state', DEFAULT_IMPACT_STATE); }
+	if (!GM_getValue('settings_state', '')) { GM_setValue('settings_state', constants.DEFAULT_SETTINGS_STATE); }
+	if (!GM_getValue('impact_state', '')) { GM_setValue('impact_state', constants.DEFAULT_REGISTER_STATE); }
+	if (!GM_getValue('register_state', '')) { GM_setValue('register_state', constants.DEFAULT_IMPACT_STATE); }
 	
 	if (!GM_getValue('last_24hr_mark', '')) {
 		GM_setValue('last_24hr_mark', (Math.floor(get_semi_random_date().getTime() / 1000)));
@@ -779,37 +781,37 @@ function initialize_account_defaults_if_necessary() {
 	/*
 	 * Set any blank account data to defaults.
 	 */
-	if (!GM_getValue('twitter_username', '')) { GM_setValue('twitter_username', DEFAULT_USERNAME); }
-	if (!GM_getValue('twitter_password', '')) { GM_setValue('twitter_password', DEFAULT_PASSWORD); }
-	if (!GM_getValue('recipients', '')) { GM_setValue('recipients', DEFAULT_RECIPIENTS); }
-	if (!GM_getValue('support_pct', '')) { GM_setValue('support_pct', DEFAULT_SUPPORT_PCT); }
-	if (!GM_getValue('cents_per_hour', '')) { GM_setValue('cents_per_hour', DEFAULT_CENTS_PER_HOUR); }
-	if (!GM_getValue('hr_per_day_goal', '')) { GM_setValue('hr_per_day_goal', DEFAULT_HOUR_PER_DAY_GOAL); }
-	if (!GM_getValue('hr_per_day_max', '')) { GM_setValue('hr_per_day_max', DEFAULT_HOUR_PER_DAY_MAX); }
+	if (!GM_getValue('twitter_username', '')) { GM_setValue('twitter_username', constants.DEFAULT_USERNAME); }
+	if (!GM_getValue('twitter_password', '')) { GM_setValue('twitter_password', constants.DEFAULT_PASSWORD); }
+	if (!GM_getValue('recipients', '')) { GM_setValue('recipients', constants.DEFAULT_RECIPIENTS); }
+	if (!GM_getValue('support_pct', '')) { GM_setValue('support_pct', constants.DEFAULT_SUPPORT_PCT); }
+	if (!GM_getValue('cents_per_hour', '')) { GM_setValue('cents_per_hour', constants.DEFAULT_CENTS_PER_HOUR); }
+	if (!GM_getValue('hr_per_day_goal', '')) { GM_setValue('hr_per_day_goal', constants.DEFAULT_HOUR_PER_DAY_GOAL); }
+	if (!GM_getValue('hr_per_day_max', '')) { GM_setValue('hr_per_day_max', constants.DEFAULT_HOUR_PER_DAY_MAX); }
 }
 
 function reset_account_to_defaults() {
 	/*
 	 * Overwrite existing data (if any) with account defaults
 	 */
-	GM_setValue('twitter_username', DEFAULT_USERNAME);
-	GM_setValue('twitter_password', DEFAULT_PASSWORD);
-	GM_setValue('recipients', DEFAULT_RECIPIENTS);
-	GM_setValue('support_prct', DEFAULT_SUPPORT_PCT);
-	GM_setValue('cents_per_hour', DEFAULT_CENTS_PER_HOUR);
-	GM_setValue('hr_per_day_goal', DEFAULT_HOUR_PER_DAY_GOAL);
-	GM_setValue('hr_per_day_max', DEFAULT_HOUR_PER_DAY_MAX);
+	GM_setValue('twitter_username', constants.DEFAULT_USERNAME);
+	GM_setValue('twitter_password', constants.DEFAULT_PASSWORD);
+	GM_setValue('recipients', constants.DEFAULT_RECIPIENTS);
+	GM_setValue('support_prct', constants.DEFAULT_SUPPORT_PCT);
+	GM_setValue('cents_per_hour', constants.DEFAULT_CENTS_PER_HOUR);
+	GM_setValue('hr_per_day_goal', constants.DEFAULT_HOUR_PER_DAY_GOAL);
+	GM_setValue('hr_per_day_max', constants.DEFAULT_HOUR_PER_DAY_MAX);
 }
 
 function reset_state_to_defaults() {
 	/*
 	 * Overwrite existing data (if any) with state defaults
 	 */
-	GM_setValue('settings_state', DEFAULT_SETTINGS_STATE);
-	GM_setValue('impact_state', DEFAULT_IMPACT_STATE);
-	GM_setValue('register_state', DEFAULT_REGISTER_STATE);
+	GM_setValue('settings_state', constants.DEFAULT_SETTINGS_STATE);
+	GM_setValue('impact_state', constants.DEFAULT_IMPACT_STATE);
+	GM_setValue('register_state', constants.DEFAULT_REGISTER_STATE);
 }
- 
+
 function store_old_visits() {
 	/*
 	 * Store old visits in tag_times and tag_spent
@@ -850,7 +852,7 @@ function check_page_inserts() {
 	/*
 	 * Insert data into matching webpage
 	 *    pageaddict.com and (localhost:8000 or procrasdonate.com)
-	 * See PD_HOST in global constants at top of page.
+	 * See constants.PD_HOST in global constants at top of page.
 	 * 
 	 * @SNOOPY here for developer grep purposes
 	 */
@@ -861,10 +863,10 @@ function check_page_inserts() {
 		/* Calls appropriate insert method based on current state
 		 * 
 		 * @param state_name: string. one of 'settings', 'register' or 'impact
-		 * @param state_enums: array. state enumeration. one of 'SETTINGS_STATE_ENUM',
-		 * 		'REGISTER_STATE_ENUM' or 'IMPACT_STATE_ENUM'
-		 * @param event_inserts: array. functions corresponding to enums. one of 
-		 * 		'SETTINGS_STATE_INSERTS', 'IMPACT_STATE_INSERTS', 'REGISTER_STATE_INSERTS'
+		 * @param state_enums: array. state enumeration. one of 'constants.SETTINGS_STATE_ENUM',
+		 * 		'constants.REGISTER_STATE_ENUM' or 'constants.IMPACT_STATE_ENUM'
+		 * @param event_inserts: array. functions corresponding to enums. one of
+		 * 		'constants.SETTINGS_STATE_INSERTS', 'constants.IMPACT_STATE_INSERTS', 'constants.REGISTER_STATE_INSERTS'
 		 */
 		GM_log("INSERT BASED ON "+state_name);
 		GM_setValue('site_classifications_settings_activated', true);
@@ -878,8 +880,8 @@ function check_page_inserts() {
 		}
 	}
 	
-	if (host.match(new RegExp(PD_HOST))) {
-
+	if (host.match(new RegExp(constants.PD_HOST))) {
+		
 		function add_script(src) {
 			var GM_JQ = document.createElement('script');
 			GM_JQ.src = src;
@@ -892,39 +894,39 @@ function check_page_inserts() {
 		// Add jQuery UI
 		//add_script('http://jqueryui.com/latest/ui/ui.core.js');
 		//add_script('http://jqueryui.com/latest/ui/ui.slider.js');
-
+		
 		function GM_wait() {
 			if(typeof unsafeWindow.jQuery == 'undefined') { window.setTimeout (GM_wait,100); }
 			else { $ = unsafeWindow.jQuery; }
 		}
-		GM_wait(); 
-
+		GM_wait();
+		
 		//reset_state_to_defaults();
 		if ( GM_getValue('register_state', '') == 'done' ) {
 			// If done registering, change Start menu item to Settings.
-			$("#start_now_menu_item a").attr("href", SETTINGS_URL).text("Settings");
+			$("#start_now_menu_item a").attr("href", constants.SETTINGS_URL).text("Settings");
 		} else {
 			// Else, if not working on registration track, give registration warning.
 		}
 		
-		if ( href == START_URL ) {
+		if ( href == constants.START_URL ) {
 			// Page is replaced by registration track (or nothing if not
 			// registered).
 			// Once registration track is 'done', Start menu item is replaced by
 			// Settings menu item, and Start page is replaced by settings pages
-			insert_based_on_state('register', REGISTER_STATE_ENUM, REGISTER_STATE_INSERTS);
+			insert_based_on_state('register', constants.REGISTER_STATE_ENUM, constants.REGISTER_STATE_INSERTS);
 		}
 		// reason why not else if?
-		if ( href == SETTINGS_URL ) {
+		if ( href == constants.SETTINGS_URL ) {
 			// Page is replaced by settings options. Some Settings tabs re-use
 			// snippets inserted by registration inserts
-			insert_based_on_state('settings', SETTINGS_STATE_ENUM, SETTINGS_STATE_INSERTS);
+			insert_based_on_state('settings', constants.SETTINGS_STATE_ENUM, constants.SETTINGS_STATE_INSERTS);
 		}
-		else if ( href == IMPACT_URL ) {
+		else if ( href == constants.IMPACT_URL ) {
 			// Page is replaced by impact tabs
-			insert_based_on_state('impact', IMPACT_STATE_ENUM, IMPACT_STATE_INSERTS);
+			insert_based_on_state('impact', constants.IMPACT_STATE_ENUM, constants.IMPACT_STATE_INSERTS);
 		}
-		else if ( href == RESET_URL ) {
+		else if ( href == constants.RESET_URL ) {
 			reset_state_to_defaults();
 			reset_account_to_defaults();
 		}
@@ -954,14 +956,14 @@ function make_site_box(name, url, tag) {
 	 * 
 	 */
 	function undefined_wrap(inner) {
-		return "<span class='move_to_left move_to_procrasdonate'>&lt;</span>" + 
+		return "<span class='move_to_left move_to_procrasdonate'>&lt;</span>" +
 			inner + "<span class='move_to_right move_to_timewellspent'>&gt;</span>";
 	}
 	function procrasdonate_wrap(inner) {
 		return inner + "<span class='move_to_right move_to_undefined'>&gt;</span>";
 	}
 	function timewellspent_wrap(inner) {
-		return "<span class='move_to_left move_to_undefined'>&lt;</span>" + inner; 
+		return "<span class='move_to_left move_to_undefined'>&lt;</span>" + inner;
 	}
 	
 	var text = "<div class='site'>";
@@ -1043,7 +1045,7 @@ function insert_register_balance() {
 }
 
 function support_middle() {
-	var pct = GM_getValue('support_pct', DEFAULT_SUPPORT_PCT);
+	var pct = GM_getValue('support_pct', constants.DEFAULT_SUPPORT_PCT);
 	return "" +
 	"<h3>Help us grow and develop</h3>" +
 	"<p>Give back to the cause that lets you help the non-profits and content-providers you care about.</p>" +
@@ -1057,7 +1059,7 @@ function support_middle() {
 }
 
 function activate_support_middle() {
-	var pct = GM_getValue('support_pct', DEFAULT_SUPPORT_PCT);
+	var pct = GM_getValue('support_pct', constants.DEFAULT_SUPPORT_PCT);
 	$("#support_slider").slider({
 		//animate: true,
 		min: 0,
@@ -1094,7 +1096,7 @@ function insert_register_support() {
 
 function insert_register_done() {
 	GM_setValue('register_state', 'done');
-	window.location.href = IMPACT_URL;
+	window.location.href = constants.IMPACT_URL;
 }
 
 function site_classifications_middle() {
@@ -1130,7 +1132,7 @@ function site_classifications_middle() {
 			"<table<tbody>" +
 				"<tr><td>Procras Donate</td><td>&lt;-- --&gt;</td><td>Time Well Spent</td></tr>" +
 				"<tr><td id='procrasdonate_col'>" +
-					procrasdonate_text + 
+					procrasdonate_text +
 				"</td><td id='undefined_col'>" +
 					undefined_text +
 				"</td><td id='timewellspent_col'>" +
@@ -1324,7 +1326,7 @@ function _wrapper_snippet(middle, in_form, tab_snippet) {
 	 * @param in_form: if true, will wrap middle inside a form containing a table.
 	 * 				   otherwise, will not.
 	 * @param middle: If in_form is true, middle should contain table rows:
-	 *    "<tr><td>...</td></tr>" 
+	 *    "<tr><td>...</td></tr>"
 	 * 
 	 */
 	var cell_text = "<div id='thin_column'>" + tab_snippet;
@@ -1334,7 +1336,7 @@ function _wrapper_snippet(middle, in_form, tab_snippet) {
 		cell_text += "<table><tbody>";
 	}
 	cell_text += middle;
-	if ( in_form) { 
+	if ( in_form) {
 		cell_text += "</tbody></table></form>";
 	}
 	cell_text += "</div>";
@@ -1348,7 +1350,7 @@ function twitter_account_middle() {
 	
 	"<tr class='above_helprow'><td><label class='right'>Twitter password</label></td>" +
 	"<td><input class='press_enter_for_next left' type='password' name='twitter_password' value='"+GM_getValue('twitter_password','')+"'></td></tr>" +
-	"<tr class='helprow'><td></td><td><div class='help'><a href='" + PRIVACY_URL + "'>Privacy Guarantee</a></div></td></tr>";
+	"<tr class='helprow'><td></td><td><div class='help'><a href='" + constants.PRIVACY_URL + "'>Privacy Guarantee</a></div></td></tr>";
 }
 
 function insert_settings_twitter_account() {
@@ -1537,8 +1539,8 @@ function process_done() {
 
 function process_twitter_account() {
 	/*
-	 * Validate account form and save. 
-	 * @TODO twitter credentials and recipient twitter name should be verified. 
+	 * Validate account form and save.
+	 * @TODO twitter credentials and recipient twitter name should be verified.
 	 * @TODO all fields should be validated as soon as user tabs to next field.
 	 */
 	GM_log("process_twitter_account()");
@@ -1566,9 +1568,9 @@ function _tab_snippet(state_name, state_enums, tab_names) {
 	 * this html is inserted into the DOM.
 	 *
 	 * @param state_name: string. one of 'settings' or 'impact
-	 * @param state_enums: array. state enumeration. one of 'SETTINGS_STATE_ENUM' or 'IMPACT_STATE_ENUM'
-	 * @param tab_names: array. tab names corresponding to enums. one of 
-	 * 		'SETTINGS_STATE_TAB_NAMES' or 'IMPACT_STATE_TAB_NAMES'
+	 * @param state_enums: array. state enumeration. one of 'constants.SETTINGS_STATE_ENUM' or 'constants.IMPACT_STATE_ENUM'
+	 * @param tab_names: array. tab names corresponding to enums. one of
+	 * 		'constants.SETTINGS_STATE_TAB_NAMES' or 'constants.IMPACT_STATE_TAB_NAMES'
 	 */
 	var tabs_text = "<div id='" + state_name + "_tabs' class='tabs'>";
 	
@@ -1583,7 +1585,7 @@ function _tab_snippet(state_name, state_enums, tab_names) {
 		tabs_text += "<div id='" + tab_state + "_tab' class='tab link " + tab_selected_class +"'>";
 		tabs_text += tab_names[i];
 		tabs_text += "</div>";
-	}    
+	}
 	tabs_text += "</div>";
 	
 	return tabs_text
@@ -1591,7 +1593,7 @@ function _tab_snippet(state_name, state_enums, tab_names) {
 
 function register_tab_snippet() {
 	/* Creates register state track. Does not call _tab_snippet! */
-	var ret = _track_snippet('register', REGISTER_STATE_ENUM, REGISTER_STATE_TAB_NAMES, true);
+	var ret = _track_snippet('register', constants.REGISTER_STATE_ENUM, constants.REGISTER_STATE_TAB_NAMES, true);
 	var next_value = "Next";
 	if ( GM_getValue('register_state','') == 'balance' ) {
 		next_value = "Done!";
@@ -1599,12 +1601,12 @@ function register_tab_snippet() {
 	ret += "" +
 		"<input id='prev_register_track' class='link' type='button' name='save' value='Prev'>" +
 		"<input id='next_register_track' class='link' type='button' name='save' value='" + next_value + "'>";
-	return ret; 
+	return ret;
 }
 
 function settings_tab_snippet() {
 	/* Creates settings state track.*/
-	return _track_snippet('settings', SETTINGS_STATE_ENUM, SETTINGS_STATE_TAB_NAMES, false);
+	return _track_snippet('settings', constants.SETTINGS_STATE_ENUM, constants.SETTINGS_STATE_TAB_NAMES, false);
 }
 
 function _track_snippet(state_name, state_enum, tab_names, track_progress) {
@@ -1629,8 +1631,8 @@ function _track_snippet(state_name, state_enum, tab_names, track_progress) {
 			done_class = '';
 		}
 		
-		var circle_image_name = MEDIA_URL + "img/StepCircle" + image_number;
-		var bar_image_name = MEDIA_URL + "img/";
+		var circle_image_name = constants.MEDIA_URL + "img/StepCircle" + image_number;
+		var bar_image_name = constants.MEDIA_URL + "img/";
 		
 		if ( (track_progress && done_class) || selected_class ) {
 			circle_image_name += "Done";
@@ -1654,7 +1656,7 @@ function _track_snippet(state_name, state_enum, tab_names, track_progress) {
 			tracks_text += "<img src='"+ circle_image_name +"' class='StageCircle "+ done_class +"'>"
 		
 		tracks_text += "</td>";
-	}    
+	}
 	tracks_text += "</tr><tr>";
 	
 	for (i = 0; i < state_enum.length && i < 6; i += 1) {
@@ -1682,7 +1684,7 @@ function _track_snippet(state_name, state_enum, tab_names, track_progress) {
 
 function impact_tab_snippet() {
 	/* Calls _tab_snippet for impact state */
-	return _tab_snippet('impact', IMPACT_STATE_ENUM, IMPACT_STATE_TAB_NAMES);   
+	return _tab_snippet('impact', constants.IMPACT_STATE_ENUM, constants.IMPACT_STATE_TAB_NAMES);
 }
 
 function _process_before_proceeding(state_name, state_enums, processors, event) {
@@ -1702,12 +1704,12 @@ function _process_before_proceeding(state_name, state_enums, processors, event) 
 
 function activate_settings_tab_events() {
 	/* Attaches EventListeners to settings tabs */
-	for (var i = 0; i < SETTINGS_STATE_ENUM.length; i += 1) {
-		var tab_state = SETTINGS_STATE_ENUM[i];
-		var event = SETTINGS_STATE_INSERTS[i];
+	for (var i = 0; i < constants.SETTINGS_STATE_ENUM.length; i += 1) {
+		var tab_state = constants.SETTINGS_STATE_ENUM[i];
+		var event = constants.SETTINGS_STATE_INSERTS[i];
 		// closure
-		$("#"+tab_state+"_track, #"+tab_state+"_text").click( 
-				(_process_before_proceeding)('settings', SETTINGS_STATE_ENUM, SETTINGS_STATE_PROCESSORS, event) );
+		$("#"+tab_state+"_track, #"+tab_state+"_text").click(
+				(_process_before_proceeding)('settings', constants.SETTINGS_STATE_ENUM, constants.SETTINGS_STATE_PROCESSORS, event) );
 	}
 	// cursor pointer to tracks
 	$(".track, .track_text").css("cursor","pointer");
@@ -1723,11 +1725,11 @@ function activate_settings_tab_events() {
 
 function activate_impact_tab_events() {
 	/* Attaches EventListeners to impact tabs */
-	for (var i = 0; i < IMPACT_STATE_ENUM.length; i += 1) {
-		var tab_state = IMPACT_STATE_ENUM[i];
-		var event = IMPACT_STATE_INSERTS[i];
+	for (var i = 0; i < constants.IMPACT_STATE_ENUM.length; i += 1) {
+		var tab_state = constants.IMPACT_STATE_ENUM[i];
+		var event = constants.IMPACT_STATE_INSERTS[i];
 		// closure
-		$("#"+tab_state+"_tab").click( 
+		$("#"+tab_state+"_tab").click(
 				(function (event) { return event; })(event)
 		);
 	}
@@ -1735,21 +1737,21 @@ function activate_impact_tab_events() {
 
 function activate_register_tab_events() {
 	/* Attaches EventListeners to register tabs */
-	for (var i = 0; i < REGISTER_STATE_ENUM.length; i += 1) {
-		var tab_state = REGISTER_STATE_ENUM[i];
+	for (var i = 0; i < constants.REGISTER_STATE_ENUM.length; i += 1) {
+		var tab_state = constants.REGISTER_STATE_ENUM[i];
 		var current_state = GM_getValue('register_state', '');
 		
 		if ( tab_state == current_state ) {
 			if ( i > 0 ) {
-				var prev = REGISTER_STATE_INSERTS[i-1];
-				$("#prev_register_track").click( 
-						(_process_before_proceeding)('register', REGISTER_STATE_ENUM, REGISTER_STATE_PROCESSORS, prev) );
+				var prev = constants.REGISTER_STATE_INSERTS[i-1];
+				$("#prev_register_track").click(
+						(_process_before_proceeding)('register', constants.REGISTER_STATE_ENUM, constants.REGISTER_STATE_PROCESSORS, prev) );
 			} else { $("#prev_register_track").hide(); }
 			
-			if ( i < REGISTER_STATE_ENUM.length ) {
-				var next = REGISTER_STATE_INSERTS[i+1];
+			if ( i < constants.REGISTER_STATE_ENUM.length ) {
+				var next = constants.REGISTER_STATE_INSERTS[i+1];
 				$("#next_register_track").click(
-					(_process_before_proceeding)('register', REGISTER_STATE_ENUM, REGISTER_STATE_PROCESSORS, next) );
+					(_process_before_proceeding)('register', constants.REGISTER_STATE_ENUM, constants.REGISTER_STATE_PROCESSORS, next) );
 			} else { $("#next_register_track").hide(); }
 		}
 	}
@@ -2021,7 +2023,7 @@ function change_history_cell(since_days) {
 	cell_text += '<td align="right"><a href="#" id="plot_newer">Newer</a></td>';
 	cell_text += '</tr></table><br /><br />';
 	cell_text += '<div id="insert_history_here"></div><br />';
-
+	
 	document.getElementById("main_table_cell").innerHTML = cell_text;
 	document.getElementById("plot_older").addEventListener('click', function() {
 		plot_history(since_days * 2);
