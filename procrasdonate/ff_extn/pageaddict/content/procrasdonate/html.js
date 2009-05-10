@@ -1,7 +1,4 @@
-/**
- * *********************** HTML INSERTION FUNCTIONS AND HELPERS
- * *********************************
- */
+/********** HTML INSERTION FUNCTIONS AND HELPERS ***************/
 
 function make_site_box(name, url, tag) {
 	/*
@@ -224,14 +221,7 @@ function recipients_middle(user_recipients_ary, potential_recipients_ary) {
 				"<div class='remove'>X</div>" +
 			"</div>";
 	}
-	var add_your_own = "" +
-		"<div class='recipient_row'>" +
-			"<div class='recipient'>" +
-				"<div class='name'><input type='text' value='Recipient twitter name'/></div>" +
-				"<div class='description'>blah</div>" +
-			"</div>" +
-			"<div class='add'>Add</div>" +
-		"</div>";
+	var spacer = "<div class='recipient_spacer_row'>&nbsp;</div>";
 	var potential_recipients = "";
 	for (var i = 0; i < potential_recipients_ary.length; i += 1) {
 		var name = potential_recipients_ary[i].name;
@@ -248,8 +238,8 @@ function recipients_middle(user_recipients_ary, potential_recipients_ary) {
 		"<div id='user_recipients'>" +
 			user_recipients +
 		"</div>" +
+		spacer +
 		"<div id='potential_recipients'>" +
-			add_your_own +
 			potential_recipients +
 		"</div>";
 	return cell_text;
@@ -310,7 +300,7 @@ function activate_recipients_middle(user_recipients_ary, potential_recipients_ar
 
 function insert_register_recipients() {
 	/*
-	 * Inserts form so that user may select recipients.
+	 * Inserts form so that user may select recipients. 
 	 * 
 	 * Slider input's alt must contain "last" value of input, so when do keyboard presses we can compute how to alter the other tabs.
 	 */

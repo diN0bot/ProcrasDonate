@@ -172,6 +172,7 @@ label { padding-right: 1em; }
 .recipient_row .add { text-decoration: none; background: #DDFFFF; -moz-border-radius: 4px; margin-top: .3em; padding: .2em .4em; }
 .recipient_row .slider { width: 25%; }
 .recipient_row .input { float: left; margin: 0em 1em; }
+.recipient_spacer_row { height: 4em; width: 100%; clear: both; }
 
 /**** SUPPORT ****/
 #support_slider { width: 10em; }
