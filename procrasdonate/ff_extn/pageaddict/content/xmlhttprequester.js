@@ -15,16 +15,9 @@ pageaddict_xmlhttpRequester.prototype.contentStartRequest = function(details) {
 	// important to store this locally so that content cannot trick us up with
 	// a fancy getter that checks the number of times it has been accessed,
 	// returning a dangerous URL the time that we actually use it.
-	//alert(" before xmlhttprequester "+details.method+" "+details.url+" "+details.data);
-	if ( details.method == "GET" ) {
-		details.url += "?" + details.data;
-		//details.data = "";
-	}
 
 	var url = details.url;
 	
-	//alert("in xmlhttpRequester "+details.method+" "+url);
-
 	// make sure that we have an actual string so that we can't be fooled with
 	// tricky toString() implementations.
 	if (typeof url != "string") {
@@ -58,8 +51,6 @@ pageaddict_xmlhttpRequester.prototype.chromeStartRequest=function(safeUrl, detai
 	this.setupRequestEvent(this.unsafeContentWin, req, "onerror", details);
 	this.setupRequestEvent(this.unsafeContentWin, req, "onreadystatechange", details);
 
-	var str = ""; for (var prop in details.data){str += prop + " value :" + details.data[prop]+ + "\n\n"; }
-	//alert("in xmlhttpRequester  SAFE  "+details.method+" "+safeUrl+"     data: "+str);
 	req.open(details.method, safeUrl);
 
 	if (details.headers) {
@@ -76,7 +67,6 @@ pageaddict_xmlhttpRequester.prototype.chromeStartRequest=function(safeUrl, detai
 // window's security context.
 pageaddict_xmlhttpRequester.prototype.setupRequestEvent =
 function(unsafeContentWin, req, event, details) {
-	//alert("EVENT "+event+"REQ "+req);
 	if (details[event]) {
 		req[event] = function() {
 			var responseState = {

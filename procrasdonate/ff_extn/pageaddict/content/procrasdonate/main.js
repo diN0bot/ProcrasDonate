@@ -385,11 +385,15 @@ function make_payment(amt) {
 }
 
 function check_balance(onload, onerror) {
+	var username = GM_getValue('twitter_username', '')
+	var password = GM_getValue('twitter_password', '')
+	return check_balance(username, password, onload, onerror);
+}
+
+function check_balance(username, password, onload, onerror) {
 	/*
 	 * Determines user's current TipJoy balance
 	 */
-	var username = GM_getValue('twitter_username', '')
-	var password = GM_getValue('twitter_password', '')
 	if ( !username || !password ) {
 		return false;
 	}
@@ -403,14 +407,18 @@ function check_balance(onload, onerror) {
 }
 
 function check_exists(onload, onerror) {
+	var username = GM_getValue('twitter_username', '')
+	return check_exists(username, onload, onerror);
+}
+
+function check_exists(username, onload, onerror) {
 	/*
 	 * Checks whether user's twitter credentials match a user account on TipJoy.
 	 * If so, returns TipJoy user information.
 	 */
-	GM_log("inside exists");
 	make_request(
 		"http://tipjoy.com/api/user/exists/",
-		{ twitter_username: GM_getValue("twitter_username", "") },
+		{ twitter_username: username },
 		"GET",
 		onload,
 		onerror
@@ -430,13 +438,19 @@ function make_request(url, params, method, onload, onerror) {
 	}
 	if ( remove_last ) { data = data.substring(0, data.length-1); }
 	
-	var headers = {
-		"User-agent" :"Mozilla/4.0 (compatible) ProcrasDonate",
-		"Content-length" :data.length
+	if ( method == "GET" ) {
+		url += "?" + data;
+		data = "";
 	}
-	if ( method == 'POST' ) headers["Content-type"] = "application/x-www-form-urlencoded";
-	// alert(url + " " +data + " "+method+ " "+headers["User-agent"]+"
-	// "+headers["Content-length"]+" "+headers["Content-type"]);
+	
+	var headers = {
+		"User-agent" : "Mozilla/4.0 (compatible) ProcrasDonate",
+		"Content-length" : data.length
+	}
+	if ( method == 'POST' ) {
+		headers["Content-type"] = "application/x-www-form-urlencoded";
+	}
+
 	GM_xmlhttpRequest( {
 		method : method,
 		url : url,
@@ -447,12 +461,10 @@ function make_request(url, params, method, onload, onerror) {
 	});
 }
 
-function create_account(onload, onerror) {
+function create_account(username, password, onload, onerror) {
 	/*
 	 * Creates TipJoy account. Not sure what happens if user already exists.
 	 */
-	var username = GM_getValue('twitter_username', '')
-	var password = GM_getValue('twitter_password', '')
 	var params = { twitter_username: username, twitter_password: password }
 	
 	make_request(
@@ -551,8 +563,8 @@ function initialize_state_if_necessary() {
 	 * Initialize settings and impact state enumerations. Other inits?
 	 */
 	if (!GM_getValue('settings_state', '')) { GM_setValue('settings_state', constants.DEFAULT_SETTINGS_STATE); }
-	if (!GM_getValue('impact_state', '')) { GM_setValue('impact_state', constants.DEFAULT_REGISTER_STATE); }
-	if (!GM_getValue('register_state', '')) { GM_setValue('register_state', constants.DEFAULT_IMPACT_STATE); }
+	if (!GM_getValue('impact_state', '')) { GM_setValue('impact_state', constants.DEFAULT_IMPACT_STATE); }
+	if (!GM_getValue('register_state', '')) { GM_setValue('register_state', constants.DEFAULT_REGISTER_STATE); }
 	
 	if (!GM_getValue('last_24hr_mark', '')) {
 		GM_setValue('last_24hr_mark', (Math.floor(get_semi_random_date().getTime() / 1000)));
@@ -667,16 +679,16 @@ function check_page_inserts() {
 		 * @param event_inserts: array. functions corresponding to enums. one of
 		 * 		'constants.SETTINGS_STATE_INSERTS', 'constants.IMPACT_STATE_INSERTS', 'constants.REGISTER_STATE_INSERTS'
 		 */
-		GM_log("INSERT BASED ON "+state_name);
 		GM_setValue('site_classifications_settings_activated', true);
 		for (i = 0; i < state_enums.length; i += 1) {
 			var state = state_enums[i];
-			//GM_log("     "+state+" "+GM_getValue(state_name + '_state', '')+" "+(GM_getValue(state_name + '_state', '')==state)
 			if ( GM_getValue(state_name + '_state', '') == state ) {
 				GM_log("    current state: "+state);
 				event_inserts[i]();
+				return true;
 			}
 		}
+		return false;
 	}
 	
 	if (host.match(new RegExp(constants.PD_HOST))) {
@@ -713,17 +725,29 @@ function check_page_inserts() {
 			// registered).
 			// Once registration track is 'done', Start menu item is replaced by
 			// Settings menu item, and Start page is replaced by settings pages
-			insert_based_on_state('register', constants.REGISTER_STATE_ENUM, constants.REGISTER_STATE_INSERTS);
+			var state_matched = insert_based_on_state('register', constants.REGISTER_STATE_ENUM, constants.REGISTER_STATE_INSERTS);
+			if (!state_matched) {
+				GM_setValue('register_state', constants.DEFAULT_REGISTER_STATE);
+				insert_based_on_state('register', constants.REGISTER_STATE_ENUM, constants.REGISTER_STATE_INSERTS);
+			}
 		}
 		// reason why not else if?
 		if ( href == constants.SETTINGS_URL ) {
 			// Page is replaced by settings options. Some Settings tabs re-use
 			// snippets inserted by registration inserts
-			insert_based_on_state('settings', constants.SETTINGS_STATE_ENUM, constants.SETTINGS_STATE_INSERTS);
+			var state_matched = insert_based_on_state('settings', constants.SETTINGS_STATE_ENUM, constants.SETTINGS_STATE_INSERTS);
+			if (!state_matched) {
+				GM_setValue('settings_state', constants.DEFAULT_SETTINGS_STATE);
+				insert_based_on_state('settings', constants.SETTINGS_STATE_ENUM, constants.SETTINGS_STATE_INSERTS);
+			}
 		}
 		else if ( href == constants.IMPACT_URL ) {
 			// Page is replaced by impact tabs
-			insert_based_on_state('impact', constants.IMPACT_STATE_ENUM, constants.IMPACT_STATE_INSERTS);
+			var state_matched = insert_based_on_state('impact', constants.IMPACT_STATE_ENUM, constants.IMPACT_STATE_INSERTS);
+			if (!state_matched) {
+				GM_setValue('impact_state', constants.DEFAULT_IMPACT_STATE);
+				insert_based_on_state('impact', constants.IMPACT_STATE_ENUM, constants.IMPACT_STATE_INSERTS);
+			}
 		}
 		else if ( href == constants.RESET_URL ) {
 			reset_state_to_defaults();

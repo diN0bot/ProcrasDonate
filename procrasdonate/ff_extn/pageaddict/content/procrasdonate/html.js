@@ -77,10 +77,10 @@ function insert_register_balance() {
 		}
 	);*/
 	
-	check_balance(
+	/*check_balance(
 		function(r) {
 			var str = ""; for (var prop in r) {	str += prop + " value :" + r[prop]+ + "\n\n"; }
-			alert("BALANCE !!!!! onload "+str);
+			//alert("BALANCE !!!!! onload "+str);
 			//alert("onload rt"+r.responseText);
 			$("#balance_here").append(r.responseText.balance);
 		},
@@ -88,7 +88,7 @@ function insert_register_balance() {
 			var str = ""; for (var prop in r) {	str += prop + " value :" + r[prop]+ + "\n\n"; }
 			$("#balance_here").append(str);
 		}
-	);
+	);*/
 	
 	//make_payment(4);
 }
@@ -387,6 +387,9 @@ function _wrapper_snippet(middle, in_form, tab_snippet) {
 
 function twitter_account_middle() {
 	return "" +
+	"<p style='text-align: left;'>ProcrasDonate uses Twitter<span id='what_is_twitter'> (?)</span></p>" +
+	"<p style='text-align: left;'>Create a twitter account <a href='https://twitter.com/signup'>HERE</a></p>" +
+	
 	"<tr><td><label class='right'>Twitter username </label></td>" +
 	"<td><input class='left' type='text' name='twitter_username' value='"+GM_getValue('twitter_username','')+"'></td></tr>" +
 	
@@ -395,12 +398,21 @@ function twitter_account_middle() {
 	"<tr class='helprow'><td></td><td><div class='help'><a href='" + constants.PRIVACY_URL + "'>Privacy Guarantee</a></div></td></tr>";
 }
 
+function activate_twitter_account_middle() {
+	$("#what_is_twitter").click( function() {
+		$(this).text(", a service to communicate and stay connected through the exchange of quick," +
+					"frequent answers to one simple question: What are you doing?")
+				.css("display", "block");
+	});	
+}
+
 function insert_settings_twitter_account() {
 	/* Inserts user's twitter account form into page */
 	GM_setValue('settings_state', 'twitter_account');
 	
 	$("#content").html( settings_wrapper_snippet(twitter_account_middle(), true) );
 	activate_settings_tab_events();
+	activate_twitter_account_middle();
 }
 
 function insert_settings_recipients() {
@@ -597,10 +609,72 @@ function process_twitter_account() {
 		$("#errors").append("<p>Please enter your twitter username and password</p>");
 		return false;
 	} else {
-		GM_setValue('twitter_username', twitter_username);
-		GM_setValue('twitter_password', twitter_password);
-		return true;
+		// Check if the username/password combo matches an existing account. We use
+		// check balance for this in order to test that the password works, too.
+		// If "no such tipjoy user", then create account 
+		check_exists(twitter_username,  
+			function(r) {
+				var result = eval("("+r.responseText+")").result;
+				if ( result == "success" ) {
+					check_balance(twitter_username, twitter_password,
+						function(r) {
+							var result = eval("("+r.responseText+")").result;
+							if ( result == "success" ) {
+								GM_log("tipjoy user exists and can sign-on");
+								GM_setValue('twitter_username', twitter_username);
+								GM_setValue('twitter_password', twitter_password);
+								alert("success 1");
+							} else {
+								GM_log("tipjoy user exists but can not sign-on");
+								var reason = eval("("+r.responseText+")").reason;
+								$("#errors").append("tipjoy user exists but can not sign-on: "+reason);
+							}
+						},
+						function(r) {
+							var str = ""; for (var prop in r) {	str += prop + " value :" + r[prop]+ + " __ "; }
+							GM_log("standard_onerror: "+r+"_"+str);
+							var reason = eval("("+r.responseText+")").reason;
+							$("#errors").append("An error occurred: " + reason);
+						}
+					);
+				} else {
+					GM_log("tipjoy user does not exist");
+					create_account(twitter_username, twitter_password,
+						function(r) {
+							var result = eval("("+r.responseText+")").result;
+							if ( result == "success" ) {
+								GM_log("created tipjoy account");
+								GM_setValue('twitter_username', twitter_username);
+								GM_setValue('twitter_password', twitter_password);
+								alert("success 2");
+							} else {
+								GM_log("problem creating tipjoy account");
+								var str = ""; for (var prop in result) {	str += prop + " value :" + result[prop]+ + " __ "; }
+								GM_log("_: "+str);
+								var reason = eval("("+r.responseText+")").reason;
+								GM_log("problem creating tipjoy account: "+reason);
+								$("#errors").append("problem creating tipjoy account: "+reason);
+							}
+						},
+						function(r) {
+							var str = ""; for (var prop in r) {	str += prop + " value :" + r[prop]+ + " __ "; }
+							GM_log("standard_onerror: "+r+"_"+str);
+							var reason = eval("("+r.responseText+")").reason;
+							$("#errors").append("An error occurred: " + reason);
+						}
+					);
+				}
+			},
+			function(r) {
+				var str = ""; for (var prop in r) {	str += prop + " value :" + r[prop]+ + " __ "; }
+				GM_log("standard_onerror: "+r+"_"+str);
+				var reason = eval("("+r.responseText+")").reason;
+				$("#errors").append("An error occurred: " + reason);
+			}
+		);
 	}
+	$("#errors").append("verifying username and password...");
+	return false
 }
 
 function _tab_snippet(state_name, state_enums, tab_names) {
@@ -812,6 +886,7 @@ function insert_register_twitter_account() {
 	GM_setValue('register_state', 'twitter_account');
 	$("#content").html( register_wrapper_snippet(twitter_account_middle(), true) );
 	activate_register_tab_events();
+	activate_twitter_account_middle();
 }
 
 function insert_impact_site_ranks() {
