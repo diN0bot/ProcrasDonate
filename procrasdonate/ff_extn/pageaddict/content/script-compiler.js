@@ -1,3 +1,12 @@
+var includedScripts = [
+	//'chrome://pageaddict/content/json2.js',
+	'chrome://pageaddict/content/procrasdonate.js',
+	'chrome://pageaddict/content/procrasdonate/constants.js',
+	'chrome://pageaddict/content/procrasdonate/main.js',
+	'chrome://pageaddict/content/procrasdonate/html.js',
+	'chrome://pageaddict/content/pageaddict.js'
+];
+
 var pageaddict_gmCompiler={
 
 // getUrlContents adapted from Greasemonkey Compiler
@@ -47,10 +56,12 @@ contentLoad: function(e) {
 		&& ( /.*/.test(href) )
 		&& true
 	) {
-		var script=pageaddict_gmCompiler.getUrlContents(
-			'chrome://pageaddict/content/pageaddict.js'
-		);
-		pageaddict_gmCompiler.injectScript(script, href, unsafeWin);
+		var scripts = [];
+		for (var i in includedScripts) {
+			var script = pageaddict_gmCompiler.getUrlContents(includedScripts[i]);
+			scripts.push(script);
+		}
+		pageaddict_gmCompiler.injectScript(scripts.join("\n"), href, unsafeWin);
 	}
 },
 
@@ -85,14 +96,13 @@ injectScript: function(script, url, unsafeContentWin) {
 	//unsupported
 	sandbox.GM_registerMenuCommand=function(){};
 	sandbox.GM_log=function(msg) {
-
-  var consoleService = Components.classes["@mozilla.org/consoleservice;1"]
-                                 .getService(Components.interfaces.nsIConsoleService);
-  consoleService.logStringMessage(msg);
- };
-
+		var consoleService = Components.classes["@mozilla.org/consoleservice;1"].
+			getService(Components.interfaces.nsIConsoleService);
+		consoleService.logStringMessage(msg);
+	};
+	
 	sandbox.__proto__=sandbox.window;
-
+	
 	try {
 		this.evalInSandbox(
 			"(function(){"+script+"})()",
@@ -175,13 +185,13 @@ onUnLoad: function() {
 	//remove now unnecessary listeners
 	window.removeEventListener('load', pageaddict_gmCompiler.onLoad, false);
 	window.removeEventListener('unload', pageaddict_gmCompiler.onUnLoad, false);
-	window.document.getElementById("appcontent")
-		.removeEventListener("DOMContentLoaded", pageaddict_gmCompiler.contentLoad, false);
+	window.document.getElementById("appcontent").
+		removeEventListener("DOMContentLoaded", pageaddict_gmCompiler.contentLoad, false);
 },
 
-   goToStats: function() {
-      window.content.location.href="http://pageaddict.com";
-   },
+goToStats: function() {
+	window.content.location.href="http://pageaddict.com";
+},
 
 }; //object pageaddict_gmCompiler
 

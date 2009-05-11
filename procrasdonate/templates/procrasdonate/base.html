@@ -22,7 +22,7 @@
 		<script type="text/javascript" charset="utf-8" src="{{ MEDIA_URL }}js/ui.core.js"></script>
 	 	<script type="text/javascript" charset="utf-8" src="{{ MEDIA_URL }}js/ui.slider.js"></script>
 		
-		<script type="text/javascript" charset="utf-8" src="{{ MEDIA_URL }}js/json2.js"></script>
+		{# <script type="text/javascript" charset="utf-8" src="{{ MEDIA_URL }}js/json2.js"></script> #}
 		<script type="text/javascript" charset="utf-8" src="{{ MEDIA_URL }}js/procrasdonate.js"></script>
 		{% block head %}{% endblock %}
 
@@ -40,7 +40,7 @@
 					<div {% ifequal selected "start_now" %}class="here_we_are"{% endifequal %} id='start_now_menu_item'><a href="{% url start_now %}">Start Now</a></div>
 					<div {% ifequal selected "my_impact" %}class="here_we_are"{% endifequal %} id='my_impact_menu_item'><a href="{% url my_impact %}">My Impact</a></div>
 					<div {% ifequal selected "community" %}class="here_we_are"{% endifequal %} id='community_menu_item'><a href="{% url community %}">Community</a></div>
-				</div
+				</div>
 				<img src="{{ MEDIA_URL }}img/ClearBox.png" class="SmallSpacer">			
 				
 				<div id="footer">
