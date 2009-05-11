@@ -43,8 +43,8 @@ p { text-align: left; }
 #static_menu { font-size: 1.2em; position: absolute; left: 1.7em; top: 2em; width: 8.3em; }
 #static_menu div { display: block; padding: 0.3em 0em; margin: 1em 0em; }
 
-#MainMenu { background: #bb8230; font-size: 1.1em; border: 0.34em ridge #8A4304;}
-#MainMenu div { background: #b47925; border-top: 0.1em dotted #DBBF75; }
+#MainMenu { background: #bb8230; font-size: 1.1em; border: 0.34em ridge #8A4304; -moz-border-radius: .4em; }
+#MainMenu div { background: #b47925; border-top: 0.1em dotted #DBBF75; -moz-border-radius: 0em; }
 #MainMenu div a { font-variant: small-caps; letter-spacing: .1em; text-decoration: none; color: #f9fdf4; }
 #MainMenu .here_we_are { background: #dbbf75; border-top: 0.1em dotted white; }
 #MainMenu .here_we_are a {
