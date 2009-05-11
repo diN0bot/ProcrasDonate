@@ -40,7 +40,7 @@ p { text-align: left; }
 .error, .errors, #error, #errors { color: red; text-align: center; }
 .success, #success { color: green; text-align: center; }
 
-#static_menu { font-size: 1.2em; position: absolute; left: 1.7em; top: 2em; width: 8.5em; }
+#static_menu { font-size: 1.2em; position: absolute; left: 1.7em; top: 2em; width: 8.3em; }
 #static_menu div { display: block; padding: 0.3em 0em; margin: 1em 0em; }
 
 #MainMenu { background: #bb8230; font-size: 1.1em; border: 0.34em ridge #8A4304;}
@@ -62,7 +62,7 @@ p { text-align: left; }
 .StageBar	{ width: 4em; height: 2em; margin: 0 -1em; }
 .StageCircle { width: 4.5em; }
 
-#logo { width: 8.5em; margin-left: .05em; }
+#logo { width: 8.3em; margin-left: .08em; }
 
 .page_menu { position: absolute; left: 0em; top: 10.6em; }
 .page_menu h3 { text-align: right; }
