@@ -93,10 +93,6 @@ def community(request):
     #url = "http://tipjoy.com/api/tweetpayment/"
     #print _POST(url, values)
     
-    #calendar.timegm(datetime_object.timetuple()) * 1000
-    procrasdonations = ProcrasDonation.objects.all()
-    recipients = Recipient.objects.all()
-    sites = Site.objects.all()
     return render_response(request, 'procrasdonate/our_community.html', locals())
 
 def community_recipients(request):

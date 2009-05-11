@@ -1,12 +1,10 @@
-"""
 from data import *
 from rank import *
 
-ALL_MODELS = [Site, Recipient, ContentProvider,
-              OverallAmount_R, OverallAmount_S, OverallAmount_CP,
-              OverallTime_R, OverallTime_S, OverallTime_CP,
-              PopularAmount_R, PopularAmount_S, PopularAmount_CP,
-              PopularTime_R, PopularTime_S, PopularTime_CP]
+from data import ALL_MODELS as DATA_MODELS
+from rank import ALL_MODELS as RANK_MODELS
+
+ALL_MODELS = DATA_MODELS + RANK_MODELS
 
 from lib import model_utils
 model_utils.mixin(model_utils.ModelMixin, ALL_MODELS)
@@ -17,4 +15,3 @@ Adminizer.Adminize(ALL_MODELS)
 for model in ALL_MODELS:
     if hasattr(model, 'Initialize'):
         model.Initialize()
-"""
