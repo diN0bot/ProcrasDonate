@@ -615,7 +615,8 @@ function process_twitter_account() {
 		check_exists(twitter_username,  
 			function(r) {
 				var result = eval("("+r.responseText+")").result;
-				if ( result == "success" ) {
+				var exists = eval("("+r.responseText+")").exists;
+				if ( result == "success" && exists ) {
 					check_balance(twitter_username, twitter_password,
 						function(r) {
 							var result = eval("("+r.responseText+")").result;
@@ -623,7 +624,12 @@ function process_twitter_account() {
 								GM_log("tipjoy user exists and can sign-on");
 								GM_setValue('twitter_username', twitter_username);
 								GM_setValue('twitter_password', twitter_password);
-								alert("success 1");
+								
+								if ( GM_getValue('register_state', '') != 'done' ) {
+									constants.REGISTER_STATE_INSERTS[1]();
+								} else {
+									constants.SETTINGS_STATE_INSERTS[1]();
+								}
 							} else {
 								GM_log("tipjoy user exists but can not sign-on");
 								var reason = eval("("+r.responseText+")").reason;
@@ -646,7 +652,12 @@ function process_twitter_account() {
 								GM_log("created tipjoy account");
 								GM_setValue('twitter_username', twitter_username);
 								GM_setValue('twitter_password', twitter_password);
-								alert("success 2");
+								
+								if ( GM_getValue('register_state', '') != 'done' ) {
+									constants.REGISTER_STATE_INSERTS[1]();
+								} else {
+									constants.SETTINGS_STATE_INSERTS[1]();
+								}
 							} else {
 								GM_log("problem creating tipjoy account");
 								var str = ""; for (var prop in result) {	str += prop + " value :" + result[prop]+ + " __ "; }

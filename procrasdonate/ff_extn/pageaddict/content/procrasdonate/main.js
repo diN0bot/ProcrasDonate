@@ -140,7 +140,7 @@ function do_once_daily_tasks() {
 	}
 	GM_setValue('last_24hr_mark', Math.floor(now.getTime()/1000));
 	
-	alert("ding! last 24hr "+two_four_hr+" new 24hr "+now+"  now  "+new Date());
+	//alert("ding! last 24hr "+two_four_hr+" new 24hr "+now+"  now  "+new Date());
 }
 
 
