@@ -5,14 +5,19 @@ function make_site_box(name, url, tag) {
 	 * 
 	 */
 	function undefined_wrap(inner) {
-		return "<span class='link move_to_left move_to_procrasdonate'>&lt;</span>" +
-			inner + "<span class='link move_to_right move_to_timewellspent'>&gt;</span>";
+		return "<span class='img_link move_to_procrasdonate'>			" +
+					"<img class='Move_Site_Arrow' src='"+ constants.MEDIA_URL +"img/LeftArrow.png'></span>" +
+			inner + "<span class='img_link move_to_timewellspent'>" +
+						"<img class='Move_Site_Arrow' src='"+ constants.MEDIA_URL +"img/RightArrow.png'></span>";
 	}
 	function procrasdonate_wrap(inner) {
-		return inner + "<span class='link move_to_right move_to_undefined'>&gt;</span>";
+		return inner + "<span class='img_link move_to_undefined'>" +
+							"<img class='Move_Site_Arrow' src='"+ constants.MEDIA_URL +"img/RightArrow.png'></span>";
 	}
 	function timewellspent_wrap(inner) {
-		return "<span class='link move_to_left move_to_undefined'>&lt;</span>" + inner;
+		return "<span class='img_link move_to_undefined'>" +
+					"<img class='Move_Site_Arrow' src='"+ constants.MEDIA_URL +"img/LeftArrow.png'></span>" + inner;
+				
 	}
 	
 	var text = "<div class='site'>";

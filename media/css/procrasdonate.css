@@ -12,6 +12,8 @@ a, .link { color:#336699; text-decoration:underline; cursor: pointer; }
 a:hover, .link:hover { color:#FF9900; text-decoration:underline; cursor: pointer; }
 a img { border: none; }
 
+.img_link { text-decoration: none; cursor: pointer; }
+
 p { text-align: left; }
 .paragraph_list li { text-align: left; margin-top: 1em; }
 
@@ -148,8 +150,8 @@ label { padding-right: 1em; }
 .site_rank .rank { width: 200px; }
 .site_rank .bar { height: 10px; background: red; }
 .site_rank .rank_text {}
-.move_to_left { padding-right: 1em; background: url("/procrasdonate_media/img/DashGreen.png"); }
-.move_to_right { padding-left: 1em; background-image: url("/procrasdonate_media/img/Dash.png"); }
+
+.Move_Site_Arrow { width: 1.2em; vertical-align: bottom; margin-bottom: -.2em; padding: 0 .5em 0 .5em; }
 
 /**** REGISTER ****/
 #register_next_prev { clear: both; }
