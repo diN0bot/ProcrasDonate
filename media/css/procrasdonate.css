@@ -159,15 +159,14 @@ label { padding-right: 1em; }
 }
 #next_register_track {
   margin: 0em -3em 0em 40%;
-  background-image: url("/procrasdonate_media/img/StepCircle1Done.png");
   float: right;
 }
+
 #next_register_track.done { /* no space is intentional!! #..._track.done */
-  background-image: url("/procrasdonate_media/img/StepCircle1.png");
 }
+
 #prev_register_track {
   margin: 0em 40% 0em -3em;
-  background-image: url("/procrasdonate_media/img/StepCircle1Done.png");
   float: left;
 }
 

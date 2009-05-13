@@ -714,14 +714,14 @@ function _tab_snippet(state_name, state_enums, tab_names) {
 function register_tab_snippet() {
 	/* Creates register state track. Does not call _tab_snippet! */
 	var ret = _track_snippet('register', constants.REGISTER_STATE_ENUM, constants.REGISTER_STATE_TAB_NAMES, true);
-	var done_class = "";
+	var next_src = constants.MEDIA_URL +"img/NextArrow.png";
 	if ( GM_getValue('register_state','') == 'balance' ) {
-		done_class = "done";
+		next_src = constants.MEDIA_URL +"img/DoneArrow.png";
 	}
 	ret += "" +
 		"<div id='register_prev_next'>" +
-			"<div id='prev_register_track' class='link register_button'></div>" +
-			"<div id='next_register_track' class='link register_button "+ done_class +"'></div>" +
+			"<img src='"+ constants.MEDIA_URL +"img/BackArrow.png' id='prev_register_track' class='link register_button'>" +
+			"<img src='"+ next_src +"' id='next_register_track' class='link register_button'>"	+		
 		"</div>";
 		//"<input id='prev_register_track' class='link' type='button' name='save' value='Prev'>" +
 		//"<input id='next_register_track' class='link' type='button' name='save' value='" + next_value + "'>";
