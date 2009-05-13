@@ -108,7 +108,7 @@ h4 {
 }
 
 /************ REGISTER/SETTINGS FORM ********/
-form, form p { text-align: center; }
+form, form p { text-align: center; clear: both; }
 
 .help { text-align: right; color: #777777; }
 .summaryhelp { float: left; padding: .5em 0em 0em .5em; color: #777777; }
@@ -137,12 +137,9 @@ label { padding-right: 1em; }
 .tab:hover { text-decoration: none; }
 .tabs .selected { background: white; border-bottom: none; padding-bottom: .1em; }
 
-#site_classifications table tr td { width: 4em; vertical-align: top; }
-#procrasdonate_col { border-right: 1px solid #CCCCCC; }
-#undefined_col { border-left: 1px solid #CCCCCC; border-right: 1px solid #CCCCCC; }
-#timewellspent_col { border-left: 1px solid #CCCCCC; }
-
-.move_to_left { padding-right: 1em; }
+#site_classifications { clear: both; width: 100%; }
+#site_classifications .column { width: 32%; vertical-align: top; float: left; }
+#site_classifications .title { font-weight: bold; }
 
 #ranks { text-align: left; }
 .site_rank {}
@@ -151,11 +148,30 @@ label { padding-right: 1em; }
 .site_rank .rank { width: 200px; }
 .site_rank .bar { height: 10px; background: red; }
 .site_rank .rank_text {}
-.move_to_right { padding-left: 1em; }
+.move_to_left { padding-right: 1em; background: url("/procrasdonate_media/img/DashGreen.png"); }
+.move_to_right { padding-left: 1em; background-image: url("/procrasdonate_media/img/Dash.png"); }
 
-/**** REGISTER TABS ****/
-#next_register_track { margin: 1em -10em 1em 50%; }
-#prev_register_track { margin: 1em 50% 1em -10em; }
+/**** REGISTER ****/
+#register_next_prev { clear: both; }
+.register_button {
+  height: 5em;
+  width: 5em;
+}
+#next_register_track {
+  margin: 0em -3em 0em 40%;
+  background-image: url("/procrasdonate_media/img/StepCircle1Done.png");
+  float: right;
+}
+#next_register_track.done { /* no space is intentional!! #..._track.done */
+  background-image: url("/procrasdonate_media/img/StepCircle1.png");
+}
+#prev_register_track {
+  margin: 0em 40% 0em -3em;
+  background-image: url("/procrasdonate_media/img/StepCircle1Done.png");
+  float: left;
+}
+
+#what_is_twitter.open { padding-left: 2em; }
 
 /**** IMAGES ****/
 

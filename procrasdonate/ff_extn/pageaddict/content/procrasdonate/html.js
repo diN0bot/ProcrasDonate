@@ -5,14 +5,14 @@ function make_site_box(name, url, tag) {
 	 * 
 	 */
 	function undefined_wrap(inner) {
-		return "<span class='move_to_left move_to_procrasdonate'>&lt;</span>" +
-			inner + "<span class='move_to_right move_to_timewellspent'>&gt;</span>";
+		return "<span class='link move_to_left move_to_procrasdonate'>&lt;</span>" +
+			inner + "<span class='link move_to_right move_to_timewellspent'>&gt;</span>";
 	}
 	function procrasdonate_wrap(inner) {
-		return inner + "<span class='move_to_right move_to_undefined'>&gt;</span>";
+		return inner + "<span class='link move_to_right move_to_undefined'>&gt;</span>";
 	}
 	function timewellspent_wrap(inner) {
-		return "<span class='move_to_left move_to_undefined'>&lt;</span>" + inner;
+		return "<span class='link move_to_left move_to_undefined'>&lt;</span>" + inner;
 	}
 	
 	var text = "<div class='site'>";
@@ -28,10 +28,9 @@ function activate_site_classifications_middle() {
 	if ( GM_getValue('site_classifications_settings_activated', false) ) {
 		var f = function(elem, tag) {
 			var site_name = elem.siblings(".name").text();
-			//elem.parent().fadeOut("slow");
-			elem.parent().remove()
-			$("#"+tag+"_col").prepend(make_site_box(site_name, site_name, tag))
-			//.next().hide().fadeIn("slow");
+			elem.parent().fadeOut("slow", function() { $(this).remove(); });
+			$("#"+tag+"_col .title").after(make_site_box(site_name, site_name, tag))
+			.next().hide().fadeIn("slow");
 		}
 		$(".move_to_timewellspent").live("click", function() {
 			f($(this), "timewellspent");
@@ -178,16 +177,9 @@ function site_classifications_middle() {
 	
 	return "" +
 		"<div id='site_classifications'>" +
-			"<table<tbody>" +
-				"<tr><td>Procras Donate</td><td>&lt;-- --&gt;</td><td>Time Well Spent</td></tr>" +
-				"<tr><td id='procrasdonate_col'>" +
-					procrasdonate_text +
-				"</td><td id='undefined_col'>" +
-					undefined_text +
-				"</td><td id='timewellspent_col'>" +
-					timewellspent_text +
-				"</td></tr>" +
-			"</tbody></table>" +
+			"<div id='procrasdonate_col' class='column'><div class='title'>Procras Donate</div>" + procrasdonate_text + "</div>" +
+			"<div id='undefined_col' class='column'><div class='title'><-~-></div>" + undefined_text + "</div>" +
+			"<div id='timewellspent_col' class='column'><div class='title'>Time Well Spent</div>" + timewellspent_text + "</div>" +
 		"</div>"
 }
 
@@ -387,7 +379,7 @@ function _wrapper_snippet(middle, in_form, tab_snippet) {
 
 function twitter_account_middle() {
 	return "" +
-	"<p style='text-align: left;'>ProcrasDonate uses Twitter<span id='what_is_twitter'> (?)</span></p>" +
+	"<p style='text-align: left;'>ProcrasDonate uses Twitter <span id='what_is_twitter' class='link'>(?)</span></p>" +
 	"<p style='text-align: left;'>Create a twitter account <a href='https://twitter.com/signup'>HERE</a></p>" +
 	
 	"<tr><td><label class='right'>Twitter username </label></td>" +
@@ -400,9 +392,11 @@ function twitter_account_middle() {
 
 function activate_twitter_account_middle() {
 	$("#what_is_twitter").click( function() {
-		$(this).text(", a service to communicate and stay connected through the exchange of quick," +
-					"frequent answers to one simple question: What are you doing?")
-				.css("display", "block");
+		$(this).text("\"A service to communicate and stay connected through the exchange of quick," +
+					"frequent answers to one simple question: What are you doing?\"")
+				.css("display", "block")
+				.addClass('open')
+				.removeClass('link');
 	});	
 }
 
@@ -615,7 +609,8 @@ function process_twitter_account() {
 		check_exists(twitter_username,  
 			function(r) {
 				var result = eval("("+r.responseText+")").result;
-				if ( result == "success" ) {
+				var exists = eval("("+r.responseText+")").exists;
+				if ( result == "success" && exists ) {
 					check_balance(twitter_username, twitter_password,
 						function(r) {
 							var result = eval("("+r.responseText+")").result;
@@ -623,8 +618,11 @@ function process_twitter_account() {
 								GM_log("tipjoy user exists and can sign-on");
 								GM_setValue('twitter_username', twitter_username);
 								GM_setValue('twitter_password', twitter_password);
-								
-								insert_register_recipients();
+								if ( GM_getValue('register_state', '') != 'done' ) {
+									constants.REGISTER_STATE_INSERTS[1]();
+								} else {
+									constants.SETTINGS_STATE_INSERTS[1]();
+								}
 							} else {
 								GM_log("tipjoy user exists but can not sign-on");
 								var reason = eval("("+r.responseText+")").reason;
@@ -647,7 +645,12 @@ function process_twitter_account() {
 								GM_log("created tipjoy account");
 								GM_setValue('twitter_username', twitter_username);
 								GM_setValue('twitter_password', twitter_password);
-								alert("success 2");
+								
+								if ( GM_getValue('register_state', '') != 'done' ) {
+									constants.REGISTER_STATE_INSERTS[1]();
+								} else {
+									constants.SETTINGS_STATE_INSERTS[1]();
+								}
 							} else {
 								GM_log("problem creating tipjoy account");
 								var str = ""; for (var prop in result) {	str += prop + " value :" + result[prop]+ + " __ "; }
@@ -711,13 +714,17 @@ function _tab_snippet(state_name, state_enums, tab_names) {
 function register_tab_snippet() {
 	/* Creates register state track. Does not call _tab_snippet! */
 	var ret = _track_snippet('register', constants.REGISTER_STATE_ENUM, constants.REGISTER_STATE_TAB_NAMES, true);
-	var next_value = "Next";
+	var done_class = "";
 	if ( GM_getValue('register_state','') == 'balance' ) {
-		next_value = "Done!";
+		done_class = "done";
 	}
 	ret += "" +
-		"<input id='prev_register_track' class='link' type='button' name='save' value='Prev'>" +
-		"<input id='next_register_track' class='link' type='button' name='save' value='" + next_value + "'>";
+		"<div id='register_prev_next'>" +
+			"<div id='prev_register_track' class='link register_button'></div>" +
+			"<div id='next_register_track' class='link register_button "+ done_class +"'></div>" +
+		"</div>";
+		//"<input id='prev_register_track' class='link' type='button' name='save' value='Prev'>" +
+		//"<input id='next_register_track' class='link' type='button' name='save' value='" + next_value + "'>";
 	return ret;
 }
 
