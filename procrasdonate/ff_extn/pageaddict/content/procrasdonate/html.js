@@ -623,7 +623,8 @@ function process_twitter_account() {
 								GM_log("tipjoy user exists and can sign-on");
 								GM_setValue('twitter_username', twitter_username);
 								GM_setValue('twitter_password', twitter_password);
-								alert("success 1");
+								
+								insert_register_recipients();
 							} else {
 								GM_log("tipjoy user exists but can not sign-on");
 								var reason = eval("("+r.responseText+")").reason;

@@ -725,9 +725,11 @@ function check_page_inserts() {
 			// registered).
 			// Once registration track is 'done', Start menu item is replaced by
 			// Settings menu item, and Start page is replaced by settings pages
+			GM_log('state: '+GM_getValue('register_state','asdf'));
 			var state_matched = insert_based_on_state('register', constants.REGISTER_STATE_ENUM, constants.REGISTER_STATE_INSERTS);
 			if (!state_matched) {
 				GM_setValue('register_state', constants.DEFAULT_REGISTER_STATE);
+				GM_log('state: '+GM_getValue('register_state','asdf'));
 				insert_based_on_state('register', constants.REGISTER_STATE_ENUM, constants.REGISTER_STATE_INSERTS);
 			}
 		}
