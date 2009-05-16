@@ -61,7 +61,7 @@ function insert_register_balance() {
 		"<br /><br />" +
 		"balance: <span id='balance_here'></span>";
 	
-	$("#content").html( register_wrapper_snippet(middle, true) );
+	$("#content").html( register_wrapper_snippet(middle) );
 	activate_register_tab_events();
 	
 	/*check_exists(
@@ -103,12 +103,16 @@ function support_middle() {
 	"<h3>Help us grow and develop</h3>" +
 	"<p>Give back to the cause that lets you help the non-profits and content-providers you care about.</p>" +
 	
+	"<form name='account_form' onSubmit='return false'>" +
+
 	"<table<tbody><tr>" +
 		"<td><label class='right'>Support ProcrasDonate: </label></td>" +
 		"<td><div id='support_slider' class='slider' alt='" + pct + "'></div></td>" +
 		"<td><input id='support_input' class='press_enter_for_next input' alt='" + pct + "' value='" + pct + "' size='1'/></td>" +
 		"<td><span class='help'>% of total donation</span></td>" +
-	"</tr></tbody></table";
+	"</tr></tbody></table>" +
+	
+	"</form>";
 }
 
 function activate_support_middle() {
@@ -142,7 +146,7 @@ function activate_support_middle() {
 function insert_register_support() {
 	/* Inserts support ProcrasDonate info. */
 	GM_setValue('register_state', 'support');
-	$("#content").html( register_wrapper_snippet(support_middle(), false) );
+	$("#content").html( register_wrapper_snippet(support_middle()) );
 	activate_register_tab_events();
 	activate_support_middle();
 }
@@ -191,7 +195,7 @@ function site_classifications_middle() {
 function insert_register_site_classifications() {
 	/* Inserts site classification html into page */
 	GM_setValue('register_state', 'site_classifications');
-	$("#content").html(register_wrapper_snippet(site_classifications_middle(), false));
+	$("#content").html(register_wrapper_snippet(site_classifications_middle()));
 	activate_register_tab_events();
 	activate_site_classifications_middle();
 }
@@ -311,7 +315,7 @@ function insert_register_recipients() {
 		{'name':'Green Peace','url':'http://greenpeace.org','description':'Expanding greener pastures'},
 		{'name':'Act Blue','url':'http://actblue.org','description':'Earning money for democrats and making longer, longer, much longer descriptions for profit.'}
 	];
-	$("#content").html(register_wrapper_snippet(recipients_middle(user_recipients_ary, potential_recipients_ary), false));
+	$("#content").html(register_wrapper_snippet(recipients_middle(user_recipients_ary, potential_recipients_ary)));
 	activate_register_tab_events();
 	activate_recipients_middle(user_recipients_ary, potential_recipients_ary);
 }
@@ -319,12 +323,14 @@ function insert_register_recipients() {
 function insert_register_donation_amounts() {
 	/* Inserts form so that user may enter donation information */
 	GM_setValue('register_state', 'donation_amounts');
-	$("#content").html( register_wrapper_snippet(donation_amounts_middle(), true) );
+	$("#content").html( register_wrapper_snippet(donation_amounts_middle()) );
 	activate_register_tab_events();
 }
 
 function donation_amounts_middle() {
 	return "" +
+	"<form name='account_form' onSubmit='return false'>" +
+	"<table><tbody>" +
 	"<tr>" +
 		"<td><label class='right'>ProcrasDonation rate</label></td>" +
 		"<td><input class='left' type='text' size='4' name='cents_per_hour' value='"+GM_getValue('cents_per_hour','')+"'></td>" +
@@ -341,59 +347,58 @@ function donation_amounts_middle() {
 		"<td><label class='right'>ProcrasDonation limit</label></td>" +
 		"<td><input class='press_enter_for_next left' id='hr_per_day_max' type='text' size='4' name='hr_per_day_max' value='"+GM_getValue('hr_per_day_max','')+"'></td>" +
 		"<td><div class='help'>hours per day</div></td>" +
-	"</tr>";
+	"</tr>" +
+	
+	"</table></tbody>" +
+	"</form>";
 }
 
 function impact_wrapper_snippet(middle) {
 	var cell_text = "<div id='thin_column'" + impact_tab_snippet();
-	cell_text += "<div id='errors'></div><div id='success'></div>";
+	cell_text += "<div id='messages'></div><div id='errors'></div><div id='success'></div>";
 	cell_text += middle;
 	cell_text += "</div>";
 	return cell_text;
 }
 
-function register_wrapper_snippet(middle, in_form) {
-	return _wrapper_snippet(middle, in_form, register_tab_snippet());
+function register_wrapper_snippet(middle) {
+	return _wrapper_snippet(middle, register_tab_snippet());
 }
 
-function settings_wrapper_snippet(middle, in_form) {
-	return _wrapper_snippet(middle, in_form, settings_tab_snippet());
+function settings_wrapper_snippet(middle) {
+	return _wrapper_snippet(middle, settings_tab_snippet());
 }
 
-function _wrapper_snippet(middle, in_form, tab_snippet) {
+function _wrapper_snippet(middle, tab_snippet) {
 	/*
-	 * @param in_form: if true, will wrap middle inside a form containing a table.
-	 * 				   otherwise, will not.
-	 * @param middle: If in_form is true, middle should contain table rows:
-	 *    "<tr><td>...</td></tr>"
+	 * @param middle: html string to insert below tab_snippet and success, error, messages
 	 * 
 	 */
 	var cell_text = "<div id='thin_column'>" + tab_snippet;
-	cell_text += "<div id='errors'></div><div id='success'></div>";
-	if ( in_form ) {
-		cell_text += "<form name='account_form' onSubmit='return false'>";
-		cell_text += "<table><tbody>";
-	}
+	cell_text += "<div id='messages'></div><div id='errors'></div><div id='success'></div>";
 	cell_text += middle;
-	if ( in_form) {
-		cell_text += "</tbody></table></form>";
-	}
 	cell_text += "</div>";
 	return cell_text;
 }
 
 function twitter_account_middle() {
 	return "" +
+	"<form name='account_form' onSubmit='return false'>" +
+
 	"<h3>What is your Twitter Username?</h3>" +
 	"<p style='text-align: left;'>ProcrasDonate uses Twitter <span id='what_is_twitter' class='link'>(?)</span></p>" +
 	"<p style='text-align: left;'>Create a twitter account <a href='https://twitter.com/signup'>HERE</a></p>" +
 	
+	"<table><tbody>" +
 	"<tr><td><label class='right'>Twitter username </label></td>" +
 	"<td><input class='left' type='text' name='twitter_username' value='"+GM_getValue('twitter_username','')+"'></td></tr>" +
 	
 	"<tr class='above_helprow'><td><label class='right'>Twitter password</label></td>" +
 	"<td><input class='press_enter_for_next left' type='password' name='twitter_password' value='"+GM_getValue('twitter_password','')+"'></td></tr>" +
-	"<tr class='helprow'><td></td><td><div class='help'><a href='" + constants.PRIVACY_URL + "'>Privacy Guarantee</a></div></td></tr>";
+	"<tr class='helprow'><td></td><td><div class='help'><a href='" + constants.PRIVACY_URL + "'>Privacy Guarantee</a></div></td></tr>" +
+	
+	"</table></tbody>" +
+	"</form>";
 }
 
 function activate_twitter_account_middle() {
@@ -410,7 +415,7 @@ function insert_settings_twitter_account() {
 	/* Inserts user's twitter account form into page */
 	GM_setValue('settings_state', 'twitter_account');
 	
-	$("#content").html( settings_wrapper_snippet(twitter_account_middle(), true) );
+	$("#content").html( settings_wrapper_snippet(twitter_account_middle()) );
 	activate_settings_tab_events();
 	activate_twitter_account_middle();
 }
@@ -431,7 +436,7 @@ function insert_settings_recipients() {
 		{'name':'Green Peace','url':'http://greenpeace.org','description':'Expanding greener pastures'},
 		{'name':'Act Blue','url':'http://actblue.org','description':'Earning money for democrats and making longer, longer, much longer descriptions for profit.'}
 	];
-	$("#content").html(settings_wrapper_snippet(recipients_middle(user_recipients_ary, potential_recipients_ary), false));
+	$("#content").html(settings_wrapper_snippet(recipients_middle(user_recipients_ary, potential_recipients_ary)));
 	activate_settings_tab_events();
 	activate_recipients_middle(user_recipients_ary, potential_recipients_ary);
 }
@@ -439,14 +444,14 @@ function insert_settings_recipients() {
 function insert_settings_donation_amounts() {
 	/* Inserts form so that user may enter donation information */
 	GM_setValue('settings_state', 'donation_amounts');
-	$("#content").html( settings_wrapper_snippet(donation_amounts_middle(), true) );
+	$("#content").html( settings_wrapper_snippet(donation_amounts_middle()) );
 	activate_settings_tab_events();
 }
 
 function insert_settings_site_classifications() {
 	/* Inserts site classification html into page */
 	GM_setValue('settings_state', 'site_classifications');
-	$("#content").html(settings_wrapper_snippet(site_classifications_middle(), false));
+	$("#content").html(settings_wrapper_snippet(site_classifications_middle()));
 	activate_settings_tab_events();
 	activate_site_classifications_middle();
 }
@@ -454,7 +459,7 @@ function insert_settings_site_classifications() {
 function insert_settings_support() {
 	/* Inserts support ProcrasDonate info. */
 	GM_setValue('settings_state', 'support');
-	$("#content").html( settings_wrapper_snippet(support_middle(), false) );
+	$("#content").html( settings_wrapper_snippet(support_middle()) );
 	activate_settings_tab_events();
 	activate_support_middle();
 }
@@ -489,7 +494,7 @@ function insert_settings_balance() {
 	// );
 }
 
-function process_support() {
+function process_support(event) {
 	var support_input = parseFloat($("input[name='support_input']").attr("value"))
 	
 	if ( support_input < 0 || support_input > 100 ) {
@@ -545,7 +550,7 @@ function validate_string(v) {
 	return v && v != ''
 }
 
-function process_donation() {
+function process_donation(event) {
 	/*
 	 * cents_per_day: pos int
 	 * hr_per_day_goal: pos float < 25
@@ -571,34 +576,33 @@ function process_donation() {
 	return false;
 }
 
-function process_balance() {
+function process_balance(event) {
 	GM_log("process_balance()");
 	return true;
 }
 
-function process_site_classifications() {
+function process_site_classifications(event) {
 	GM_log("process_site_classifications()");
 	return true;
 }
 
-function process_recipients() {
+function process_recipients(event) {
 	GM_log("process_recipients()");
 	return true;
 }
 
-function process_done() {
+function process_done(event) {
 	GM_log("process_done()");
 	return true;
 }
 
-function process_twitter_account() {
+function process_twitter_account(event) {
 	/*
 	 * Validate account form and save.
 	 * @TODO twitter credentials and recipient twitter name should be verified.
 	 * @TODO all fields should be validated as soon as user tabs to next field.
 	 */
-	GM_log("process_twitter_account()");
-	
+	$("#messages").html("");
 	$("#errors").html("");
 	$("#success").html("");
 	
@@ -624,11 +628,8 @@ function process_twitter_account() {
 								GM_log("tipjoy user exists and can sign-on");
 								GM_setValue('twitter_username', twitter_username);
 								GM_setValue('twitter_password', twitter_password);
-								if ( GM_getValue('register_state', '') != 'done' ) {
-									constants.REGISTER_STATE_INSERTS[1]();
-								} else {
-									constants.SETTINGS_STATE_INSERTS[1]();
-								}
+								
+								event();
 							} else {
 								GM_log("tipjoy user exists but can not sign-on");
 								var reason = eval("("+r.responseText+")").reason;
@@ -652,11 +653,7 @@ function process_twitter_account() {
 								GM_setValue('twitter_username', twitter_username);
 								GM_setValue('twitter_password', twitter_password);
 								
-								if ( GM_getValue('register_state', '') != 'done' ) {
-									constants.REGISTER_STATE_INSERTS[1]();
-								} else {
-									constants.SETTINGS_STATE_INSERTS[1]();
-								}
+								event();
 							} else {
 								GM_log("problem creating tipjoy account");
 								var str = ""; for (var prop in result) {	str += prop + " value :" + result[prop]+ + " __ "; }
@@ -683,8 +680,8 @@ function process_twitter_account() {
 			}
 		);
 	}
-	$("#errors").append("verifying username and password...");
-	return false
+	$("#messages").append("verifying username and password...");
+	return false 
 }
 
 function _tab_snippet(state_name, state_enums, tab_names) {
@@ -823,7 +820,7 @@ function _process_before_proceeding(state_name, state_enums, processors, event) 
 			var tab_state = state_enums[i];
 			if ( GM_getValue(state_name+"_state", "") == tab_state ) {
 				var processor = processors[i];
-				if ( processor() ) {
+				if ( processor(event) ) {
 					event();
 				}
 				break;
@@ -898,7 +895,7 @@ function activate_register_tab_events() {
 function insert_register_twitter_account() {
 	/* Inserts user's twitter account form into page */
 	GM_setValue('register_state', 'twitter_account');
-	$("#content").html( register_wrapper_snippet(twitter_account_middle(), true) );
+	$("#content").html( register_wrapper_snippet(twitter_account_middle()) );
 	activate_register_tab_events();
 	activate_twitter_account_middle();
 }

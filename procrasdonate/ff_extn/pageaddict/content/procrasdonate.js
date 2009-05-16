@@ -65,6 +65,25 @@
  * 
  * Note that CSS is still served by the ProcrasDonate.com server
  * 
+ * __IMPLEMENTATION DETAILS__
+ * 
+ * insert_<state_name>_<tab_name> - responsible for overwriting #content div with 
+ * new html, including tabs, buttons and middle (<-everything else). More or less 
+ * follows the same pattern:
+ * 	 1. constructs html string:
+ *       a. calls <state_name>_tab_snippet() to get tab/track string
+ *       b. calls <state_name>_wrapper(<tab_name>_middle()) to get middle
+ *   2. inserts string into DOM
+ *   3. calls activate_<state_name>_tab_snippet() to activate js events
+ *   4. calls activate_<tabn_name>_middle(), if necessary, to activate js events
+ * 
+ * The activation of tab events involves constructing functinos that handle form processing
+ * of events, if necessary, before calling the event, which is one of the insert_blah_blah
+ * functions mentioned above. Processors receive the event as a parameter so that they may
+ * delay insertion until after ajax calls are made (eg, twitter account verification). In 
+ * this case the processor should always return false to prevent the event from occurring 
+ * naturally.
+ * 
  * __KNOWN PROBLEMS__
  * 
  * Almost every page loads gives the following error: Error: start_recording is

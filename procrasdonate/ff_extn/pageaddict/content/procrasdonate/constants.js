@@ -30,8 +30,8 @@ function CONSTANTS() {
 	constants.SETTINGS_STATE_INSERTS = [insert_settings_twitter_account, insert_settings_recipients, insert_settings_donation_amounts, insert_settings_support, insert_settings_site_classifications, insert_settings_balance];
 	constants.SETTINGS_STATE_PROCESSORS = [process_twitter_account, process_recipients, process_donation, process_support, process_site_classifications, process_balance];
 	//enumeration of impact page state
-	constants.IMPACT_STATE_ENUM = ['site_ranks', 'visits', 'history'];
-	constants.IMPACT_STATE_TAB_NAMES = ['Site Rankings', 'Current Activity', 'History'];
+	constants.IMPACT_STATE_ENUM = ['site_ranks', 'procrasdonations', 'timewellspents', 'others', 'site_classifications'];
+	constants.IMPACT_STATE_TAB_NAMES = ['Site Rankings', 'ProcrasDonations', 'Time Well Spents', 'Others', 'Re-Classify Sites'];
 	constants.IMPACT_STATE_INSERTS = [insert_impact_site_ranks, insert_impact_visits, insert_impact_history];
 	// enumeration of register track state
 	constants.REGISTER_STATE_ENUM = ['twitter_account', 'recipients', 'donation_amounts', 'support', 'site_classifications', 'balance', 'done'];
