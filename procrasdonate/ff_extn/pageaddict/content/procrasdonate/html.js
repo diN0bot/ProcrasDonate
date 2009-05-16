@@ -384,6 +384,7 @@ function _wrapper_snippet(middle, in_form, tab_snippet) {
 
 function twitter_account_middle() {
 	return "" +
+	"<h3>What is your Twitter Username?</h3>" +
 	"<p style='text-align: left;'>ProcrasDonate uses Twitter <span id='what_is_twitter' class='link'>(?)</span></p>" +
 	"<p style='text-align: left;'>Create a twitter account <a href='https://twitter.com/signup'>HERE</a></p>" +
 	

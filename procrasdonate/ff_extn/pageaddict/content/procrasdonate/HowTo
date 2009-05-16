@@ -13,6 +13,8 @@ svn update = git pull
 svn add    = git add
 svn commit = git commit, git push
 
+to find names for tabs look at the tab names and their corresponding names in constants.js under: 	
+    // enumeration of settings page state
 
 current todo: create general_base.html blocks and change page blocks so that they are controlled by bases.  
 Also, define all variables as such and list them out with name, value, description.

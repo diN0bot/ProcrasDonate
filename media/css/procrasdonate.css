@@ -68,6 +68,7 @@ p { text-align: left; }
 
 .page_menu { position: absolute; left: 0em; top: 10.6em; }
 .page_menu h3 { text-align: right; }
+.page_menu h2 { text-align: right; }
 .page_menu ul { list-style-type: none; }
 .page_menu ul li { text-align: right; }
 
@@ -83,7 +84,9 @@ p { text-align: left; }
 #thin_column { width: 60%; margin: auto; padding-left: 12em; padding-top: 1em; padding-bottom: 1em; }
 #footer { font-size: .8em; height: 5em;  font-weight: normal; margin: auto; padding-top: 2em; }
 
-h3 {
+/*** h2 used as section headers for FAQ, etc. ***/
+
+h2 {
   clear: both;
   text-align: left;
   font-family:"Trebuchet MS",Helvetica,Jamrul,sans-serif;
@@ -98,6 +101,25 @@ h3 {
   padding: 1em 0em 0em .5em;
   margin-left: -.5em;
 }
+
+/*** h3 used as title to description on worksheet pages ***/
+
+h3 {
+  clear: both;
+  text-align: left;
+  font-family:"Trebuchet MS",Helvetica,Jamrul,sans-serif;
+  font-size: 1.5em;
+  color: #cc9966;
+  margin: 1.5em 0em .5em 0em;
+  font-variant: small-caps;
+  font-weight: bold;
+  letter-spacing: .2em;
+  border-bottom: .5px solid #ccff99; /*FAF3F4;*/
+  /*background: #FAF3F4;*/
+  padding: 1em 0em 0em .5em;
+  margin-left: -.5em;
+}
+
 h4 {
   /*font-family:Georgia, "Times New Roman", Times, serif;
   letter-spacing: .1em;
@@ -151,7 +173,7 @@ label { padding-right: 1em; }
 .site_rank .bar { height: 10px; background: red; }
 .site_rank .rank_text {}
 
-.Move_Site_Arrow { width: 1.2em; vertical-align: bottom; margin-bottom: -.2em; padding: 0 .5em 0 .5em; }
+.Move_Site_Arrow { width: 1.2em; vertical-align: bottom; margin-bottom: -.25em; padding: 0 .5em 0 .5em; }
 
 /**** REGISTER ****/
 #register_next_prev { clear: both; }
