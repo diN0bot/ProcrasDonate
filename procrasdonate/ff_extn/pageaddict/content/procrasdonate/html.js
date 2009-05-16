@@ -346,7 +346,7 @@ function donation_amounts_middle() {
 
 function impact_wrapper_snippet(middle) {
 	var cell_text = "<div id='thin_column'" + impact_tab_snippet();
-	cell_text += "<div id='errors'></div><div id='success'></div>";
+	cell_text += "<div id='messages'></div><div id='errors'></div><div id='success'></div>";
 	cell_text += middle;
 	cell_text += "</div>";
 	return cell_text;
@@ -369,7 +369,7 @@ function _wrapper_snippet(middle, in_form, tab_snippet) {
 	 * 
 	 */
 	var cell_text = "<div id='thin_column'>" + tab_snippet;
-	cell_text += "<div id='errors'></div><div id='success'></div>";
+	cell_text += "<div id='messages'></div><div id='errors'></div><div id='success'></div>";
 	if ( in_form ) {
 		cell_text += "<form name='account_form' onSubmit='return false'>";
 		cell_text += "<table><tbody>";
@@ -488,7 +488,7 @@ function insert_settings_balance() {
 	// );
 }
 
-function process_support() {
+function process_support(event) {
 	var support_input = parseFloat($("input[name='support_input']").attr("value"))
 	
 	if ( support_input < 0 || support_input > 100 ) {
@@ -544,7 +544,7 @@ function validate_string(v) {
 	return v && v != ''
 }
 
-function process_donation() {
+function process_donation(event) {
 	/*
 	 * cents_per_day: pos int
 	 * hr_per_day_goal: pos float < 25
@@ -570,34 +570,33 @@ function process_donation() {
 	return false;
 }
 
-function process_balance() {
+function process_balance(event) {
 	GM_log("process_balance()");
 	return true;
 }
 
-function process_site_classifications() {
+function process_site_classifications(event) {
 	GM_log("process_site_classifications()");
 	return true;
 }
 
-function process_recipients() {
+function process_recipients(event) {
 	GM_log("process_recipients()");
 	return true;
 }
 
-function process_done() {
+function process_done(event) {
 	GM_log("process_done()");
 	return true;
 }
 
-function process_twitter_account() {
+function process_twitter_account(event) {
 	/*
 	 * Validate account form and save.
 	 * @TODO twitter credentials and recipient twitter name should be verified.
 	 * @TODO all fields should be validated as soon as user tabs to next field.
 	 */
-	GM_log("process_twitter_account()");
-	
+	$("#messages").html("");
 	$("#errors").html("");
 	$("#success").html("");
 	
@@ -623,11 +622,8 @@ function process_twitter_account() {
 								GM_log("tipjoy user exists and can sign-on");
 								GM_setValue('twitter_username', twitter_username);
 								GM_setValue('twitter_password', twitter_password);
-								if ( GM_getValue('register_state', '') != 'done' ) {
-									constants.REGISTER_STATE_INSERTS[1]();
-								} else {
-									constants.SETTINGS_STATE_INSERTS[1]();
-								}
+								
+								event();
 							} else {
 								GM_log("tipjoy user exists but can not sign-on");
 								var reason = eval("("+r.responseText+")").reason;
@@ -651,11 +647,7 @@ function process_twitter_account() {
 								GM_setValue('twitter_username', twitter_username);
 								GM_setValue('twitter_password', twitter_password);
 								
-								if ( GM_getValue('register_state', '') != 'done' ) {
-									constants.REGISTER_STATE_INSERTS[1]();
-								} else {
-									constants.SETTINGS_STATE_INSERTS[1]();
-								}
+								event();
 							} else {
 								GM_log("problem creating tipjoy account");
 								var str = ""; for (var prop in result) {	str += prop + " value :" + result[prop]+ + " __ "; }
@@ -682,8 +674,8 @@ function process_twitter_account() {
 			}
 		);
 	}
-	$("#errors").append("verifying username and password...");
-	return false
+	$("#messages").append("verifying username and password...");
+	return false 
 }
 
 function _tab_snippet(state_name, state_enums, tab_names) {
@@ -822,7 +814,7 @@ function _process_before_proceeding(state_name, state_enums, processors, event) 
 			var tab_state = state_enums[i];
 			if ( GM_getValue(state_name+"_state", "") == tab_state ) {
 				var processor = processors[i];
-				if ( processor() ) {
+				if ( processor(event) ) {
 					event();
 				}
 				break;
