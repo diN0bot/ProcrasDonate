@@ -100,8 +100,8 @@ function insert_register_balance() {
 function support_middle() {
 	var pct = GM_getValue('support_pct', constants.DEFAULT_SUPPORT_PCT);
 	return "" +
-	"<h3>Help us grow and develop</h3>" +
-	"<p>Give back to the cause that lets you help the non-profits and content-providers you care about.</p>" +
+	"<h3>Support ProcrasDonate automatically.</h3>" +
+	"<p>What <i>percentage</i> of your donations would <b>you</b> like to use to pay for this service?</p>" +
 	
 	"<form name='account_form' onSubmit='return false'>" +
 
@@ -385,9 +385,11 @@ function twitter_account_middle() {
 	return "" +
 	"<form name='account_form' onSubmit='return false'>" +
 
-	"<h3>What is your Twitter Username?</h3>" +
-	"<p style='text-align: left;'>ProcrasDonate uses Twitter <span id='what_is_twitter' class='link'>(?)</span></p>" +
-	"<p style='text-align: left;'>Create a twitter account <a href='https://twitter.com/signup'>HERE</a></p>" +
+	"<h3>Procrasdonate uses your Twitter account.</h3>" +
+	"<p style='text-align: left;'>Click <a href='https://twitter.com/signup'>HERE</a> if you're not on twitter yet.</p>" +
+	"<p style='text-align: left;'><span id='what_is_twitter' class='link'>What is Twitter?</span></p>" +
+
+	"<h3>Please sign in:</h3>" +
 	
 	"<table><tbody>" +
 	"<tr><td><label class='right'>Twitter username </label></td>" +
@@ -398,6 +400,25 @@ function twitter_account_middle() {
 	"<tr class='helprow'><td></td><td><div class='help'><a href='" + constants.PRIVACY_URL + "'>Privacy Guarantee</a></div></td></tr>" +
 	
 	"</table></tbody>" +
+	
+	"<h2><a name='tos'></a>Terms of Use</h2>" +
+	"<img src='"+ constants.MEDIA_URL +"img/TermsOfUse.png' class='small-image'>" +
+	"<input type='checkbox'>" +
+		"<p>By using our service you agree to the following:" +
+		"<ul class='paragraph_list'>" +
+		"<li>ProcrasDonate may update these terms of service without warning or notification." +
+		"<li>You understand how our service works and are willingly participating." +
+		"<li>You agree to pay all pledges made on your behalf in full." +
+		"<li>A percentage that you determine of your donations is donated to our service." +
+		"<li>You are responsible for any content you add to this site." +
+		"<li>Illegal, unfriendly, or otherwise problematic content will be removed." +
+		"<li>Your individual records and settings are private and not accessible by our company." +
+		"<li>Your summary records are used for community statistics and other as yet undetermined uses (hopefully that will support the service financially)." +
+		"<li>All rights are reserved including ProcrasDonate intellectual property of software and our business model." +
+		"</li><li><b>Thanks for ProcrasDonating!</b>" +
+		"</ul>" +
+	"</p>" +	
+
 	"</form>";
 }
 
