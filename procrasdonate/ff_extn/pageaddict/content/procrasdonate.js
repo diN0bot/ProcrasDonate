@@ -84,6 +84,18 @@
  * this case the processor should always return false to prevent the event from occurring 
  * naturally.
  * 
+ * __CLASSIFICATIONS__
+ * 
+ * There are four hard-coded site classifications. (The backend supports dynamic taggings
+ * which we plan to use eventually.) These classifications are:
+ *    * ProcrasDonation - donate to selected (non-profit) recipients
+ *    * Time Well Spent - donate to content provider. if cannot determine cp, donate to recipients
+ *    * Other - do not donate
+ *    * Un-Sorted - like other, but differentiated in UI so that user may efficiently add a classification
+ * 
+ * In the UI, Other and Un-Sorted occupy the same graphs and columns, but with slight differences:
+ * eg, Other sites have a checkmark whereas Un-Sorted have a question mark.
+ * 
  * __KNOWN PROBLEMS__
  * 
  * Almost every page loads gives the following error: Error: start_recording is

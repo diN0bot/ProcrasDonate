@@ -333,19 +333,19 @@ function donation_amounts_middle() {
 	"<table><tbody>" +
 	"<tr>" +
 		"<td><label class='right'>ProcrasDonation rate</label></td>" +
-		"<td><input class='left' type='text' size='4' name='cents_per_hour' value='"+GM_getValue('cents_per_hour','')+"'></td>" +
+		"<td><input class='left' type='text' size='4' name='cents_per_hr' value='"+GM_getValue('cents_per_hr','')+"'></td>" +
 		"<td><div class='help'>&cent; per hour</div></td>" +
 	"</tr>" +
 	
 	"<tr>" +
 		"<td><label class='right'>ProcrasDonation goal</label></td>" +
-		"<td><input class='left' id='hr_per_day_goal' type='text' size='4' name='hr_per_day_goal' value='"+GM_getValue('hr_per_day_goal','')+"'></td>" +
-		"<td><div class='help'>hours per day</span><span id='cents_per_day_goal'></div></td>" +
+		"<td><input class='left' id='hr_per_week_goal' type='text' size='4' name='hr_per_week_goal' value='"+GM_getValue('hr_per_week_goal','')+"'></td>" +
+		"<td><div class='help'>hours per day</span><span id='cents_per_week_goal'></div></td>" +
 	"</tr>" +
 	
 	"<tr" +
 		"<td><label class='right'>ProcrasDonation limit</label></td>" +
-		"<td><input class='press_enter_for_next left' id='hr_per_day_max' type='text' size='4' name='hr_per_day_max' value='"+GM_getValue('hr_per_day_max','')+"'></td>" +
+		"<td><input class='press_enter_for_next left' id='hr_per_week_max' type='text' size='4' name='hr_per_week_max' value='"+GM_getValue('hr_per_week_max','')+"'></td>" +
 		"<td><div class='help'>hours per day</div></td>" +
 	"</tr>" +
 	
@@ -508,13 +508,13 @@ function process_support(event) {
 
 function validate_cents_input(v) {
 	var cents = parseInt(v);
-	var hr_per_day_goal = parseFloat($("input[name='hr_per_day_goal']").attr("value"));
+	var hr_per_week_goal = parseFloat($("input[name='hr_per_week_goal']").attr("value"));
 	var max = 2000;
 	if ( cents > 0 && cents < max ) {
 		return true
 	}
 	if ( cents >= max ) {
-		var confirm_results = confirm("Do you really want to donate " + cents + "&cent; every hour you spend procrastinating up to your daily limit of " + hr_per_day_goal + "?");
+		var confirm_results = confirm("Do you really want to donate " + cents + "&cent; every hour you spend procrastinating up to your daily limit of " + hr_per_week_goal + "?");
 		if ( confirm_results ) {
 			return true
 		} else {
@@ -537,7 +537,7 @@ function clean_cents_input(v) {
 
 function clean_hours_input(v) {
 	var hours = parseFloat(v);
-	if ( hours > 24 ) { hours = 24; }
+	if ( hours > (24*7) ) { hours = (24*7); }
 	if ( parseInt(hours) != hours ) { hours = hours.toFixed(2); }
 	return hours
 }
@@ -552,47 +552,42 @@ function validate_string(v) {
 
 function process_donation(event) {
 	/*
-	 * cents_per_day: pos int
-	 * hr_per_day_goal: pos float < 25
-	 * hr_per_day_max: pos float < 25
+	 * cents_per_hr: pos int
+	 * hr_per_week_goal: pos float < 25
+	 * hr_per_week_max: pos float < 25
 	 */
-	var cents_per_hour = parseInt($("input[name='cents_per_hour']").attr("value"));
-	var hr_per_day_goal = parseFloat($("input[name='hr_per_day_goal']").attr("value"));
-	var hr_per_day_max = parseFloat($("input[name='hr_per_day_max']").attr("value"));
-	
+	var cents_per_hr = parseInt($("input[name='cents_per_hr']").attr("value"));
+	var hr_per_week_goal = parseFloat($("input[name='hr_per_week_goal']").attr("value"));
+	var hr_per_week_max = parseFloat($("input[name='hr_per_week_max']").attr("value"));
 	$("#errors").text("");
-	if ( !validate_cents_input(cents_per_hour) ) {
+	if ( !validate_cents_input(cents_per_hr) ) {
 		$("#errors").append("<p>Please enter a valid dollar amount. For example, to donate $2.34 an hour, please enter 2.34</p>");
-	} else if ( !validate_hours_input(hr_per_day_goal) ) {
+	} else if ( !validate_hours_input(hr_per_week_goal) ) {
 		$("#errors").append("<p>Please enter number of hours. For example, enter 1 hr and 15 minutes as 1.25</p>");
-	} else if (!validate_hours_input(hr_per_day_max) ) {
+	} else if (!validate_hours_input(hr_per_week_max) ) {
 		$("#errors").append("<p>Please enter number of hours. For example, enter 30 minutes as .5</p>");
 	} else {
-		GM_setValue('cents_per_hour', clean_cents_input(cents_per_hour));
-		GM_setValue('hr_per_day_goal', clean_hours_input(hr_per_day_goal));
-		GM_setValue('hr_per_day_max', clean_hours_input(hr_per_day_max));
+		GM_setValue('cents_per_hr', clean_cents_input(cents_per_hr));
+		GM_setValue('hr_per_week_goal', clean_hours_input(hr_per_week_goal));
+		GM_setValue('hr_per_week_max', clean_hours_input(hr_per_week_max));
 		return true;
 	}
 	return false;
 }
 
 function process_balance(event) {
-	GM_log("process_balance()");
 	return true;
 }
 
 function process_site_classifications(event) {
-	GM_log("process_site_classifications()");
 	return true;
 }
 
 function process_recipients(event) {
-	GM_log("process_recipients()");
 	return true;
 }
 
 function process_done(event) {
-	GM_log("process_done()");
 	return true;
 }
 
@@ -811,7 +806,8 @@ function _track_snippet(state_name, state_enum, tab_names, track_progress) {
 
 function impact_tab_snippet() {
 	/* Calls _tab_snippet for impact state */
-	return _tab_snippet('impact', constants.IMPACT_STATE_ENUM, constants.IMPACT_STATE_TAB_NAMES);
+	return _track_snippet('impact', constants.IMPACT_STATE_ENUM, constants.IMPACT_STATE_TAB_NAMES, false);
+	//return _tab_snippet('impact', constants.IMPACT_STATE_ENUM, constants.IMPACT_STATE_TAB_NAMES);
 }
 
 function _process_before_proceeding(state_name, state_enums, processors, event) {
@@ -856,10 +852,23 @@ function activate_impact_tab_events() {
 		var tab_state = constants.IMPACT_STATE_ENUM[i];
 		var event = constants.IMPACT_STATE_INSERTS[i];
 		// closure
+		$("#"+tab_state+"_track, #"+tab_state+"_text").click(
+				(function(event) { return event; })(event)
+				);
+	}
+	// cursor pointer to tracks
+	$(".track, .track_text").css("cursor","pointer");
+	/*
+	 * only works for tabs not tracks
+	 for (var i = 0; i < constants.IMPACT_STATE_ENUM.length; i += 1) {
+		var tab_state = constants.IMPACT_STATE_ENUM[i];
+		var event = constants.IMPACT_STATE_INSERTS[i];
+		// closure
 		$("#"+tab_state+"_tab").click(
 				(function (event) { return event; })(event)
 		);
 	}
+	*/
 }
 
 function activate_register_tab_events() {
@@ -890,7 +899,7 @@ function activate_register_tab_events() {
 	});
 }
 
-/************************************************************************/
+/************************** IMPACT INSERTIONS **********************************************/
 
 function insert_register_twitter_account() {
 	/* Inserts user's twitter account form into page */
@@ -900,76 +909,192 @@ function insert_register_twitter_account() {
 	activate_twitter_account_middle();
 }
 
-function insert_impact_site_ranks() {
-	/*
-	 * Inserts site ranks information into impact.site_ranks page
-	 */
-	GM_setValue('impact_state', 'site_ranks');
-	var sort_arr = [
-		['www.ycombinator.com', 120, 200],
-		['bilumi.org', 100, 100],
-		['gmail.com', 45, 75],
-		['www.slashdot.com', 30, 50],
-		['www.javascriptkit.com', 30, 50],
-		['news.ycombinator.com', 2, 2],
-		['hulu.com', 1, 1],
-	];
-	
+function impact_sites_middle(data, show_tags) {
 	var middle = "<div id='ranks'>";
-	middle += "<table><tbody>";
+	
+	if (show_tags) {
+		middle += "" +
+			//"<fieldset class='rank_legend' style='-moz-border-radius:1em;'>" +
+			"<div class='rank_legend'>" +
+			"<h3>Site Classification Legend</h3>" +
+			//"<legend>Legend</legend>" +
+			"<label>ProcrasDonate:</label><div class='bar procrasdonate'></div	>" +
+			"<label>TimeWellSpent:</label><div class='bar timewellspent'></div>" +
+			"<label>Other:</label><div class='bar other'></div>" +
+			"</div>" +
+			//"</fieldset>" +
+			"<h3>Most Visited Sites</h3>";
+	} else {
+		middle += "" +
+			"<h3>Most Supported Recipient</h3>";
+	}
+	
+	middle += "" +
+		"<table><tbody>";
 	
 	var max = null;
-	for (i = 0; i < sort_arr.length; i += 1) {
-		if ( i == 0 ) max = sort_arr[i][1];
+	for (i = 0; i < data.length; i += 1) {
+		if ( i == 0 ) max = data[i][1];
 		middle += "<tr class='site_rank'>";
-		middle += "<td class='site_name'>" + sort_arr[i][0] + "</td>";
-		middle += "<td class='rank'><div class='bar' style='width:" + parseInt( (sort_arr[i][1]/max)*100.0 ) + "%'></div></td>";
-		middle += "<td class='rank_text'>" + sort_arr[i][1] + " min</td>";
-		middle += "<td class='rank_text'>$" + sort_arr[i][2] + "</td>";
+		middle += "<td class='site_name'>" + data[i][0] + "</td>";
+		var bar_class = "";
+		if (data[i].length > 3) {
+			bar_class = data[i][3];
+		}
+		middle += "<td class='rank'><div class='bar " + bar_class + "' style='width:" + parseInt( ((data[i][1]+1)/max)*100.0 ) + "%'>";
+		if (show_tags) {
+			middle += "<div class='rank_text'>" + data[i][1] + "&nbsp;min</span>";
+		} else {
+			middle += "<div class='rank_text'>$" + data[i][2] + "</span>";
+		}
+		middle += "</div></td>";
 		middle += "</tr>";
 	}
 	middle += "</tbody></table>";
-	
-	$("#content").html( impact_wrapper_snippet(middle) );
-	activate_impact_tab_events();
+	return middle
 }
 
-function insert_impact_visits() {
-	/*
-	 * Inserts visits information into impact.visits page
-	 */
-	GM_setValue('impact_state', 'visits');
+function activate_impact_sites_middle(has_tags) {
+	$(".site_rank .rank_text").hide();
+	$(".site_rank .bar").hover(
+		function() {
+			$(this).children().show();
+		},
+		function() {
+			$(this).children().hide();
+		}
+	);
+}
+
+function insert_impact_sites() {
+	/* insert sites chart */
+	GM_setValue('impact_state', 'sites');
+	var sort_arr = [
+		['www.ycombinator.com', 120, 200, 'timewellspent'],
+		['bilumi.org', 100, 100, 'procrasdonate'],
+		['gmail.com', 45, 75, 'timewellspent'],
+		['www.slashdot.com', 30, 50, 'other'],
+		['www.javascriptkit.com', 30, 50, 'other'],
+		['news.ycombinator.com', 2, 2, 'timewellspent'],
+		['hulu.com', 1, 1, 'procrasdonate'],
+	];
+	$("#content").html( impact_wrapper_snippet(impact_sites_middle(sort_arr, true)) );
+	activate_impact_tab_events();
+	activate_impact_sites_middle();
+}
+
+function insert_impact_recipients() {
+	/* insert sites chart */
+	GM_setValue('impact_state', 'recipients');
+	var sort_arr = [
+		['bilumi', 120, 200],
+		['miller', 100, 100],
+		['pd', 45, 75],
+	];
+	$("#content").html( impact_wrapper_snippet(impact_sites_middle(sort_arr, false)) );
+	activate_impact_tab_events();
+	activate_impact_sites_middle();
+}
+
+function insert_impact_goals() {
+	/* Inserts weekly progress towards donation goals and max */
+	GM_setValue('impact_state', 'goals');
 	
-	var middle = "<div id='procrasdonation_chart' style='width:100%;height:300px'></div>";
+	var middle = "<div id='goals_chart' style='width:100%;height:25em;'></div>";
 	$("#content").html( impact_wrapper_snippet(middle) );
 	activate_impact_tab_events();
 	
-	var rawdata = [ [10, 1], [17, -14], [30, 5] ];
-	var data = [
-		{
-			// color: color or number
-			data: rawdata,
-			label: "Games",
-			// lines: specific lines options
-			// bars: specific bars options
-			// points: specific points options
-			// threshold: specific threshold options
-			// xaxis: 1 or 2
-			// yaxis: 1 or 2
-			xaxis: 1,
-			clickable: true,
-			hoverable: true,
-			// shadowSize: number
-		}
-	];
+	// days holds days of week
+	var days = [];
+	// days offset by half a day so chart looks centered
+	var offset_days = [];
+	var offset_days_offset = 12;
+	var today = new Date();
+	// zero out hours, mins, secs and msec
+	var offset = today.getTimezoneOffset() / 60;
+	today.setHours(-1*offset,0,0,0);
+	// push previous days of week to days, oldest first
+	for (var i = today.getDay(); i > 0; i--) {
+		var d = new Date();
+		d.setHours(-24 * i - offset,0,0,0);
+		days.push(d);
+		var d2 = new Date(d);
+		d2.setHours(d2.getHours()-offset_days_offset);
+		offset_days.push(d2);
+		//GM_log("   past: "+d);
+	}
+	days.push(today);
+	var d2 = new Date(today);
+	d2.setHours(d2.getHours()-offset_days_offset);
+	offset_days.push(d2);
+	//GM_log("   today: "+today);
+	for (var i = today.getDay()+1; i < 7; i++) {
+		var d = new Date();
+		d.setHours(24 * (i-today.getDay()) - offset,0,0,0);
+		days.push(d);
+		var d2 = new Date(d);
+		d2.setHours(d2.getHours()-offset_days_offset);
+		offset_days.push(d2);
+		//GM_log("   future: "+d);
+	}
+	
+	var start_time = new Date(days[0]);
+	start_time.setHours(start_time.getHours()-12);
+	var end_time = new Date(days[6]);
+	end_time.setHours(end_time.getHours()+12);
+	var g = GM_getValue('hr_per_week_goal',22);
+	var goal = [ [start_time, g], [end_time, g] ];
+	var m = GM_getValue('hr_per_week_max',22);
+	var max = [ [start_time, m], [end_time, m] ];
+	var avg = (g+m)/2;
+	var red_zone = [ [start_time, avg], [end_time, avg] ];
+	
+	var madeuphours = [6,5,3,7,7,3,4];
+	var data = [];
+	var sum = 0;
+	for (var i = 0; i < days.length; i++) {
+		sum += madeuphours[i];
+		data.push( [offset_days[i].getTime(), sum] );
+	}
+	data.push( [end_time.getTime(), sum] );
+	GM_log("DATA: "+data);
 	var options = {
-		lines: { show: true },
-		points: { show: true },
-		selection: { mode: "x", },
-		// crosshair: { mode: "xy", },
+		xaxis: { mode: "time" },
+		grid: { hoverable: true, clickable: true, backgroundColor:"#FFF" },
+		//selection: { mode: "y", },
+		//crosshair: { mode: "xy", },
 	};
-	//$.plot($("#procrasdonation_chart"), data, options);
+	var red_solid = "#F55";
+	var red = "rgba(255,200,200,0.8)";
+	var red_gradient = { colors: [red, red, "#F55"] };
+	var green_solid = "#8A8";
+	var green = "#AFA";
+	var green_gradient = { colors: ["#FFF", green] };
+	var bars_solid = "#88A";
+	var bars_bottom = "rgba(180, 180, 200, 0.8)";
+	var bars_top = "rgba(180, 180, 200, 0.2)";
+	var bars_gradient = { colors: [bars_bottom, bars_top] };
+	$.plot($("#goals_chart"), [ /*{data:red_zone,lines:{lineWidth:90}},*/
+								{data:max,
+									lines: { fill:true, fillColor:red_gradient },
+									color: red_solid,
+									shadowSize: 0
+								},
+								{data:goal,
+									lines: { fill:true, fillColor:green_gradient },
+									color: green_solid,
+									shadowSize: 0
+								},
+								{data:data,
+									/*bars:{ show: true, align: "center", barWidth: 12*60*60*2000/*half a day*//*, lineWidth: 0, fillColor: bars_top },*/
+									/*points:{ show: true },*/
+									lines:{ show: true, steps: true, fill:true, fillColor:bars_gradient },
+									color: bars_solid,
+									shadowSize: 0
+									/*threshold: {below: g, color:"rgba(50, 255, 100, 0.8)"}*/
+								}], options);
 }
+
 
 function insert_impact_history() {
 	/*

@@ -308,16 +308,16 @@ function stop_recording() {
 			GM_savePrefs();
 		
 		// SEND ANONYMOUS DATA TO PROCRASDONATE SERVER
-		// cents_per_hour * 1hr/60min * 1min/60sec * seconds
-		var amt = parseInt(GM_getValue('cents_per_hour', 0))/60.0/60.0 * counts;
+		// cents_per_hr * 1hr/60min * 1min/60sec * seconds
+		var amt = parseInt(GM_getValue('cents_per_hr', 0))/60.0/60.0 * counts;
 		var recipient = GM_getValue('recipient', '');
-		GM_log("amt "+amt+" counts "+counts);
-		if ( amt > 0.0 && counts > 0 ) {
+		//GM_log("amt "+amt+" counts "+counts);
+		//if ( amt > 0.0 && counts > 0 ) {
 			// post_anonymous_info_to_procrasdonate(get_decoded_url(), counts,
 			// amt, recipient);
 			// @DAN we probably want to summarize this instead and do posts
 			// elsewhere less frequently
-		}
+		//}
 	}
 	window.page_addict_start = null;
 	GM_setValue('page_addict_start', false);
@@ -329,7 +329,7 @@ function stop_recording() {
 	// window.count_seconds=0;
 	
 	// check_exists();
-	// make_payment(GM_getValue('cents_per_hour', ''));
+	// make_payment(GM_getValue('cents_per_hr', ''));
 	// create_account();
 }
 
@@ -596,9 +596,9 @@ function initialize_account_defaults_if_necessary() {
 	if (!GM_getValue('twitter_password', '')) { GM_setValue('twitter_password', constants.DEFAULT_PASSWORD); }
 	if (!GM_getValue('recipients', '')) { GM_setValue('recipients', constants.DEFAULT_RECIPIENTS); }
 	if (!GM_getValue('support_pct', '')) { GM_setValue('support_pct', constants.DEFAULT_SUPPORT_PCT); }
-	if (!GM_getValue('cents_per_hour', '')) { GM_setValue('cents_per_hour', constants.DEFAULT_CENTS_PER_HOUR); }
-	if (!GM_getValue('hr_per_day_goal', '')) { GM_setValue('hr_per_day_goal', constants.DEFAULT_HOUR_PER_DAY_GOAL); }
-	if (!GM_getValue('hr_per_day_max', '')) { GM_setValue('hr_per_day_max', constants.DEFAULT_HOUR_PER_DAY_MAX); }
+	if (!GM_getValue('cents_per_hr', '')) { GM_setValue('cents_per_hr', constants.DEFAULT_CENTS_PER_HR); }
+	if (!GM_getValue('hr_per_week_goal', '')) { GM_setValue('hr_per_week_goal', constants.DEFAULT_HR_PER_WEEK_GOAL); }
+	if (!GM_getValue('hr_per_week_max', '')) { GM_setValue('hr_per_week_max', constants.DEFAULT_HR_PER_WEEK_MAX); }
 }
 
 function reset_account_to_defaults() {
@@ -609,9 +609,9 @@ function reset_account_to_defaults() {
 	GM_setValue('twitter_password', constants.DEFAULT_PASSWORD);
 	GM_setValue('recipients', constants.DEFAULT_RECIPIENTS);
 	GM_setValue('support_prct', constants.DEFAULT_SUPPORT_PCT);
-	GM_setValue('cents_per_hour', constants.DEFAULT_CENTS_PER_HOUR);
-	GM_setValue('hr_per_day_goal', constants.DEFAULT_HOUR_PER_DAY_GOAL);
-	GM_setValue('hr_per_day_max', constants.DEFAULT_HOUR_PER_DAY_MAX);
+	GM_setValue('cents_per_hr', constants.DEFAULT_CENTS_PER_HR);
+	GM_setValue('hr_per_week_goal', constants.DEFAULT_HR_PER_WEEK_GOAL);
+	GM_setValue('hr_per_week_max', constants.DEFAULT_HR_PER_WEEK_MAX);
 }
 
 function reset_state_to_defaults() {
@@ -683,7 +683,6 @@ function check_page_inserts() {
 		for (i = 0; i < state_enums.length; i += 1) {
 			var state = state_enums[i];
 			if ( GM_getValue(state_name + '_state', '') == state ) {
-				GM_log("    current state: "+state);
 				event_inserts[i]();
 				return true;
 			}
@@ -713,6 +712,7 @@ function check_page_inserts() {
 		GM_wait();
 		
 		//reset_state_to_defaults();
+		//reset_account_to_defaults();
 		if ( GM_getValue('register_state', '') == 'done' ) {
 			// If done registering, change Start menu item to Settings.
 			$("#start_now_menu_item a").attr("href", constants.SETTINGS_URL).text("Settings");
@@ -725,11 +725,9 @@ function check_page_inserts() {
 			// registered).
 			// Once registration track is 'done', Start menu item is replaced by
 			// Settings menu item, and Start page is replaced by settings pages
-			GM_log('state: '+GM_getValue('register_state','asdf'));
 			var state_matched = insert_based_on_state('register', constants.REGISTER_STATE_ENUM, constants.REGISTER_STATE_INSERTS);
 			if (!state_matched) {
 				GM_setValue('register_state', constants.DEFAULT_REGISTER_STATE);
-				GM_log('state: '+GM_getValue('register_state','asdf'));
 				insert_based_on_state('register', constants.REGISTER_STATE_ENUM, constants.REGISTER_STATE_INSERTS);
 			}
 		}
