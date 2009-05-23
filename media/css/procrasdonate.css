@@ -56,7 +56,7 @@ p { text-align: left; }
 	word-spacing: .3em;
 }
 
-.tracks {}
+.tracks { margin: auto; margin-bottom: 2em; }
 .tracks tr td { padding: 0em; vertical-align: bottom }
 .tracks tr .track_text { width: 4.5em; max-width: 4.5em; overflow: visible; }
 .tracks tr .done { color: green; }
@@ -81,7 +81,7 @@ p { text-align: left; }
 .DivLeft {text-align: left; }
 
 #content { margin: auto; width: 70em; text-align:center; margin-top: 1em; }
-#thin_column { width: 60%; margin: auto; padding-left: 12em; padding-top: 1em; padding-bottom: 1em; }
+#thin_column { width: 60%; margin: auto; /*padding-left: 12em;*/ padding-top: 1em; padding-bottom: 1em; }
 #footer { font-size: .8em; height: 5em;  font-weight: normal; margin: auto; padding-top: 2em; }
 
 /*** h2 used as section headers for FAQ, etc. ***/
@@ -168,10 +168,14 @@ label { padding-right: 1em; }
 #ranks { text-align: left; }
 .site_rank {}
 .site_rank span {}
-.site_rank .site_name {}
+.site_rank .site_name { padding-right:1.5em; text-align:right; }
 .site_rank .rank { width: 200px; }
-.site_rank .bar { height: 10px; background: red; }
-.site_rank .rank_text {}
+.site_rank .bar, .rank_legend .bar { height: 1.5em; background: #BBBBBB; }
+.rank_legend label { float: left; padding-right: .5em; }
+.rank_legend .bar { width: 4em; float: left; margin: 0em 2em 0px 0px; }
+.site_rank .bar.timewellspent, .rank_legend .bar.timewellspent { background: #FFCCAA; }
+.site_rank .bar.procrasdonate, .rank_legend .bar.procrasdonate { background: #AACCFF; }
+.site_rank .rank_text { padding-left:.5em; position:relative; right:-100%; top:0px; }
 
 .Move_Site_Arrow { width: 1.2em; vertical-align: bottom; margin-bottom: -.25em; padding: 0 .5em 0 .5em; }
 
