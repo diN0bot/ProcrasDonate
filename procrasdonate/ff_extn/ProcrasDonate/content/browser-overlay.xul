@@ -1,0 +1,39 @@
+<?xml version="1.0"?>
+<overlay xmlns='http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul'>
+    
+    <script type='application/x-javascript' 
+            src='chrome://ProcrasDonate/content/js/ext/xmlhttprequester.js'></script>
+    <script type='application/x-javascript'
+            src='chrome://ProcrasDonate/content/js/ext/prefman.js'></script>
+    
+    <script type='application/x-javascript'
+            src='chrome://ProcrasDonate/content/js/lib/utils.js'></script>
+    <script type='application/x-javascript'
+            src='chrome://ProcrasDonate/content/js/lib/db/base.js'></script>
+    <script type='application/x-javascript'
+            src='chrome://ProcrasDonate/content/js/lib/db/sqlite3_firefox.js'></script>
+    
+    <script type='application/x-javascript'
+            src='chrome://ProcrasDonate/content/js/settings.js'></script>
+    <script type='application/x-javascript'
+            src='chrome://ProcrasDonate/content/js/api.js'></script>
+    <script type='application/x-javascript'
+            src='chrome://ProcrasDonate/content/js/tipjoy.js'></script>
+    <script type='application/x-javascript'
+            src='chrome://ProcrasDonate/content/js/models.js'></script>
+    <script type='application/x-javascript'
+            src='chrome://ProcrasDonate/content/js/views.js'></script>
+    
+    <script type='application/x-javascript' 
+            src='chrome://ProcrasDonate/content/js/main.js'></script>
+    
+    <menupopup id="menu_ToolsPopup">
+        <menuitem label="PageAddict" accesskey="a" oncommand="Overlay.doMenuSelect()"/>
+    </menupopup>
+    
+    <!--
+    <statusbar id="status-bar">
+        <statusbarpanel id="my-panel" label="Hello, World"  />
+    </statusbar>
+    -->
+</overlay>
