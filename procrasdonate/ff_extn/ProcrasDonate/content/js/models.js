@@ -1,6 +1,6 @@
 
 var db = new Backend__Firefox();
-db.connect("test000.sqlite");
+db.connect("test010.sqlite");
 
 var Site = new Model(db, "Site", {
 	// Model metadata

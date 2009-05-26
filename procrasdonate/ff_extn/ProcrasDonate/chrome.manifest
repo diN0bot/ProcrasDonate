@@ -1,2 +1,5 @@
 content	ProcrasDonate	content/
 overlay	chrome://browser/content/browser.xul	chrome://ProcrasDonate/content/browser-overlay.xul
+
+skin	ProcrasDonate	classic/1.0	skin/
+style	chrome://global/content/customizeToolbar.xul	chrome://ProcrasDonate/skin/toolbar_handler.css

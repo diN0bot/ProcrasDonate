@@ -1,10 +1,10 @@
 
-// TJ_API
+// TipJoy_API
 // * handles interaction with TipJoy.com
 var TipJoy_API = function() {
 	
 };
-TJ_API.prototype = {
+TipJoy_API.prototype = {
 	make_request: function() {
 		
 	},

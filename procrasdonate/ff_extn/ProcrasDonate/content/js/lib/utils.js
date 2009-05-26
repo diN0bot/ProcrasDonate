@@ -166,5 +166,43 @@ function _iterate(o, fn) {
 //	return ret;
 //}
 
+var host_regexp =  /^[\w]+:\/\/([^\/]+).*/g;
 
+var _host = function(href) {
+	if (!href) {
+		var urlbar = document.getElementById('urlbar');
+		// @TODO if urlbar is null...
+		href = urlbar.value;
+	}
+	var splits = href.split(host_regexp);
+	
+	if ( splits.length > 1 ) {
+		return splits[1]
+	} else {
+		return href
+	}
+};
 
+var _href = function() {
+	var urlbar = document.getElementById('urlbar');
+	// @TODO if urlbar is null...
+	return urlbar.value
+};
+
+function isEmpty(ob) {
+	for(var i in ob) {
+		if (ob.hasOwnProperty(i)) { return false; }
+	}
+	return true;
+}
+/*
+function isEmpty(o) {
+	var o = {};
+	for(var p in o) {
+		if (o[p] != o.constructor.prototype[p]) {
+			return false;
+		}
+	}
+	return true;
+}
+*/

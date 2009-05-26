@@ -42,6 +42,7 @@ URLBarListener.prototype = {
 		// or when the user switches tabs. If you use myListener for more than one tab/window,
 		// use aProgress.DOMWindow to obtain the tab/window which triggered the change.
 		logger("onLocationChange:: " + aProgress.DOMWindow.location.href);
+		PD_ToolbarManager.updateButtons();
 		this.self.processNewURL(aURI);
 	},
 	
@@ -229,6 +230,12 @@ Overlay.prototype = {
 	
 	processNewURL: function(url) {
 		logger("Overlay.processNewURL:: url=" + url);
+		if (is_procrasdonate_domain()) {
+			logger("Overlay.processNewURL:: do house keeping");
+			house_keeping();
+		} else {
+			logger("Overlay.processNewURL:: don't do house keeping");
+		}
 	},
 	
 	checkVersion: function() {
@@ -357,7 +364,8 @@ PDDB.prototype = {
 		logger(site);
 		if (!site) {
 			logger("Creating Site: url="+url+"]")
-			site = this.Site.create({ name: "heyo", url: url });
+			var host = _host(url);
+			site = this.Site.create({ name: host, url: url });
 		}
 		logger("Site: id="+site.url+" url="+site.url);
 		logger("Site: " + site.toString());

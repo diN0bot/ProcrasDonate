@@ -14,7 +14,307 @@ _extend(Controller.prototype, {
 	
 });
 
+function is_procrasdonate_domain() {
+	var host = _host();
+	
+	CONSTANTS();
+	logger("is_procrasdonate_domain:: host "+host+" constants.PD_CONSTANTS "+constants.PD_HOST);
+	return host.match(new RegExp(constants.PD_HOST+"*"))
+}
 
+function check_page_inserts() {
+	/*
+	 * Insert data into matching webpage
+	 *    pageaddict.com and (localhost:8000 or procrasdonate.com)
+	 * See constants.PD_HOST in global constants at top of page.
+	 * 
+	 * @SNOOPY here for developer grep purposes
+	 */
+	var href = _href();
+	var host = _host(href);
+	
+	function insert_based_on_state(state_name, state_enums, event_inserts) {
+		/* Calls appropriate insert method based on current state
+		 * 
+		 * @param state_name: string. one of 'settings', 'register' or 'impact
+		 * @param state_enums: array. state enumeration. one of 'constants.SETTINGS_STATE_ENUM',
+		 * 		'constants.REGISTER_STATE_ENUM' or 'constants.IMPACT_STATE_ENUM'
+		 * @param event_inserts: array. functions corresponding to enums. one of
+		 * 		'constants.SETTINGS_STATE_INSERTS', 'constants.IMPACT_STATE_INSERTS', 'constants.REGISTER_STATE_INSERTS'
+		 */
+		GM_setValue('site_classifications_settings_activated', true);
+		for (i = 0; i < state_enums.length; i += 1) {
+			var state = state_enums[i];
+			if ( GM_getValue(state_name + '_state', '') == state ) {
+				event_inserts[i]();
+				return true;
+			}
+		}
+		return false;
+	}
+	
+	if (host.match(new RegExp(constants.PD_HOST))) {
+		
+		function add_script(src) {
+			var GM_JQ = document.createElement('script');
+			GM_JQ.src = src;
+			GM_JQ.type = 'text/javascript';
+			document.getElementsByTagName('head')[0].appendChild(GM_JQ);
+		}
+		///////// Defined in procrasdonate.com
+		// Add jQuery
+		//add_script('http://jquery.com/src/jquery-latest.js');
+		// Add jQuery UI
+		//add_script('http://jqueryui.com/latest/ui/ui.core.js');
+		//add_script('http://jqueryui.com/latest/ui/ui.slider.js');
+		
+		function GM_wait() {
+			if(typeof unsafeWindow.jQuery == 'undefined') { window.setTimeout (GM_wait,100); }
+			else { $ = unsafeWindow.jQuery; }
+		}
+		GM_wait();
+		
+		//reset_state_to_defaults();
+		//reset_account_to_defaults();
+		if ( GM_getValue('register_state', '') == 'done' ) {
+			// If done registering, change Start menu item to Settings.
+			$("#start_now_menu_item a").attr("href", constants.SETTINGS_URL).text("Settings");
+		} else {
+			// Else, if not working on registration track, give registration warning.
+		}
+		
+		if ( href == constants.START_URL ) {
+			// Page is replaced by registration track (or nothing if not
+			// registered).
+			// Once registration track is 'done', Start menu item is replaced by
+			// Settings menu item, and Start page is replaced by settings pages
+			var state_matched = insert_based_on_state('register', constants.REGISTER_STATE_ENUM, constants.REGISTER_STATE_INSERTS);
+			if (!state_matched) {
+				GM_setValue('register_state', constants.DEFAULT_REGISTER_STATE);
+				insert_based_on_state('register', constants.REGISTER_STATE_ENUM, constants.REGISTER_STATE_INSERTS);
+			}
+		}
+		// reason why not else if?
+		if ( href == constants.SETTINGS_URL ) {
+			// Page is replaced by settings options. Some Settings tabs re-use
+			// snippets inserted by registration inserts
+			var state_matched = insert_based_on_state('settings', constants.SETTINGS_STATE_ENUM, constants.SETTINGS_STATE_INSERTS);
+			if (!state_matched) {
+				GM_setValue('settings_state', constants.DEFAULT_SETTINGS_STATE);
+				insert_based_on_state('settings', constants.SETTINGS_STATE_ENUM, constants.SETTINGS_STATE_INSERTS);
+			}
+		}
+		else if ( href == constants.IMPACT_URL ) {
+			// Page is replaced by impact tabs
+			var state_matched = insert_based_on_state('impact', constants.IMPACT_STATE_ENUM, constants.IMPACT_STATE_INSERTS);
+			if (!state_matched) {
+				GM_setValue('impact_state', constants.DEFAULT_IMPACT_STATE);
+				insert_based_on_state('impact', constants.IMPACT_STATE_ENUM, constants.IMPACT_STATE_INSERTS);
+			}
+		}
+		else if ( href == constants.RESET_URL ) {
+			reset_state_to_defaults();
+			reset_account_to_defaults();
+		}
+	}
+	if (host.match(/pageaddict\.com$/)) {
+		// if(href.match(/pageaddict/)) {
+		show_hidden_links();
+		if (document.getElementById("insert_statistics_here")) {
+			get_results_html();
+		}
+		if (document.getElementById("insert_history_here")) {
+			plot_history(7);
+		}
+		if (document.getElementById("insert_settings_here")) {
+			make_settings();
+		}
+	}
+}
+
+
+function house_keeping() {
+	/*
+	 * Called on every page load.
+	 * 
+	 * 0. Set setup account if necessary
+	 * 1. If loading restricted page tag and time limit is exceeded, block page
+	 * 2. If loading a pageaddict page, then insert data if necessary
+	 * 3. Updated ProcrasDonate version available for download?
+	 * 4. Do daily and weekly tasks if necessary
+	 */
+	// 0.
+	CONSTANTS();
+	initialize_account_defaults_if_necessary();
+	initialize_state_if_necessary();
+	set_default_idle_mode_if_necessary();
+	
+	var host = window.location.host;
+	if (!(host.match(/pageaddict\.com$/)) && !(host.match(new RegExp(constants.PD_HOST)))) {
+		// 1.
+		check_restriction();
+	} else {
+		// 2.
+		check_page_inserts();
+	}
+	
+	// 3.
+	check_latest_version();
+	
+	// 4.
+	if ( is_new_24hr_period() ) {
+		do_once_daily_tasks();
+	}
+	if ( is_new_week_period() ) {
+		do_once_weekly_tasks();
+	}
+	
+	var last_global = GM_getValue('last_visit', 0);
+	var first = GM_getValue('first_visit', 0);
+	// chover = change over, as in change over the day ...?
+	var chover = new Date();
+	chover.setHours(0, 0, 0);
+	chover = Math.round(chover.getTime() / 1000);
+	if (first < chover) {
+		reset_visits();
+	}
+	// var currentTime = new Date();
+	// var t_in_s = Math.round(currentTime.getTime()/1000);
+	// GM_setValue('last_visit', t_in_s);
+}
+
+function is_new_24hr_period() {
+	/* @returns: true if it is at least 24 hrs past the last 24hr mark */
+	var two_four_hr = new Date(GM_getValue('last_24hr_mark', '')*1000);
+	var now = new Date();
+	two_four_hr.setHours(two_four_hr.getHours() + 24);
+	return now > two_four_hr
+}
+
+function do_once_daily_tasks() {
+	// reset last_24hr_mark to now
+	var two_four_hr = new Date(GM_getValue('last_24hr_mark', '')*1000);
+	var now = new Date();
+	now.setHours(two_four_hr.getHours());
+	now.setMinutes(two_four_hr.getMinutes());
+	now.setSeconds(two_four_hr.getSeconds());
+	if ( now > new Date() ) {
+		now.setDate( now.getDate() - 1 );
+	}
+	GM_setValue('last_24hr_mark', Math.floor(now.getTime()/1000));
+	
+	//alert("ding! last 24hr "+two_four_hr+" new 24hr "+now+"  now  "+new Date());
+}
+
+
+function is_new_week_period() {
+	/* @returns: true if it is at least 1 week past the last week mark */
+	var week_hr = new Date(GM_getValue('last_week_mark', '')*1000);
+	var now = new Date();
+	week_hr.setDate(week_hr.getDate() + 7);
+	return now > week_hr
+}
+
+function do_once_weekly_tasks() {
+	// reset last_week_mark to now
+	var week_hr = new Date(GM_getValue('last_week_mark', '')*1000);
+	var now = new Date();
+	now.setHours(week_hr.getHours());
+	now.setMinutes(week_hr.getMinutes());
+	now.setSeconds(week_hr.getSeconds());
+	if ( now > new Date() ) {
+		now.setDate( now.getDate() - 1 );
+	}
+	GM_setValue('last_week_mark', Math.floor(now.getTime()/1000));
+	
+	alert("ding! last week "+week_hr+" new week "+now+"  now  "+new Date());
+}
+
+function check_latest_version() {
+	/*
+	 * Check if user should update to newer version of page addict
+	 */
+	var newest_version;
+	
+	if (document.getElementById("newest_version")) {
+		newest_version = parseInt(
+			document.getElementById("newest_version").innerHTML, 10);
+		if (newest_version > 30) { // change to a constant somehow
+			var cell_text;
+			cell_text = "You are running an old version of PageAddict. ";
+			cell_text += 'Update <a href="https://addons.mozilla.org/firefox/3685/">here</a>';
+			document.getElementById("newest_version").innerHTML = cell_text;
+			document.getElementById("newest_version").style.display = "inline";
+			// document.getElementById("newest_version").style.color="#EDCB09";
+		}
+	}
+}
+
+
+function initialize_state_if_necessary() {
+	/*
+	 * Initialize settings and impact state enumerations. Other inits?
+	 */
+	if (!GM_getValue('settings_state', '')) { GM_setValue('settings_state', constants.DEFAULT_SETTINGS_STATE); }
+	if (!GM_getValue('impact_state', '')) { GM_setValue('impact_state', constants.DEFAULT_IMPACT_STATE); }
+	if (!GM_getValue('register_state', '')) { GM_setValue('register_state', constants.DEFAULT_REGISTER_STATE); }
+	
+	if (!GM_getValue('last_24hr_mark', '')) {
+		GM_setValue('last_24hr_mark', (Math.floor(get_semi_random_date().getTime() / 1000)));
+		// todo once json gets included ok.
+		//GM_setValue('last_24hr_mark', JSON.stringify(get_semi_random_date(), toJSON));
+	}
+	if (!GM_getValue('last_week_mark', '')) {
+		//var two_four_hr = JSON.parse(GM_getValue('last_24hr_mark', ''), fromJSON);
+		var two_four_hr = new Date(GM_getValue('last_24hr_mark', '')*1000);
+		GM_setValue('last_week_mark', two_four_hr);
+	}
+}
+
+function get_semi_random_date() {
+	/* @returns: Date object for current day, month and fullyear with random hours, minutes and seconds */
+	var d = new Date();
+	// Math.floor(Math.random()*X) generates random ints, x: 0 <= x < X
+	d.setHours(Math.floor(Math.random()*24));
+	d.setMinutes(Math.floor(Math.random()*60));
+	d.setSeconds(Math.floor(Math.random()*60));
+	return d;
+}
+
+function initialize_account_defaults_if_necessary() {
+	/*
+	 * Set any blank account data to defaults.
+	 */
+	if (!GM_getValue('twitter_username', '')) { GM_setValue('twitter_username', constants.DEFAULT_USERNAME); }
+	if (!GM_getValue('twitter_password', '')) { GM_setValue('twitter_password', constants.DEFAULT_PASSWORD); }
+	if (!GM_getValue('recipients', '')) { GM_setValue('recipients', constants.DEFAULT_RECIPIENTS); }
+	if (!GM_getValue('support_pct', '')) { GM_setValue('support_pct', constants.DEFAULT_SUPPORT_PCT); }
+	if (!GM_getValue('cents_per_hr', '')) { GM_setValue('cents_per_hr', constants.DEFAULT_CENTS_PER_HR); }
+	if (!GM_getValue('hr_per_week_goal', '')) { GM_setValue('hr_per_week_goal', constants.DEFAULT_HR_PER_WEEK_GOAL); }
+	if (!GM_getValue('hr_per_week_max', '')) { GM_setValue('hr_per_week_max', constants.DEFAULT_HR_PER_WEEK_MAX); }
+}
+
+function reset_account_to_defaults() {
+	/*
+	 * Overwrite existing data (if any) with account defaults
+	 */
+	GM_setValue('twitter_username', constants.DEFAULT_USERNAME);
+	GM_setValue('twitter_password', constants.DEFAULT_PASSWORD);
+	GM_setValue('recipients', constants.DEFAULT_RECIPIENTS);
+	GM_setValue('support_prct', constants.DEFAULT_SUPPORT_PCT);
+	GM_setValue('cents_per_hr', constants.DEFAULT_CENTS_PER_HR);
+	GM_setValue('hr_per_week_goal', constants.DEFAULT_HR_PER_WEEK_GOAL);
+	GM_setValue('hr_per_week_max', constants.DEFAULT_HR_PER_WEEK_MAX);
+}
+
+function reset_state_to_defaults() {
+	/*
+	 * Overwrite existing data (if any) with state defaults
+	 */
+	GM_setValue('settings_state', constants.DEFAULT_SETTINGS_STATE);
+	GM_setValue('impact_state', constants.DEFAULT_IMPACT_STATE);
+	GM_setValue('register_state', constants.DEFAULT_REGISTER_STATE);
+}
 
 /********** HTML INSERTION FUNCTIONS AND HELPERS ***************/
 

@@ -160,8 +160,14 @@ _extend(Model.prototype, {
 	},
 	
 	select: function(query, fn) {
+		/*
+		 * @param query: string to execute, eg select * from sites where id=22
+		 * 		or object of key,values for where clause.
+		 *      empty object will return all rows
+		 * @param fn: function(row) to execute on each row.
+		 */
 		query = this.sql_select.apply(this, [query]);
-		logger(query);
+		//logger(" sqlite3_firefox.js::select query="+query);
 		var row_factory = this.row_factory;
 		fn = fn || function(row){ return row; };
 		function fn2(row) {
@@ -198,10 +204,10 @@ _extend(Model.prototype, {
 			if (query.constructor == Array) {
 				
 			} else {
-				logger("sql_select 1");
+				//logger("sql_select 1");
 				self = this;
 				_iterate(query, function(name, value, i) {
-					logger([name, value, i]);
+					//logger(" sqlite3_firefox.js::select query params: "+[name, value, i]);
 					var si, step, oper, path;
 					path = name.split(/__/);
 					
@@ -223,7 +229,11 @@ _extend(Model.prototype, {
 					params.push(value);
 					
 				});
-				sql = ["SELECT * FROM", this.table_name, "WHERE", sql.join(" AND ")];
+				if (!isEmpty(params)) {
+					sql = ["SELECT * FROM", this.table_name, "WHERE", sql.join(" AND ")];
+				} else {
+					sql = ["SELECT * FROM", this.table_name];
+				}
 				sql = sql.join(" ");
 				return [sql, params];
 			}
@@ -235,7 +245,7 @@ _extend(Model.prototype, {
 	create: function(values) {
 		var ret = this.db.execute(this.sql_create.apply(this, [values]), values);
 		ret = this.select(values)[0];
-		logger("create: ret="+ ret);
+		//logger(" sqlite3_firefox.js::create: ret="+ ret);
 		return ret;
 	},
 	sql_create: function() {
@@ -295,6 +305,20 @@ _extend(Model.prototype, {
 	get_row_factory: function() {
 		
 	},
+	
+	count: function() {
+		return this.db.execute("select count(*) from "+this.table_name);
+	},
+	
+	get_or_null: function(query, fn) {
+		// UNTESTED!!
+		var ary = this.select(query, fn);
+		if (ary.length == 0) {
+			return null;
+		} else {
+			return ary[0];
+		}
+	}
 });
 _extend(Model, {
 	sql_create_table: function(name, columns) {
