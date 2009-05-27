@@ -1,0 +1,61 @@
+<?xml version="1.0"?>
+<?xml-stylesheet href="chrome://ProcrasDonate/skin/toolbar_handler.css" type="text/css"?>
+<overlay xmlns='http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul'>
+    
+    <script type='application/x-javascript' 
+            src='chrome://ProcrasDonate/content/js/ext/xmlhttprequester.js'></script>
+    <script type='application/x-javascript'
+            src='chrome://ProcrasDonate/content/js/ext/prefman.js'></script>
+    
+    <script type='application/x-javascript'
+            src='chrome://ProcrasDonate/content/js/lib/utils.js'></script>
+    <script type='application/x-javascript'
+            src='chrome://ProcrasDonate/content/js/lib/db/base.js'></script>
+    <script type='application/x-javascript'
+            src='chrome://ProcrasDonate/content/js/lib/db/sqlite3_firefox.js'></script>
+    
+    <script type='application/x-javascript'
+            src='chrome://ProcrasDonate/content/js/settings.js'></script>
+    <script type='application/x-javascript'
+            src='chrome://ProcrasDonate/content/js/api.js'></script>
+    <script type='application/x-javascript'
+            src='chrome://ProcrasDonate/content/js/tipjoy.js'></script>
+    <script type='application/x-javascript'
+            src='chrome://ProcrasDonate/content/js/models.js'></script>
+    <script type='application/x-javascript'
+            src='chrome://ProcrasDonate/content/js/views.js'></script>
+
+    <script type='application/x-javascript' 
+	    src='chrome://ProcrasDonate/content/js/toolbar_handler.js'></script>
+
+    <script type='application/x-javascript' 
+            src='chrome://ProcrasDonate/content/js/main.js'></script>
+
+    <toolbarpalette id="BrowserToolbarPalette">
+      <toolbarbutton id="PD-classify-toolbar-button"
+        autoCheck="true"
+        label="ProcrasDonating"
+        tooltiptext="Current activity: ProcrasDonating. To re-classify this site click this icon."
+        oncommand="PD_ToolbarManager.onClassifyButtonCommand();"
+	image="chrome://ProcrasDonate/skin/ProcrasDonateIcon.png"
+        class="toolbarbutton-1 chromeclass-toolbar-additional"/>
+
+      <toolbarbutton id="PD-progress-toolbar-button"
+        autoCheck="true"
+        label="Progress: "
+        tooltiptext="Progress towards weekly ProcrasDonate goal"
+        oncommand="PD_ToolbarManager.onProgressButtonCommand();"
+	image="chrome://ProcrasDonate/skin/IconBar0.png"
+        class="toolbarbutton-1 chromeclass-toolbar-additional"/>
+  </toolbarpalette>
+    
+    <menupopup id="menu_ToolsPopup">
+        <menuitem label="ProcrasDonate" accesskey="a" oncommand="Overlay.doMenuSelect()"/>
+    </menupopup>
+    
+    <!--
+    <statusbar id="status-bar">
+        <statusbarpanel id="my-panel" label="Hello, World"  />
+    </statusbar>
+    -->
+</overlay>
