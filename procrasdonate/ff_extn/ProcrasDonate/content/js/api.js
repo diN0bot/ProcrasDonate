@@ -12,19 +12,10 @@ _extend(API.prototype, {
 var ProcrasDonate_API = function() {
 	
 };
-/*
+
 ProcrasDonate_API.prototype = new API;
-_extend(ProcrasDonateAPI.prototype, {
+_extend(ProcrasDonate_API.prototype, {
 	post_anonymous_info: function(site, duration, amount, recipient) {
 		
 	},
-};
-
-error reported: Missing ) after argument list
-so changed to mirror tipjoy.js:
-*/
-ProcrasDonate_API.prototype = {
-	post_anonymous_info: function(site, duration, amount, recipient) {
-	
-	},
-}
+});

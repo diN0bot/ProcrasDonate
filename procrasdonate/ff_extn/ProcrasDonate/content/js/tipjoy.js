@@ -4,7 +4,9 @@
 var TipJoy_API = function() {
 	
 };
-TipJoy_API.prototype = {
+
+TipJoy_API.prototype = new API();
+_extend(TipJoy_API.prototype, {
 	make_request: function() {
 		
 	},
@@ -18,4 +20,4 @@ TipJoy_API.prototype = {
 		
 	},
 	
-};
+});
