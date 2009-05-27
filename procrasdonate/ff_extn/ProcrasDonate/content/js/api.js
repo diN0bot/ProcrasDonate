@@ -15,7 +15,15 @@ var ProcrasDonate_API = function() {
 
 ProcrasDonate_API.prototype = new API;
 _extend(ProcrasDonate_API.prototype, {
-	post_anonymous_info: function(site, duration, amount, recipient) {
+	/*
+	 * Posts anonymous information to procrasdonate server for community page
+	 * tracking
+	 */
+	post_anonymous_info: function() {
+		// get data from db
 		
+		// serialize into json
+	
+		// make request
 	},
 });
