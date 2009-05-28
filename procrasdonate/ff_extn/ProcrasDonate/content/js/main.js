@@ -42,8 +42,9 @@ URLBarListener.prototype = {
 		// or when the user switches tabs. If you use myListener for more than one tab/window,
 		// use aProgress.DOMWindow to obtain the tab/window which triggered the change.
 		logger("onLocationChange:: " + aProgress.DOMWindow.location.href);
+		logger(aProgress.DOMWindow);
 		PD_ToolbarManager.updateButtons();
-		this.self.processNewURL(aURI);
+		this.self.processNewURL(aProgress.DOMWindow, aURI);
 	},
 	
 	// For definitions of the remaining functions see XULPlanet.com
@@ -65,12 +66,6 @@ var Prefs = Components.classes["@mozilla.org/preferences-service;1"]
 Prefs = Prefs.getBranch("extensions.my_extension_name.");
 
 //ProcrasDonate.log
-var logger = function(msg) {
-	var consoleService = Components.
-		classes["@mozilla.org/consoleservice;1"].
-	    getService(Components.interfaces.nsIConsoleService);
-	consoleService.logStringMessage(msg);
-};
 
 function _callback(obj, method) {
 	var args = Array.prototype.slice.apply(arguments, [2, arguments.length]);
@@ -189,7 +184,9 @@ Overlay.prototype = {
 		if (this.handle_url(href)) {
 			// Inject scripts into page
 			logger("handling url: "+href);
-			this.injectScript("logger(\"Script injected!\");", href, unsafeWin);
+			//logger(jQuery("#content", doc).length);
+			this.pddb.dispatch(doc, href);
+			//this.injectScript("logger(\"Script injected!\");", href, unsafeWin);
 		} else {
 			logger("storing url: "+href);
 			var now = Math.round((new Date()).getTime() / 1000);
@@ -228,14 +225,16 @@ Overlay.prototype = {
 	},
 	
 	
-	processNewURL: function(url) {
+	processNewURL: function(win, url) {
 		logger("Overlay.processNewURL:: url=" + url);
-		if (is_procrasdonate_domain()) {
-			logger("Overlay.processNewURL:: do house keeping");
-			house_keeping();
-		} else {
-			logger("Overlay.processNewURL:: don't do house keeping");
-		}
+		logger(jQuery("#content", win.document.defaultView).length);
+		this.pddb.house_keeping();
+		//if (is_procrasdonate_domain()) {
+		//	logger("Overlay.processNewURL:: do house keeping");
+		//	house_keeping();
+		//} else {
+		//	logger("Overlay.processNewURL:: don't do house keeping");
+		//}
 	},
 	
 	checkVersion: function() {
@@ -304,7 +303,16 @@ var PDDB = function PDDB() {
 	//if (Main.locked)
 	//	return Main.instance;
 	
+	this.template = Template;
+	logger(this.template);
 	
+	this.prefs = new PreferenceManager("ProcrasDonate.", {
+		
+	});
+	
+	this.controller = new Controller(this.prefs);
+	this.schedule = new Schedule(this.prefs);
+	this.page = new PageController(this.prefs);
 };
 
 PDDB.prototype = {
@@ -328,10 +336,60 @@ PDDB.prototype = {
 		});
 	},
 	
-	house_keeping: function() {
-		var host = window.location.host;
+	dispatch: function(doc, url) {
+		logger("dispatch()", doc, url);
+		this.controller.dispatch_by_host(doc, _href());
 	},
 	
+	house_keeping: function() {
+		/*
+		 * Called on every page load.
+		 * 
+		 * 0. Set setup account if necessary
+		 * 1. If loading restricted page tag and time limit is exceeded, block page
+		 * 2. If loading a pageaddict page, then insert data if necessary
+		 * 3. Updated ProcrasDonate version available for download?
+		 * 4. Do daily and weekly tasks if necessary
+		 */
+		// 0.
+		//CONSTANTS();
+		this.controller.initialize_account_defaults_if_necessary();
+		this.controller.initialize_state_if_necessary();
+		
+		//?
+		//set_default_idle_mode_if_necessary();
+		
+		var host = window.location.host;
+		
+		//this.controller.dispatch_by_host(_href());
+		
+		//
+		//if (!(host.match(/pageaddict\.com$/)) && !(host.match(new RegExp(constants.PD_HOST)))) {
+		//	// 1.
+		//	check_restriction();
+		//} else {
+		//	// 2.
+		//	check_page_inserts();
+		//}
+		
+		this.schedule.run();
+		
+		
+		var last_global = this.prefs.get('last_visit', 0);
+		var first = this.prefs.get('first_visit', 0);
+		// chover = change over, as in change over the day ...?
+		var chover = new Date();
+		chover.setHours(0, 0, 0);
+		chover = Math.round(chover.getTime() / 1000);
+		//if (first < chover) {
+		//	reset_visits();
+		//}
+		
+		// var currentTime = new Date();
+		// var t_in_s = Math.round(currentTime.getTime()/1000);
+		// this.prefs.set('last_visit', t_in_s);
+	},
+
 	start_recording: function(url) {
 		this.stop_recording();
 		

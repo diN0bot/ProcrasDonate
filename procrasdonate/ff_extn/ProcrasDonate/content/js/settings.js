@@ -2,7 +2,7 @@
 
 var constants = {};
 
-function CONSTANTS() {
+(function CONSTANTS() {
 	/*
 	 * Define all global variables here.
 	 */
@@ -25,14 +25,40 @@ function CONSTANTS() {
 	constants.RESET_URL = constants.PD_URL+'/reset/';
 	
 	// enumeration of settings page state
-	constants.SETTINGS_STATE_ENUM = ['twitter_account', 'recipients', 'donation_amounts', 'support', 'site_classifications', 'balance'];
-	constants.SETTINGS_STATE_TAB_NAMES = ['Twitter', 'Recipients', 'Donations', 'Support', 'Sites', 'Balance'];
-	constants.SETTINGS_STATE_INSERTS = [insert_settings_twitter_account, insert_settings_recipients, insert_settings_donation_amounts, insert_settings_support, insert_settings_site_classifications, insert_settings_balance];
-	constants.SETTINGS_STATE_PROCESSORS = [process_twitter_account, process_recipients, process_donation, process_support, process_site_classifications, process_balance];
+	constants.SETTINGS_STATE_ENUM = [
+		'twitter_account', 
+		'recipients', 
+		'donation_amounts', 
+		'support', 
+		'site_classifications', 
+		'balance'
+	];
+	constants.SETTINGS_STATE_TAB_NAMES = [
+		'Twitter', 'Recipients', 'Donations', 'Support', 'Sites', 'Balance'];
+	constants.SETTINGS_STATE_INSERTS = [
+		"insert_settings_twitter_account", 
+		"insert_settings_recipients", 
+		"insert_settings_donation_amounts", 
+		"insert_settings_support", 
+		"insert_settings_site_classifications", 
+		"insert_settings_balance"
+	];
+	constants.SETTINGS_STATE_PROCESSORS = [
+		"process_twitter_account", 
+		"process_recipients", 
+		"process_donation", 
+		"process_support", 
+		"process_site_classifications", 
+		"process_balance"
+	];
 	//enumeration of impact page state
 	constants.IMPACT_STATE_ENUM = ['recipients', 'sites', 'goals'];//, 'history'];
 	constants.IMPACT_STATE_TAB_NAMES = ['Recipients', 'Sites', 'Goals'];//, 'History'];
-	constants.IMPACT_STATE_INSERTS = [insert_impact_recipients, insert_impact_sites, insert_impact_goals];//, insert_impact_history];
+	constants.IMPACT_STATE_INSERTS = [
+		"insert_impact_recipients", 
+		"insert_impact_sites", 
+		"insert_impact_goals"
+	];//, insert_impact_history];
 	/*
 	// impact substate: recipients
 	constants.IMPACT_RECIPIENTS_SUBSTATE_ENUM = ['nonprofits', 'contentproviders'];
@@ -44,10 +70,35 @@ function CONSTANTS() {
 	constants.IMPACT_SITES_SUBSTATE_INSERTS = [insert_impact_recipients_nonprofits, insert_impact_recipients_contentproviders];
 	*/
 	// enumeration of register track state
-	constants.REGISTER_STATE_ENUM = ['twitter_account', 'recipients', 'donation_amounts', 'support', 'site_classifications', 'balance', 'done'];
-	constants.REGISTER_STATE_TAB_NAMES = ['Twitter', 'Recipients', 'Donation', 'Support', 'Sites', 'Balance', 'XXX'];
-	constants.REGISTER_STATE_INSERTS = [insert_register_twitter_account, insert_register_recipients, insert_register_donation_amounts, insert_register_support, insert_register_site_classifications, insert_register_balance, insert_register_done];
-	constants.REGISTER_STATE_PROCESSORS = [process_twitter_account, process_recipients, process_donation, process_support, process_site_classifications, process_balance, process_done];
+	constants.REGISTER_STATE_ENUM = [
+		'twitter_account', 
+		'recipients', 
+		'donation_amounts', 
+		'support', 
+		'site_classifications', 
+		'balance', 
+		'done'
+	];
+	constants.REGISTER_STATE_TAB_NAMES = [
+		'Twitter', 'Recipients', 'Donation', 'Support', 'Sites', 'Balance', 'XXX'];
+	constants.REGISTER_STATE_INSERTS = [
+		"insert_register_twitter_account", 
+		"insert_register_recipients", 
+		"insert_register_donation_amounts", 
+		"insert_register_support", 
+		"insert_register_site_classifications", 
+		"insert_register_balance", 
+		"insert_register_done"
+	];
+	constants.REGISTER_STATE_PROCESSORS = [
+		"process_twitter_account", 
+		"process_recipients", 
+		"process_donation", 
+		"process_support", 
+		"process_site_classifications", 
+		"process_balance", 
+		"process_done"
+	];
 	
 	constants.DEFAULT_USERNAME = "";
 	constants.DEFAULT_PASSWORD = "";
@@ -66,4 +117,5 @@ function CONSTANTS() {
 	
 	// then we can call CONSTANTS() whenever and it's not going to overwrite stuff 	
 	CONSTANTS = function() { return constants; }
-}
+	return constants;
+})();

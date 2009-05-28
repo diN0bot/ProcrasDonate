@@ -1,0 +1,35 @@
+<div id='ranks'>
+	{% if show_tags %}
+	<!--<fieldset class='rank_legend' style='-moz-border-radius:1em;'>-->
+	<div class='rank_legend'>
+		<h3>Site Classification Legend</h3>
+		<!--<legend>Legend</legend>-->
+		<label>ProcrasDonate:</label><div class='bar procrasdonate'></div>
+		<label>TimeWellSpent:</label><div class='bar timewellspent'></div>
+		<label>Other:</label><div class='bar other'></div>
+	</div>
+	<!--</fieldset>-->
+	<h3>Most Visited Sites</h3>
+	{% else %}
+	<h3>Most Supported Recipient</h3>
+	{% endif %}
+</div>
+<table>
+	<tbody>
+		{% for name,text1,text2,bar_class in data %}
+		<tr class="site_rank">
+			<td class="site_name">{{ name }}</td>
+			<td class="rank">
+				<div class="bar {{ bar_class }}" style="width: {{ width }}%">
+					{% if show_tags %}
+					<div class="rank_text">{{ text1 }}</div>
+					{% else %}
+					<div class="rank_text">${{ text2 }}</div>
+					{% endif %}
+				</div>
+			</td>
+		</tr>
+		{% endfor %}
+	</tbody>
+</table>
+

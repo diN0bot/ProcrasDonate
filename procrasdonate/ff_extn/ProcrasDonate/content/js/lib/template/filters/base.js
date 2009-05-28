@@ -11,7 +11,7 @@ var FILTERS = {
 			ret.push(o[i][field]);
 		return ret;
 	},
-	date: function(s, format) { 
+	date:	function(s, format) { 
 		return date_format(s, format); 
 	},
 	floatformat: function(s, size) {

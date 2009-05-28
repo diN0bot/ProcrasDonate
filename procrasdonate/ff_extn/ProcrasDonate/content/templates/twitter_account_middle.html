@@ -1,0 +1,46 @@
+<form name='account_form' onSubmit='return false'>
+	
+	<h3>Procrasdonate uses your Twitter account.</h3>
+	<p style='text-align: left;'>Click <a href='https://twitter.com/signup'>HERE</a> if you're not on twitter yet.</p>
+	<p style='text-align: left;'><span id='what_is_twitter' class='link'>What is Twitter?</span></p>
+	
+	<h3>Please sign in:</h3>
+	
+	<table>
+		<tbody>
+			<tr>
+				<td><label class='right'>Twitter username </label></td>
+				<td><input class='left' type='text' name='twitter_username' value='{{ twitter_username }}'></td>
+			</tr>
+			
+			<tr class='above_helprow'>
+				<td><label class='right'>Twitter password</label></td>
+				<td><input class='press_enter_for_next left' type='password' name='twitter_password' value='{{ twitter_password }}'></td>
+			</tr>
+			
+			<tr class='helprow'>
+				<td></td>
+				<td><div class='help'><a href='{{ constants.PRIVACY_URL }}'>Privacy Guarantee</a></div></td>
+			</tr>
+		</tbody>
+	</table>
+	
+	<h2><a name='tos'></a>Terms of Use</h2>
+	<img src='{{ constants.MEDIA_URL }}img/TermsOfUse.png' class='small-image'>
+	<input type='checkbox'>
+	<p>By using our service you agree to the following:
+		<ul class='paragraph_list'>
+			<li>ProcrasDonate may update these terms of service without warning or notification.
+			<li>You understand how our service works and are willingly participating.
+			<li>You agree to pay all pledges made on your behalf in full.
+			<li>A percentage that you determine of your donations is donated to our service.
+			<li>You are responsible for any content you add to this site.
+			<li>Illegal, unfriendly, or otherwise problematic content will be removed.
+			<li>Your individual records and settings are private and not accessible by our company.
+			<li>Your summary records are used for community statistics and other as yet undetermined uses (hopefully that will support the service financially).
+			<li>All rights are reserved including ProcrasDonate intellectual property of software and our business model.
+			</li><li><b>Thanks for ProcrasDonating!</b>
+		</ul>
+	</p>
+	
+</form>

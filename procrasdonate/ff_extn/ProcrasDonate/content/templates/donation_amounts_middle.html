@@ -1,0 +1,26 @@
+<form name='account_form' onSubmit='return false'>
+	<table>
+		<tbody>
+			<tr>
+				<td><label class='right'>ProcrasDonation rate</label></td>
+				<td><input class='left' type='text' size='4' name='cents_per_hr' value='{{ cents_per_hr }}'></td>
+				<td><div class='help'>&cent; per hour</div></td>
+			</tr>
+			
+			<tr>
+				<td><label class='right'>ProcrasDonation goal</label></td>
+				<td><input class='left' id='hr_per_week_goal' type='text' size='4' name='hr_per_week_goal' value='{{ hr_per_week_goal }}'></td>
+				<td>
+					<div class='help'>hours per day</div>
+					<span id='cents_per_week_goal'></span>
+				</td>
+			</tr>
+			
+			<tr>
+				<td><label class='right'>ProcrasDonation limit</label></td>
+				<td><input class='press_enter_for_next left' id='hr_per_week_max' type='text' size='4' name='hr_per_week_max' value='{{ hr_per_week_max }}'></td>
+				<td><div class='help'>hours per day</div></td>
+			</tr>
+		</tbody>
+	</table>
+</form>

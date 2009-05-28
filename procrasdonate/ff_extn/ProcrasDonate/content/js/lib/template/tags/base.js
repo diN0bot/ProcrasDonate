@@ -1,5 +1,4 @@
 
-
 var TAGS = {
 	'nop': function(args, context, env) {
 		return '';
@@ -23,13 +22,13 @@ var TAGS = {
 		
 		for (var i=0; i<sequence.length; i++) {
 			var forloop = {
-				'parentloop' : parentloop,
-				'first' : i==0,
-				'last'	: i==sequence.length - 1,
-				'counter': i+1,
-				'counter0': i,
-				'revcounter': sequence.length - i,
-				'revcounter0': sequence.length - i - 1,
+					'parentloop' : parentloop,
+					'first' : i==0,
+					'last'	: i==sequence.length - 1,
+					'counter': i+1,
+					'counter0': i,
+					'revcounter': sequence.length - i,
+					'revcounter0': sequence.length - i - 1,
 			};
 			var new_context = { 'forloop': forloop };
 			if (vars.length > 1) {
@@ -136,6 +135,9 @@ var TAGS = {
 		//this.Blocks[name] = 
 		return '';
 	},
+};
+
+_extend(TAGS, {
 	'withmany': function(args, context, env) {
 		var kwargs = args[0];
 		var nodelist = args[1];
@@ -168,4 +170,6 @@ var TAGS = {
 		env.js += [this.render_nodelist(nodelist, context, env)]
 		return ""
 	},
-};
+});
+
+
