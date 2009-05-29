@@ -424,7 +424,11 @@ PDDB.prototype = {
 		if (!site) {
 			logger("Creating Site: url="+url+"]")
 			var host = _host(url);
-			site = this.Site.create({ name: host, url: url, host: host });
+			var sitegroup = this.SiteGroup.get_or_null({ host: host });
+			if (!sitegroup) {
+				sitegroup = this.SiteGroup.create({ name: host, host: host });
+			}
+			site = this.Site.create({ url: url, sitegroup_id: sitegroup.id });
 		}
 		logger("Site: id="+site.url+" url="+site.url);
 		logger("Site: " + site.toString());
@@ -440,15 +444,24 @@ PDDB.prototype = {
 };
 
 PDDB.tables = {
-	_order: ["Site", "Visit", "Tag", "SiteTagging"],
+	_order: ["Site", "SiteGroup", "Visit", "Tag", "SiteGroupTagging"],
 	Site: {
 		table_name: "sites",
 		columns: {
-			_order: ["id", "name", "host", "url", "url_re"],
+			_order: ["id", "sitegroup_id", "url"],
+			id: "INTEGER PRIMARY KEY",
+			sitegroup_id: "INTEGER",
+			url: "VARCHAR"
+		},
+		indexes: []
+	},
+	SiteGroup : {
+		table_name: "sitegroups",
+		columns: {
+			_order: ["id", "name", "host", "url_re"],
 			id: "INTEGER PRIMARY KEY",
 			name: "VARCHAR",
 			host: "VARCHAR",
-			url: "VARCHAR",
 			url_re: "VARCHAR"
 		},
 		indexes: []
@@ -473,12 +486,12 @@ PDDB.tables = {
 		},
 		indexes: []
 	},
-	SiteTagging: {
-		table_name: "sitetaggings",
+	SiteGroupTagging: {
+		table_name: "sitegrouptaggings",
 		columns: {
-			_order: ["id", "site_id", "tag_id"],
+			_order: ["id", "sitegroup_id", "tag_id"],
 			id: "INTEGER PRIMARY KEY",
-			site_id: "INTEGER",
+			sitegroup_id: "INTEGER",
 			tag_id: "INTEGER"
 		},
 		indexes: []

@@ -35,15 +35,15 @@ var PD_ToolbarManager = {
 
 	/*
 	 * get site classification for current URL and update button image
-	 * @param options: contains either {site, tag} or {url}
+	 * @param options: contains either {sitegroup, tag} or {url}
 	 */
 	updateButtons : function(options) {
 		if (PD_ToolbarManager.classify_button) {
-			var site = null;
+			var sitegroup = null;
 			var tag = null;
 			
-			if ('site' in options && 'tag' in options) {
-				site = options.site;
+			if ('sitegroup' in options && 'tag' in options) {
+				sitegroup = options.sitegroup;
 				tag = options.tag;
 			} else {
 				var url = null;
@@ -53,7 +53,7 @@ var PD_ToolbarManager = {
 					url = _href();
 				}
 				var d = PD_ToolbarManager.getDbRowsForLocation(url);
-				site = d.site;
+				sitegroup = d.sitegroup;
 				tag = d.tag;
 			}
 			
@@ -71,51 +71,49 @@ var PD_ToolbarManager = {
     
     getDbRowsForLocation : function(url) {
     	/* 
-    	 * returns { site: {}, sitetagging: {}, tag: {} }
+    	 * returns { sitegroup: {}, sitegrouptagging: {}, tag: {} }
     	 */
 		var href = url;
 		var host = _host(href);
-		var site = null;
-		var sitetagging = null;
+		var sitegroup = null;
+		var sitegrouptagging = null;
 		var tag = null;
-		site = Site.get_or_null({ url: href });
+		sitegroup = SiteGroup.get_or_null({ host: host });
 		
-		if (!site) {
-			site = Site.create({ name: host, url: href, host: host, url_re: host });
+		if (!sitegroup) {
+			sitegroup = SiteGroup.create({ name: host, host: host });
 			tag = Tag.get_or_null({ tag: PD_ToolbarManager.default_image_name })
-			sitetagging = SiteTagging.create({ site_id: site.id, tag_id: tag.id});
+			sitegrouptagging = SiteGroupTagging.create({ sitegroup_id: sitegroup.id, tag_id: tag.id});
 		}
 		else {
-			sitetagging = SiteTagging.get_or_null({ site_id: site.id })
-			if (!sitetagging) {
+			sitegrouptagging = SiteGroupTagging.get_or_null({ sitegroup_id: sitegroup.id })
+			if (!sitegrouptagging) {
 				tag = Tag.get_or_null({ tag: PD_ToolbarManager.default_image_name })
-				sitetagging = SiteTagging.create({ site_id: site.id, tag_id: tag.id});
+				sitegrouptagging = SiteGroupTagging.create({ sitegroup_id: sitegroup.id, tag_id: tag.id});
 			} else {
-				tag = Tag.get_or_null({ id: sitetagging.tag_id })
+				tag = Tag.get_or_null({ id: sitegrouptagging.tag_id })
 			}
 		}
 		
-		return { site: site, sitetagging: sitetagging, tag: tag }
+		return { sitegroup: sitegroup, sitegrouptagging: sitegrouptagging, tag: tag }
 
     },
 
     onClassifyButtonCommand : function(e) {
     	var d = PD_ToolbarManager.getDbRowsForLocation(_href());
-    	var site = d.site;
+    	var sitegroup = d.sitegroup;
     	var tag = d.tag;
-    	var sitetagging = d.sitetagging;
+    	var sitegrouptagging = d.sitegrouptagging;
     	
     	var new_tag_id = parseInt(tag.id) + 1;
 		if (new_tag_id > 3) { new_tag_id = 1; }
-
 		
 		// update tag
-		db.execute("update sitetaggings set tag_id="+new_tag_id+" where site_id="+site.id);
-    	
+		db.execute("update sitegrouptaggings set tag_id="+new_tag_id+" where sitegroup_id="+sitegroup.id);
 
 		tag = Tag.get_or_null({ id: new_tag_id })
 		
-		PD_ToolbarManager.updateButtons({ site: site, tag: tag });
+		PD_ToolbarManager.updateButtons({ sitegroup: sitegroup, tag: tag });
     },
     
     onProgressButtonCommand : function(e) {
