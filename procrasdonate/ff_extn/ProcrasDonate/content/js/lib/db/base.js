@@ -339,7 +339,7 @@ new Typer("bool", {});
 //			sql.push(name, columns[name]);
 //		}
 //	} else {
-//		throw ERROR("Unknown column specification:", columns);
+//		throw Error("Unknown column specification:", columns);
 //	}
 //	
 //	sql.push(")");

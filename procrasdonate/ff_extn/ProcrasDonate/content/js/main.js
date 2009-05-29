@@ -43,7 +43,7 @@ URLBarListener.prototype = {
 		// use aProgress.DOMWindow to obtain the tab/window which triggered the change.
 		logger("onLocationChange:: " + aProgress.DOMWindow.location.href);
 		logger(aProgress.DOMWindow);
-		PD_ToolbarManager.updateButtons();
+		PD_ToolbarManager.updateButtons({ url: aProgress.DOMWindow.location.href });
 		this.self.processNewURL(aProgress.DOMWindow, aURI);
 	},
 	
@@ -406,7 +406,8 @@ PDDB.prototype = {
 		if (url) {
 			this.setPref("last_url", null);
 			var start = this.getPref("last_start");
-			var now = Math.round((new Date()).getTime() / 1000);
+			var now = Math.round((new Date()).getTime() / 1000.0);
+			logger(" start: "+start+" now: "+now+" diff: "+now-start);
 			this.store_visit(url, start, now - start);
 		}
 	},
@@ -423,7 +424,7 @@ PDDB.prototype = {
 		if (!site) {
 			logger("Creating Site: url="+url+"]")
 			var host = _host(url);
-			site = this.Site.create({ name: host, url: url });
+			site = this.Site.create({ name: host, url: url, host: host });
 		}
 		logger("Site: id="+site.url+" url="+site.url);
 		logger("Site: " + site.toString());
@@ -443,9 +444,10 @@ PDDB.tables = {
 	Site: {
 		table_name: "sites",
 		columns: {
-			_order: ["id", "name", "url", "url_re"],
+			_order: ["id", "name", "host", "url", "url_re"],
 			id: "INTEGER PRIMARY KEY",
 			name: "VARCHAR",
+			host: "VARCHAR",
 			url: "VARCHAR",
 			url_re: "VARCHAR"
 		},

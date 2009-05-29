@@ -1,6 +1,6 @@
 #classify-toolbar-button
 {
-  list-style-image: url("chrome://pageaddict/skin/ProcrasDonateIconBar10.png");
+  list-style-image: url("chrome://ProcrasDonate/skin/UnsortedIcon.png");
   -moz-image-region: rect(40px 80px 66px 100px);
   width: 48px;
   height: 24px;

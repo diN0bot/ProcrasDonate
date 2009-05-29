@@ -181,15 +181,15 @@ _extend(Model.prototype, {
 				if (query.length == 2) {
 					return this.db.execute(query[0], query[1], fn2);
 				} else {
-					throw ERROR("Don't know how to handle column '" + 
+					throw new Error("Don't know how to handle column '" + 
 								name + "' of type: " + type);
 				}
 			} else {
-				throw ERROR("Don't know how to handle column '" +
+				throw new Error("Don't know how to handle column '" +
 							name + "' of type: " + type);
 			}
 		} else {
-			throw ERROR("Don't know how to use query: " + query);
+			throw new Error("Don't know how to use query: " + query);
 		}
 	},
 	sql_select: function(query) {
@@ -214,14 +214,14 @@ _extend(Model.prototype, {
 					// For first 'step', check for valid field names
 					step = path[0];
 					if (self.columns[step] === undefined) {
-						throw ERROR("Invalid field '" + name + "'in query: " + query);
+						throw Error("Invalid field '" + name + "'in query: " + query);
 					}
 					
 					oper = path[1];
 					if (oper == "" || oper === undefined)
 						oper = "eq";
 					if (Model.operators[oper] === undefined) {
-						throw ERROR("Invalid operator '" + oper + "'in query: " + query);
+						throw Error("Invalid operator '" + oper + "'in query: " + query);
 					}
 					
 					var clause = Model.operators[oper](step, "?")
@@ -238,7 +238,7 @@ _extend(Model.prototype, {
 				return [sql, params];
 			}
 		} else {
-			throw ERROR("Don't know how to use query: " + query);
+			throw new Error("Don't know how to use query: " + query);
 		}
 	},
 	
@@ -253,7 +253,7 @@ _extend(Model.prototype, {
 		args = Array.prototype.slice.call(arguments);
 		
 		if (args.length == 0) {
-			throw ERROR("Don't know how to use query: " + query);
+			throw new Error("Don't know how to use query: " + query);
 		} else if (args.length == 1) {
 			if (typeof(args[0]) == "object" && !!args[0]) {
 				_iterate(args[0], function(name, value) {
@@ -271,11 +271,11 @@ _extend(Model.prototype, {
 				return query;
 				//return this.db.execute(query, args[0]);
 			} else {
-				throw ERROR("Don't know how to handle column '" +
+				throw new Error("Don't know how to handle column '" +
 							name + "' of type: " + type);
 			}
 		} else {
-			throw ERROR("Don't know how to use query: " + query);
+			throw new Error("Don't know how to use query: " + query);
 		}
 	},
 	
@@ -311,11 +311,14 @@ _extend(Model.prototype, {
 	},
 	
 	get_or_null: function(query, fn) {
-		// UNTESTED!!
+		/* returns row or null if none found */
 		var ary = this.select(query, fn);
 		if (ary.length == 0) {
 			return null;
 		} else {
+			if (ary.length > 1) {
+				logger("get_or_null found "+ary.length+" rows for "+query);
+			}
 			return ary[0];
 		}
 	}
@@ -328,7 +331,7 @@ _extend(Model, {
 				if (typeof(type) == "string") {
 					sql.push(type);
 				} else {
-					throw ERROR("Don't know how to handle column '" + 
+					throw new Error("Don't know how to handle column '" + 
 								name + "' of type: " + type);
 				}
 			} else if (typeof(name) == "string") {
@@ -337,11 +340,11 @@ _extend(Model, {
 				} else if (typeof(type) == "string") {
 					sql.push("" + name + " " + type);
 				} else {
-					throw ERROR("Don't know how to handle column '" + 
+					throw new Error("Don't know how to handle column '" + 
 								name + "' of type: " + type);
 				}
 			} else {
-				throw ERROR("Don't know how to handle column '" +
+				throw new Error("Don't know how to handle column '" +
 							name + "' of type: " + type);
 			}
 		});

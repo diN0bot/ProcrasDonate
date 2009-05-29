@@ -29,7 +29,7 @@ function PythonSQLite3_backend() {
 			}
 			ret = _Python.dict(list);
 		} else {
-			throw ERROR();
+			throw Error();
 		}
 		return ret;
 	}
@@ -49,7 +49,7 @@ function PythonSQLite3_backend() {
 		}
 		
 		//if (!(this.cursor == tmp_cursor)) {
-		//	throw ERROR("Cursor returned does not match current cursor!", this.cursor, tmp_cursor)
+		//	throw Error("Cursor returned does not match current cursor!", this.cursor, tmp_cursor)
 		//}
 		
 		return this;

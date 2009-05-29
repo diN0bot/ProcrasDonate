@@ -55,6 +55,7 @@ p { text-align: left; }
 	letter-spacing: .15em;
 	word-spacing: .3em;
 }
+#MainMenu #learn_more_menu_item.here_we_are a { word-spacing: inherit; letter-spacing: .1em; }
 
 .tracks { margin: auto; margin-bottom: 2em; }
 .tracks tr td { padding: 0em; vertical-align: bottom }

@@ -40,7 +40,7 @@ function to_date(value) {
 		return new Date(value.replace(/-/g,'/'));
   } else {
     if (DEBUG_TEMPLATES)
-			ERROR("Invalid argument in to_date(): '"+value+"'");
+			Error("Invalid argument in to_date(): '"+value+"'");
 		return new Date();
   }
 }

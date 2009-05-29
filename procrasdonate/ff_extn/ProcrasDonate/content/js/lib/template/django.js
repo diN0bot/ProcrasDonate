@@ -31,7 +31,7 @@ _extend(DjangoTemplate.prototype, {
 			return ret;
 		} else {
 			if (Template.DEBUG_TEMPLATES)
-				ERROR("Unknown variable type: "+v);
+				Error("Unknown variable type: "+v);
 			return null;
 		}
 	},
@@ -68,12 +68,12 @@ _extend(DjangoTemplate.prototype, {
 					ret = Template.FILTERS[name].apply(this, [ret].concat(args), env);
 				} catch (e) {
 					if (Template.DEBUG_TEMPLATES)
-						ERROR(e, "Caught exception from filter '"+name+"'.");;
+						Error(e, "Caught exception from filter '"+name+"'.");;
 					ret = "";
 				}
 			} else {
 				if (Template.DEBUG_TEMPLATES)
-					ERROR("Unknown filter '"+name+"'. v:'"+v+"', filters:'"+(isArray(filters) ? filters.join("','") : filters)+"'");
+					Error("Unknown filter '"+name+"'. v:'"+v+"', filters:'"+(isArray(filters) ? filters.join("','") : filters)+"'");
 				ret = "";
 			}
 		}
@@ -94,11 +94,11 @@ _extend(DjangoTemplate.prototype, {
 				return this.TAGS[n].call(this, args, context, env);
 			} else {
 				if (Template.DEBUG_TEMPLATES)
-					ERROR("Invalid tag type: '"+n+"'");
+					Error("Invalid tag type: '"+n+"'");
 			}
 		} catch(e) {
 			if (Template.DEBUG_TEMPLATES)
-				ERROR(e, "Caught exception while rendering node '"+n+"'");
+				Error(e, "Caught exception while rendering node '"+n+"'");
 			return "";
 		}
 	},
@@ -114,11 +114,11 @@ _extend(DjangoTemplate.prototype, {
 					out.push(this.render_node(n, context, env));
 				} catch(e) {
 					if (Template.DEBUG_TEMPLATE)
-						ERROR(e, "Caught exception while rendering nodelist.");
+						Error(e, "Caught exception while rendering nodelist.");
 				}
 			} else {
 				if (Template.DEBUG_TEMPLATE)
-					ERROR("Template error - invalid nodelist item: "+n);
+					Error("Template error - invalid nodelist item: "+n);
 			}
 		}
 		return out.join("");
@@ -131,7 +131,7 @@ _extend(DjangoTemplate.prototype, {
 			env.html += this.render_nodelist(this.nodelist, context, env);
 		} catch (e) {
 			if (Template.DEBUG_TEMPLATES)
-				ERROR(e, "Caught error while rendering Django template.");
+				Error(e, "Caught error while rendering Django template.");
 		}
 		return env;
 	},
@@ -146,7 +146,7 @@ _extend(DjangoTemplate.prototype, {
 			eval(env.js);
 		} else {
 			if (Template.DEBUG_TEMPLATES)
-				ERROR(e, "Unknown destination in DjangoTemplate.render_to.\nDestination must be jQuery instance or jQuery selector string.");
+				Error(e, "Unknown destination in DjangoTemplate.render_to.\nDestination must be jQuery instance or jQuery selector string.");
 		}
 	},
 	

@@ -1,17 +1,11 @@
 
 var PD_ToolbarManager = {
 		
-	//prefManager : Components.classes["@mozilla.org/preferences-service;1"].getService(Components.interfaces.nsIPrefBranch),
 	classify_button : null,
 	progress_button: null,
-	// database
-	//db: null,
-	// models
-	Site: null,
-	Tag: null,
-	SiteTagging: null,
 	// tag name, image pairs
 	images : {},
+	default_image_name : null,
 
 	/*
 	* do stuff when new browser window opens 
@@ -19,20 +13,11 @@ var PD_ToolbarManager = {
 	*/
 	initialize : function() {
 		this.removeEventListener('load', PD_ToolbarManager.initialize, false);
-		//this.addEventListener('unload', PD_ToolbarManager.uninitialize, false);
-		
-		//var container = gBrowser.tabContainer;
-		//gBrowser.addEventListener("load", PD_ToolbarManager.updateButtons, false);
-		
-		//container.addEventListener("TabOpen", PD_ToolbarManager.updateButtons, false);
-		//container.addEventListener("TabClose", PD_ToolbarManager.updateButtons, false);
-		//container.addEventListener("TabMove", PD_ToolbarManager.updateButtons, false);
-		//container.addEventListener("TabSelect", PD_ToolbarManager.updateButtons, false);
-		
+
 		PD_ToolbarManager.classify_button = document.getElementById("PD-classify-toolbar-button");
 		PD_ToolbarManager.progress_button = document.getElementById("PD-progress-toolbar-button");
 		
-		var tag_names = ['ProcrasDonate', 'TimeWellSpent', 'Unsorted'];
+		var tag_names = ['Unsorted', 'ProcrasDonate', 'TimeWellSpent'];
 		if (Tag.count() == 0) {
 			for (var i=0; i < tag_names.length; i++) {
 				Tag.create({ tag: tag_names[i] });
@@ -42,78 +27,100 @@ var PD_ToolbarManager = {
 		for (var i=0; i < tag_names.length; i++) {
 			PD_ToolbarManager.images[tag_names[i]] = "chrome://ProcrasDonate/skin/"+tag_names[i]+"Icon.png";	
 		}
+		PD_ToolbarManager.default_image_name = tag_names[0];
 		
 		// Update button images and text
-		PD_ToolbarManager.updateButtons();
+		PD_ToolbarManager.updateButtons({ url: _href() });
 	},
 
-	// get site classification for current URL and update button image
-	updateButtons : function(site, tag) {
-		
+	/*
+	 * get site classification for current URL and update button image
+	 * @param options: contains either {site, tag} or {url}
+	 */
+	updateButtons : function(options) {
 		if (PD_ToolbarManager.classify_button) {
-			if (!site || !tag) {
-				var d = PD_ToolbarManager.getDbRowsForLocation();
+			var site = null;
+			var tag = null;
+			
+			if ('site' in options && 'tag' in options) {
+				site = options.site;
+				tag = options.tag;
+			} else {
+				var url = null;
+				if ('url' in options) {
+					url = options.url;
+				} else {
+					url = _href();
+				}
+				var d = PD_ToolbarManager.getDbRowsForLocation(url);
 				site = d.site;
 				tag = d.tag;
 			}
 			
+			// alter classify button
 			PD_ToolbarManager.classify_button.setAttribute("image", PD_ToolbarManager.images[tag.tag]);
 			PD_ToolbarManager.classify_button.setAttribute("label", tag.tag);
+			
+			var tooltip_text = PD_ToolbarManager.classify_button.getAttribute("tooltiptext");
+			var new_tooltip_text = tooltip_text.replace(/: [\w]+\./, ": "+tag.tag+".");
+			PD_ToolbarManager.classify_button.setAttribute("tooltiptext", new_tooltip_text);
+			
+			// alter progress bar
 		}
     },
     
-    getDbRowsForLocation : function() {
+    getDbRowsForLocation : function(url) {
     	/* 
     	 * returns { site: {}, sitetagging: {}, tag: {} }
     	 */
-		var href = _href();
+		var href = url;
 		var host = _host(href);
-
 		var site = null;
 		var sitetagging = null;
 		var tag = null;
+		site = Site.get_or_null({ url: href });
 		
-		site = Site.select({ url: href });
-
-		if (site.length == 0) {
-			site = Site.create({ name: host, url: host, url_re: host });
-			tag = Tag.select({ id: 1 })[0]
+		if (!site) {
+			site = Site.create({ name: host, url: href, host: host, url_re: host });
+			tag = Tag.get_or_null({ tag: PD_ToolbarManager.default_image_name })
 			sitetagging = SiteTagging.create({ site_id: site.id, tag_id: tag.id});
 		}
 		else {
-			site = site[0]
-			sitetagging = SiteTagging.select({ site_id: site.id })
-
-			if (sitetagging.length == 0) {
-				sitetagging = SiteTagging.create({ site_id: site.id, tag_id: 1});
+			sitetagging = SiteTagging.get_or_null({ site_id: site.id })
+			if (!sitetagging) {
+				tag = Tag.get_or_null({ tag: PD_ToolbarManager.default_image_name })
+				sitetagging = SiteTagging.create({ site_id: site.id, tag_id: tag.id});
 			} else {
-				sitetagging = sitetagging[0];
+				tag = Tag.get_or_null({ id: sitetagging.tag_id })
 			}
-			tag = Tag.select({ id: sitetagging.tag_id })[0]
 		}
 		
 		return { site: site, sitetagging: sitetagging, tag: tag }
+
     },
 
     onClassifyButtonCommand : function(e) {
-    	var d = PD_ToolbarManager.getDbRowsForLocation();
-		var site = d.site;
-		var tag = d.tag;
-		var sitetagging = d.sitetagging;
-		
-		var new_tag_id = parseInt(tag.id) + 1;
+    	var d = PD_ToolbarManager.getDbRowsForLocation(_href());
+    	var site = d.site;
+    	var tag = d.tag;
+    	var sitetagging = d.sitetagging;
+    	
+    	var new_tag_id = parseInt(tag.id) + 1;
 		if (new_tag_id > 3) { new_tag_id = 1; }
 
+		
 		// update tag
 		db.execute("update sitetaggings set tag_id="+new_tag_id+" where site_id="+site.id);
-		tag = Tag.select({ id: new_tag_id })[0]
+    	
+
+		tag = Tag.get_or_null({ id: new_tag_id })
 		
-		PD_ToolbarManager.updateButtons(site, tag);
+		PD_ToolbarManager.updateButtons({ site: site, tag: tag });
     },
     
     onProgressButtonCommand : function(e) {
-    	//set "goals" substate
-    	window.content.location.href="http://localhost:8000/my_impact/";
+    	//@TOD set my_impact substate to "goals"
+    	window.content.location.href = constants.IMPACT_URL;
     }
 
 };

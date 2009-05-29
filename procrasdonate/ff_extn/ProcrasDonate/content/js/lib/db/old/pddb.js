@@ -279,7 +279,7 @@ var Table = Class.extend({
 				sql.push(name, columns[name], ",");
 			}
 		} else {
-			throw ERROR("Unknown column specification:", columns);
+			throw Error("Unknown column specification:", columns);
 		}
 		
 		for (var i in columns) {
@@ -307,7 +307,7 @@ var Row = Class.extend({
 		} else if (args.length > 1) {
 			this._init_values(zip(this.table.columns, args));
 		} else {
-			throw(ERROR());
+			throw(Error());
 		}
 	},
 	_init_values: function(values) {
@@ -323,7 +323,7 @@ var Row = Class.extend({
 				this[key] = values[key];
 			}
 		} else {
-			throw(ERROR());
+			throw(Error());
 		}
 	},
 });

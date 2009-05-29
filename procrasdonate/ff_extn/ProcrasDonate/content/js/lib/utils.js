@@ -141,10 +141,10 @@ function _iterate(o, fn) {
 						ret.push(fn(k, o[k], i));
 					}
 				} else {
-					throw ERROR("Don't know how to handle o._order: " + o._order);
+					throw Error("Don't know how to handle o._order: " + o._order);
 				}
 			} else {
-				throw ERROR("Don't know how to handle o._order: " + o._order);
+				throw Error("Don't know how to handle o._order: " + o._order);
 			}
 		} else if (o.constructor == Array) {
 			for (k=0; k<o.length; k++) {
@@ -158,7 +158,7 @@ function _iterate(o, fn) {
 			}
 		}
 	} else {
-		throw ERROR("Cannot iterate object o: " + o);
+		throw Error("Cannot iterate object o: " + o);
 	}
 	return ret;
 }
@@ -176,7 +176,7 @@ function _iterate(o, fn) {
 //			}
 //		}
 //	} else {
-//		throw ERROR("Cannot make 'dict' from object o: " + o);
+//		throw Error("Cannot make 'dict' from object o: " + o);
 //	}
 //	return ret;
 //}
@@ -228,14 +228,3 @@ function isEmpty(ob) {
 	}
 	return true;
 }
-/*
-function isEmpty(o) {
-	var o = {};
-	for(var p in o) {
-		if (o[p] != o.constructor.prototype[p]) {
-			return false;
-		}
-	}
-	return true;
-}
-*/

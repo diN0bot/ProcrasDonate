@@ -27,7 +27,7 @@ function get(o, attr, _default) {
 		ret = (attr in o ? o[attr] : _default);
 	} else {
 		if (Template.DEBUG_TEMPLATES)
-			ERROR("Unhandled object type in 'get': "+o);
+			Error("Unhandled object type in 'get': "+o);
 		return _default;
 	}
 	
@@ -141,7 +141,7 @@ _extend(RequestContext, {
 				return o();
 			} catch (e) {
 				if (Template.DEBUG_TEMPLATES)
-					ERROR(e, "Caught exception while processing context.");
+					Error(e, "Caught exception while processing context.");
 				return {};
 			}
 		} else if (isString(o)) {
@@ -149,12 +149,12 @@ _extend(RequestContext, {
 				return RequestContext.process(eval(o));
 			} catch (e) {
 				if (Template.DEBUG_TEMPLATES)
-					ERROR(e, "Caught exception while processing context.");
+					Error(e, "Caught exception while processing context.");
 				return {};
 			}
 		} else {
 			if (Template.DEBUG_TEMPLATES)
-				ERROR("Unhandled context processor: "+o);
+				Error("Unhandled context processor: "+o);
 			return {};
 		}
 	},
@@ -180,7 +180,7 @@ _extend(Template.prototype, {
 	//},
 	render: function() {
 		if (this.DEBUG_TEMPLATES)
-			ERROR("Undefined method Template#render()");
+			Error("Undefined method Template#render()");
 		return null;
 	},
 });
@@ -197,7 +197,7 @@ _extend(Template, {
 	//		return new DjangoTemplate(o, name);
 	//	} else {
 	//		if (this.DEBUG_TEMPLATES)
-	//			ERROR("Unknown template type: "+o);
+	//			Error("Unknown template type: "+o);
 	//	}
 	//},
 	get: function(name) {
@@ -207,7 +207,7 @@ _extend(Template, {
 			return t;
 		//logger("poop " + name);
 		if (this.DEBUG_TEMPLATES)
-			ERROR("Template.get: Failed to retrieve template '"+name+"'.");
+			Error("Template.get: Failed to retrieve template '"+name+"'.");
 	},
 	//load: function(names, fn) {
 	//	if (!isArray(names)) 
@@ -326,7 +326,7 @@ function FunctionTemplate(fn, name, options) {
 	} else if (isString(fn)) {
 		this.fn = eval(fn);
 	} else {
-		throw ERROR("Invalid function in FunctionTemplate.init().");
+		throw Error("Invalid function in FunctionTemplate.init().");
 	}
 }
 FunctionTemplate.prototype = new Template();
@@ -342,7 +342,7 @@ _extend(FunctionTemplate.prototype, {
 			}
 			return out;
 		} else {
-			throw ERROR("Invalid list in FunctionTemplate.render_many().");
+			throw Error("Invalid list in FunctionTemplate.render_many().");
 		}
 	},
 	render: function(o) {

@@ -6,9 +6,10 @@ var Site = new Model(db, "Site", {
 	// Model metadata
 	table_name: "sites",
 	columns: {
-		_order: ["id", "name", "url", "url_re"],
+		_order: ["id", "name", "host", "url", "url_re"],
 		id: "INTEGER PRIMARY KEY",
 		name: "VARCHAR",
+		host: "VARCHAR",
 		url: "VARCHAR",
 		url_re: "VARCHAR"
 	},
@@ -53,4 +54,3 @@ var Visit = new Model(db, "Visit", {
 	},
 	indexes: []
 });
-

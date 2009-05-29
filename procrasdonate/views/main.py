@@ -33,6 +33,9 @@ page_name is what gets displayed in the menu and can be anything
 """
 
 def home(request):
+    return render_response(request, 'procrasdonate/home.html', locals())
+
+def learn_more(request):
     return render_response(request, 'procrasdonate/learn_more.html', locals())
 
 def privacy_guarantee(request):
