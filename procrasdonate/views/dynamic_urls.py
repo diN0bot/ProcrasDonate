@@ -28,4 +28,12 @@ urlpatterns = patterns('',
 
     # post handler from extension
     url(r'^data/$', main.data, name='data'),
+    
 )
+
+import settings
+if settings.DJANGO_SERVER:
+    urlpatterns += patterns('',
+        url(r'^rebuild_extension_templates/$', main.rebuild_extension_templates, name='rebuild_extension_templates'),
+        url(r'^reset_state/$', main.reset_state, name='reset_state'),
+    )

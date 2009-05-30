@@ -201,6 +201,8 @@ function _iterate(o, fn) {
 //	return ret;
 //}
 
+var _end_of_forever = -3;
+
 var _end_of_day = function(date) {
 	if (!date) {
 		date = new Date();

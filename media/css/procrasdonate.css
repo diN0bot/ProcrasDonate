@@ -42,8 +42,28 @@ p { text-align: left; }
 .error, .errors, #error, #errors { color: red; text-align: center; }
 .success, #success { color: green; text-align: center; }
 
-#static_menu { font-size: 1.2em; position: absolute; left: 1.7em; top: 2em; width: 8.3em; }
+#static_menu {
+  font-size: 1.2em;
+  position: absolute;
+  margin: 2em auto auto 1.7em;
+  /*left: 1.7em;
+  top: 2em;*/
+  width: 8.3em;
+}
 #static_menu div { display: block; padding: 0.3em 0em; margin: 1em 0em; }
+
+#content {
+  margin: auto;
+  min-width: 40em;
+  text-align:center;
+  margin: 3em auto auto 0em;
+  position: absolute;
+  left: 12em;
+  /*top: 2em;*/
+}
+#thin_column { width: 60%; margin: auto; /*padding-left: 12em;*/ padding-top: 1em; padding-bottom: 1em; }
+#footer { font-size: .8em; height: 5em;  font-weight: normal; margin: auto; padding-top: 2em; }
+
 
 #MainMenu { background: #bb8230; font-size: 1.1em; border: 0.34em ridge #8A4304; -moz-border-radius: .4em; }
 #MainMenu div { background: #b47925; border-top: 0.1em dotted #DBBF75; -moz-border-radius: 0em; }
@@ -80,10 +100,6 @@ p { text-align: left; }
 
 .DivRight {text-align: right; }	
 .DivLeft {text-align: left; }
-
-#content { margin: auto; width: 70em; text-align:center; margin-top: 1em; }
-#thin_column { width: 60%; margin: auto; /*padding-left: 12em;*/ padding-top: 1em; padding-bottom: 1em; }
-#footer { font-size: .8em; height: 5em;  font-weight: normal; margin: auto; padding-top: 2em; }
 
 /*** h2 used as section headers for FAQ, etc. ***/
 

@@ -42,19 +42,22 @@ _extend(Controller.prototype, {
 	//},
 	dispatch_by_host: function(doc, url) {
 		//this.doc = doc;
-	$ = function(selector, context) {
-		return new jQuery.fn.init(selector, context || doc);
-	};
-	$.fn = $.prototype = jQuery.fn;
+		jQuery.noConflict();
+		this.reset_state_to_defaults();
+		$ = function(selector, context) {
+			return new jQuery.fn.init(selector, context || doc);
+		};
+		$.fn = $.prototype = jQuery.fn;
 		var host = _host(url);
-		if (host.match(new RegExp(constants.PD_HOST)))
+		if (host.match(new RegExp(constants.PD_HOST))) {
 			return this.pd_dispatch_by_url(url);
-		else if (host.match(/pageaddict\.com$/))
+		} else if (host.match(/pageaddict\.com$/)) {
 			return this.pa_dispatch_by_url(url);
-		else
+		} else {
 			//return this.check_restriction();
 			return false;
 			//throw new Error("Invalid host: " + host);
+		}
 	},
 	
 	pd_dispatch_by_url: function(url) {
@@ -177,14 +180,41 @@ _extend(Controller.prototype, {
 			last_week_mark = new Date(last_24hr_mark * 1000);
 			this.prefs.set("last_week_mark", last_week_mark);
 		}
+		
+		////// RECIPIENTS ////////
+		Recipient.get_or_create({
+			twitter_name: "ProcrasDonate"
+		}, {
+			name: "ProcrasDonate",
+			mission: "mission statement or slogan!",
+			description: "late da lkj a;lsdkfj lskjf laskjf ;oiaw ekld sjfl skf al;fial;i alfkja f;oi l;jfwio jfwf i awi woif w",
+			url: "http://ProcrasDonate.com/",
+			is_visible: False
+		});
+		Recipient.get_or_create({
+			twitter_name: "RedCross"
+		}, {
+			name: "Red Cros",
+			mission: "mission statement or slogan!",
+			description: "late da lkj a;lsdkfj lskjf laskjf ;oiaw ekld sjfl skf al;fial;i alfkja f;oi l;jfwio jfwf i awi woif w",
+			url: "http://ProcrasDonate.com/",
+			is_visible: True
+		});
+		Recipient.get_or_create({
+			twitter_name: "BlueShovel"
+		}, {
+			name: "Blue Shovel",
+			mission: "mission statement or slogan!",
+			description: "late da lkj a;lsdkfj lskjf laskjf ;oiaw ekld sjfl skf al;fial;i alfkja f;oi l;jfwio jfwf i awi woif w",
+			url: "http://ProcrasDonate.com/",
+			is_visible: True
+		});
 	},
 	
 	
 	ACCOUNT_DEFAULTS: {
 		twitter_username: constants.DEFAULT_USERNAME,
 		twitter_password: constants.DEFAULT_PASSWORD,
-		recipients: constants.DEFAULT_RECIPIENTS,
-		support_pct: constants.DEFAULT_SUPPORT_PCT,
 		cents_per_hr: constants.DEFAULT_CENTS_PER_HR,
 		hr_per_week_goal: constants.DEFAULT_HR_PER_WEEK_GOAL,
 		hr_per_week_max: constants.DEFAULT_HR_PER_WEEK_MAX,
@@ -368,6 +398,7 @@ _extend(PageController.prototype, {
 	},
 	
 	support_middle: function() {
+		var pct = .22; //@TODO get pct from pd recipient
 		var context = new Context({
 			pct: pct,
 			constants: constants,
@@ -376,7 +407,8 @@ _extend(PageController.prototype, {
 	},
 	
 	activate_support_middle: function() {
-		var pct = this.prefs.get('support_pct', constants.DEFAULT_SUPPORT_PCT);
+		//@TODO get pct from pd recipient
+		var pct = .22;//this.prefs.get('support_pct', constants.DEFAULT_SUPPORT_PCT);
 		$("#support_slider").slider({
 			//animate: true,
 			min: 0,
@@ -398,7 +430,6 @@ _extend(PageController.prototype, {
 			if ( newv < 0 || newv > 100 ) return false;
 			var diff = oldv - newv;
 			input.attr("value", newv).attr("alt", newv);
-			//slider.slider('option', 'value', newv);
 			slider.slider('option', 'value', newv);
 			this.prefs.set('support_pct', newv);
 			return true;
@@ -464,6 +495,7 @@ _extend(PageController.prototype, {
 					this.make_site_box(site_name, site_name, tag))
 				.next().hide().fadeIn("slow");
 			}
+			/*
 			$(".move_to_timewellspent").live("click", function() {
 				f($(this), "timewellspent");
 			});
@@ -473,6 +505,7 @@ _extend(PageController.prototype, {
 			$(".move_to_procrasdonate").live("click", function() {
 				f($(this), "procrasdonate");
 			});
+			*/
 			this.prefs.set('site_classifications_settings_activated', false);
 		}
 	},
@@ -498,31 +531,41 @@ _extend(PageController.prototype, {
 	
 	recipients_middle: function(user_recipients_ary, potential_recipients_ary) {
 		var user_recipients = "";
-		for (var i = 0; i < user_recipients_ary.length; i += 1) {
-			var name = user_recipients_ary[i].name;
-			var url = user_recipients_ary[i].url;
-			var description = user_recipients_ary[i].description;
-			var pct = user_recipients_ary[i].pct;
-			user_recipients += "" +
+		var current_recipients = {};
+		var self = this;
+		RecipientPercent.select({}, function(row) {
+			logger("     >> recipient percent: "+row);
+			var recipient = Recipient.get_or_null({ id: row.recipient_id });
+			logger("     >> recipient: "+recipient);
+			if (recipient.twitter_name != "ProcrasDonate") {
+				current_recipients[recipient.id] = True;
+				var percent = row.percent;
+				
+				user_recipients += "" +
 				"<div class='recipient_row'>" +
-					recipient_snippet(name, url, description) +
-					"<div id='slider" + i + "' class='slider' alt='" + pct + "'></div>" +
-					"<input id='input"+ i + "' class='input' alt='" + pct + "' value='" + pct + "' size='1'/>" +
+					self.recipient_snippet(recipient.name, recipient.url, recipient.description) +
+					"<div id='slider" + i + "' class='slider' alt='" + percent + "'></div>" +
+					"<input id='input"+ i + "' class='input' alt='" + percent + "' value='" + percent + "' size='1'/>" +
 					"<div class='remove'>X</div>" +
 				"</div>";
-		}
+			}
+		});
+		
 		var spacer = "<div class='recipient_spacer_row'>&nbsp;</div>";
+		
 		var potential_recipients = "";
-		for (var i = 0; i < potential_recipients_ary.length; i += 1) {
-			var name = potential_recipients_ary[i].name;
-			var url = potential_recipients_ary[i].url;
-			var description = potential_recipients_ary[i].description;
-			potential_recipients += "" +
+		Recipient.select({ is_visible: True }, function(row) {
+			if (row.id in current_recipients) {
+				
+			} else {
+				
+				potential_recipients += "" +
 				"<div class='recipient_row'>" +
-					recipient_snippet(name, url, description) +
+					self.recipient_snippet(row.name, row.url, row.description) +
 					"<div class='add potential'>Add</div>" +
 				"</div>";
-		}
+			}
+		});
 		
 		var cell_text =
 			"<div id='user_recipients'>" +
@@ -715,6 +758,7 @@ _extend(PageController.prototype, {
 		 * 
 		 * Slider input's alt must contain "last" value of input, so when do keyboard presses we can compute how to alter the other tabs.
 		 */
+		logger("insert_settings_recipients");
 		this.prefs.set('settings_state', 'recipients');
 		var user_recipients_ary = [{
 			name:'Bilumi',
@@ -879,16 +923,16 @@ _extend(PageController.prototype, {
 		var hr_per_week_goal = parseFloat($("input[name='hr_per_week_goal']").attr("value"));
 		var hr_per_week_max = parseFloat($("input[name='hr_per_week_max']").attr("value"));
 		$("#errors").text("");
-		if ( !validate_cents_input(cents_per_hr) ) {
+		if ( !this.validate_cents_input(cents_per_hr) ) {
 			$("#errors").append("<p>Please enter a valid dollar amount. For example, to donate $2.34 an hour, please enter 2.34</p>");
-		} else if ( !validate_hours_input(hr_per_week_goal) ) {
+		} else if ( !this.validate_hours_input(hr_per_week_goal) ) {
 			$("#errors").append("<p>Please enter number of hours. For example, enter 1 hr and 15 minutes as 1.25</p>");
-		} else if (!validate_hours_input(hr_per_week_max) ) {
+		} else if (!this.validate_hours_input(hr_per_week_max) ) {
 			$("#errors").append("<p>Please enter number of hours. For example, enter 30 minutes as .5</p>");
 		} else {
-			this.prefs.set('cents_per_hr', clean_cents_input(cents_per_hr));
-			this.prefs.set('hr_per_week_goal', clean_hours_input(hr_per_week_goal));
-			this.prefs.set('hr_per_week_max', clean_hours_input(hr_per_week_max));
+			this.prefs.set('cents_per_hr', this.clean_cents_input(cents_per_hr));
+			this.prefs.set('hr_per_week_goal', this.clean_hours_input(hr_per_week_goal));
+			this.prefs.set('hr_per_week_max', this.clean_hours_input(hr_per_week_max));
 			return true;
 		}
 		return false;
@@ -922,6 +966,10 @@ _extend(PageController.prototype, {
 		
 		var twitter_username = $("input[name='twitter_username']").attr("value");
 		var twitter_password = $("input[name='twitter_password']").attr("value");
+		
+		
+		// HACK UNTIL REQUESTER WORKS
+		return true;
 		
 		if ( !this.validate_twitter_username_and_password(twitter_username, 
 														  twitter_password) ) {
@@ -1132,6 +1180,7 @@ _extend(PageController.prototype, {
 	},
 	
 	_process_before_proceeding: function(state_name, state_enums, processors, event) {
+		logger("_process_before_proceeding event="+event);
 		var self = this;
 		return function() {
 			for (var i = 0; i < state_enums.length; i += 1) {
@@ -1139,7 +1188,7 @@ _extend(PageController.prototype, {
 				if ( self.prefs.get(state_name+"_state", "") == tab_state ) {
 					var processor = processors[i];
 					if ( self[processor](event) ) {
-						event();
+						self[event]();
 					}
 					break;
 				}
@@ -1248,13 +1297,14 @@ _extend(PageController.prototype, {
 	},
 	
 	impact_sites_middle: function(data, show_tags) {
+		logger(" IMPACT SITES MIDDLE "+data);
 		var context = new Context({
 			data: data,
 			show_tags: show_tags,
 			width: 100, //parseInt( ((data[i][1]+1)/max)*100.0 ),
 			constants: constants,
 		});
-		return Template.get("twitter_account_middle").render(context);
+		return Template.get("impact_sites_middle").render(context);
 	},
 	
 	activate_impact_sites_middle: function(has_tags) {
@@ -1290,13 +1340,19 @@ _extend(PageController.prototype, {
 	insert_impact_recipients: function() {
 		/* insert sites chart */
 		this.prefs.set('impact_state', 'recipients');
-		var sort_arr = [
-			['bilumi', 120, 200],
-			['miller', 100, 100],
-			['pd', 45, 75],
-		];
+		
+		var data = [];
+		
+		//var type = Type.get_or_create({ type: "Forever" });
+		DailyVisit.select({ site_id: null }, function() {
+			var recipient = Recipient.get_or_null({ id: row.recipient_id });
+			var percent = RecipientPercent.get_or_null({ recipient_id: recipient.id }).percent;
+			percent = Math.round( parseFloat(percent) * 100 );
+			data.push( [dailyvisit, recipient, percent] );
+		});
+
 		$("#content").html(
-			this.impact_wrapper_snippet(this.impact_sites_middle(sort_arr, false)) );
+			this.impact_wrapper_snippet(this.impact_sites_middle(data, false)) );
 		this.activate_impact_tab_events();
 		this.activate_impact_sites_middle();
 	},

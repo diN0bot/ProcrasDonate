@@ -3,8 +3,21 @@
 <overlay xmlns='http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul'>
 
   <!-- jQuery-1.3.2.js has naming conflicts or something with firefox extensions! -->
+<!--
     <script type='application/x-javascript' 
-            src='chrome://ProcrasDonate/content/js/ext/jQuery-1.2.6.js'></script>
+            src='chrome://ProcrasDonate/content/js/ext/jQuery-1.3.2.js'></script>
+    <script type='application/x-javascript' 
+            src='chrome://ProcrasDonate/content/js/ext/ui.slider.js'></script>
+    <script type='application/x-javascript' 
+            src='chrome://ProcrasDonate/content/js/ext/ui.core.js'></script>
+-->
+    <script type='application/x-javascript' 
+            src='chrome://ProcrasDonate/content/js/ext/jquery-1.2.6.js'></script>
+<!--
+    <script type='application/x-javascript' 
+            src='chrome://ProcrasDonate/content/js/ext/jquery-ui-1.6.custom.min.js'></script>
+-->
+
   <!-- -->
 
     <script type='application/x-javascript' 

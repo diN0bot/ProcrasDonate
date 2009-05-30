@@ -153,7 +153,7 @@ var Type = new Model(db, "Type", {
 });
 
 var RecipientPercent = new Model(db, "RecipientPercent", {
-	table_name: "recipientpercent",
+	table_name: "recipientpercents",
 	columns: {
 		_order: ["id", "recipient_id", "percent"],
 		id: "INTEGER PRIMARY KEY",

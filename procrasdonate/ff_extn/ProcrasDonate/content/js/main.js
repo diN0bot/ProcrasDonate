@@ -334,6 +334,8 @@ PDDB.prototype = {
 				self[name].create_table();
 			}
 		});
+		
+		// install data if not already installed.
 	},
 	
 	dispatch: function(doc, url) {
@@ -460,11 +462,20 @@ PDDB.prototype = {
 		var end_of_week = _dbify_date(_end_of_week());
 		var end_of_day = _dbify_date(_end_of_day());
 		
-		var pd_recipient = Recipient.get_or_create({ twitter_name: "ProcrasDonate" });
-		var pd_recipientpercent = RecipientPercent.get_or_create(
-			{ recipient_id: pd_recipient },
-			{ percent: .05 }
-		);
+		var pd_recipient = Recipient.get_or_create({
+				twitter_name: "ProcrasDonate"
+			}, {
+				name: "ProcrasDonate",
+				mission: "mission statement or slogan!",
+				description: "late da lkj a;lsdkfj lskjf laskjf ;oiaw ekld sjfl skf al;fial;i alfkja f;oi l;jfwio jfwf i awi woif w",
+				url: "http://ProcrasDonate.com/",
+				is_visible: False
+			});
+		var pd_recipientpercent = RecipientPercent.get_or_create({
+				recipient_id: pd_recipient.id
+			}, {
+				percent: .05
+			});
 		var pd_dailyvisit = DailyVisit.get_or_null({ time: end_of_day, recipient_id: pd_recipient.id });
 		
 		if (pd_dailyvisit) {
@@ -480,25 +491,24 @@ PDDB.prototype = {
 					      Type.get_or_create({ type: "Weekly" }),
 			              Type.get_or_create({ type: "Forever" })
 			            ];
-			var times = [ end_of_day, end_of_week, -3 ];
+			var times = [ end_of_day, end_of_week, _end_of_forever ];
 			logger(" > types: "+types);
 			logger(" > times: "+times);
 			logger(" > totals: "+totals);
 			logger(" > totals_keys: "+totals_keys);
 			
 			for (var i = 0; i < types.length; i++) {
-				totals[ totals_keys[i] ] = Total.get_or_create(
-					{ time: times[i],
-					  type_id: types[i].id
-					},
-					{ total_time: 0,
-					  total_amount: 0,
-					  time: times[i],
-					  paid: False,
-					  tag_id: tag.id,
-					  type_id: types[i].id
-					}
-				);
+				totals[ totals_keys[i] ] = Total.get_or_create({
+					time: times[i],
+					type_id: types[i].id
+				}, {
+					total_time: 0,
+					total_amount: 0,
+					time: times[i],
+					paid: False,
+					tag_id: tag.id,
+					type_id: types[i].id
+				});
 			}
 	
 			pd_dailyvisit = DailyVisit.create({
@@ -520,41 +530,39 @@ PDDB.prototype = {
 		if (tag.tag == "ProcrasDonate") {
 			var self = this;
 			RecipientPercent.select({}, function(row) {
-				var dv = DailyVisit.get_or_create(
-					{ time: end_of_day,
-					  recipient_id: row.recipient_id
-					},
-					{ total_time: 0,
-					  total_amount: 0,
-					  time: end_of_day,
-					  dailytotal_id: pd_dailyvisit.dailytotal_id,
-					  weeklytotal_id: pd_dailyvisit.weeklytotal_id,
-					  forevertotal_id: pd_dailyvisit.forevertotal_id
-					}
-				);
+				var dv = DailyVisit.get_or_create({
+					time: end_of_day,
+					recipient_id: row.recipient_id
+				}, {
+					total_time: 0,
+					total_amount: 0,
+					time: end_of_day,
+					dailytotal_id: pd_dailyvisit.dailytotal_id,
+					weeklytotal_id: pd_dailyvisit.weeklytotal_id,
+					forevertotal_id: pd_dailyvisit.forevertotal_id
+				});
 				// duration in hours * cents/hr * percent
 				//@TODO IF DV IS PROCRASDONATE, JUST SKIM
 				//@TODO IF DV IS NOT PROCRASDONATE, SUBTRACT SKIM
-				var amt_delta = (visit.duration/3600)*cents_per_hour*row.percent;
+				var amt_delta = (parseInt(visit.duration)/3600)*cents_per_hour*parseFloat(row.percent);
 				self.update_totals(dv, visit.duration, amt_delta);
 			});
 		} else {
 			var dv = DailyVisit.get_or_null({ time: end_of_day, site_id: site.id });
 			// duration in hours * cents/hr
 			//@TODO SUBTRACT SKIM
-			var amt_delta = (visit.duration/3600)*cents_per_hour;
+			var amt_delta = (parseInt(visit.duration)/3600)*cents_per_hour;
 			this.update_totals(dv, visit.duration, amt_delta);
 		}
 
 		for (var total in totals) {
-			var amt_delta = (visit.duration/3600)*cents_per_hour;
-			Total.set(
-				{ total_time:   parseInt(total.total_time) + parseInt(visit.duration),
-				  total_amount: parseInt(total.total_amount) + amt_delta
-				},
-				{ id: total.id
-				}
-			);
+			var amt_delta = (parseInt(visit.duration)/3600)*cents_per_hour;
+			Total.set({
+				total_time:   parseInt(total.total_time) + parseInt(visit.duration),
+				total_amount: parseFloat(total.total_amount) + amt_delta
+			}, { 
+				id: total.id
+			});
 		}
 
 	},
@@ -707,7 +715,7 @@ PDDB.tables = {
 	},
 	
 	RecipientPercent : {
-		table_name: "recipientpercent",
+		table_name: "recipientpercents",
 		columns: {
 			_order: ["id", "recipient_id", "percent"],
 			id: "INTEGER PRIMARY KEY",

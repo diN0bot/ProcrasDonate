@@ -103,8 +103,6 @@ var constants = {};
 	
 	constants.DEFAULT_USERNAME = "";
 	constants.DEFAULT_PASSWORD = "";
-	constants.DEFAULT_RECIPIENTS = "Bilumi*http://bilumi.org*80;ProcrasDonate*http://ProcrasDonate.com*20')";
-	constants.DEFAULT_SUPPORT_PCT = 5;
 	constants.DEFAULT_CENTS_PER_HR = 95;
 	constants.DEFAULT_HR_PER_WEEK_GOAL = 20;
 	constants.DEFAULT_HR_PER_WEEK_MAX = 30;
