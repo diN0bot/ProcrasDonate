@@ -12,7 +12,8 @@ var constants = {};
 	
 	constants.PROCRASDONATE_URL = constants.PD_URL+'/';
 	constants.START_URL = constants.PD_URL+'/start_now/';
-	constants.LEARN_URL = constants.PD_URL+'/home/';
+	constants.HOME_URL = constants.PD_URL+'/home/';
+	constants.LEARN_URL = constants.PD_URL+'/learn_more/';
 	constants.IMPACT_URL = constants.PD_URL+'/my_impact/';
 	constants.SETTINGS_URL = constants.PD_URL+'/settings/';
 	

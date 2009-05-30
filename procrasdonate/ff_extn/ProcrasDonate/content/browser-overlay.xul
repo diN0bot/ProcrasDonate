@@ -2,9 +2,9 @@
 <?xml-stylesheet href="chrome://ProcrasDonate/skin/toolbar_handler.css" type="text/css"?>
 <overlay xmlns='http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul'>
 
-  <!-- comment this inclusion out for the toolbar to work -->    
-<!--    <script type='application/x-javascript' 
-            src='chrome://ProcrasDonate/content/js/ext/jQuery-1.3.2.js'></script>-->
+  <!-- jQuery-1.3.2.js has naming conflicts or something with firefox extensions! -->
+    <script type='application/x-javascript' 
+            src='chrome://ProcrasDonate/content/js/ext/jQuery-1.2.6.js'></script>
   <!-- -->
 
     <script type='application/x-javascript' 

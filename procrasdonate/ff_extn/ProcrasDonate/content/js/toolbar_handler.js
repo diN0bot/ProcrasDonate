@@ -5,7 +5,7 @@ var PD_ToolbarManager = {
 	progress_button: null,
 	// tag name, image pairs
 	images : {},
-	default_image_name : null,
+	default_tag : null,
 
 	/*
 	* do stuff when new browser window opens 
@@ -27,7 +27,9 @@ var PD_ToolbarManager = {
 		for (var i=0; i < tag_names.length; i++) {
 			PD_ToolbarManager.images[tag_names[i]] = "chrome://ProcrasDonate/skin/"+tag_names[i]+"Icon.png";	
 		}
-		PD_ToolbarManager.default_image_name = tag_names[0];
+		//logger("TAG: "+Tag.get_or_null({ tag: tag_names[0] }));
+		//Tag.select({}, function(row) { logger("    > "+row); });
+		PD_ToolbarManager.default_tag = Tag.get_or_null({ tag: tag_names[0] });
 		
 		// Update button images and text
 		PD_ToolbarManager.updateButtons({ url: _href() });
@@ -76,26 +78,18 @@ var PD_ToolbarManager = {
 		var href = url;
 		var host = _host(href);
 		var sitegroup = null;
-		var sitegrouptagging = null;
 		var tag = null;
-		sitegroup = SiteGroup.get_or_null({ host: host });
-		
-		if (!sitegroup) {
-			sitegroup = SiteGroup.create({ name: host, host: host });
-			tag = Tag.get_or_null({ tag: PD_ToolbarManager.default_image_name })
-			sitegrouptagging = SiteGroupTagging.create({ sitegroup_id: sitegroup.id, tag_id: tag.id});
-		}
-		else {
-			sitegrouptagging = SiteGroupTagging.get_or_null({ sitegroup_id: sitegroup.id })
-			if (!sitegrouptagging) {
-				tag = Tag.get_or_null({ tag: PD_ToolbarManager.default_image_name })
-				sitegrouptagging = SiteGroupTagging.create({ sitegroup_id: sitegroup.id, tag_id: tag.id});
-			} else {
-				tag = Tag.get_or_null({ id: sitegrouptagging.tag_id })
+
+		sitegroup = SiteGroup.get_or_create(
+			{ host: host },
+			{ name: host,
+			  host: host,
+			  tag_id: PD_ToolbarManager.default_tag.id
 			}
-		}
+		);
+		tag = Tag.get_or_null({ id: sitegroup.tag_id })
 		
-		return { sitegroup: sitegroup, sitegrouptagging: sitegrouptagging, tag: tag }
+		return { sitegroup: sitegroup, tag: tag }
 
     },
 
@@ -103,14 +97,12 @@ var PD_ToolbarManager = {
     	var d = PD_ToolbarManager.getDbRowsForLocation(_href());
     	var sitegroup = d.sitegroup;
     	var tag = d.tag;
-    	var sitegrouptagging = d.sitegrouptagging;
     	
     	var new_tag_id = parseInt(tag.id) + 1;
 		if (new_tag_id > 3) { new_tag_id = 1; }
 		
 		// update tag
-		db.execute("update sitegrouptaggings set tag_id="+new_tag_id+" where sitegroup_id="+sitegroup.id);
-
+		SiteGroup.set({ tag_id: new_tag_id }, { id: sitegroup.id });
 		tag = Tag.get_or_null({ id: new_tag_id })
 		
 		PD_ToolbarManager.updateButtons({ sitegroup: sitegroup, tag: tag });

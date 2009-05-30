@@ -41,7 +41,7 @@ URLBarListener.prototype = {
 		// This fires when the location bar changes; i.e load event is confirmed
 		// or when the user switches tabs. If you use myListener for more than one tab/window,
 		// use aProgress.DOMWindow to obtain the tab/window which triggered the change.
-		logger("onLocationChange:: " + aProgress.DOMWindow.location.href);
+		logger("onLocationChange:: " + aProgress.DOMWindow.location.href+" "+aURI);
 		logger(aProgress.DOMWindow);
 		PD_ToolbarManager.updateButtons({ url: aProgress.DOMWindow.location.href });
 		this.self.processNewURL(aProgress.DOMWindow, aURI);
@@ -414,12 +414,12 @@ PDDB.prototype = {
 	
 	store_visit: function(url, start_time, duration) {
 		var site = null;
-		logger("store_visit()");
+		//logger("store_visit()");
 		this.Site.select({ url__eq: url }, function(row) {
 			logger(row[0]);
 			site = row;
 		});
-		logger("select done");
+		//logger("select done");
 		logger(site);
 		if (!site) {
 			logger("Creating Site: url="+url+"]")
@@ -430,22 +430,196 @@ PDDB.prototype = {
 			}
 			site = this.Site.create({ url: url, sitegroup_id: sitegroup.id });
 		}
-		logger("Site: id="+site.url+" url="+site.url);
-		logger("Site: " + site.toString());
+		//logger("Site: id="+site.url+" url="+site.url);
+		//logger("Site: " + site.toString());
+		logger("store_visit site: "+site);
 		
 		var visit = this.Visit.create({
 			site_id: site.id,
 			enter_at: start_time,
-			leave_at: duration
+			duration: duration
 		});
-		logger("Visit: " + visit.toString());
+		logger("store_visit visit: " + visit);
+		
+		var sitegroup = SiteGroup.get_or_null({ id: site.sitegroup_id });
+		logger("store_visit sitegroup: "+sitegroup);
+		var tag = Tag.get_or_null({ id: sitegroup.tag_id })
+		if (!tag) {
+			tag = Tag.get_or_null({ id: 1 })
+		}
+		logger("store_visit tag: "+tag);
+		
+		// update daily visit and daily total
+		var end_of_day = _dbify_date(_end_of_day());
+		
+		var totals = {};
+		var totals_keys = [ "daily", "weekly", "forever" ];
+
+		var cents_per_hour = 100; // @TODO HACK - get actual cents_per_hour
+		
+		var end_of_week = _dbify_date(_end_of_week());
+		var end_of_day = _dbify_date(_end_of_day());
+		
+		var pd_recipient = Recipient.get_or_create({ twitter_name: "ProcrasDonate" });
+		var pd_recipientpercent = RecipientPercent.get_or_create(
+			{ recipient_id: pd_recipient },
+			{ percent: .05 }
+		);
+		var pd_dailyvisit = DailyVisit.get_or_null({ time: end_of_day, recipient_id: pd_recipient.id });
+		
+		if (pd_dailyvisit) {
+			totals.daily = Total.get_or_null({ id: pd_dailyvisit.dailytotal_id });
+			totals.weekly = Total.get_or_null({ id: pd_dailyvisit.weeklytotal_id });
+			totals.forever = Total.get_or_null({ id: pd_dailyvisit.forevertotal_id });
+			// should not be null...if they are errorzz
+			logger(" if store_visit dailytotal: "+totals.daily);
+			logger(" if store_visit weeklytotal: "+totals.weekly);
+			logger(" if store_visit forevertotal: "+totals.forever);
+		} else {
+			var types = [ Type.get_or_create({ type: "Daily" }),
+					      Type.get_or_create({ type: "Weekly" }),
+			              Type.get_or_create({ type: "Forever" })
+			            ];
+			var times = [ end_of_day, end_of_week, -3 ];
+			logger(" > types: "+types);
+			logger(" > times: "+times);
+			logger(" > totals: "+totals);
+			logger(" > totals_keys: "+totals_keys);
+			
+			for (var i = 0; i < types.length; i++) {
+				totals[ totals_keys[i] ] = Total.get_or_create(
+					{ time: times[i],
+					  type_id: types[i].id
+					},
+					{ total_time: 0,
+					  total_amount: 0,
+					  time: times[i],
+					  paid: False,
+					  tag_id: tag.id,
+					  type_id: types[i].id
+					}
+				);
+			}
+	
+			pd_dailyvisit = DailyVisit.create({
+				recipient_id: pd_recipient.id,
+				total_time: 0,
+				total_amount: 0,
+				time: end_of_day,
+				dailytotal_id: totals.daily.id,
+				weeklytotal_id: totals.weekly.id,
+				forevertotal_id: totals.forever.id,
+			});
+			
+		}
+		
+		// loop in following if-statement should do this.
+		//var amt_delta = (visit.duration/3600)*cents_per_hour*pd_recipientpercent.percent;
+		//this.update_totals(pd_dailyvisit, visit.duration, amt_delta);
+		
+		if (tag.tag == "ProcrasDonate") {
+			RecipientPercent.select({}, function(row) {
+				var dv = DailyVisit.get_or_create(
+					{ time: end_of_day,
+					  recipient_id: row.recipient_id
+					},
+					{ total_time: 0,
+					  total_amount: 0,
+					  time: end_of_day,
+					  dailytotal_id: pd_dailyvisit.dailytotal_id,
+					  weeklytotal_id: pd_dailyvisit.weeklytotal_id,
+					  forevertotal_id: pd_dailyvisit.forevertotal_id
+					}
+				);
+				// duration in hours * cents/hr * percent
+				//@TODO IF DV IS PROCRASDONATE, JUST SKIM
+				//@TODO IF DV IS NOT PROCRASDONATE, SUBTRACT SKIM
+				var amt_delta = (visit.duration/3600)*cents_per_hour*row.percent;
+				this.update_totals(dv, visit.duration, amt_delta);
+			});
+		} else {
+			var dv = DailyVisit.get_or_null({ time: end_of_day, site_id: site.id });
+			// duration in hours * cents/hr
+			//@TODO SUBTRACT SKIM
+			var amt_delta = (visit.duration/3600)*cents_per_hour;
+			this.update_totals(dv, visit.duration, amt_delta);
+		}
+
+		for (var total in totals) {
+			var amt_delta = (visit.duration/3600)*cents_per_hour;
+			Total.set(
+				{ total_time:   parseInt(total.total_time) + parseInt(visit.duration),
+				  total_amount: parseInt(total.total_amount) + amt_delta
+				},
+				{ id: total.id
+				}
+			);
+		}
+
 	},
+	
+	update_totals: function(dailyvisit, time_delta, amount_delta) {
+		DailyVisit.set(
+			{ total_time: dailyvisit.total_time + time_delta,
+			  total_amount: dailyvisit.amount + amount_delta
+			},
+			{ id: dailyvisit.id }
+		);
+	}
 	
 };
 
 PDDB.tables = {
-	_order: ["Site", "SiteGroup", "Visit", "Tag", "SiteGroupTagging"],
-	Site: {
+	_order: ["Tag", "Category", "Type", "SiteGroup", "Site", "Recipient", "Total", "DailyVisit", "Visit", "RecipientPercent"],
+
+	// sitegroup has 1 tag
+	Tag : {
+		table_name: "tags",
+		columns: {
+			_order: ["id", "tag"],
+			id: "INTEGER PRIMARY KEY",
+			tag: "VARCHAR"
+		},
+		indexes: []
+	},
+
+	// recipient has 1 category
+	Category : {
+		table_name: "categories",
+		columns: {
+			_order: ["id", "category"],
+			id: "INTEGER PRIMARY KEY",
+			category: "VARCHAR"
+		},
+		indexes: []
+	},
+
+	// Totals have 1 type: daily, weekly or forever
+	Type : {
+		table_name: "types",
+		columns: {
+			_order: ["id", "type"],
+			id: "INTEGER PRIMARY KEY",
+			type: "VARCHAR"
+		},
+		indexes: []
+	},
+
+	SiteGroup : {
+		table_name: "sitegroups",
+		columns: {
+			_order: ["id", "name", "host", "url_re", "tag_id"],
+			id: "INTEGER PRIMARY KEY",
+			name: "VARCHAR",
+			host: "VARCHAR",
+			url_re: "VARCHAR",
+			tag_id: "INTEGER"
+		},
+		indexes: []
+	},
+
+	Site : {
+		// Model metadata
 		table_name: "sites",
 		columns: {
 			_order: ["id", "sitegroup_id", "url"],
@@ -455,38 +629,25 @@ PDDB.tables = {
 		},
 		indexes: []
 	},
-	SiteGroup : {
-		table_name: "sitegroups",
+	
+	Recipient : {
+		table_name: "recipients",
 		columns: {
-			_order: ["id", "name", "host", "url_re"],
+			_order: ["id", "name", "mission", "description", "twitter_name", "url", "category_id", "is_visible"],
 			id: "INTEGER PRIMARY KEY",
 			name: "VARCHAR",
-			host: "VARCHAR",
-			url_re: "VARCHAR"
+			twitter_name: "VARCHAR",
+			mission: "VARCHAR",
+			description: "VARCHAR",
+			url: "VARCHAR",
+			category_id: "INTEGER",
+			is_visible: "INTEGER", // boolean 0=false
 		},
 		indexes: []
 	},
-	Visit: {
-		table_name: "visits",
-		columns: {
-			_order: ["id", "site_id", "enter_at", "leave_at"],
-			id: "INTEGER PRIMARY KEY",
-			site_id: "INTEGER",
-			enter_at: "INTEGER", //"DATETIME",
-			leave_at: "INTEGER", //"DATETIME"
-		},
-		indexes: []
-	},
-	Tag: {
-		table_name: "tags",
-		columns: {
-			_order: ["id", "tag"],
-			id: "INTEGER PRIMARY KEY",
-			tag: "VARCHAR"
-		},
-		indexes: []
-	},
-	SiteGroupTagging: {
+
+	/*
+	var SiteGroupTagging = new Model(db, "SiteGroupTagging", {
 		table_name: "sitegrouptaggings",
 		columns: {
 			_order: ["id", "sitegroup_id", "tag_id"],
@@ -495,9 +656,66 @@ PDDB.tables = {
 			tag_id: "INTEGER"
 		},
 		indexes: []
+	});
+	*/
+
+	// Overall ProcrasDonate or TimeWellSpent
+	// Daily, weekly and forever total
+	Total : {
+		table_name: "totals",
+		columns: {
+			_order: ["id", "total_time", "total_amount", "time", "paid", "tag_id", "type_id"],
+			id: "INTEGER PRIMARY KEY",
+			total_time: "INTEGER", //seconds
+			total_amount: "REAL", //cents
+			time: "INTEGER", //"DATETIME"
+			paid: "INTEGER",
+			tag_id: "INTEGER",
+			type_id: "INTEGER",
+		}
+	},
+	
+	// Tracks how much a site(url) or recipient should be paid each day.
+	// Payment is tracked in DailyTotal
+	DailyVisit : {
+		table_name: "dailyvisits",
+		columns: {
+			_order: ["id", "site_id", "recipient_id", "total_time", "total_amount", "time", "dailytotal_id", "weeklytotal_id", "forevertotal_id"],
+			id: "INTEGER PRIMARY KEY",
+			site_id: "INTEGER", // one or the other (or both, if tag for site changes during day  ?)
+			recipient_id: "INTEGER", // one or the other
+			total_time: "INTEGER", //seconds
+			total_amount: "REAL", //cents
+			time: "INTEGER", //"DATETIME"
+			dailytotal_id: "INTEGER", // Total id
+			weeklytotal_id: "INTEGER", // Total id
+			forevertotal_id: "INTEGER", // Total id
+		}
+	},
+
+	Visit : {
+		table_name: "visits",
+		columns: {
+			_order: ["id", "site_id", "enter_at", "duration"],
+			id: "INTEGER PRIMARY KEY",
+			site_id: "INTEGER",
+			enter_at: "INTEGER", //"DATETIME",
+			duration: "INTEGER", //seconds
+		},
+		indexes: []
+	},
+	
+	RecipientPercent : {
+		table_name: "recipientpercent",
+		columns: {
+			_order: ["id", "recipient_id", "percent"],
+			id: "INTEGER PRIMARY KEY",
+			recipient_id: "INTEGER",
+			percent: "REAL"
+		},
+		indexes: []
 	}
+
 };
-
-
 
 var myOverlay = new Overlay();

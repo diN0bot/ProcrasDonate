@@ -38,6 +38,8 @@ function _bind(o, m) {
 	}
 }
 
+var False = 0;
+var True = 1;
 
 var logger = function(msg) {
 	try {
@@ -198,6 +200,34 @@ function _iterate(o, fn) {
 //	}
 //	return ret;
 //}
+
+var _end_of_day = function(date) {
+	if (!date) {
+		date = new Date();
+	}
+	date.setHours(23);
+	date.setMinutes(59);
+	date.setSeconds(59);
+	date.setMilliseconds(999);
+	return date;
+}
+
+var _end_of_week = function(date) {
+	if (!date) {
+		date = new Date();
+	}
+	date.setHours(23);
+	date.setMinutes(23);
+	date.setSeconds(23);
+	date.setMilliseconds(23);
+	// last day of week. getDay should now = 6.
+	date.setDate(date.getDate() + (6-date.getDay()));
+	return date;
+}
+
+var _dbify_date = function(date) {
+	return Math.round(date.getTime() / 1000.0);
+}
 
 var host_regexp =  /^[\w]+:\/\/([^\/]+).*/g;
 
