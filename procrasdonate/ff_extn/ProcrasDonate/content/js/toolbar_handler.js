@@ -1,5 +1,9 @@
 
-var PD_ToolbarManager = {
+function PD_ToolbarManager(pddb) {
+	this.pddb = pddb;
+}
+PD_ToolbarManager.prototype = {};
+_extend(PD_ToolbarManager.prototype, {
 		
 	classify_button : null,
 	progress_button: null,
@@ -80,7 +84,7 @@ var PD_ToolbarManager = {
 		var sitegroup = null;
 		var tag = null;
 
-		sitegroup = SiteGroup.get_or_create(
+		sitegroup = this.pddb.SiteGroup.get_or_create(
 			{ host: host },
 			{ name: host,
 			  host: host,
@@ -113,6 +117,6 @@ var PD_ToolbarManager = {
     	window.content.location.href = constants.IMPACT_URL;
     }
 
-};
+});
 
 window.addEventListener("load", PD_ToolbarManager.initialize, false);

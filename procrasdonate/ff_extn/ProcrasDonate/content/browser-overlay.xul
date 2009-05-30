@@ -60,6 +60,8 @@
       -->
     <script type='application/x-javascript'
             src='chrome://ProcrasDonate/content/js/lib/http_request.js'></script>
+    <script type='application/x-javascript'
+            src='chrome://ProcrasDonate/content/js/lib/request.js'></script>
     
     <!-- (Mostly) ProcrasDonate-specific stuff.
       -->

@@ -85,7 +85,7 @@ _extend(HttpRequest.prototype, {
 				// Have to use nested function here instead of GM_hitch because
 				// otherwise details[event].apply can point to window.setTimeout, which
 				// can be abused to get increased priveledges.
-				new XPCNativeWrapper(this.unsafeContentWin, "setTimeout()")
+				new XPCNativeWrapper(unsafeContentWin, "setTimeout()")
 					.setTimeout(function(){
 						details[event](responseState);
 					}, 0);
