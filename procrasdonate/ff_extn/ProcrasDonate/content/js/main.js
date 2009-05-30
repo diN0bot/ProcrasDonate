@@ -518,6 +518,7 @@ PDDB.prototype = {
 		//this.update_totals(pd_dailyvisit, visit.duration, amt_delta);
 		
 		if (tag.tag == "ProcrasDonate") {
+			var self = this;
 			RecipientPercent.select({}, function(row) {
 				var dv = DailyVisit.get_or_create(
 					{ time: end_of_day,
@@ -535,7 +536,7 @@ PDDB.prototype = {
 				//@TODO IF DV IS PROCRASDONATE, JUST SKIM
 				//@TODO IF DV IS NOT PROCRASDONATE, SUBTRACT SKIM
 				var amt_delta = (visit.duration/3600)*cents_per_hour*row.percent;
-				this.update_totals(dv, visit.duration, amt_delta);
+				self.update_totals(dv, visit.duration, amt_delta);
 			});
 		} else {
 			var dv = DailyVisit.get_or_null({ time: end_of_day, site_id: site.id });
