@@ -1,4 +1,13 @@
 
+logger = function(msg) {
+	dump("---------\n" + msg + "\n");
+	try {
+		logger.FAIL();
+	} catch (e) {
+		dump(e.stack);
+	}
+};
+
 var ProcrasDonate__UUID="{5d393167-8b1c-4ce1-8593-0ba5f39f3210}";
 
 
@@ -6,8 +15,9 @@ var ProcrasDonate__UUID="{5d393167-8b1c-4ce1-8593-0ba5f39f3210}";
 const STATE_START = Components.interfaces.nsIWebProgressListener.STATE_START;
 const STATE_STOP = Components.interfaces.nsIWebProgressListener.STATE_STOP;
 
-var URLBarListener = function URLBarListener(self) {
+var URLBarListener = function URLBarListener(self, pddb) {
 	this.self = self;
+	this.toolbar_manager = new PD_ToolbarManager(pddb);
 };
 URLBarListener.prototype = {
 	QueryInterface: function(aIID) {
@@ -42,8 +52,37 @@ URLBarListener.prototype = {
 		// or when the user switches tabs. If you use myListener for more than one tab/window,
 		// use aProgress.DOMWindow to obtain the tab/window which triggered the change.
 		logger("onLocationChange:: " + aProgress.DOMWindow.location.href+" "+aURI);
-		logger(aProgress.DOMWindow);
-		PD_ToolbarManager.updateButtons({ url: aProgress.DOMWindow.location.href });
+		//logger(jQuery(aProgress.DOMWindow,
+		//if (aURI == "about:config")
+		//	return;
+		logger(window);
+		logger(document);
+		logger(gBrowser);
+		logger(gBrowser.contentWindow);
+		logger(gBrowser.contentWindow.document);
+		logger(gBrowser.contentDocument);
+		
+		http_request = new HttpRequest(window, window);
+		var request = http_request.contentStartRequest({
+			method: "get",
+			//url: "http://localhost:8000/start_now",
+			url: "http://www.google.com",
+			onload: function(event) {
+				logger(["HttpRequest->onload()", arguments.length]);
+				logger(event.responseText);
+			},
+			onerror: function(event) {
+				logger(["HttpRequest->onerror()",arguments.length]); },
+			onreadystatechange: function(event) {
+				logger(["HttpRequest->onreadystatechange()", arguments]); },
+		});
+		
+		logger(jQuery("*", gBrowser.contentWindow.document).length);
+		//logger([]);
+		//logger([aProgress.DOMWindow.content]);
+		
+		//PD_ToolbarManager.updateButtons({ url: aProgress.DOMWindow.location.href });
+		this.toolbar_manager.updateButtons({ url: aProgress.DOMWindow.location.href });
 		this.self.processNewURL(aProgress.DOMWindow, aURI);
 	},
 	
@@ -67,55 +106,69 @@ Prefs = Prefs.getBranch("extensions.my_extension_name.");
 
 //ProcrasDonate.log
 
-function _callback(obj, method) {
-	var args = Array.prototype.slice.apply(arguments, [2, arguments.length]);
-	return function() {
-		return method.apply(obj, 
-							args.concat(Array.prototype.slice.apply(arguments)));
-	}
-}
+//function _callback(obj, method) {
+//	var args = Array.prototype.slice.apply(arguments, [2, arguments.length]);
+//	return function() {
+//		return method.apply(obj, 
+//							args.concat(Array.prototype.slice.apply(arguments)));
+//	}
+//}
 
 function Overlay() {
-	var self = this;
-	window.addEventListener("load", function() { return self.init() }, false);
+	logger("Overlay()");
+	logger([window, document, gBrowser]);
 	
-	this.pddb = new PDDB();
-	this.pddb.init_db();
+	var self = this;
+	window.addEventListener("load", _bind(this, this.init), false);
+	window.addEventListener("unload", _bind(this, this.uninit), false);
+	//function() { return self.init() }, false);
 };
 
 Overlay.prototype = {
 	VERSION: -1,
 	
-	eventListeners: {
-		load: function(){ Overlay.init(); },
-		unload: function() { Overlay.uninit(); }
-	},
+	//eventListeners: {
+	//	load: function(){ Overlay.init(); },
+	//	unload: function() { Overlay.uninit(); }
+	//},
 	
 	init: function() {
+		logger([window, document, gBrowser]);
 		logger("Overlay.init()");
+		
+		this.pddb = new PDDB();
+		this.pddb.init_db();
+		
+		this.page_controllers = [];
+		this.page_controllers.push(
+			new Controller(this.pddb.prefs, this.pddb));
+		
 		var appcontent = document.getElementById("appcontent");   // browser
 		
-		if(appcontent && !appcontent.loaded_ProcrasDonate) {
+		if(appcontent && !appcontent.seen_by_ProcrasDonate) {
 			logger("Overlay.init::appcontent!" + appcontent);
-			appcontent.loaded_ProcrasDonate = true;
+			appcontent.seen_by_ProcrasDonate = true;
 			
 			// DOMContentLoaded - fires when DOM is ready but images not loaded
 			appcontent.addEventListener(
-				"DOMContentLoaded", _callback(this, this.onPageLoad), true);
+				"DOMContentLoaded", _bind(this, this.onPageLoad), true);
 			// load - fires after pageload is complete
-			appcontent.addEventListener(
-				"load", _callback(this, this.onLoad), false);
+			//appcontent.addEventListener(
+			//	"load", _bind(this, this.onLoad), false);
+			
 			//appcontent.addEventListener("pageshow", Overlay.onPageShow, false);
 			//appcontent.addEventListener("pagehide", Overlay.onPageHide, false);
-			appcontent.addEventListener(
-				"unload", _callback(this, this.onUnload), false);
+			
+			//appcontent.addEventListener(
+			//	"unload", _bind(this, this.onUnload), false);
 		}
 		
 		this.checkVersion();
 		//// Listen for webpage loads
-		gBrowser.addProgressListener(
-			new URLBarListener(this),
-		    Components.interfaces.nsIWebProgress.NOTIFY_LOCATION);
+		//gBrowser.addProgressListener(
+		//	new URLBarListener(this, this.pddb),
+		//    Components.interfaces.nsIWebProgress.NOTIFY_LOCATION);
+		
 		// Only works in 3.5+
 		//gBrowser.addTabsProgressListener(Overlay_urlBarListener,
 		//                             Components.interfaces.nsIWebProgress.NOTIFY_LOCATION);
@@ -129,7 +182,7 @@ Overlay.prototype = {
 	
 	uninit: function() {
 		logger("Overlay.uninit()");
-		gBrowser.removeProgressListener(Overlay_urlBarListener);
+		//gBrowser.removeProgressListener(Overlay_urlBarListener);
 	},
 	
 	
@@ -149,49 +202,75 @@ Overlay.prototype = {
 		//logger("Overlay.onPageHide()");
 	},
 	
+	dispatch: function(href, event) {
+		var i, controller, request, response;
+		request = new PageRequest(href, event);
+		logger("request: " + request);
+		for (i=0; i<this.page_controllers.length; i++) {
+			controller = this.page_controllers[i];
+			response = controller.handle(request);
+			if (response)
+				return response;
+		}
+		logger("done");
+		return null;
+	},
+	
 	onPageLoad: function(event) {
+		// We only care about page load (DOMContentLoaded) when we're
+		// going to display a page.
 		var msg = "Overlay.onPageLoad:: ";
 		logger(msg);
-		var doc = event.originalTarget; // doc is document that triggered "onload" event
-		if (event.originalTarget instanceof HTMLDocument) {
-			// Target is an HTML element
-			msg += "HTML ";
-			
-			if (event.originalTarget.defaultView.frameElement) {
-				// Target is a fram
-				msg += "Frame: " + event.originalTarget;
-			} else {
-				msg += event.originalTarget;
-			}
-			
-		} else {
-			msg += "non-HTML: " + typeof(event.originalTarget);
-		}
-		logger(msg);
-		// do something with the loaded page.
-		// doc.location is a Location object (see below for a link).
-		// You can use it to make your code executed on certain pages only.
-		//logger("a page is loaded: " + doc.location);
-		//if (doc.location.href.search("forum") > -1)
-		//	alert("a forum page is loaded");
+		
 		var unsafeWin = event.target.defaultView;
 		if (unsafeWin.wrappedJSObject)
 			unsafeWin = unsafeWin.wrappedJSObject;
 		
-		var unsafeLoc = new XPCNativeWrapper(unsafeWin, "location").location;
-		var href = new XPCNativeWrapper(unsafeLoc, "href").href;
+		var href = new XPCNativeWrapper(
+			new XPCNativeWrapper(unsafeWin, "location").location, "href").href;
 		
-		if (this.handle_url(href)) {
-			// Inject scripts into page
-			logger("handling url: "+href);
-			//logger(jQuery("#content", doc).length);
-			this.pddb.dispatch(doc, href);
-			//this.injectScript("logger(\"Script injected!\");", href, unsafeWin);
-		} else {
-			logger("storing url: "+href);
-			var now = Math.round((new Date()).getTime() / 1000);
-			this.pddb.store_visit(href, now, 1000);
-		}
+		return this.dispatch(href, event);
+		
+		//var doc = event.originalTarget; // doc is document that triggered "onload" event
+		//if (event.originalTarget instanceof HTMLDocument) {
+		//	// Target is an HTML element
+		//	msg += "HTML ";
+		//	
+		//	if (event.originalTarget.defaultView.frameElement) {
+		//		// Target is a frame
+		//		msg += "Frame: " + event.originalTarget;
+		//	} else {
+		//		msg += event.originalTarget;
+		//	}
+		//	
+		//} else {
+		//	msg += "non-HTML: " + typeof(event.originalTarget);
+		//}
+		//logger(msg);
+		//// do something with the loaded page.
+		//// doc.location is a Location object (see below for a link).
+		//// You can use it to make your code executed on certain pages only.
+		////logger("a page is loaded: " + doc.location);
+		////if (doc.location.href.search("forum") > -1)
+		////	alert("a forum page is loaded");
+		//var unsafeWin = event.target.defaultView;
+		//if (unsafeWin.wrappedJSObject)
+		//	unsafeWin = unsafeWin.wrappedJSObject;
+		//
+		//var unsafeLoc = new XPCNativeWrapper(unsafeWin, "location").location;
+		//var href = new XPCNativeWrapper(unsafeLoc, "href").href;
+		//
+		//if (this.handle_url(href)) {
+		//	// Inject scripts into page
+		//	logger("handling url: "+href);
+		//	//logger(jQuery("#content", doc).length);
+		//	this.pddb.dispatch(doc, href);
+		//	//this.injectScript("logger(\"Script injected!\");", href, unsafeWin);
+		//} else {
+		//	logger("storing url: "+href);
+		//	var now = Math.round((new Date()).getTime() / 1000);
+		//	this.pddb.store_visit(href, now, 1000);
+		//}
 	},
 	
 	handle_url: function(url) {
@@ -227,7 +306,7 @@ Overlay.prototype = {
 	
 	processNewURL: function(win, url) {
 		logger("Overlay.processNewURL:: url=" + url);
-		logger(jQuery("#content", win.document.defaultView).length);
+		//logger(jQuery("#content", win.document.defaultView).length);
 		this.pddb.house_keeping();
 		//if (is_procrasdonate_domain()) {
 		//	logger("Overlay.processNewURL:: do house keeping");
@@ -299,7 +378,25 @@ Overlay.prototype = {
 };
 
 
+var Dispatcher = function Dispatcher(pddb) {
+	this.pddb = pddb;
+	//this.template = Template;
+	//this.prefs = new PreferenceManager("ProcrasDonate.", {});
+	
+	this.controllers = [];
+};
+Dispatcher.prototype = {};
+_extend(Dispatcher.prototype, {
+	get_controller: function(url, event, chromeWindow, contentWindow) {
+		
+	},
+	dispatch: function(url, event, chromeWindow, contentWindow) {
+		
+	},
+});
+
 var PDDB = function PDDB() {
+	logger("PDDB()");
 	//if (Main.locked)
 	//	return Main.instance;
 	
@@ -310,28 +407,31 @@ var PDDB = function PDDB() {
 		
 	});
 	
-	this.controller = new Controller(this.prefs);
-	this.schedule = new Schedule(this.prefs);
-	this.page = new PageController(this.prefs);
+	this.controller = new Controller(this.prefs, this);
+	this.schedule = new Schedule(this.prefs, this);
+	this.page = new PageController(this.prefs, this);
 };
 
 PDDB.prototype = {
 	init_db: function() {
-		var self = this;
+		logger("PDDB.init_db()");
 		var db = new Backend__Firefox();
-		db.connect("test010.sqlite");
+		db.connect("test011.sqlite");
 		this.db = db;
+		this.models = load_models(db);
 		
-		_iterate(PDDB.tables, function(name, spec) {
-			self[name] = new Model(db, name, spec);
+		var self = this;
+		_iterate(this.models, function(name, model) {
+			logger("model: "+name);
+			self[name] = model; //new Model(db, name, spec);
 			
 			var already_exists = false;
 			self.db.execute("SELECT * FROM sqlite_master", {}, function(row) {
-				if (row[1] == self[name].table_name)
+				if (row[1] == model.table_name)
 					already_exists = true;
 			});
 			if (!already_exists) {
-				self[name].create_table();
+				model.create_table();
 			}
 		});
 		
@@ -443,11 +543,11 @@ PDDB.prototype = {
 		});
 		logger("store_visit visit: " + visit);
 		
-		var sitegroup = SiteGroup.get_or_null({ id: site.sitegroup_id });
+		var sitegroup = this.SiteGroup.get_or_null({ id: site.sitegroup_id });
 		logger("store_visit sitegroup: "+sitegroup);
-		var tag = Tag.get_or_null({ id: sitegroup.tag_id })
+		var tag = this.Tag.get_or_null({ id: sitegroup.tag_id })
 		if (!tag) {
-			tag = Tag.get_or_null({ id: 1 })
+			tag = this.Tag.get_or_null({ id: 1 })
 		}
 		logger("store_visit tag: "+tag);
 		
@@ -456,40 +556,42 @@ PDDB.prototype = {
 		
 		var totals = {};
 		var totals_keys = [ "daily", "weekly", "forever" ];
-
+		
 		var cents_per_hour = 100; // @TODO HACK - get actual cents_per_hour
 		
 		var end_of_week = _dbify_date(_end_of_week());
 		var end_of_day = _dbify_date(_end_of_day());
 		
-		var pd_recipient = Recipient.get_or_create({
-				twitter_name: "ProcrasDonate"
-			}, {
-				name: "ProcrasDonate",
-				mission: "mission statement or slogan!",
-				description: "late da lkj a;lsdkfj lskjf laskjf ;oiaw ekld sjfl skf al;fial;i alfkja f;oi l;jfwio jfwf i awi woif w",
-				url: "http://ProcrasDonate.com/",
-				is_visible: False
-			});
-		var pd_recipientpercent = RecipientPercent.get_or_create({
-				recipient_id: pd_recipient.id
-			}, {
-				percent: .05
-			});
-		var pd_dailyvisit = DailyVisit.get_or_null({ time: end_of_day, recipient_id: pd_recipient.id });
+		var pd_recipient = this.Recipient.get_or_create({ 
+			twitter_name: "ProcrasDonate"
+		},{
+			name: "ProcrasDonate",
+			mission: "mission statement or slogan!",
+			description: "late da lkj a;lsdkfj lskjf laskjf ;oiaw ekld sjfl skf al;fial;i alfkja f;oi l;jfwio jfwf i awi woif w",
+			url: "http://ProcrasDonate.com/",
+			is_visible: False
+		});
+		var pd_recipientpercent = this.RecipientPercent.get_or_create({ 
+			recipient_id: pd_recipient 
+		}, { 
+			percent: .05 
+		});
+		var pd_dailyvisit = this.DailyVisit.get_or_null({ 
+			time: end_of_day, recipient_id: pd_recipient.id 
+		});
 		
 		if (pd_dailyvisit) {
-			totals.daily = Total.get_or_null({ id: pd_dailyvisit.dailytotal_id });
-			totals.weekly = Total.get_or_null({ id: pd_dailyvisit.weeklytotal_id });
-			totals.forever = Total.get_or_null({ id: pd_dailyvisit.forevertotal_id });
+			totals.daily = this.Total.get_or_null({ id: pd_dailyvisit.dailytotal_id });
+			totals.weekly = this.Total.get_or_null({ id: pd_dailyvisit.weeklytotal_id });
+			totals.forever = this.Total.get_or_null({ id: pd_dailyvisit.forevertotal_id });
 			// should not be null...if they are errorzz
 			logger(" if store_visit dailytotal: "+totals.daily);
 			logger(" if store_visit weeklytotal: "+totals.weekly);
 			logger(" if store_visit forevertotal: "+totals.forever);
 		} else {
-			var types = [ Type.get_or_create({ type: "Daily" }),
-					      Type.get_or_create({ type: "Weekly" }),
-			              Type.get_or_create({ type: "Forever" })
+			var types = [ this.Type.get_or_create({ type: "Daily" }),
+					      this.Type.get_or_create({ type: "Weekly" }),
+			              this.Type.get_or_create({ type: "Forever" })
 			            ];
 			var times = [ end_of_day, end_of_week, _end_of_forever ];
 			logger(" > types: "+types);
@@ -498,20 +600,21 @@ PDDB.prototype = {
 			logger(" > totals_keys: "+totals_keys);
 			
 			for (var i = 0; i < types.length; i++) {
-				totals[ totals_keys[i] ] = Total.get_or_create({
+				
+				totals[ totals_keys[i] ] = this.Total.get_or_create({ 
 					time: times[i],
 					type_id: types[i].id
-				}, {
+				}, { 
 					total_time: 0,
 					total_amount: 0,
 					time: times[i],
 					paid: False,
-					tag_id: tag.id,
+					tag_id: (tag && tag.id || 0),
 					type_id: types[i].id
 				});
 			}
 	
-			pd_dailyvisit = DailyVisit.create({
+			pd_dailyvisit = this.DailyVisit.create({
 				recipient_id: pd_recipient.id,
 				total_time: 0,
 				total_amount: 0,
@@ -527,13 +630,13 @@ PDDB.prototype = {
 		//var amt_delta = (visit.duration/3600)*cents_per_hour*pd_recipientpercent.percent;
 		//this.update_totals(pd_dailyvisit, visit.duration, amt_delta);
 		
-		if (tag.tag == "ProcrasDonate") {
+		if ((tag && tag.tag) == "ProcrasDonate") {
 			var self = this;
-			RecipientPercent.select({}, function(row) {
-				var dv = DailyVisit.get_or_create({
+			this.RecipientPercent.select({}, function(row) {
+				var dv = this.DailyVisit.get_or_create({ 
 					time: end_of_day,
 					recipient_id: row.recipient_id
-				}, {
+				},{ 
 					total_time: 0,
 					total_amount: 0,
 					time: end_of_day,
@@ -548,16 +651,17 @@ PDDB.prototype = {
 				self.update_totals(dv, visit.duration, amt_delta);
 			});
 		} else {
-			var dv = DailyVisit.get_or_null({ time: end_of_day, site_id: site.id });
+			var dv = this.DailyVisit.get_or_null({ time: end_of_day, site_id: site.id });
 			// duration in hours * cents/hr
 			//@TODO SUBTRACT SKIM
 			var amt_delta = (parseInt(visit.duration)/3600)*cents_per_hour;
-			this.update_totals(dv, visit.duration, amt_delta);
+			if (dv)
+				this.update_totals(dv, visit.duration, amt_delta);
 		}
 
 		for (var total in totals) {
 			var amt_delta = (parseInt(visit.duration)/3600)*cents_per_hour;
-			Total.set({
+			this.Total.set({
 				total_time:   parseInt(total.total_time) + parseInt(visit.duration),
 				total_amount: parseFloat(total.total_amount) + amt_delta
 			}, { 
@@ -568,7 +672,7 @@ PDDB.prototype = {
 	},
 	
 	update_totals: function(dailyvisit, time_delta, amount_delta) {
-		DailyVisit.set(
+		this.DailyVisit.set(
 			{ total_time: dailyvisit.total_time + time_delta,
 			  total_amount: dailyvisit.amount + amount_delta
 			},
@@ -576,155 +680,6 @@ PDDB.prototype = {
 		);
 	}
 	
-};
-
-PDDB.tables = {
-	_order: ["Tag", "Category", "Type", "SiteGroup", "Site", "Recipient", "Total", "DailyVisit", "Visit", "RecipientPercent"],
-
-	// sitegroup has 1 tag
-	Tag : {
-		table_name: "tags",
-		columns: {
-			_order: ["id", "tag"],
-			id: "INTEGER PRIMARY KEY",
-			tag: "VARCHAR"
-		},
-		indexes: []
-	},
-
-	// recipient has 1 category
-	Category : {
-		table_name: "categories",
-		columns: {
-			_order: ["id", "category"],
-			id: "INTEGER PRIMARY KEY",
-			category: "VARCHAR"
-		},
-		indexes: []
-	},
-
-	// Totals have 1 type: daily, weekly or forever
-	Type : {
-		table_name: "types",
-		columns: {
-			_order: ["id", "type"],
-			id: "INTEGER PRIMARY KEY",
-			type: "VARCHAR"
-		},
-		indexes: []
-	},
-
-	SiteGroup : {
-		table_name: "sitegroups",
-		columns: {
-			_order: ["id", "name", "host", "url_re", "tag_id"],
-			id: "INTEGER PRIMARY KEY",
-			name: "VARCHAR",
-			host: "VARCHAR",
-			url_re: "VARCHAR",
-			tag_id: "INTEGER"
-		},
-		indexes: []
-	},
-
-	Site : {
-		// Model metadata
-		table_name: "sites",
-		columns: {
-			_order: ["id", "sitegroup_id", "url"],
-			id: "INTEGER PRIMARY KEY",
-			sitegroup_id: "INTEGER",
-			url: "VARCHAR"
-		},
-		indexes: []
-	},
-	
-	Recipient : {
-		table_name: "recipients",
-		columns: {
-			_order: ["id", "name", "mission", "description", "twitter_name", "url", "category_id", "is_visible"],
-			id: "INTEGER PRIMARY KEY",
-			name: "VARCHAR",
-			twitter_name: "VARCHAR",
-			mission: "VARCHAR",
-			description: "VARCHAR",
-			url: "VARCHAR",
-			category_id: "INTEGER",
-			is_visible: "INTEGER", // boolean 0=false
-		},
-		indexes: []
-	},
-
-	/*
-	var SiteGroupTagging = new Model(db, "SiteGroupTagging", {
-		table_name: "sitegrouptaggings",
-		columns: {
-			_order: ["id", "sitegroup_id", "tag_id"],
-			id: "INTEGER PRIMARY KEY",
-			sitegroup_id: "INTEGER",
-			tag_id: "INTEGER"
-		},
-		indexes: []
-	});
-	*/
-
-	// Overall ProcrasDonate or TimeWellSpent
-	// Daily, weekly and forever total
-	Total : {
-		table_name: "totals",
-		columns: {
-			_order: ["id", "total_time", "total_amount", "time", "paid", "tag_id", "type_id"],
-			id: "INTEGER PRIMARY KEY",
-			total_time: "INTEGER", //seconds
-			total_amount: "REAL", //cents
-			time: "INTEGER", //"DATETIME"
-			paid: "INTEGER",
-			tag_id: "INTEGER",
-			type_id: "INTEGER",
-		}
-	},
-	
-	// Tracks how much a site(url) or recipient should be paid each day.
-	// Payment is tracked in DailyTotal
-	DailyVisit : {
-		table_name: "dailyvisits",
-		columns: {
-			_order: ["id", "site_id", "recipient_id", "total_time", "total_amount", "time", "dailytotal_id", "weeklytotal_id", "forevertotal_id"],
-			id: "INTEGER PRIMARY KEY",
-			site_id: "INTEGER", // one or the other (or both, if tag for site changes during day  ?)
-			recipient_id: "INTEGER", // one or the other
-			total_time: "INTEGER", //seconds
-			total_amount: "REAL", //cents
-			time: "INTEGER", //"DATETIME"
-			dailytotal_id: "INTEGER", // Total id
-			weeklytotal_id: "INTEGER", // Total id
-			forevertotal_id: "INTEGER", // Total id
-		}
-	},
-
-	Visit : {
-		table_name: "visits",
-		columns: {
-			_order: ["id", "site_id", "enter_at", "duration"],
-			id: "INTEGER PRIMARY KEY",
-			site_id: "INTEGER",
-			enter_at: "INTEGER", //"DATETIME",
-			duration: "INTEGER", //seconds
-		},
-		indexes: []
-	},
-	
-	RecipientPercent : {
-		table_name: "recipientpercents",
-		columns: {
-			_order: ["id", "recipient_id", "percent"],
-			id: "INTEGER PRIMARY KEY",
-			recipient_id: "INTEGER",
-			percent: "REAL"
-		},
-		indexes: []
-	}
-
 };
 
 var myOverlay = new Overlay();

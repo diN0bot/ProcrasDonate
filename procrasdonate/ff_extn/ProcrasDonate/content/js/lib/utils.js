@@ -29,11 +29,11 @@ var _include = function(filename) {
 function _bind(o, m) {
 	var bound_arguments = Array.prototype.slice.apply(arguments, [2]);
 	return function() {
-		logger([bound_arguments, bound_arguments.constructor]);
+		//logger([bound_arguments, bound_arguments.constructor]);
 		var now_arguments = Array.prototype.slice.apply(arguments);
-		logger([now_arguments, now_arguments.constructor]);
+		//logger([now_arguments, now_arguments.constructor]);
 		var args = bound_arguments.slice().concat(now_arguments);
-		logger([args, args.constructor]);
+		//logger([args, args.constructor]);
 		return m.apply(o, args); //bound_arguments + now_arguments);
 	}
 }
