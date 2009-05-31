@@ -187,13 +187,3 @@ function load_models(db) {
 }
 
 
-var RecipientPercent = new Model(db, "RecipientPercent", {
-	table_name: "recipientpercents",
-	columns: {
-		_order: ["id", "recipient_id", "percent"],
-		id: "INTEGER PRIMARY KEY",
-		recipient_id: "INTEGER",
-		percent: "REAL"
-	},
-	indexes: []
-});

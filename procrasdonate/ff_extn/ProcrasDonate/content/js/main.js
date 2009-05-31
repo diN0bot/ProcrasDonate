@@ -141,7 +141,7 @@ Overlay.prototype = {
 		
 		this.page_controllers = [];
 		this.page_controllers.push(
-			new Controller(this.pddb.prefs));
+			new Controller(this.pddb.prefs, this.pddb));
 		
 		var appcontent = document.getElementById("appcontent");   // browser
 		
@@ -407,9 +407,9 @@ var PDDB = function PDDB() {
 		
 	});
 	
-	this.controller = new Controller(this.prefs);
-	this.schedule = new Schedule(this.prefs);
-	this.page = new PageController(this.prefs);
+	this.controller = new Controller(this.prefs, this);
+	this.schedule = new Schedule(this.prefs, this);
+	this.page = new PageController(this.prefs, this);
 };
 
 PDDB.prototype = {

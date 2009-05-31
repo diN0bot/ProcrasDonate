@@ -3,11 +3,11 @@
 
 // Controller
 // * handles 'views' for browser-generated ProcrasDonate.com pages
-var Controller = function(prefs) {
+var Controller = function(prefs, pddb) {
 	logger("Controller()");
 	this.prefs = prefs;
-	this.page = new PageController(this.prefs);
-	
+	this.pddb = pddb;
+	this.page = new PageController(this.prefs, this.pddb);
 };
 
 //function $(selector, context) {
@@ -184,7 +184,7 @@ _extend(Controller.prototype, {
 		}
 		
 		////// RECIPIENTS ////////
-		Recipient.get_or_create({
+		this.pddb.Recipient.get_or_create({
 			twitter_name: "ProcrasDonate"
 		}, {
 			name: "ProcrasDonate",
@@ -193,7 +193,7 @@ _extend(Controller.prototype, {
 			url: "http://ProcrasDonate.com/",
 			is_visible: False
 		});
-		Recipient.get_or_create({
+		this.pddb.Recipient.get_or_create({
 			twitter_name: "RedCross"
 		}, {
 			name: "Red Cros",
@@ -202,7 +202,7 @@ _extend(Controller.prototype, {
 			url: "http://ProcrasDonate.com/",
 			is_visible: True
 		});
-		Recipient.get_or_create({
+		this.pddb.Recipient.get_or_create({
 			twitter_name: "BlueShovel"
 		}, {
 			name: "Blue Shovel",
@@ -255,9 +255,10 @@ _extend(Controller.prototype, {
 	},
 });
 
-function Schedule(prefs) {
+function Schedule(prefs, pddb) {
 	logger("Schedule()");
 	this.prefs = prefs;
+	this.pddb = pddb;
 }
 Schedule.prototype = {};
 _extend(Schedule.prototype, {
@@ -343,10 +344,11 @@ _extend(Schedule.prototype, {
 
 /********** HTML INSERTION FUNCTIONS AND HELPERS ***************/
 
-function PageController(prefs) {
+function PageController(prefs, pddb) {
 	logger("PageController()");
 	this.prefs = prefs;
 	this.tipjoy = new TipJoy_API(this.prefs);
+	this.pddb = pddb;
 }
 PageController.prototype = {};
 _extend(PageController.prototype, {
@@ -547,11 +549,11 @@ _extend(PageController.prototype, {
 		var user_recipients = "";
 		var current_recipients = {};
 		var self = this;
-		RecipientPercent.select({}, function(row) {
+		this.pddb.RecipientPercent.select({}, function(row) {
 			logger("     >> recipient percent: "+row);
-			var recipient = Recipient.get_or_null({ id: row.recipient_id });
+			var recipient = self.pddb.Recipient.get_or_null({ id: row.recipient_id });
 			logger("     >> recipient: "+recipient);
-			if (recipient.twitter_name != "ProcrasDonate") {
+			if (recipient && recipient.twitter_name != "ProcrasDonate") {
 				current_recipients[recipient.id] = True;
 				var percent = row.percent;
 				
@@ -571,7 +573,7 @@ _extend(PageController.prototype, {
 		var spacer = "<div class='recipient_spacer_row'>&nbsp;</div>";
 		
 		var potential_recipients = "";
-		Recipient.select({ is_visible: True }, function(row) {
+		this.pddb.Recipient.select({ is_visible: True }, function(row) {
 			if (row.id in current_recipients) {
 				
 			} else {
