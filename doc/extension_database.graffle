@@ -64,7 +64,7 @@
 			<key>Tail</key>
 			<dict>
 				<key>ID</key>
-				<integer>441</integer>
+				<integer>478</integer>
 			</dict>
 		</dict>
 		<dict>
@@ -150,7 +150,7 @@
 			<key>Tail</key>
 			<dict>
 				<key>ID</key>
-				<integer>441</integer>
+				<integer>478</integer>
 			</dict>
 		</dict>
 		<dict>
@@ -181,7 +181,7 @@
 			<key>Tail</key>
 			<dict>
 				<key>ID</key>
-				<integer>441</integer>
+				<integer>478</integer>
 			</dict>
 		</dict>
 		<dict>
@@ -330,7 +330,7 @@ percent}</string>
 			<key>Tail</key>
 			<dict>
 				<key>ID</key>
-				<integer>441</integer>
+				<integer>478</integer>
 			</dict>
 		</dict>
 		<dict>
@@ -557,7 +557,7 @@ percent}</string>
 			<key>Tail</key>
 			<dict>
 				<key>ID</key>
-				<integer>440</integer>
+				<integer>477</integer>
 			</dict>
 		</dict>
 		<dict>
@@ -571,7 +571,7 @@ percent}</string>
 					<key>Class</key>
 					<string>ShapedGraphic</string>
 					<key>ID</key>
-					<integer>440</integer>
+					<integer>477</integer>
 					<key>Shape</key>
 					<string>Rectangle</string>
 					<key>Text</key>
@@ -595,7 +595,7 @@ percent}</string>
 					<key>Flow</key>
 					<string>Resize</string>
 					<key>ID</key>
-					<integer>441</integer>
+					<integer>478</integer>
 					<key>Shape</key>
 					<string>Rectangle</string>
 					<key>Text</key>
@@ -612,8 +612,8 @@ total_time\
 total_amount\
 time\
 timetype_id\
-pledge (bool, if D x R/S)\
-paid (bool, if D x R/S)\
+is_payable (bool, if D x R/S)\
+has_paid (bool, if D x R/S)\
 tipjoy_transaction_id (if paid and D x R/S)}</string>
 						<key>VerticalPad</key>
 						<integer>10</integer>
@@ -621,7 +621,7 @@ tipjoy_transaction_id (if paid and D x R/S)}</string>
 				</dict>
 			</array>
 			<key>ID</key>
-			<integer>439</integer>
+			<integer>476</integer>
 		</dict>
 		<dict>
 			<key>Class</key>
@@ -1056,7 +1056,7 @@ sitegroup_id}</string>
 		</dict>
 	</array>
 	<key>ModificationDate</key>
-	<string>2009-05-30 15:58:30 -0400</string>
+	<string>2009-05-30 16:59:05 -0400</string>
 	<key>Modifier</key>
 	<string>lucy</string>
 	<key>NotesVisible</key>

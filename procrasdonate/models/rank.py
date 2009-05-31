@@ -1,44 +1,83 @@
 from django.db import models
 from data import Site, Recipient
 
-__all__ = ['OverallSiteAmount', 'OverallRecipientAmount', 'OverallSiteTime', 'OverallRecipientTime']
+from data import *
 
-class OverallAmount(models.Model):
+__all__ = ['AggregateSiteGroup', 'AggregateRecipient', 'AggregateUser'] #, 'SiteGroupRank', 'RecipientRank', 'UserRank']
+
+class Aggregate(models.Model):
     """
     """
-    rank = models.IntegerField()
-    total_amount = models.FloatField()
+    # Valid Time Types                                                                                                                                                                
+    TIME_TYPES = {'DAILY':'D',
+                  'WEEKLY':'M',
+                  'FOREVER':'F'}
+    # for database (data, friendly_name)                                                                                                                                           
+    TIME_TYPE_CHOICES = ((TIME_TYPES['DAILY'], 'Daily',),
+                         (TIME_TYPES['WEEKLY'], 'Weekly',),
+                         (TIME_TYPES['FOREVER'], 'All Time',))
+
+    total_amount = models.FloatField(default=0.0)
+    total_time = models.FloatField(default=0.0)
+    time = models.DateField()
+    time_type = models.CharField(max_length=1, choices=TIME_TYPE_CHOICES, default=TIME_TYPES['DAILY'])
+    last_updated = models.DateTimeField()
     
     class Meta:
         abstract = True
 
-class OverallSiteAmount(OverallAmount):
+class AggregateSiteGroup(Aggregate):
     """
     """
-    site = models.ForeignKey(Site)
+    sitegroup = models.ForeignKey(SiteGroup)
 
-class OverallRecipientAmount(OverallAmount):
+class AggregateRecipient(Aggregate):
     """
     """
     recipient = models.ForeignKey(Recipient)
-    
-class OverallTime(models.Model):
+
+class AggregateUser(Aggregate):
     """
     """
+    user = models.ForeignKey(User)
+
+'''
+#well, shoot and dang. can't you just use order by? heck yeah.
+
+class Rank(models.Model):
+    """
+    """
+    # Valid Ranking Metrics                                                                                                                                                        
+    METRICS = {'TIME':'T',
+               'AMOUNT':'A',
+               'NEW':'N'}
+    # for database (data, friendly_name)                                                                                                                                           
+    METRIC_CHOICES = ((METRICS['TIME'], 'Total Time',),
+                      (METRICS['AMOUNT'], 'Total Amount',),
+                      (METRICS['NEW'], 'New',))
+
     rank = models.IntegerField()
-    total_time = models.FloatField()
+    metric = models.CharField(max_length=1,
+                              choices=METRIC_CHOICES,
+                              default=METRICS['TIME'])
     
     class Meta:
         abstract = True
 
-class OverallSiteTime(OverallTime):
+class SiteGroupRank(Rank):
     """
     """
-    site = models.ForeignKey(Site)
+    sitegroup = models.ForeignKey(SiteGroup)
 
-class OverallRecipientTime(OverallTime):
+class RecipientRank(Rank):
     """
     """
     recipient = models.ForeignKey(Recipient)
+
+class UserRank(Rank):
+    """
+    """
+    user = models.ForeignKey(User)
+'''
     
-ALL_MODELS = [OverallSiteAmount, OverallRecipientAmount, OverallSiteTime, OverallRecipientTime]
+ALL_MODELS = [AggregateSiteGroup, AggregateRecipient, AggregateUser] #, SiteGroupRank, RecipientRank, UserRank]
