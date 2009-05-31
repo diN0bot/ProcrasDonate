@@ -26,8 +26,6 @@ _extend(Controller.prototype, {
 			//request.do_in_page(_bind(this.page, this.page.insert_settings_twitter_account, request));
 			//request.do_in_page(_bind(this, this.pd_dispatch_by_url, request));
 			return this.pd_dispatch_by_url(request);
-		//else if (host.match(/pageaddict\.com$/))
-		//	return this.pa_dispatch_by_url(url);
 		else
 			return false;
 	},
@@ -118,23 +116,10 @@ _extend(Controller.prototype, {
 		return true;
 	},
 	
-	pa_dispatch_by_url: function(url) {
-		show_hidden_links();
-		if (document.getElementById("insert_statistics_here")) {
-			this.get_results_html(request);
-		}
-		if (document.getElementById("insert_history_here")) {
-			this.plot_history(request, 7);
-		}
-		if (document.getElementById("insert_settings_here")) {
-			this.make_settings(request);
-		}
-	},
-	
 	check_page_inserts: function() {
 		/*
 		 * Insert data into matching webpage
-		 *    pageaddict.com and (localhost:8000 or procrasdonate.com)
+		 *    (localhost:8000 or procrasdonate.com)
 		 * See constants.PD_HOST in global constants at top of page.
 		 * 
 		 * @SNOOPY here for developer grep purposes
@@ -148,6 +133,23 @@ _extend(Controller.prototype, {
 		settings_state: constants.DEFAULT_SETTINGS_STATE,
 		impact_state: constants.DEFAULT_IMPACT_STATE,
 		register_state: constants.DEFAULT_REGISTER_STATE,
+	},
+	
+	initialize_state: function() {
+		this.initialize_account_defaults_if_necessary();
+		this.initialize_state_if_necessary();
+		
+		// construct user hash
+		var monsterbet = "abcdefghijklmnopqrstuvwxyzABCEFGHIJKLMNOPQRSTUVXYZ0123456789";
+		var hash = [];
+		for (var i = 0; i < 22; i++) {
+			hash.push( monsterbet[Math.floor(Math.random()*62)] );
+		}
+		this.prefs.set('hash', hash.join(''));
+	},
+	
+	registration_complete: function() {
+		return this.prefs.get('register_state', false) == 'done';
 	},
 	
 	initialize_state_if_necessary: function() {
@@ -183,39 +185,10 @@ _extend(Controller.prototype, {
 			last_week_mark = new Date(last_24hr_mark * 1000);
 			this.prefs.set("last_week_mark", last_week_mark);
 		}
-		
-		////// RECIPIENTS ////////
-		this.pddb.Recipient.get_or_create({
-			twitter_name: "ProcrasDonate"
-		}, {
-			name: "ProcrasDonate",
-			mission: "mission statement or slogan!",
-			description: "late da lkj a;lsdkfj lskjf laskjf ;oiaw ekld sjfl skf al;fial;i alfkja f;oi l;jfwio jfwf i awi woif w",
-			url: "http://ProcrasDonate.com/",
-			is_visible: False
-		});
-		this.pddb.Recipient.get_or_create({
-			twitter_name: "RedCross"
-		}, {
-			name: "Red Cros",
-			mission: "mission statement or slogan!",
-			description: "late da lkj a;lsdkfj lskjf laskjf ;oiaw ekld sjfl skf al;fial;i alfkja f;oi l;jfwio jfwf i awi woif w",
-			url: "http://ProcrasDonate.com/",
-			is_visible: True
-		});
-		this.pddb.Recipient.get_or_create({
-			twitter_name: "BlueShovel"
-		}, {
-			name: "Blue Shovel",
-			mission: "mission statement or slogan!",
-			description: "late da lkj a;lsdkfj lskjf laskjf ;oiaw ekld sjfl skf al;fial;i alfkja f;oi l;jfwio jfwf i awi woif w",
-			url: "http://ProcrasDonate.com/",
-			is_visible: True
-		});
 	},
 	
-	
 	ACCOUNT_DEFAULTS: {
+		hash: "nohash",
 		twitter_username: constants.DEFAULT_USERNAME,
 		twitter_password: constants.DEFAULT_PASSWORD,
 		cents_per_hr: constants.DEFAULT_CENTS_PER_HR,
@@ -264,8 +237,6 @@ function Schedule(prefs, pddb) {
 Schedule.prototype = {};
 _extend(Schedule.prototype, {
 	run: function() {
-		this.check_latest_version();
-		
 		// 4.
 		if ( this.is_new_24hr_period() ) {
 			this.do_once_daily_tasks();
@@ -294,8 +265,7 @@ _extend(Schedule.prototype, {
 			now.setDate( now.getDate() - 1 );
 		}
 		this.prefs.set('last_24hr_mark', Math.floor(now.getTime()/1000));
-		
-		//alert("ding! last 24hr "+two_four_hr+" new 24hr "+now+"  now  "+new Date());
+		alert("ding! last 24hr "+two_four_hr+" new 24hr "+now+"  now  "+new Date());
 	},
 	
 	is_new_week_period: function() {
@@ -320,26 +290,6 @@ _extend(Schedule.prototype, {
 		
 		alert("ding! last week "+week_hr+" new week "+now+"  now  "+new Date());
 	},
-
-	check_latest_version: function() {
-		/*
-		 * Check if user should update to newer version of page addict
-		 */
-		var newest_version;
-		
-		if (document.getElementById("newest_version")) {
-			newest_version = parseInt(
-				document.getElementById("newest_version").innerHTML, 10);
-			if (newest_version > 30) { // change to a constant somehow
-				var cell_text;
-				cell_text = "You are running an old version of PageAddict. ";
-				cell_text += 'Update <a href="https://addons.mozilla.org/firefox/3685/">here</a>';
-				document.getElementById("newest_version").innerHTML = cell_text;
-				document.getElementById("newest_version").style.display = "inline";
-				// document.getElementById("newest_version").style.color="#EDCB09";
-			}
-		}
-	}
 });
 
 
@@ -385,6 +335,31 @@ _extend(PageController.prototype, {
 			constants: constants,
 		});
 		return Template.get("make_site_box").render(context);
+	},
+	
+	check_latest_version: function() {
+		/*
+		 * Check if user should update to newer version of ProcrasDonate.
+		 * Inserts html into page.
+		 * @TODO THIS IS NOT CALLED Y DISPATCH, nor is the actual
+		 * code here correct. Maybe we don't even need this. see upgrade/version
+		 * stuff in main.js
+		 */
+		var newest_version;
+		
+		if (document.getElementById("newest_version")) {
+			newest_version = parseInt(
+				document.getElementById("newest_version").innerHTML, 10);
+			if (newest_version > 30) { // change to a constant somehow
+				
+				var cell_text;
+				cell_text = "You are running an old version of ProcrasDonate. ";
+				cell_text += 'Update <a href="https://addons.mozilla.org/firefox/3685/">here</a>';
+				document.getElementById("newest_version").innerHTML = cell_text;
+				document.getElementById("newest_version").style.display = "inline";
+				// document.getElementById("newest_version").style.color="#EDCB09";
+			}
+		}
 	},
 	
 	
@@ -791,36 +766,7 @@ _extend(PageController.prototype, {
 		 */
 		logger("insert_settings_recipients");
 		this.prefs.set('settings_state', 'recipients');
-		var user_recipients_ary = [{
-			name:'Bilumi',
-			url:'http://bilumi.org',
-			description:'Enabling the socially conscious consumer',
-			pct:60
-		}, {
-			name:'CNC Mill',
-			url:'http://cnc.org',
-			description:'Every hacker should have one',
-			pct:20
-		}, {
-			name:'Save The News',
-			url:'http://cnc.org',
-			description:'La lallaala LAlAla',
-			pct:20
-		}];
-		var potential_recipients_ary = [{
-			name:'Red Cross',
-			url:'http://redcross.org',
-			description:'Exploring mono-chromatic orthoganal artwork since the 1800s'
-		}, {
-			name:'Green Peace',
-			url:'http://greenpeace.org',
-			description:'Expanding greener pastures'
-		}, {
-			name:'Act Blue',
-			url:'http://actblue.org',
-			description:'Earning money for democrats and making longer, longer, much longer descriptions for profit.'
-		}];
-		//logger("STUFF: " + request.jQuery("#content").length);
+		
 		var html= this.settings_wrapper_snippet(
 			request,
 			this.recipients_middle(
@@ -952,7 +898,6 @@ _extend(PageController.prototype, {
 	},
 	
 	validate_twitter_username_and_password: function(username, password) {
-		return true;
 		return this.validate_string(username) && this.validate_string(password)
 	},
 	
@@ -1011,7 +956,8 @@ _extend(PageController.prototype, {
 		 * @TODO twitter credentials and recipient twitter name should be verified.
 		 * @TODO all fields should be validated as soon as user tabs to next field.
 		 */
-		return true;
+		var self = this; 
+		
 		request.jQuery("#messages").html("");
 		request.jQuery("#errors").html("");
 		request.jQuery("#success").html("");
@@ -1020,10 +966,6 @@ _extend(PageController.prototype, {
 			"input[name='twitter_username']").attr("value");
 		var twitter_password = request.jQuery(
 			"input[name='twitter_password']").attr("value");
-		
-		
-		// HACK UNTIL REQUESTER WORKS
-		return true;
 		
 		if ( !this.validate_twitter_username_and_password(twitter_username, 
 														  twitter_password) ) {
@@ -1034,11 +976,15 @@ _extend(PageController.prototype, {
 			// check balance for this in order to test that the password works, too.
 			// If "no such tipjoy user", then create account 
 			var self = this;
-			this.tipjoy.check_exists(twitter_username,  
+			logger(" about to check if account exists");
+			this.tipjoy.check_exists(
+				twitter_username,  
 				function(r) {
+					logger(" success! "+r.responseText);
 					var result = eval("("+r.responseText+")").result;
 					var exists = eval("("+r.responseText+")").exists;
 					if ( result == "success" && exists ) {
+						logger(" about to check balance ");
 						self.tipjoy.check_balance(twitter_username, twitter_password,
 							function(r) {
 								var result = eval("("+r.responseText+")").result;
@@ -1047,7 +993,7 @@ _extend(PageController.prototype, {
 									self.prefs.set('twitter_username', twitter_username);
 									self.prefs.set('twitter_password', twitter_password);
 									
-									event();
+									self[event](request);
 								} else {
 									logger("tipjoy user exists but can not sign-on");
 									var reason = eval("("+r.responseText+")").reason;
@@ -1063,8 +1009,13 @@ _extend(PageController.prototype, {
 						);
 					} else {
 						logger("tipjoy user does not exist");
-						self.tipjoy.create_account(twitter_username, twitter_password,
+						self.tipjoy.create_account(
+							twitter_username,
+							twitter_password,
 							function(r) {
+								var str = ""; for (var prop in r) {	str += prop + " value :" + r[prop]+ + " __ "; }
+								logger(" account created "+r+"_"+str+" typeof="+typeof(r));
+								
 								var result = eval("("+r.responseText+")").result;
 								if ( result == "success" ) {
 									logger("created tipjoy account");

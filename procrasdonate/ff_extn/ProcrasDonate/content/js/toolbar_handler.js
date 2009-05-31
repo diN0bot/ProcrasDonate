@@ -9,36 +9,24 @@ _extend(PD_ToolbarManager.prototype, {
 		
 	classify_button : null,
 	progress_button: null,
-	// tag name, image pairs
+	// tag id, image pairs
 	images : {},
-	default_tag : null,
 
 	/*
 	* do stuff when new browser window opens 
 	* use a settimeout to allow window to open if masterpassword is set
 	*/
 	initialize : function() {
+		var self = this;
+		
 		//this.removeEventListener('load', this.initialize, false);
 
 		this.classify_button = document.getElementById("PD-classify-toolbar-button");
 		this.progress_button = document.getElementById("PD-progress-toolbar-button");
 		
-		//PD_ToolbarManager.classify_button.setAttribute("oncommand", "PD_ToolbarManager.onClassifyButtonCommand()");
-		//PD_ToolbarManager.progress_button.setAttribute("oncommand", "PD_ToolbarManager.onProgressButtonCommand()");
-		
-		var tag_names = ['Unsorted', 'ProcrasDonate', 'TimeWellSpent'];
-		if (this.pddb.Tag.count() == 0) {
-			for (var i=0; i < tag_names.length; i++) {
-				this.pddb.Tag.create({ tag: tag_names[i] });
-			}
-		}
-		
-		for (var i=0; i < tag_names.length; i++) {
-			this.images[tag_names[i]] = "chrome://ProcrasDonate/skin/"+tag_names[i]+"Icon.png";	
-		}
-		//logger("TAG: "+Tag.get_or_null({ tag: tag_names[0] }));
-		//Tag.select({}, function(row) { logger("    > "+row); });
-		this.default_tag = this.pddb.Tag.get_or_null({ tag: tag_names[0] });
+		this.pddb.Tag.select({}, function(row) {
+			self.images[row.id] = "chrome://ProcrasDonate/skin/"+row.tag+"Icon.png";	
+		});
 		
 		// Update button images and text
 		this.updateButtons({ url: _href() });
@@ -49,6 +37,7 @@ _extend(PD_ToolbarManager.prototype, {
 	 * @param options: contains either {sitegroup, tag} or {url}
 	 */
 	updateButtons : function(options) {
+
 		if (this.classify_button) {
 			var sitegroup = null;
 			var tag = null;
@@ -69,7 +58,7 @@ _extend(PD_ToolbarManager.prototype, {
 			}
 			
 			// alter classify button
-			this.classify_button.setAttribute("image", this.images[tag.tag]);
+			this.classify_button.setAttribute("image", this.images[tag.id]);
 			this.classify_button.setAttribute("label", tag.tag);
 			
 			var tooltip_text = this.classify_button.getAttribute("tooltiptext");
@@ -77,6 +66,28 @@ _extend(PD_ToolbarManager.prototype, {
 			this.classify_button.setAttribute("tooltiptext", new_tooltip_text);
 			
 			// alter progress bar
+			var tag_content_type = this.pddb.ContentType.get_or_null({ modelname: "Tag" });
+			
+			var pd_total = this.pddb.Total.get_or_null({
+				contenttype_id: tag_content_type.id,
+				content_id: this.pddb.ProcrasDonate.id,
+				time: _dbify_date(_end_of_week()),
+				timetype_id: this.pddb.Weekly
+			})
+			var tws_total = this.pddb.Total.get_or_null({
+				contenttype_id: tag_content_type.id,
+				content_id: this.pddb.TimeWellSpent.id,
+				time: _dbify_date(_end_of_week()),
+				timetype_id: this.pddb.Weekly
+			})
+			
+			var total = 0;
+			if (pd_total) { total += parseInt(pd_total.total_time); }
+			if (tws_total) { total += parseInt(tws_total.total_time); }
+			
+			logger("total for the week is: " + total +" pd_total="+pd_total + " tws_total="+tws_total);
+			
+			this.pddb.prefs.get('hours_per_week_goal', false);
 		}
     },
     
@@ -89,11 +100,12 @@ _extend(PD_ToolbarManager.prototype, {
 		var sitegroup = null;
 		var tag = null;
 
+		var self = this;
 		sitegroup = this.pddb.SiteGroup.get_or_create(
 			{ host: host },
 			{ name: host,
 			  host: host,
-			  tag_id: this.default_tag.id
+			  tag_id: 1
 			}
 		);
 		tag = this.pddb.Tag.get_or_null({ id: sitegroup.tag_id })

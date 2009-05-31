@@ -41,6 +41,12 @@ function _bind(o, m) {
 var False = 0;
 var True = 1;
 
+/*
+ * NOT LONGER IN USE. logger is redefined in main.js
+ * To use, run Firefox from command line. "dump()" will
+ * show output there.
+ *     eg, $ /Applications/Firefox.app/Contents/MacOS/firefox > o.out
+ */
 var logger = function(msg) {
 	try {
 		var consoleService = Components.

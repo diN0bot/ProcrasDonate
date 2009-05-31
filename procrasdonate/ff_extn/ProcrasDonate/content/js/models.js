@@ -70,6 +70,17 @@ function load_models(db) {
 		indexes: []
 	});
 	
+	var RecipientPercent = new Model(db, "RecipientPercent", {
+		table_name: "recipientpercents",
+		columns: {
+			_order: ["id", "recipient_id", "percent"],
+			id: "INTEGER PRIMARY KEY",
+			recipient_id: "INTEGER",
+			percent: "REAL"
+		},
+		indexes: []
+	});
+	
 	// sitegroup has 1 tag
 	var Tag = new Model(db, "Tag", {
 		table_name: "tags",
@@ -106,83 +117,76 @@ function load_models(db) {
 		indexes: []
 	});
 	
-	// Tracks how much a site(url) or recipient should be paid each day.
-	// Payment is tracked in DailyTotal
-	// if site_id is null, there should be a taggingdailyvisiting
-	var DailyVisit = new Model(db, "DailyVisit", {
-		table_name: "dailyvisits",
-		columns: {
-			_order: ["id", "site_id", "recipient_id", "total_time", "total_amount", "time", "dailytotal_id", "weeklytotal_id", "forevertotal_id"],
-			id: "INTEGER PRIMARY KEY",
-			site_id: "INTEGER", // one or the other (or both, if tag for site changes during day  ?)
-			recipient_id: "INTEGER", // one or the other
-			total_time: "INTEGER", //seconds
-			total_amount: "REAL", //cents
-			time: "INTEGER", //"DATETIME"
-			dailytotal_id: "INTEGER", // Total id
-			weeklytotal_id: "INTEGER", // Total id
-			forevertotal_id: "INTEGER", // Total id
-		}
-	});
-	
 	// Overall ProcrasDonate or TimeWellSpent
 	// Daily, weekly and forever total
 	var Total = new Model(db, "Total", {
 		table_name: "totals",
 		columns: {
-			_order: ["id", "total_time", "total_amount", "time", "paid", "tag_id", "type_id"],
+			_order: ["id","contenttype_id", "content_id", "total_time", 
+			         "total_amount", "time", "timetype_id", "is_payable", 
+			         "has_paid", "tipjoy_transaction_id"],
+			         
 			id: "INTEGER PRIMARY KEY",
+
+			// generic table
+			contenttype_id: "INTEGER",
+			// id of row in generic table
+			content_id: "INTEGER",
+			
 			total_time: "INTEGER", //seconds
 			total_amount: "REAL", //cents
 			time: "INTEGER", //"DATETIME"
-			paid: "INTEGER", // use True or False definitions in utils
-			tag_id: "INTEGER",
-			type_id: "INTEGER",
+			timetype_id: "INTEGER",
+			// only daily site and recipient totals are payable
+			is_payable: "INTEGER", // use True or False definitions in utils
+			has_paid: "INTEGER", // use True or False definitions in utils
+			tipjoy_transaction_id: "INTEGER", // null if no payable
 		}
 	});
 	
-	// Totals have 1 type: daily, weekly or forever
-	var Type = new Model(db, "Type", {
-		table_name: "types",
+	// eg: daily, weekly or forever
+	var TimeType = new Model(db, "TimeType", {
+		table_name: "timetypes",
 		columns: {
-			_order: ["id", "type"],
+			_order: ["id", "timetype"],
 			id: "INTEGER PRIMARY KEY",
-			type: "VARCHAR"
+			timetype: "VARCHAR"
 		},
 		indexes: []
 	});
 	
-	var RecipientPercent = new Model(db, "RecipientPercent", {
-		table_name: "recipientpercent",
+	var ContentType = new Model(db, "ContentType", {
+		table_name: "contenttypes",
 		columns: {
-			_order: ["id", "recipient_id", "percent"],
+			_order: ["id", "modelname"],
 			id: "INTEGER PRIMARY KEY",
-			recipient_id: "INTEGER",
-			percent: "REAL"
-		},
-		indexes: []
+			modelname: "VARCHAR"
+		}
 	});
 	
 	return {
-        _order: ["Site", "SiteGroup", "Recipient", 
-				 "Category", "Tag", //"SiteGroupTagging",
-				 "Visit", "DailyVisit", "Total", "Type", "RecipientPercent"],
+        _order: ["Site", "SiteGroup",
+                 "Recipient", "Category", "RecipientPercent",
+                 "Tag", //"SiteGroupTagging",
+				 "Visit",
+				 "Total", "TimeType", "ContentType"],
         
         Site: Site,
 		SiteGroup: SiteGroup,
 		
 		Recipient: Recipient,
 		Category: Category,
+		RecipientPercent: RecipientPercent,
 		
         Tag: Tag,
         //SiteGroupTagging: SiteGroupTagging,
 		
         Visit: Visit,
-		DailyVisit: DailyVisit,
+        
 		Total: Total,
+		TimeType: TimeType,
+		ContentType: ContentType
 		
-		Type: Type,
-		RecipientPercent: RecipientPercent,
 	};
 }
 

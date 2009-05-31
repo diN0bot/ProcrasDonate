@@ -10,7 +10,7 @@ _extend(HttpRequest.prototype, {
 	// this function gets called by user scripts in content security scope to
 	// start a cross-domain xmlhttp request.
 	//
-	// details should look like:
+	// options/details should look like:
 	// {method,url,onload,onerror,onreadystatechange,headers,data}
 	// headers should be in the form {name:value,name:value,etc}
 	// can't support mimetype because i think it's only used for forcing
@@ -69,7 +69,9 @@ _extend(HttpRequest.prototype, {
 	// method by the same name which is a property of 'details' in the content
 	// window's security context.
 	setupRequestEvent: function(unsafeContentWin, req, event, details) {
+		//logger(" inside setupRequestEvent. event="+event+" details="+details);
 		if (details[event]) {
+			//logger(" details[event] is true. details[event]="+details[event]+" "+typeof(details[event]));
 			req[event] = function() {
 				var responseState = {
 					// can't support responseXML because security won't

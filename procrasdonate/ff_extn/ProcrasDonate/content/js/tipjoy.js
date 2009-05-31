@@ -26,8 +26,8 @@ _extend(TipJoy_API.prototype, {
 	 * Checks whether user's twitter credentials match a user account on TipJoy.
 	 * If so, returns TipJoy user information.
 	 */
-	check_exists: function(onload, onerror) {
-		var username = this.prefs.get('twitter_username', '')
+	check_exists: function(username, onload, onerror) {
+		logger(" about to check_exists from tipjoy api. username="+username);
 		this.make_request(
 			"http://tipjoy.com/api/user/exists/",
 			{ twitter_username: username },
@@ -40,9 +40,7 @@ _extend(TipJoy_API.prototype, {
 	/* 
 	 * Determines user's current TipJoy balance
 	 */
-	check_balance: function(onload, onerror) {
-		var username = this.prefs.get('twitter_username', '')
-		var password = this.prefs.get('twitter_password', '')
+	check_balance: function(username, password, onload, onerror) {
 		this.make_request(
 			"http://tipjoy.com/api/user/balance/",
 			{ twitter_username: username, twitter_password: password },

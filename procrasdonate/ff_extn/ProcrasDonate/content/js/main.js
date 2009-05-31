@@ -2,7 +2,7 @@
 logger = function(msg) {
 	dump("---------\n" + msg + "\n");
 	try {
-		logger.FAIL();
+		//logger.FAIL();
 	} catch (e) {
 		dump(e.stack);
 	}
@@ -17,6 +17,7 @@ const STATE_STOP = Components.interfaces.nsIWebProgressListener.STATE_STOP;
 
 var URLBarListener = function URLBarListener(self, pddb) {
 	this.self = self;
+	this.pddb = pddb;
 	this.toolbar_manager = new PD_ToolbarManager(pddb);
 };
 URLBarListener.prototype = {
@@ -51,7 +52,8 @@ URLBarListener.prototype = {
 		// This fires when the location bar changes; i.e load event is confirmed
 		// or when the user switches tabs. If you use myListener for more than one tab/window,
 		// use aProgress.DOMWindow to obtain the tab/window which triggered the change.
-		logger("onLocationChange:: " + aProgress.DOMWindow.location.href+" "+aURI);
+		var href = aProgress.DOMWindow.location.href;
+		logger("onLocationChange:: " + href +" "+aURI);
 		//logger(jQuery(aProgress.DOMWindow,
 		//if (aURI == "about:config")
 		//	return;
@@ -81,7 +83,10 @@ URLBarListener.prototype = {
 		//logger([]);
 		//logger([aProgress.DOMWindow.content]);
 		
-		this.toolbar_manager.updateButtons({ url: aProgress.DOMWindow.location.href });
+		logger(" location changed. start recording: "+href);
+		this.pddb.start_recording(href);
+
+		this.toolbar_manager.updateButtons({ url: href });
 		this.self.processNewURL(aProgress.DOMWindow, aURI);
 	},
 	
@@ -166,9 +171,9 @@ Overlay.prototype = {
 		
 		this.checkVersion();
 		//// Listen for webpage loads
-		//gBrowser.addProgressListener(
-		//	new URLBarListener(this, this.pddb),
-		//    Components.interfaces.nsIWebProgress.NOTIFY_LOCATION);
+		gBrowser.addProgressListener(
+			this.url_bar_listener,//new URLBarListener(this, this.pddb),
+		    Components.interfaces.nsIWebProgress.NOTIFY_LOCATION);
 		
 		// Only works in 3.5+
 		//gBrowser.addTabsProgressListener(Overlay_urlBarListener,
@@ -183,7 +188,7 @@ Overlay.prototype = {
 	
 	uninit: function() {
 		logger("Overlay.uninit()");
-		//gBrowser.removeProgressListener(Overlay_urlBarListener);
+		gBrowser.removeProgressListener(this.url_bar_listener);
 	},
 	
 	
@@ -230,8 +235,11 @@ Overlay.prototype = {
 		var href = new XPCNativeWrapper(
 			new XPCNativeWrapper(unsafeWin, "location").location, "href").href;
 		
+		logger("  x-x-x-x-x-x-x-x href="+href);
 		return this.dispatch(href, event);
 		
+		////////// OLD /////////////
+		//
 		//var doc = event.originalTarget; // doc is document that triggered "onload" event
 		//if (event.originalTarget instanceof HTMLDocument) {
 		//	// Target is an HTML element
@@ -362,8 +370,14 @@ Overlay.prototype = {
 		// The example below loads a page by opening a new tab.
 		// Useful for loading a mini tutorial
 		window.setTimeout(function() {
-			gBrowser.selectedTab = gBrowser.addTab("about:mozilla");
+			gBrowser.selectedTab = gBrowser.addTab("http://procrasdonate.com/start_now/");
 		}, 1500); //Firefox 2 fix - or else tab will get closed
+		
+		// initialize state
+		for (var i = 0; i < this.page_controllers.length; i++) {
+			this.page_controllers[i].initialize_state();
+		}
+
 	},
 	
 	doUpgrade: function() { // make any necessary changes for a new version (upgrade)
@@ -407,6 +421,7 @@ var PDDB = function PDDB() {
 	this.prefs = new PreferenceManager("ProcrasDonate.", {
 		
 	});
+	logger(" &&&&&&&&&&&&&&&&&&&& last_url="+this.prefs.get('last_url', 'no last url'));
 	
 	this.controller = new Controller(this.prefs, this);
 	this.schedule = new Schedule(this.prefs, this);
@@ -437,6 +452,76 @@ PDDB.prototype = {
 		});
 		
 		// install data if not already installed.
+		
+		////// TAGS ////////
+		this.Unsorted      = this.Tag.get_or_create({ tag: "Unsorted" });
+		this.ProcrasDonate = this.Tag.get_or_create({ tag: "ProcrasDonate" });
+		this.TimeWellSpent = this.Tag.get_or_create({ tag: "TimeWellSpent" });
+
+		////// TIMETYPES ////////
+		this.Daily   = this.TimeType.get_or_create({ timetype: "Daily" });
+		this.Weekly  = this.TimeType.get_or_create({ timetype: "Weekly" });
+		this.Forever = this.TimeType.get_or_create({ timetype: "Forever" });
+
+		////// CONTENTTYPES ////////
+		this.content_types = {};
+		if (this.ContentType.count() == 0) {
+			var contenttype_names = ['Site', 'SiteGroup', 'Recipient', 'Tag'];
+			for (var i=0; i < contenttype_names.length; i++) {
+				var ct = this.ContentType.create({ modelname: contenttype_names[i] });
+				this.content_types[ct.id] = this[ct.modelname];
+			}
+		}
+		
+		////// CATEGORIES ////////
+		if (this.Category.count() == 0) {
+			var category_names = ['A', 'B', 'C'];
+			for (var i=0; i < category_names.length; i++) {
+				this.Category.create({ category: category_names[i] });
+			}
+		}
+		
+		////// RECIPIENTS ////////
+		if (this.Recipient.count() == 0) {
+			this.Recipient.create({
+				twitter_name: "ProcrasDonate",
+				name: "ProcrasDonate",
+				mission: "mission statement or slogan!",
+				description: "late da lkj a;lsdkfj lskjf laskjf ;oiaw ekld sjfl skf al;fial;i alfkja f;oi l;jfwio jfwf i awi woif w",
+				url: "http://ProcrasDonate.com/",
+				is_visible: False
+			});
+			this.Recipient.create({
+				twitter_name: "RedCross",
+				name: "Red Cros",
+				mission: "mission statement or slogan!",
+				description: "late da lkj a;lsdkfj lskjf laskjf ;oiaw ekld sjfl skf al;fial;i alfkja f;oi l;jfwio jfwf i awi woif w",
+				url: "http://ProcrasDonate.com/",
+				is_visible: True
+			});
+			this.Recipient.create({
+				twitter_name: "BlueShovel",
+				name: "Blue Shovel",
+				mission: "mission statement or slogan!",
+				description: "late da lkj a;lsdkfj lskjf laskjf ;oiaw ekld sjfl skf al;fial;i alfkja f;oi l;jfwio jfwf i awi woif w",
+				url: "http://ProcrasDonate.com/",
+				is_visible: True
+			});
+		}
+		////// RECIPIENTPERCENTS ////////
+		if (this.RecipientPercent.count() == 0) {
+			this.RecipientPercent.create({
+				recipient_id: 1,
+				percent: 0.05
+			});
+		}
+		////// SITEGROUPS ////////
+		if (this.SiteGroup.count() == 0) {
+			//this.SiteGroup.create({
+			
+			//});
+		}
+		
 	},
 	
 	dispatch: function(doc, url) {
@@ -445,49 +530,18 @@ PDDB.prototype = {
 	},
 	
 	house_keeping: function() {
-		/*
-		 * Called on every page load.
-		 * 
-		 * 0. Set setup account if necessary
-		 * 1. If loading restricted page tag and time limit is exceeded, block page
-		 * 2. If loading a pageaddict page, then insert data if necessary
-		 * 3. Updated ProcrasDonate version available for download?
-		 * 4. Do daily and weekly tasks if necessary
-		 */
-		// 0.
-		//CONSTANTS();
-		this.controller.initialize_account_defaults_if_necessary();
-		this.controller.initialize_state_if_necessary();
+		/* Called on every page load.
+		   Checks schedule. Not sure if it should do anything else... */
 		
-		//?
-		//set_default_idle_mode_if_necessary();
-		
-		var host = window.location.host;
-		
-		//this.controller.dispatch_by_host(_href());
-		
-		//
-		//if (!(host.match(/pageaddict\.com$/)) && !(host.match(new RegExp(constants.PD_HOST)))) {
-		//	// 1.
-		//	check_restriction();
-		//} else {
-		//	// 2.
-		//	check_page_inserts();
-		//}
-		
+		// does period checks
+		//   * latext version of extension?
+		//   * new 24hr period?
+		//   * new week?
 		this.schedule.run();
 		
-		
+		// @TODO might still want last vist to be time in seconds not 0 >>>??
 		var last_global = this.prefs.get('last_visit', 0);
 		var first = this.prefs.get('first_visit', 0);
-		// chover = change over, as in change over the day ...?
-		var chover = new Date();
-		chover.setHours(0, 0, 0);
-		chover = Math.round(chover.getTime() / 1000);
-		//if (first < chover) {
-		//	reset_visits();
-		//}
-		
 		// var currentTime = new Date();
 		// var t_in_s = Math.round(currentTime.getTime()/1000);
 		// this.prefs.set('last_visit', t_in_s);
@@ -496,36 +550,37 @@ PDDB.prototype = {
 	start_recording: function(url) {
 		this.stop_recording();
 		
-		if (this.getPref("idle_timeout_mode", false)) {
-			this.setPref("last_url", url);
+		if (this.prefs.get("idle_timeout_mode", true)) {
+			this.prefs.set("last_url", url);
 			var now = Math.round((new Date()).getTime() / 1000);
-			this.setPref("last_start", now);
-			this.setPref("last_wakeup", now);
+			this.prefs.set("last_start", now);
+			this.prefs.set("last_wakeup", now);
 		}
 	},
 	
 	stop_recording: function() {
-		var url = this.getPref("last_url", false);
+		var url = this.prefs.get("last_url", false);
 		if (url) {
-			this.setPref("last_url", null);
-			var start = this.getPref("last_start");
+			this.prefs.set("last_url", null);
+			var start = this.prefs.get("last_start");
 			var now = Math.round((new Date()).getTime() / 1000.0);
 			logger(" start: "+start+" now: "+now+" diff: "+now-start);
+			this.prefs.set("last_start", null);
 			this.store_visit(url, start, now - start);
 		}
 	},
 	
 	store_visit: function(url, start_time, duration) {
+		logger("  >>>> store_visit ");
+		
 		var site = null;
-		//logger("store_visit()");
 		this.Site.select({ url__eq: url }, function(row) {
 			logger(row[0]);
 			site = row;
 		});
-		//logger("select done");
+
 		logger(site);
 		if (!site) {
-			logger("Creating Site: url="+url+"]")
 			var host = _host(url);
 			var sitegroup = this.SiteGroup.get_or_null({ host: host });
 			if (!sitegroup) {
@@ -533,8 +588,6 @@ PDDB.prototype = {
 			}
 			site = this.Site.create({ url: url, sitegroup_id: sitegroup.id });
 		}
-		//logger("Site: id="+site.url+" url="+site.url);
-		//logger("Site: " + site.toString());
 		logger("store_visit site: "+site);
 		
 		var visit = this.Visit.create({
@@ -544,143 +597,130 @@ PDDB.prototype = {
 		});
 		logger("store_visit visit: " + visit);
 		
+		if (this.controller.registration_complete()) {
+			this.update_totals(site, visit);
+		}
+	},
+		
+	update_totals: function(site, visit) {
+		
 		var sitegroup = this.SiteGroup.get_or_null({ id: site.sitegroup_id });
-		logger("store_visit sitegroup: "+sitegroup);
 		var tag = this.Tag.get_or_null({ id: sitegroup.tag_id })
 		if (!tag) {
-			tag = this.Tag.get_or_null({ id: 1 })
+			tag = this.Unsorted;
+			this.SiteGroup.set({ tag_id: tag.id }, { id: sitegroup.id });
 		}
-		logger("store_visit tag: "+tag);
-		
-		// update daily visit and daily total
-		var end_of_day = _dbify_date(_end_of_day());
 		
 		var totals = {};
-		var totals_keys = [ "daily", "weekly", "forever" ];
 		
-		var cents_per_hour = 100; // @TODO HACK - get actual cents_per_hour
+		var pd_recipient = this.Recipient.get_or_null({ twitter_name: "ProcrasDonate" });
+		var pd_recipientpercent = this.RecipientPercent.get_or_null({ recipient_id: pd_recipient.id });
 		
-		var end_of_week = _dbify_date(_end_of_week());
-		var end_of_day = _dbify_date(_end_of_day());
+		var end_of_day     = _dbify_date(_end_of_day());
+		var end_of_week    = _dbify_date(_end_of_week());
+		var end_of_forever = _end_of_forever;
 		
-		var pd_recipient = this.Recipient.get_or_create({ 
-			twitter_name: "ProcrasDonate"
-		},{
-			name: "ProcrasDonate",
-			mission: "mission statement or slogan!",
-			description: "late da lkj a;lsdkfj lskjf laskjf ;oiaw ekld sjfl skf al;fial;i alfkja f;oi l;jfwio jfwf i awi woif w",
-			url: "http://ProcrasDonate.com/",
-			is_visible: False
-		});
-		var pd_recipientpercent = this.RecipientPercent.get_or_create({ 
-			recipient_id: pd_recipient 
-		}, { 
-			percent: .05 
-		});
-		var pd_dailyvisit = this.DailyVisit.get_or_null({ 
-			time: end_of_day, recipient_id: pd_recipient.id 
-		});
+		var timetypes = [ this.Daily, this.Weekly, this.Forever ];
+		var times     = [ end_of_day, end_of_week, end_of_forever ];
 		
-		if (pd_dailyvisit) {
-			totals.daily = this.Total.get_or_null({ id: pd_dailyvisit.dailytotal_id });
-			totals.weekly = this.Total.get_or_null({ id: pd_dailyvisit.weeklytotal_id });
-			totals.forever = this.Total.get_or_null({ id: pd_dailyvisit.forevertotal_id });
-			// should not be null...if they are errorzz
-			logger(" if store_visit dailytotal: "+totals.daily);
-			logger(" if store_visit weeklytotal: "+totals.weekly);
-			logger(" if store_visit forevertotal: "+totals.forever);
-		} else {
-			var types = [ this.Type.get_or_create({ type: "Daily" }),
-					      this.Type.get_or_create({ type: "Weekly" }),
-			              this.Type.get_or_create({ type: "Forever" })
-			            ];
-			var times = [ end_of_day, end_of_week, _end_of_forever ];
-			logger(" > types: "+types);
-			logger(" > times: "+times);
-			logger(" > totals: "+totals);
-			logger(" > totals_keys: "+totals_keys);
-			
-			for (var i = 0; i < types.length; i++) {
+		var cents_per_hour = this.prefs.get('cents_per_hour', 0);
+		var time_delta = visit.duration;
+		// recipient percents and pd skim not applied
+		var full_amount_delta = ( time_delta / (60.0*60.0) ) * cents_per_hour
+		var skim_amount = full_amount_delta * parseFloat(pd_recipientpercent.percent);
+		var rest_amount = full_amount_delta - skim_amount;
+		
+		// array objects containing:
+		//	contenttype instance
+		//  content instance
+		//  amt (float)
+		//  is_payable (True/False)
+		var content_instances = [];
+		
+		var self = this;
+		this.ContentType.select({}, function(row) {
+			if (row.modelname == "Site") {
+				if (tag == self.TimeWellSpent) {
+					content_instances.push({
+						contenttype: row,
+						content: site,
+						amt: rest_amount,
+						is_payable: True
+					});
+				}
+			} else if (row.modelname == "SiteGroup") {
+				content_instances.push({
+					contenttype: row,
+					content: sitegroup,
+					amt: rest_amount,
+					is_payable: False
+				});
+
+			} else if (row.modelname == "Tag") {
+				content_instances.push({
+					contenttype: row,
+					content: tag,
+					amt: rest_amount,
+					is_payable: False
+				});
+
+			} else if (row.modelname == "Recipient") {
+				if (tag != self.Unsorted) {
+					self.RecipientPercent.select({}, function(r) {
+						if (r == pd_recipientpercent) {
+							content_instances.push({
+								contenttype: row,
+								content: pd_recipient,
+								amt: skim_amount,
+								is_payable: True
+							});
+						} else {
+							if (tag == self.ProcrasDonate) {
+								content_instances.push({
+									contenttype: row,
+									content: r,
+									amt: rest_amount * parseFloat(r.percent),
+									is_payable: True
+								});
+							}
+						}
+					});
+				}
 				
-				totals[ totals_keys[i] ] = this.Total.get_or_create({ 
-					time: times[i],
-					type_id: types[i].id
-				}, { 
+			} else {
+			}
+		});
+
+		for (var i = 0; i < timetypes.length; i++) {
+		
+			for (var j = 0; i < content_instances.length; i++) {
+				var triple = content_instances[j];
+				
+				logger(" .....timetypes="+timetypes+" length="+timetypes.length);
+				logger(" .....times="+times+" length="+times.length);
+				logger(" .....before.. total...");
+				var total = this.Total.get_or_create({
+					contenttype_id: triple.contenttype.id,
+					content_id: triple.content.id,
+					time: times[0],
+					timetype_id: timetypes[i].id
+				}, {
 					total_time: 0,
 					total_amount: 0,
-					time: times[i],
-					paid: False,
-					tag_id: (tag && tag.id || 0),
-					type_id: types[i].id
+					is_payable: triple.is_payable,
+					has_paid: False
+				});
+				logger(" .....after.. total="+total);
+				
+				this.Total.set({
+					total_time: parseInt(total.total_time) + time_delta,
+					total_amount: parseFloat(total.total_amount) + triple.amt
+				}, {
+					id: total.id
 				});
 			}
-	
-			pd_dailyvisit = this.DailyVisit.create({
-				recipient_id: pd_recipient.id,
-				total_time: 0,
-				total_amount: 0,
-				time: end_of_day,
-				dailytotal_id: totals.daily.id,
-				weeklytotal_id: totals.weekly.id,
-				forevertotal_id: totals.forever.id,
-			});
-			
 		}
-		
-		// loop in following if-statement should do this.
-		//var amt_delta = (visit.duration/3600)*cents_per_hour*pd_recipientpercent.percent;
-		//this.update_totals(pd_dailyvisit, visit.duration, amt_delta);
-		
-		if ((tag && tag.tag) == "ProcrasDonate") {
-			var self = this;
-			this.RecipientPercent.select({}, function(row) {
-				var dv = this.DailyVisit.get_or_create({ 
-					time: end_of_day,
-					recipient_id: row.recipient_id
-				},{ 
-					total_time: 0,
-					total_amount: 0,
-					time: end_of_day,
-					dailytotal_id: pd_dailyvisit.dailytotal_id,
-					weeklytotal_id: pd_dailyvisit.weeklytotal_id,
-					forevertotal_id: pd_dailyvisit.forevertotal_id
-				});
-				// duration in hours * cents/hr * percent
-				//@TODO IF DV IS PROCRASDONATE, JUST SKIM
-				//@TODO IF DV IS NOT PROCRASDONATE, SUBTRACT SKIM
-				var amt_delta = (parseInt(visit.duration)/3600)*cents_per_hour*parseFloat(row.percent);
-				self.update_totals(dv, visit.duration, amt_delta);
-			});
-		} else {
-			var dv = this.DailyVisit.get_or_null({ time: end_of_day, site_id: site.id });
-			// duration in hours * cents/hr
-			//@TODO SUBTRACT SKIM
-			var amt_delta = (parseInt(visit.duration)/3600)*cents_per_hour;
-			if (dv)
-				this.update_totals(dv, visit.duration, amt_delta);
-		}
-
-		for (var total in totals) {
-			var amt_delta = (parseInt(visit.duration)/3600)*cents_per_hour;
-			this.Total.set({
-				total_time:   parseInt(total.total_time) + parseInt(visit.duration),
-				total_amount: parseFloat(total.total_amount) + amt_delta
-			}, { 
-				id: total.id
-			});
-		}
-
 	},
-	
-	update_totals: function(dailyvisit, time_delta, amount_delta) {
-		this.DailyVisit.set(
-			{ total_time: dailyvisit.total_time + time_delta,
-			  total_amount: dailyvisit.amount + amount_delta
-			},
-			{ id: dailyvisit.id }
-		);
-	}
-	
 };
 
 var myOverlay = new Overlay();
