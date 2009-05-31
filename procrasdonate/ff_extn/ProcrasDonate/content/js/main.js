@@ -81,7 +81,6 @@ URLBarListener.prototype = {
 		//logger([]);
 		//logger([aProgress.DOMWindow.content]);
 		
-		//PD_ToolbarManager.updateButtons({ url: aProgress.DOMWindow.location.href });
 		this.toolbar_manager.updateButtons({ url: aProgress.DOMWindow.location.href });
 		this.self.processNewURL(aProgress.DOMWindow, aURI);
 	},
@@ -138,6 +137,8 @@ Overlay.prototype = {
 		
 		this.pddb = new PDDB();
 		this.pddb.init_db();
+		
+		this.url_bar_listener = new URLBarListener(this, this.pddb);
 		
 		this.page_controllers = [];
 		this.page_controllers.push(

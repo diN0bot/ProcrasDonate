@@ -112,7 +112,8 @@ _extend(Controller.prototype, {
 			break;
 		default:
 			//return false;
-			throw new Error("Invalid ProcrasDonate URL: " + request.url);
+			//throw new Error("Invalid ProcrasDonate URL: " + request.url);
+			logger("Invalid ProcrasDonate URL: " + request.url);
 		}
 		return true;
 	},
@@ -458,7 +459,7 @@ _extend(PageController.prototype, {
 	
 	insert_register_done: function(request) {
 		this.prefs.set('register_state', 'done');
-		window.location.href = constants.IMPACT_URL;
+		//window.location.href = constants.IMPACT_URL;
 	},
 	
 	site_classifications_middle: function(request) {
@@ -1136,7 +1137,7 @@ _extend(PageController.prototype, {
 		var ret = this._track_snippet(request, 'register', constants.REGISTER_STATE_ENUM, constants.REGISTER_STATE_TAB_NAMES, true);
 		var next_src = constants.MEDIA_URL +"img/NextArrow.png";
 		if ( this.prefs.get('register_state','') == 'balance' ) {
-			next_src = constants.MEDIA_URL +"img/DoneArrow.png";
+			next_src = constants.MEDIA_URL +"img/DoneButton.png";
 		}
 		ret += "" +
 			"<div id='register_prev_next'>" +
@@ -1279,12 +1280,13 @@ _extend(PageController.prototype, {
 	
 	activate_impact_tab_events: function(request) {
 		/* Attaches EventListeners to impact tabs */
+		var self=this;
 		for (var i = 0; i < constants.IMPACT_STATE_ENUM.length; i += 1) {
 			var tab_state = constants.IMPACT_STATE_ENUM[i];
 			var event = constants.IMPACT_STATE_INSERTS[i];
 			// closure
 			request.jQuery("#"+tab_state+"_track, #"+tab_state+"_text").click(
-				(function(event) { return event; })(event)
+				(function(event) { return event; })(self[event])
 			);
 		}
 		// cursor pointer to tracks

@@ -1,6 +1,8 @@
 
 function PD_ToolbarManager(pddb) {
 	this.pddb = pddb;
+	this.initialize()
+	//window.addEventListener("load", _bind(this, this.initialize), false);
 }
 PD_ToolbarManager.prototype = {};
 _extend(PD_ToolbarManager.prototype, {
@@ -16,27 +18,30 @@ _extend(PD_ToolbarManager.prototype, {
 	* use a settimeout to allow window to open if masterpassword is set
 	*/
 	initialize : function() {
-		this.removeEventListener('load', PD_ToolbarManager.initialize, false);
+		//this.removeEventListener('load', this.initialize, false);
 
-		PD_ToolbarManager.classify_button = document.getElementById("PD-classify-toolbar-button");
-		PD_ToolbarManager.progress_button = document.getElementById("PD-progress-toolbar-button");
+		this.classify_button = document.getElementById("PD-classify-toolbar-button");
+		this.progress_button = document.getElementById("PD-progress-toolbar-button");
+		
+		//PD_ToolbarManager.classify_button.setAttribute("oncommand", "PD_ToolbarManager.onClassifyButtonCommand()");
+		//PD_ToolbarManager.progress_button.setAttribute("oncommand", "PD_ToolbarManager.onProgressButtonCommand()");
 		
 		var tag_names = ['Unsorted', 'ProcrasDonate', 'TimeWellSpent'];
-		if (Tag.count() == 0) {
+		if (this.pddb.Tag.count() == 0) {
 			for (var i=0; i < tag_names.length; i++) {
-				Tag.create({ tag: tag_names[i] });
+				this.pddb.Tag.create({ tag: tag_names[i] });
 			}
 		}
 		
 		for (var i=0; i < tag_names.length; i++) {
-			PD_ToolbarManager.images[tag_names[i]] = "chrome://ProcrasDonate/skin/"+tag_names[i]+"Icon.png";	
+			this.images[tag_names[i]] = "chrome://ProcrasDonate/skin/"+tag_names[i]+"Icon.png";	
 		}
 		//logger("TAG: "+Tag.get_or_null({ tag: tag_names[0] }));
 		//Tag.select({}, function(row) { logger("    > "+row); });
-		PD_ToolbarManager.default_tag = Tag.get_or_null({ tag: tag_names[0] });
+		this.default_tag = this.pddb.Tag.get_or_null({ tag: tag_names[0] });
 		
 		// Update button images and text
-		PD_ToolbarManager.updateButtons({ url: _href() });
+		this.updateButtons({ url: _href() });
 	},
 
 	/*
@@ -44,7 +49,7 @@ _extend(PD_ToolbarManager.prototype, {
 	 * @param options: contains either {sitegroup, tag} or {url}
 	 */
 	updateButtons : function(options) {
-		if (PD_ToolbarManager.classify_button) {
+		if (this.classify_button) {
 			var sitegroup = null;
 			var tag = null;
 			
@@ -58,18 +63,18 @@ _extend(PD_ToolbarManager.prototype, {
 				} else {
 					url = _href();
 				}
-				var d = PD_ToolbarManager.getDbRowsForLocation(url);
+				var d = this.getDbRowsForLocation(url);
 				sitegroup = d.sitegroup;
 				tag = d.tag;
 			}
 			
 			// alter classify button
-			PD_ToolbarManager.classify_button.setAttribute("image", PD_ToolbarManager.images[tag.tag]);
-			PD_ToolbarManager.classify_button.setAttribute("label", tag.tag);
+			this.classify_button.setAttribute("image", this.images[tag.tag]);
+			this.classify_button.setAttribute("label", tag.tag);
 			
-			var tooltip_text = PD_ToolbarManager.classify_button.getAttribute("tooltiptext");
+			var tooltip_text = this.classify_button.getAttribute("tooltiptext");
 			var new_tooltip_text = tooltip_text.replace(/: [\w]+\./, ": "+tag.tag+".");
-			PD_ToolbarManager.classify_button.setAttribute("tooltiptext", new_tooltip_text);
+			this.classify_button.setAttribute("tooltiptext", new_tooltip_text);
 			
 			// alter progress bar
 		}
@@ -88,17 +93,17 @@ _extend(PD_ToolbarManager.prototype, {
 			{ host: host },
 			{ name: host,
 			  host: host,
-			  tag_id: PD_ToolbarManager.default_tag.id
+			  tag_id: this.default_tag.id
 			}
 		);
-		tag = Tag.get_or_null({ id: sitegroup.tag_id })
+		tag = this.pddb.Tag.get_or_null({ id: sitegroup.tag_id })
 		
 		return { sitegroup: sitegroup, tag: tag }
 
     },
 
     onClassifyButtonCommand : function(e) {
-    	var d = PD_ToolbarManager.getDbRowsForLocation(_href());
+    	var d = this.getDbRowsForLocation(_href());
     	var sitegroup = d.sitegroup;
     	var tag = d.tag;
     	
@@ -106,10 +111,10 @@ _extend(PD_ToolbarManager.prototype, {
 		if (new_tag_id > 3) { new_tag_id = 1; }
 		
 		// update tag
-		SiteGroup.set({ tag_id: new_tag_id }, { id: sitegroup.id });
-		tag = Tag.get_or_null({ id: new_tag_id })
+		this.pddb.SiteGroup.set({ tag_id: new_tag_id }, { id: sitegroup.id });
+		tag = this.pddb.Tag.get_or_null({ id: new_tag_id })
 		
-		PD_ToolbarManager.updateButtons({ sitegroup: sitegroup, tag: tag });
+		this.updateButtons({ sitegroup: sitegroup, tag: tag });
     },
     
     onProgressButtonCommand : function(e) {
@@ -118,5 +123,3 @@ _extend(PD_ToolbarManager.prototype, {
     }
 
 });
-
-window.addEventListener("load", PD_ToolbarManager.initialize, false);

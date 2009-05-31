@@ -88,7 +88,7 @@
                        autoCheck="true"
                        label="ProcrasDonating"
                        tooltiptext="Current activity: Unsorted. To re-classify this site click this icon."
-                       oncommand="PD_ToolbarManager.onClassifyButtonCommand();"
+                       oncommand="myOverlay.url_bar_listener.toolbar_manager.onClassifyButtonCommand();"
                        image="chrome://ProcrasDonate/skin/UnsortedIcon.png"
                        class="toolbarbutton-1 chromeclass-toolbar-additional"/>
         
@@ -96,7 +96,7 @@
                        autoCheck="true"
                        label="Progress: 0"
                        tooltiptext="Progress towards weekly ProcrasDonate and TimeWellSpent goal"
-                       oncommand="PD_ToolbarManager.onProgressButtonCommand();"
+                       oncommand="myOverlay.url_bar_listener.toolbar_manager.onProgressButtonCommand();"
                        image="chrome://ProcrasDonate/skin/IconBar0.png"
                        class="toolbarbutton-1 chromeclass-toolbar-additional"/>
     </toolbarpalette>
