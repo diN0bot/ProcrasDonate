@@ -98,6 +98,8 @@ p { text-align: left; }
 .Spacer {width: 14em; height: 1.5em; }
 .SmallSpacer {width: 14em; height: 0.5em; }
 
+.percent_symbol {display: inline; font-size: 1.2em; }
+
 .DivRight {text-align: right; }	
 .DivLeft {text-align: left; }
 
@@ -151,7 +153,7 @@ h4 {
 /************ REGISTER/SETTINGS FORM ********/
 form, form p { text-align: center; clear: both; }
 
-.help { text-align: right; color: #777777; }
+.help { color: #777777; }
 .summaryhelp { float: left; padding: .5em 0em 0em .5em; color: #777777; }
 td { padding: 1em 0em 1em 0em; vertical-align: middle; }
 
@@ -229,7 +231,7 @@ label { padding-right: 1em; }
 .recipient_row { margin: .2em 0em .2em 0em; clear: both; }
 .recipient_row div { float: left; }
 .recipient { border: 1px solid #DDDDFF; -moz-border-radius: 4px; margin: .3em 0em; width: 60%; }
-.recipient .name { font-size: 1.1em; padding: .2em .4em; }
+.recipient .name { font-size: 1.4em; padding: .2em .4em; }
 .recipient .description { padding: .2em .4em; text-align: left; }
 .recipient_row .remove { text-decoration: none; background: #FFDDDD; -moz-border-radius: 4px; margin-top: .3em; padding: .2em .4em; }
 .recipient_row .add { text-decoration: none; background: #DDFFFF; -moz-border-radius: 4px; margin-top: .3em; padding: .2em .4em; }
