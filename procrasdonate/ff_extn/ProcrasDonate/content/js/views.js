@@ -55,6 +55,10 @@ _extend(Controller.prototype, {
 	
 	pd_dispatch_by_url: function(request) {
 		logger("pd_dispatch_by_url: "+ request.url);
+		if (this.registration_complete) {
+			this.page.registration_complete_inserts(request);
+		}
+		
 		switch (request.url) {
 		case constants.START_URL:
 			var state_matched = this.insert_based_on_state(
@@ -304,6 +308,14 @@ function PageController(prefs, pddb) {
 PageController.prototype = {};
 _extend(PageController.prototype, {
 	
+	registration_complete_inserts: function(request) {
+		request.jQuery("#start_now_menu_item a")
+			.attr("href", constants.SETTINGS_URL)
+			.text("Settings");
+		/*request.jQuery("#StartButton")
+			.attr("src", constants.MEDIA_URL+"img/DoneButton.png");*/
+	},
+	
 	make_site_box: function(request, /*sitegroup_id,*/ name, url, tag) {
 		var wrapper_template = null;
 		switch(tag) {
@@ -362,18 +374,42 @@ _extend(PageController.prototype, {
 		}
 	},
 	
+	balance_middle: function(request, is_register) {
+		var middle = Template.get("balance_middle").render(new Context({}));
+		if (is_register) {
+			request.jQuery("#content").html( this.register_wrapper_snippet(request, middle) );
+		} else {
+			request.jQuery("#content").html( this.settings_wrapper_snippet(request, middle) );
+		}
+		
+		this.tipjoy.check_balance(
+			this.prefs.get("twitter_username", false),
+			this.prefs.get("twitter_password", false),
+			function(r) {
+				var response = eval("("+r.responseText+")");
+				if ( response.result == "success" ) {
+					request.jQuery("#balance_here").text(response.balance);
+				} else {
+					var reason = eval("("+r.responseText+")").reason;
+					request.jQuery("#balance").append("Problem retrieving balance from TipJoy: "+reason);
+				}
+			},
+			function(r) {
+				var str = ""; for (var prop in r) {	str += prop + " value :" + r[prop]+ + " __ "; }
+				logger("standard_onerror: "+r+"_"+str);
+				var reason = eval("("+r.responseText+")").reason;
+				request.jQuery("#errors").append("An error occurred: " + reason);
+			}
+		);
+	},
 	
 	insert_register_balance: function(request) {
-		/*
-		 * Inserts balance/TipJoy info.
-		 */
+		/* Inserts balance/TipJoy info. */
+		var self = this;
 		this.prefs.set('register_state', 'balance');
-		
-		var middle = ["exists: <span id='exists'></span>",
-					  "<br /><br />",
-					  "balance: <span id='balance_here'></span>"].join("");
-		
-		request.jQuery("#content").html( this.register_wrapper_snippet(request, middle) );
+
+		this.balance_middle(request, true);
+	
 		this.activate_register_tab_events(request);
 	},
 	
@@ -438,7 +474,12 @@ _extend(PageController.prototype, {
 	
 	insert_register_done: function(request) {
 		this.prefs.set('register_state', 'done');
-		//window.location.href = constants.IMPACT_URL;
+		var unsafeWin = request.get_unsafeContentWin();//event.target.defaultView;
+		if (unsafeWin.wrappedJSObject) {
+			unsafeWin = unsafeWin.wrappedJSObject;
+		}
+		
+		new XPCNativeWrapper(unsafeWin, "location").location = constants.IMPACT_URL;
 	},
 	
 	site_classifications_middle: function(request) {
@@ -848,33 +889,13 @@ _extend(PageController.prototype, {
 	},
 	
 	insert_settings_balance: function(request) {
-		/* Inserts TipJoy balance html into page */
+		/* Inserts balance/TipJoy info. */
+		var self = this;
 		this.prefs.set('settings_state', 'balance');
-		var cell_text =
-			"<div id='thin_column'" +
-			this.settings_tab_snippet(request) +
-			"</div>";
-		
-		request.jQuery("#content").html(cell_text);
+
+		this.balance_middle(request, false);
+	
 		this.activate_settings_tab_events(request);
-		
-		// works
-		// post_anonymous_info_to_procrasdonate('http://bilumi.org', 22, 5,
-		// 'bilumi');
-		
-		/*
-		 * check_balance( function(r) { _logger("balance WORK "+r+" "r.result+"
-		 * "+r.reason+" "+r.balance+" "+r.currency); }, function(r) {
-		 * _logger("balance FAIL "+r.result+" "+r.reason+" "+r.balance+"
-		 * "+r.currency); } );
-		 */
-		
-		// check_exists();
-			/*
-			 * function(r) { _logger('STATUS worked ' + r.result + ' ' + r.reason + ' ' +
-			 * r.exists + ' ' + r.user + ' ' + r.is_private); }
-			 */
-		// );
 	},
 	
 	process_support: function(request, event) {
