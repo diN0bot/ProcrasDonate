@@ -273,7 +273,7 @@ _extend(Schedule.prototype, {
 			now.setDate( now.getDate() - 1 );
 		}
 		this.prefs.set('last_24hr_mark', Math.floor(now.getTime()/1000));
-		alert("ding! last 24hr "+two_four_hr+" new 24hr "+now+"  now  "+new Date());
+		//alert("ding! last 24hr "+two_four_hr+" new 24hr "+now+"  now  "+new Date());
 	},
 	
 	is_new_week_period: function() {
@@ -296,7 +296,7 @@ _extend(Schedule.prototype, {
 		}
 		this.prefs.set('last_week_mark', Math.floor(now.getTime()/1000));
 		
-		alert("ding! last week "+week_hr+" new week "+now+"  now  "+new Date());
+		//alert("ding! last week "+week_hr+" new week "+now+"  now  "+new Date());
 	},
 });
 
@@ -1041,6 +1041,7 @@ _extend(PageController.prototype, {
 		 * @TODO all fields should be validated as soon as user tabs to next field.
 		 */
 		var self = this; 
+		var ret = true;
 		
 		request.jQuery("#messages").html("");
 		request.jQuery("#errors").html("");
@@ -1050,16 +1051,16 @@ _extend(PageController.prototype, {
 		var twitter_password = request.jQuery("input[name='twitter_password']").attr("value");
 		
 		var tos = request.jQuery("input[name='tos']");
-		if (tos) {
-			if (!tos.attr("value") == "agree") {
-				request.jQuery("#errors").append("<p>To continue, please agree to the Terms of Use.</p>");
-				return false;
-			}
+		if (tos && !tos.attr("checked")) {
+			request.jQuery("#errors").append("<p>To continue, please agree to the Terms of Use.</p>");
+			ret = false;
+			return false;
 		}
 		
 		if ( !this.validate_twitter_username_and_password(twitter_username, 
 														  twitter_password) ) {
 			request.jQuery("#errors").append("<p>Please enter your twitter username and password</p>");
+			ret = false;
 			return false;
 		} else {
 			// Check if the username/password combo matches an existing account. We use
@@ -1139,7 +1140,7 @@ _extend(PageController.prototype, {
 			);
 		}
 		request.jQuery("#messages").append("verifying username and password...");
-		return false;
+		return ret;
 	},
 	
 	_tab_snippet: function(request, state_name, state_enums, tab_names) {

@@ -475,7 +475,7 @@ PDDB.prototype = {
 		
 		////// CATEGORIES ////////
 		if (this.Category.count() == 0) {
-			var category_names = ['A', 'B', 'C'];
+			var category_names = ["Family Planning", "African-American", "AIDS", "American-Indian", "Asian-American", "Asia", "Blindness", "Cancer Research", "Child Protection", "Child Sponsorship", "Civil Rights", "Public Interest", "Consumer Impact", "Crime and Fire Prevention", "Disabled", "Drug and Alcohol Abuse", "Environmental Conservation", "Environmental Advocacy", "Health Research", "Hispanic", "Homeless", "Human Rights", "Disaster and Medical Relief", "Farming", "Hunger", "International Relief and Development", "Jewish Charity", "Literacy", "Mental Health", "Peace", "Population", "Aging", "Terminally Ill", "Veterans", "Women", "Youth", ];
 			for (var i=0; i < category_names.length; i++) {
 				this.Category.create({ category: category_names[i] });
 			}
@@ -493,22 +493,36 @@ PDDB.prototype = {
 				email: "info@procrasdonate.com",
 				category_id: 1
 			});
-			this.Recipient.create({
-				twitter_name: "RedCross",
-				name: "Red Cross",
-				mission: "mission statement or slogan!",
-				description: "late da lkj a;lsdkfj lskjf laskjf ;oiaw ekld sjfl skf al;fial;i alfkja f;oi l;jfwio jfwf i awi woif w",
-				url: "http://ProcrasDonate.com/",
-				is_visible: True
-			});
-			this.Recipient.create({
-				twitter_name: "BlueShovel",
-				name: "Blue Shovel",
-				mission: "mission statement or slogan!",
-				description: "late da lkj a;lsdkfj lskjf laskjf ;oiaw ekld sjfl skf al;fial;i alfkja f;oi l;jfwio jfwf i awi woif w",
-				url: "http://ProcrasDonate.com/",
-				is_visible: True
-			});
+            this.Recipient.create({
+                    twitter_name: "",
+                    name: "Pathfinder International",
+                    mission: "To ensure that people everywhere have the right and opportunity to live a healthy reproductive life.",
+                    description: "Reproductive health is essential for creating better opportunities throughout life. When people take charge of their life choices such as when and how often to have children, they gain confidence and strength. They can better pursue their education, contribute to the local economy, and engage in their communities.<br>Pathfinder International places reproductive health services at the center of all that we do—believing that health care is not only a fundamental human right but is critical for expanding opportunities for women, families, communities, and nations, while paving the way for transformations in environmental stewardship, decreases in population pressures, and innovations in poverty reduction.  <br>In more than 25 countries, Pathfinder provides women, men, and adolescents with a range of quality health services—from contraception and maternal care to HIV prevention and AIDS care and treatment. Pathfinder strives to strengthen access to family planning, ensure availability of safe abortion services, advocate for sound reproductive health policies, and, through all of our work, improve the rights and lives of the people we serve. ",
+                    url: "http://www.pathfind.org",
+                    is_visible: True,
+                    email: "",
+                    category_id: 1
+            });
+            this.Recipient.create({
+                twitter_name: "",
+                name: "UNCF",
+                mission: "A mind is a terrible thing to waste.",
+                description: "At a time when a college degree is what a high school diploma was to previous generations, the minimum entry-level requirement for almost every well-paying career, UNCF plays a critical role in enabling more than 60,000 students each year to attend college and get the education they want and deserve. To close the educational attainment gap between African Americans and the majority population, UNCF helps promising students attend college and graduate by:<br> - Providing operating funds for its 39 member colleges, all of them small, liberal arts institutions, making it possible for them to offer their students 21st century academic programs while keeping their tuitions to less than half the average of other private colleges;<br> - Administering 400 scholarship and internship programs, so that even students from low- and moderate-income families can afford college tuition, books and room and board;<br> - Serving as a national advocate for the importance minority higher education by representing the public policy interests of its students and member colleges, through its annual television program, An Evening of Stars, and by using print and electronic media to carry out the mission implicit in its motto, ''A mind is a terrible thing to waste.''",
+                url: "http://www.uncf.org/",
+                is_visible: True,
+                email: "",
+                category_id: 2
+	        });
+	        this.Recipient.create({
+                twitter_name: "",
+                name: "AIDs Research Alliance",
+                mission: "Established in 1989, AIDS Research Alliance (ARA) envisions a future in which HIV and its effects on health are eliminated, and new infections are prevented. We exist TO DEVELOP A CURE FOR HIV/AIDS, medical strategies to prevent new infections and better treatments for people living with HIV/AIDS.",
+                description: "AIDS Research Alliance of America (ARA) tackles HIV on many fronts:<br> - Improving the health of people living with HIV/AIDS<br> - Striving to develop vaccines and microbicides that prevent the further spread of HIV.<br> - Creating Reservoir Ablative Strategies (RAS) that could eliminate HIV from infected individuals.<br> - Searching for a cure.<br>AIDS Research Alliance is pioneering a revolutionary business model for conducting medical research in the United States, influencing the direction of HIV research along the way.",
+                url: "http://www.aidsresearch.org/",
+                is_visible: True,
+                email: "",
+                category_id: 3
+	        });
 		}
 		////// RECIPIENTPERCENTS ////////
 		if (this.RecipientPercent.count() == 0) {
