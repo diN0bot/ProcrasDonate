@@ -629,7 +629,9 @@ PDDB.prototype = {
 		var tag = this.Tag.get_or_null({ id: sitegroup.tag_id })
 		if (!tag) {
 			tag = this.Unsorted;
-			this.SiteGroup.set({ tag_id: tag.id }, { id: sitegroup.id });
+			if (tag) {
+				this.SiteGroup.set({ tag_id: tag.id }, { id: sitegroup.id });
+			}
 		}
 		
 		var totals = {};

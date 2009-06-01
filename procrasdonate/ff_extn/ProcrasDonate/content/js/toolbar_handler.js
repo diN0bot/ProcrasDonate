@@ -66,6 +66,7 @@ _extend(PD_ToolbarManager.prototype, {
 			this.classify_button.setAttribute("tooltiptext", new_tooltip_text);
 			
 			// alter progress bar
+/*
 			var tag_content_type = this.pddb.ContentType.get_or_null({ modelname: "Tag" });
 			//logger(" toolbar:::tag_content_type "+tag_content_type);
 			//logger(" toolbar:::pd tag "+this.pddb.ProcrasDonate);
@@ -93,12 +94,15 @@ _extend(PD_ToolbarManager.prototype, {
 			
 			var goal = this.pddb.prefs.get('hrs_per_week_goal', false);
 			// hr * 60m/hr * 60s/m
-			var goal_in_s = parseInt(goal) * 60 * 60;
+			if (goal) {
+				var goal_in_s = parseInt(goal) * 60 * 60;
 			
-			var percentile = Math.floor( (total/goal) * 10 );
-			// 80 = goal
-			// 85 = quarter way to goal->limit
-			// 100 = limit or above
+				var percentile = Math.floor( (total/goal) * 10 );
+				// 80 = goal
+				// 85 = quarter way to goal->limit
+				// 100 = limit or above
+			}
+*/
 		}
     },
     
@@ -133,6 +137,8 @@ _extend(PD_ToolbarManager.prototype, {
     	var new_tag_id = parseInt(tag.id) + 1;
 		if (new_tag_id > 3) { new_tag_id = 1; }
 		
+	if (!new_tag_id) { new_tag_id = 1; }
+
 		// update tag
 		this.pddb.SiteGroup.set({ tag_id: new_tag_id }, { id: sitegroup.id });
 		tag = this.pddb.Tag.get_or_null({ id: new_tag_id })
