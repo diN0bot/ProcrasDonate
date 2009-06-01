@@ -316,6 +316,27 @@ _extend(Model.prototype, {
 			if (is_first) { is_first = false; }
 			else { str += " AND "; }
 			str += col+"=";
+			// adding quotes is necessary!
+			if (isString(wheres[col])) {
+				str += "\""+wheres[col]+"\"";
+			} else {
+				str += wheres[col];
+			}
+		}
+		str += ";";
+		logger(" sqlite3_firefox::set sql query="+str);
+		this.db.execute(str);
+	},
+	
+	//DELETE from [table name] where [field name] = 'whatever';
+	del: function(query) {
+		var str = "DELETE from "+this.table_name+" where ";
+		is_first = true;
+		for (var col in query) {
+			if (is_first) { is_first = false; }
+			else { str += " AND "; }
+			str += col+"=";
+			// adding quotes is necessary!
 			if (isString(wheres[col])) {
 				str += "\""+wheres[col]+"\"";
 			} else {

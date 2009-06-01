@@ -489,11 +489,13 @@ PDDB.prototype = {
 				mission: "mission statement or slogan!",
 				description: "late da lkj a;lsdkfj lskjf laskjf ;oiaw ekld sjfl skf al;fial;i alfkja f;oi l;jfwio jfwf i awi woif w",
 				url: "http://ProcrasDonate.com/",
-				is_visible: False
+				is_visible: False,
+				email: "info@procrasdonate.com",
+				category_id: 1
 			});
 			this.Recipient.create({
 				twitter_name: "RedCross",
-				name: "Red Cros",
+				name: "Red Cross",
 				mission: "mission statement or slogan!",
 				description: "late da lkj a;lsdkfj lskjf laskjf ;oiaw ekld sjfl skf al;fial;i alfkja f;oi l;jfwio jfwf i awi woif w",
 				url: "http://ProcrasDonate.com/",

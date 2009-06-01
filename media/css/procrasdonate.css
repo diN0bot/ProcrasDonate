@@ -61,7 +61,7 @@ p { text-align: left; }
   left: 12em;
   /*top: 2em;*/
 }
-#thin_column { width: 60%; margin: auto; /*padding-left: 12em;*/ padding-top: 1em; padding-bottom: 1em; }
+#thin_column { width: 90%; margin: auto; /*padding-left: 12em;*/ padding-top: 1em; padding-bottom: 1em; }
 #footer { font-size: .8em; height: 5em;  font-weight: normal; margin: auto; padding-top: 2em; }
 
 
@@ -203,7 +203,7 @@ label { padding-right: 1em; }
   width: 5em;
 }
 #next_register_track {
-  margin: 0em -3em 0em 40%;
+  margin: 0em 0em 0em 35%;
   float: right;
 }
 
@@ -211,7 +211,7 @@ label { padding-right: 1em; }
 }
 
 #prev_register_track {
-  margin: 0em 40% 0em -3em;
+  margin: 0em 40% 0em 0em;
   float: left;
 }
 

@@ -46,13 +46,14 @@ function load_models(db) {
 	var Recipient = new Model(db, "Recipient", {
 		table_name: "recipients",
 		columns: {
-			_order: ["id", "name", "mission", "description", "twitter_name", "url", "category_id", "is_visible"],
+			_order: ["id", "name", "mission", "description", "twitter_name", "url", "email", "category_id", "is_visible"],
 			id: "INTEGER PRIMARY KEY",
 			name: "VARCHAR",
 			twitter_name: "VARCHAR",
 			mission: "VARCHAR",
 			description: "VARCHAR",
 			url: "VARCHAR",
+			email: "VARCHAR",
 			category_id: "INTEGER",
 			is_visible: "INTEGER" // boolean 0=false
 		},

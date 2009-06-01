@@ -1,7 +1,11 @@
 <div class='recipient'>
 	<!-- id class needed for js -->
 	<div class="recipient_id">{{ id }}</div>
-	<div class='add_recipient' title="Add recipient to list">Add</div>
+	<div class='remove_recipient' title="Remove recipient from list">Remove</div>
+	<div class='recipient_percent'>
+		<input type="text" name="percent" id="recipient_{{ id }}" value="{{ percent }}" />
+		<div class='percent_symbol'>%</div>
+	</div>
 	<div class='name'><a href='{{ url }}'>{{ name }}</a></div>
 	<div class='mission'>{{ mission }}</div>
 	<div class='description'>{{ description }}</div>
