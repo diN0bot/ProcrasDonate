@@ -39,10 +39,15 @@ _extend(API.prototype, {
 			onload: onload,
 			onerror: onerror
 		};
-		var request = new HttpRequest(window, window);
-		request.contentStartRequest(options);
-		//request.chromeStartRequest(url, options);
-		return request;
+		try {
+			var request = new HttpRequest(window, window);
+			request.contentStartRequest(options);
+			//request.chromeStartRequest(url, options);
+			return request;
+		} catch(e) {
+			logger(" HTTPREQUEST error occured in api.js "+e);
+			onerror("Something unexpected happened.");
+		}
 	},
 });
 

@@ -67,7 +67,11 @@ _extend(PD_ToolbarManager.prototype, {
 			
 			// alter progress bar
 			var tag_content_type = this.pddb.ContentType.get_or_null({ modelname: "Tag" });
-			
+			//logger(" toolbar:::tag_content_type "+tag_content_type);
+			//logger(" toolbar:::pd tag "+this.pddb.ProcrasDonate);
+			//logger(" toolbar:::pd tag "+this.pddb.ProcrasDonate);
+
+			// null because so far, totals only contain contenttype=2, SiteGroup
 			var pd_total = this.pddb.Total.get_or_null({
 				contenttype_id: tag_content_type.id,
 				content_id: this.pddb.ProcrasDonate.id,
@@ -87,7 +91,14 @@ _extend(PD_ToolbarManager.prototype, {
 			
 			logger("total for the week is: " + total +" pd_total="+pd_total + " tws_total="+tws_total);
 			
-			this.pddb.prefs.get('hours_per_week_goal', false);
+			var goal = this.pddb.prefs.get('hrs_per_week_goal', false);
+			// hr * 60m/hr * 60s/m
+			var goal_in_s = parseInt(goal) * 60 * 60;
+			
+			var percentile = Math.floor( (total/goal) * 10 );
+			// 80 = goal
+			// 85 = quarter way to goal->limit
+			// 100 = limit or above
 		}
     },
     

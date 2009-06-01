@@ -568,7 +568,12 @@ PDDB.prototype = {
 			var now = Math.round((new Date()).getTime() / 1000.0);
 			logger(" start: "+start+" now: "+now+" diff: "+now-start);
 			this.prefs.set("last_start", null);
-			this.store_visit(url, start, now - start);
+			var diff = now - start;
+			// cap diff at 20 mintes (60s/m * 20m)
+			if (diff > 60*20) {
+				diff = 60*20;
+			}
+			this.store_visit(url, start, diff);
 		}
 	},
 	

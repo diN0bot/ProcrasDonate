@@ -55,7 +55,7 @@ _extend(Controller.prototype, {
 	
 	pd_dispatch_by_url: function(request) {
 		logger("pd_dispatch_by_url: "+ request.url);
-		if (this.registration_complete) {
+		if (this.registration_complete()) {
 			this.page.registration_complete_inserts(request);
 		}
 		
@@ -93,6 +93,8 @@ _extend(Controller.prototype, {
 			}
 			break;
 		case constants.IMPACT_URL:
+			request.jQuery("#content").html("Coming Soon!");
+			/*
 			var state_matched = this.insert_based_on_state(
 				request,
 				'impact', 
@@ -107,6 +109,7 @@ _extend(Controller.prototype, {
 					constants.IMPACT_STATE_ENUM, 
 					constants.IMPACT_STATE_INSERTS);
 			}
+			*/
 			break;
 		case constants.RESET_URL:
 			this.reset_state_to_defaults();
@@ -153,7 +156,8 @@ _extend(Controller.prototype, {
 	},
 	
 	registration_complete: function() {
-		return this.prefs.get('register_state', false) == 'done';
+		var reg_state = this.prefs.get('register_state', false);
+		return reg_state && reg_state == "done";
 	},
 	
 	initialize_state_if_necessary: function() {
@@ -311,7 +315,7 @@ _extend(PageController.prototype, {
 	registration_complete_inserts: function(request) {
 		request.jQuery("#start_now_menu_item a")
 			.attr("href", constants.SETTINGS_URL)
-			.text("Settings");
+			.html("Settings <small>(Private)</small>");
 		/*request.jQuery("#StartButton")
 			.attr("src", constants.MEDIA_URL+"img/DoneButton.png");*/
 	},
@@ -421,7 +425,7 @@ _extend(PageController.prototype, {
 			recipient_id: pd_recipient.id
 		});
 		var context = new Context({
-			pct: parseFloat(pd_recipientpercent.percent) * 100.0,
+			pct: parseFloat(pd_recipientpercent.percent).toFixed(4) * 100.0,
 			constants: constants,
 		});
 		return Template.get("support_middle").render(context);
@@ -618,7 +622,7 @@ _extend(PageController.prototype, {
 		
 		this.pddb.RecipientPercent.select({}, function(row) {
 			var recipient = self.pddb.Recipient.get_or_null({ id: row.recipient_id });
-			var percent = parseFloat(row.percent) * 100.0;
+			var percent = parseFloat(row.percent).toFixed(4) * 100.0;
 			
 			logger(" inside recipients_middle: recipient="+recipient+" percent="+percent);
 			
@@ -1004,22 +1008,26 @@ _extend(PageController.prototype, {
 	
 	process_recipients: function(request, event) {
 		var self = this;
+		var ret = true;
 		request.jQuery("input").each( function() {
 			var percent = request.jQuery(this).attr("value");
 			try {
 				percent = parseFloat(percent) / 100.0;
 				if (percent < 0.0) {
 					request.jQuery("#errors").append("<p>Please enter a percent greater than 0");
-					return false;
+					logger(" process_recipients says please enter a percent greater than 0");
+					ret = false;
 				}
 			} catch(e) {
-				request.jQuery("#errors").append("<p>Please enter a numerical percent, such as 22</p>");
-				return false;
+				request.jQuery("#errors").append("<p>Please enter a number, such as 22</p>");
+				logger(" process_recipients says please enter a number");
+				ret = false;
 			}
 			var recipient_id = request.jQuery(this).parent().siblings(".recipient_id").text();
 			self.pddb.RecipientPercent.set({ percent: percent }, { recipient_id: recipient_id });
 		});
-		return true;
+		logger(" process_recipients says okiedokie");
+		return ret;
 	},
 	
 	process_done: function(request, event) {
@@ -1038,10 +1046,16 @@ _extend(PageController.prototype, {
 		request.jQuery("#errors").html("");
 		request.jQuery("#success").html("");
 		
-		var twitter_username = request.jQuery(
-			"input[name='twitter_username']").attr("value");
-		var twitter_password = request.jQuery(
-			"input[name='twitter_password']").attr("value");
+		var twitter_username = request.jQuery("input[name='twitter_username']").attr("value");
+		var twitter_password = request.jQuery("input[name='twitter_password']").attr("value");
+		
+		var tos = request.jQuery("input[name='tos']");
+		if (tos) {
+			if (!tos.attr("value") == "agree") {
+				request.jQuery("#errors").append("<p>To continue, please agree to the Terms of Use.</p>");
+				return false;
+			}
+		}
 		
 		if ( !this.validate_twitter_username_and_password(twitter_username, 
 														  twitter_password) ) {
@@ -1111,8 +1125,7 @@ _extend(PageController.prototype, {
 							function(r) {
 								var str = ""; for (var prop in r) {	str += prop + " value :" + r[prop]+ + " __ "; }
 								logger("standard_onerror: "+r+"_"+str);
-								var reason = eval("("+r.responseText+")").reason;
-								request.jQuery("#errors").append("An error occurred: " + reason);
+								request.jQuery("#errors").append("An error occurred: " + r);
 							}
 						);
 					}
@@ -1270,8 +1283,10 @@ _extend(PageController.prototype, {
 					var processor = processors[i];
 					logger(processor);
 					//logger(self[processor]);
-					if ( self[processor](request, event) ) {
-						logger(event);
+					var ret = self[processor](request, event);
+					logger(" actual ret="+ret+" typeof="+typeof(ret));
+					if ( ret ) {
+						logger("process returned true!"+event);
 						self[event](request);
 					}
 					break;
