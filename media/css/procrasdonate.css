@@ -61,7 +61,7 @@ p { text-align: left; }
   left: 12em;
   /*top: 2em;*/
 }
-#thin_column { width: 90%; margin: auto; /*padding-left: 12em;*/ padding-top: 1em; padding-bottom: 1em; }
+#thin_column { width: 90%; margin: auto; padding-left: 4em;  padding-bottom: 1em; }
 #footer { font-size: .8em; height: 5em;  font-weight: normal; margin: auto; padding-top: 2em; }
 
 
@@ -220,6 +220,9 @@ label { padding-right: 1em; }
 /**** IMAGES ****/
 
 .small-image { width: 3.3em; float: left; margin-left: -4.1em; margin-top: -2.6em; }
+.medium-image { width: 6em; float: left; margin-left: -4.1em; margin-top: -2.6em; }
+.screenshot-long { width: 27em; float: right; margin-right: .2em; margin-left: .5em; margin-top: .2em; }
+.screenshot-long-second { width: 27em; float: right; margin-right: .2em; margin-left: .5em; margin-top: 1.2em; }
 
 /**** RECIPIENTS ****/
 
