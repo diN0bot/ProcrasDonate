@@ -26,7 +26,7 @@ p { text-align: left; }
    deep blue (sidebar) 003366
    soft blue (sidebar and links) 336699
    
-   green 156451
+   dark bluegreen 156451
    soft green (sidebar) 669933
    purple 6C0B5D
    red (menu border) 8A4304
@@ -61,7 +61,7 @@ p { text-align: left; }
   left: 12em;
   /*top: 2em;*/
 }
-#thin_column { width: 90%; margin: auto; padding-left: 4em;  padding-bottom: 1em; }
+#thin_column { width: 90%; margin: auto; padding-left: 6em;  padding-bottom: 1em; }
 #footer { font-size: .8em; height: 5em;  font-weight: normal; margin: auto; padding-top: 2em; }
 
 
@@ -102,6 +102,11 @@ p { text-align: left; }
 
 .DivRight {text-align: right; }	
 .DivLeft {text-align: left; }
+
+.Banner { width: 45em; margin-right: 1.8em; margin-top: -.5em; margin-bottom: -4em; }
+
+
+.subheader { color: #669933; font-size: .8em;}
 
 /*** h2 used as section headers for FAQ, etc. ***/
 

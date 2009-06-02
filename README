@@ -10,6 +10,12 @@ h2. INSTALLATION
 ## env/CURRENT should contain name of personal folder
 ## specified personal folder should contain settings.py, which is imported at the bottom of the global settings.py
 
+h2. EXTENSION PACKAGIN
+
+    cd procrasdonate/ff_extn/ProcrasDonate
+    rm -rf ../../../media/xpi/*
+    zip -r ../../../media/xpi/ProcrasDonate_0.1.1.xpi *
+
 h3. Dependencies
 
 h4. Git
@@ -22,3 +28,4 @@ h4. Django Evolution (optional)
 h2. THIS DOCUMENT
 
 Formatted with Textile http://github.com/guides/textile-formatting
+
