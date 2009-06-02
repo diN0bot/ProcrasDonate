@@ -11,4 +11,4 @@ DEBUG_TOOLBAR = False
 SECRET_KEY = 'oez0xk+-u34bcyd!+z0w=79mc^_tf9zm05nm9ia9)zps2s56a2'
 
 DATABASE_ENGINE = 'sqlite3'
-DATABASE_NAME = PROJECT_PATH+"hm_dev.db"
+DATABASE_NAME = PROJECT_PATH+"/mydatabase.db"

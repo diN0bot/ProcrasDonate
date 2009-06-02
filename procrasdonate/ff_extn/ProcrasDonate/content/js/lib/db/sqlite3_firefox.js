@@ -130,9 +130,9 @@ var Model = function(db, name, opts, instance_opts, class_opts) {
 	//         id: "INTEGER",
 	//         site_id: "INTEGER",
 	//         enter_at: "DATETIME",
-	//         leave_at: "DATETIME"
+	//         duration: "DATETIME"
 	//     },
-	//     indexes: ["id", ["site_id", "leave_at"]],
+	//     indexes: ["id", ["site_id", "duration"]],
 	// });
 	//var opts = Array.prototype.slice.call(arguments, 1);
 	this.db = db;
@@ -298,8 +298,73 @@ _extend(Model.prototype, {
 		
 	},
 	
-	get_or_create_row: function() {
-		
+	/*
+	 * @param query: OBJECT of column name, value
+	 */
+	set: function(updates, wheres) {
+		var str = "UPDATE "+this.table_name+" SET ";
+		var is_first = true;
+		for (var col in updates) {
+			if (is_first) { is_first = false; }
+			else { str += ", "; }
+			str += col+"="+updates[col];
+
+		}
+		str += " WHERE ";
+		is_first = true;
+		for (var col in wheres) {
+			if (is_first) { is_first = false; }
+			else { str += " AND "; }
+			str += col+"=";
+			// adding quotes is necessary!
+			if (isString(wheres[col])) {
+				str += "\""+wheres[col]+"\"";
+			} else {
+				str += wheres[col];
+			}
+		}
+		str += ";";
+		logger(" sqlite3_firefox::set sql query="+str);
+		this.db.execute(str);
+	},
+	
+	//DELETE from [table name] where [field name] = 'whatever';
+	del: function(query) {
+		var str = "DELETE from "+this.table_name+" where ";
+		is_first = true;
+		for (var col in query) {
+			if (is_first) { is_first = false; }
+			else { str += " AND "; }
+			str += col+"=";
+			// adding quotes is necessary!
+			if (isString(wheres[col])) {
+				str += "\""+wheres[col]+"\"";
+			} else {
+				str += wheres[col];
+			}
+		}
+		str += ";"
+		this.db.execute(str);
+	},
+	
+	get_or_create: function(query, defaults) {
+		/* uses get_or_null to retrieve row.
+		 * if null, creates using defaults.
+		 * @return: row
+		 */
+		var ary = this.select(query);
+		var row = null;
+		if (ary.length == 0) {
+			
+			/*var combined = query;
+			for (var prop in defaults) {
+				combined[prop] = defaults[prop];
+			}*/
+			row = this.create(_extend(query, defaults));
+		} else {
+			row = ary[0];
+		}
+		return row;
 	},
 	
 	get_row_factory: function() {

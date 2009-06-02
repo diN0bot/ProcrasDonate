@@ -29,16 +29,24 @@ var _include = function(filename) {
 function _bind(o, m) {
 	var bound_arguments = Array.prototype.slice.apply(arguments, [2]);
 	return function() {
-		logger([bound_arguments, bound_arguments.constructor]);
+		//logger([bound_arguments, bound_arguments.constructor]);
 		var now_arguments = Array.prototype.slice.apply(arguments);
-		logger([now_arguments, now_arguments.constructor]);
+		//logger([now_arguments, now_arguments.constructor]);
 		var args = bound_arguments.slice().concat(now_arguments);
-		logger([args, args.constructor]);
+		//logger([args, args.constructor]);
 		return m.apply(o, args); //bound_arguments + now_arguments);
 	}
 }
 
+var False = 0;
+var True = 1;
 
+/*
+ * NOT LONGER IN USE. logger is redefined in main.js
+ * To use, run Firefox from command line. "dump()" will
+ * show output there.
+ *     eg, $ /Applications/Firefox.app/Contents/MacOS/firefox > o.out
+ */
 var logger = function(msg) {
 	try {
 		var consoleService = Components.
@@ -198,6 +206,51 @@ function _iterate(o, fn) {
 //	}
 //	return ret;
 //}
+
+var _start_of_day = function(date) {
+	if (!date) {
+		date = new Date();
+	}
+	date.setHours(0);
+	date.setMinutes(0);
+	date.setSeconds(0);
+	date.setMilliseconds(0);
+	return date;
+}
+
+var _end_of_forever = -3;
+
+var _end_of_day = function(date) {
+	if (!date) {
+		date = new Date();
+	}
+	date.setHours(23);
+	date.setMinutes(59);
+	date.setSeconds(59);
+	date.setMilliseconds(999);
+	return date;
+}
+
+var _end_of_week = function(date) {
+	if (!date) {
+		date = new Date();
+	}
+	date.setHours(23);
+	date.setMinutes(23);
+	date.setSeconds(23);
+	date.setMilliseconds(23);
+	// last day of week. getDay should now = 6.
+	date.setDate(date.getDate() + (6-date.getDay()));
+	return date;
+}
+
+var _dbify_date = function(date) {
+	return Math.round(date.getTime() / 1000.0);
+}
+
+var _un_dbify_date = function(str) {
+	return new Date(parseInt(str) * 1000);
+}
 
 var host_regexp =  /^[\w]+:\/\/([^\/]+).*/g;
 

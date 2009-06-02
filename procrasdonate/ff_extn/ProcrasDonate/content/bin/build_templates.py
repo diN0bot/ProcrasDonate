@@ -3,7 +3,7 @@
 import sys, os
 
 # Make sure required paths are in 'sys.path'
-base_path = "/home/dan/tam/"
+base_path = "/Users/lucy/sandbox/CalmProcrasDonate/"
 extra_paths = [
         base_path,
         os.path.join(base_path, "ext/lib"),

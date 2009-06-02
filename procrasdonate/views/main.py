@@ -10,27 +10,11 @@ from django.core.urlresolvers import reverse
 def main(request):
     return HttpResponseRedirect(reverse('home'))
 
-def start_now(request):
+def register(request):
     return render_response(request, 'procrasdonate/settings.html', locals())
 
 def settings(request):
     return render_response(request, 'procrasdonate/settings.html', locals())
-
-
-"""
-As long as templates extend 'twitter/base.html', then views must define three variables:
-    app_name = 'procrasdonate'
-    app_page = 'LearnMore'
-    page_name = 'Learn More'
-
-app_name should always be 'procrasdonate'
-
-app_page defines the menu item under which the page falls. It should be one of:
-   [LearnMore, StartNow(->Settings), MyImpact, OurCommunity]
-(feedback gets added automatically by the twitter templatetag)
-
-page_name is what gets displayed in the menu and can be anything
-"""
 
 def home(request):
     return render_response(request, 'procrasdonate/home.html', locals())
@@ -109,3 +93,18 @@ def community_sites(request):
 def community_procrasdonations(request):
     procrasdonations = ProcrasDonation.objects.all().order_by('time')
     return render_response(request, 'procrasdonate/our_community_procrasdonations.html', locals())
+
+
+def rebuild_extension_templates(request):
+    import os
+    bin = "procrasdonate/ff_extn/ProcrasDonate/content/bin"
+    generated_templates_dir = "procrasdonate/ff_extn/ProcrasDonate/content/templates"
+    all_dir = "procrasdonate/ff_extn/ProcrasDonate/content/js/templates"
+    
+    os.system("python %s/build_templates.py %s/*.html" % (bin, generated_templates_dir))
+    os.system("cp %s/all.js %s/all.js.bkup" % (all_dir, all_dir))
+    os.system("cat %s/*.js > %s/all.js" % (generated_templates_dir, all_dir))
+    return json_response([ "SUCCESS" ])
+    
+def reset_state(request):
+    return json_response([ "SUCCESS" ])

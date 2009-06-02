@@ -13,21 +13,28 @@
 				<td><input class='left' type='text' name='twitter_username' value='{{ twitter_username }}'></td>
 			</tr>
 			
-			<tr class='above_helprow'>
+			<tr>
 				<td><label class='right'>Twitter password</label></td>
 				<td><input class='press_enter_for_next left' type='password' name='twitter_password' value='{{ twitter_password }}'></td>
 			</tr>
 			
 			<tr class='helprow'>
 				<td></td>
-				<td><div class='help'><a href='{{ constants.PRIVACY_URL }}'>Privacy Guarantee</a></div></td>
+				<td><div class='help'>Your Twitter password is only revealed to 
+				<a href="http://TipJoy.com">TipJoy</a>, a social micro-payment framework.
+				<a href='{{ constants.PRIVACY_URL }}'>Privacy Guarantee</a></div></td>
 			</tr>
+			
+			<tr>
+				<td><input class='right' type='checkbox' name='tos' value='agree' /></td>
+				<td><label class='left'>I agree to the Terms of Use</label></td>
+			</tr>
+			
 		</tbody>
 	</table>
 	
 	<h2><a name='tos'></a>Terms of Use</h2>
 	<img src='{{ constants.MEDIA_URL }}img/TermsOfUse.png' class='small-image'>
-	<input type='checkbox'>
 	<p>By using our service you agree to the following:
 		<ul class='paragraph_list'>
 			<li>ProcrasDonate may update these terms of service without warning or notification.

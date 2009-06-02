@@ -42,8 +42,28 @@ p { text-align: left; }
 .error, .errors, #error, #errors { color: red; text-align: center; }
 .success, #success { color: green; text-align: center; }
 
-#static_menu { font-size: 1.2em; position: absolute; left: 1.7em; top: 2em; width: 8.3em; }
+#static_menu {
+  font-size: 1.2em;
+  position: absolute;
+  margin: 2em auto auto 1.7em;
+  /*left: 1.7em;
+  top: 2em;*/
+  width: 8.3em;
+}
 #static_menu div { display: block; padding: 0.3em 0em; margin: 1em 0em; }
+
+#content {
+  margin: auto;
+  min-width: 40em;
+  text-align:center;
+  margin: 3em auto auto 0em;
+  position: absolute;
+  left: 12em;
+  /*top: 2em;*/
+}
+#thin_column { width: 90%; margin: auto; padding-left: 4em;  padding-bottom: 1em; }
+#footer { font-size: .8em; height: 5em;  font-weight: normal; margin: auto; padding-top: 2em; }
+
 
 #MainMenu { background: #bb8230; font-size: 1.1em; border: 0.34em ridge #8A4304; -moz-border-radius: .4em; }
 #MainMenu div { background: #b47925; border-top: 0.1em dotted #DBBF75; -moz-border-radius: 0em; }
@@ -78,12 +98,10 @@ p { text-align: left; }
 .Spacer {width: 14em; height: 1.5em; }
 .SmallSpacer {width: 14em; height: 0.5em; }
 
+.percent_symbol {display: inline; font-size: 1.2em; }
+
 .DivRight {text-align: right; }	
 .DivLeft {text-align: left; }
-
-#content { margin: auto; width: 70em; text-align:center; margin-top: 1em; }
-#thin_column { width: 60%; margin: auto; /*padding-left: 12em;*/ padding-top: 1em; padding-bottom: 1em; }
-#footer { font-size: .8em; height: 5em;  font-weight: normal; margin: auto; padding-top: 2em; }
 
 /*** h2 used as section headers for FAQ, etc. ***/
 
@@ -135,7 +153,7 @@ h4 {
 /************ REGISTER/SETTINGS FORM ********/
 form, form p { text-align: center; clear: both; }
 
-.help { text-align: right; color: #777777; }
+.help { color: #777777; }
 .summaryhelp { float: left; padding: .5em 0em 0em .5em; color: #777777; }
 td { padding: 1em 0em 1em 0em; vertical-align: middle; }
 
@@ -187,7 +205,7 @@ label { padding-right: 1em; }
   width: 5em;
 }
 #next_register_track {
-  margin: 0em -3em 0em 40%;
+  margin: 0em 0em 0em 35%;
   float: right;
 }
 
@@ -195,7 +213,7 @@ label { padding-right: 1em; }
 }
 
 #prev_register_track {
-  margin: 0em 40% 0em -3em;
+  margin: 0em 40% 0em 0em;
   float: left;
 }
 
@@ -204,13 +222,16 @@ label { padding-right: 1em; }
 /**** IMAGES ****/
 
 .small-image { width: 3.3em; float: left; margin-left: -4.1em; margin-top: -2.6em; }
+.medium-image { width: 6em; float: left; margin-left: -4.1em; margin-top: -2.6em; }
+.screenshot-long { width: 27em; float: right; margin-right: .2em; margin-left: .5em; margin-top: .2em; }
+.screenshot-long-second { width: 27em; float: right; margin-right: .2em; margin-left: .5em; margin-top: 1.2em; }
 
 /**** RECIPIENTS ****/
 
 .recipient_row { margin: .2em 0em .2em 0em; clear: both; }
 .recipient_row div { float: left; }
 .recipient { border: 1px solid #DDDDFF; -moz-border-radius: 4px; margin: .3em 0em; width: 60%; }
-.recipient .name { font-size: 1.1em; padding: .2em .4em; }
+.recipient .name { font-size: 1.4em; padding: .2em .4em; }
 .recipient .description { padding: .2em .4em; text-align: left; }
 .recipient_row .remove { text-decoration: none; background: #FFDDDD; -moz-border-radius: 4px; margin-top: .3em; padding: .2em .4em; }
 .recipient_row .add { text-decoration: none; background: #DDFFFF; -moz-border-radius: 4px; margin-top: .3em; padding: .2em .4em; }

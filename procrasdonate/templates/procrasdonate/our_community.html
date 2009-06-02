@@ -6,6 +6,10 @@
 
 {% block content %}
 	<div id="thin_column">
+		Coming Soon!
+	
+	
+		{% comment %}
 		<script type="text/javascript">
 			$(document).ready(function(){
 				$("#example").slider();
@@ -26,5 +30,7 @@
 		{% for pd in procrasdonations %}
 			{{ pd.time }} - {{ pd.time_spent }} ${{ pd.amount }} - {{ pd.site }} - {{ pd.recipient }}
 		{% endfor %}
+		
+		{% endcomment %}
 	</div>
 {% endblock %}

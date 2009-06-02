@@ -1,36 +1,35 @@
 
-var PD_ToolbarManager = {
+function PD_ToolbarManager(pddb) {
+	this.pddb = pddb;
+	this.initialize()
+	//window.addEventListener("load", _bind(this, this.initialize), false);
+}
+PD_ToolbarManager.prototype = {};
+_extend(PD_ToolbarManager.prototype, {
 		
 	classify_button : null,
 	progress_button: null,
-	// tag name, image pairs
+	// tag id, image pairs
 	images : {},
-	default_image_name : null,
 
 	/*
 	* do stuff when new browser window opens 
 	* use a settimeout to allow window to open if masterpassword is set
 	*/
 	initialize : function() {
-		this.removeEventListener('load', PD_ToolbarManager.initialize, false);
+		var self = this;
+		
+		//this.removeEventListener('load', this.initialize, false);
 
-		PD_ToolbarManager.classify_button = document.getElementById("PD-classify-toolbar-button");
-		PD_ToolbarManager.progress_button = document.getElementById("PD-progress-toolbar-button");
+		this.classify_button = document.getElementById("PD-classify-toolbar-button");
+		this.progress_button = document.getElementById("PD-progress-toolbar-button");
 		
-		var tag_names = ['Unsorted', 'ProcrasDonate', 'TimeWellSpent'];
-		if (Tag.count() == 0) {
-			for (var i=0; i < tag_names.length; i++) {
-				Tag.create({ tag: tag_names[i] });
-			}
-		}
-		
-		for (var i=0; i < tag_names.length; i++) {
-			PD_ToolbarManager.images[tag_names[i]] = "chrome://ProcrasDonate/skin/"+tag_names[i]+"Icon.png";	
-		}
-		PD_ToolbarManager.default_image_name = tag_names[0];
+		this.pddb.Tag.select({}, function(row) {
+			self.images[row.id] = "chrome://ProcrasDonate/skin/"+row.tag+"Icon.png";	
+		});
 		
 		// Update button images and text
-		PD_ToolbarManager.updateButtons({ url: _href() });
+		this.updateButtons({ url: _href() });
 	},
 
 	/*
@@ -38,7 +37,8 @@ var PD_ToolbarManager = {
 	 * @param options: contains either {sitegroup, tag} or {url}
 	 */
 	updateButtons : function(options) {
-		if (PD_ToolbarManager.classify_button) {
+
+		if (this.classify_button) {
 			var sitegroup = null;
 			var tag = null;
 			
@@ -52,20 +52,59 @@ var PD_ToolbarManager = {
 				} else {
 					url = _href();
 				}
-				var d = PD_ToolbarManager.getDbRowsForLocation(url);
+				var d = this.getDbRowsForLocation(url);
 				sitegroup = d.sitegroup;
 				tag = d.tag;
 			}
+			var tag_id = 0;
+			if (tag) { tag_id = tag.id; }
 			
 			// alter classify button
-			PD_ToolbarManager.classify_button.setAttribute("image", PD_ToolbarManager.images[tag.tag]);
-			PD_ToolbarManager.classify_button.setAttribute("label", tag.tag);
+			this.classify_button.setAttribute("image", this.images[tag_id]);
+			this.classify_button.setAttribute("label", tag.tag);
 			
-			var tooltip_text = PD_ToolbarManager.classify_button.getAttribute("tooltiptext");
+			var tooltip_text = this.classify_button.getAttribute("tooltiptext");
 			var new_tooltip_text = tooltip_text.replace(/: [\w]+\./, ": "+tag.tag+".");
-			PD_ToolbarManager.classify_button.setAttribute("tooltiptext", new_tooltip_text);
+			this.classify_button.setAttribute("tooltiptext", new_tooltip_text);
 			
 			// alter progress bar
+/*
+			var tag_content_type = this.pddb.ContentType.get_or_null({ modelname: "Tag" });
+			//logger(" toolbar:::tag_content_type "+tag_content_type);
+			//logger(" toolbar:::pd tag "+this.pddb.ProcrasDonate);
+			//logger(" toolbar:::pd tag "+this.pddb.ProcrasDonate);
+
+			// null because so far, totals only contain contenttype=2, SiteGroup
+			var pd_total = this.pddb.Total.get_or_null({
+				contenttype_id: tag_content_type.id,
+				content_id: this.pddb.ProcrasDonate.id,
+				time: _dbify_date(_end_of_week()),
+				timetype_id: this.pddb.Weekly
+			})
+			var tws_total = this.pddb.Total.get_or_null({
+				contenttype_id: tag_content_type.id,
+				content_id: this.pddb.TimeWellSpent.id,
+				time: _dbify_date(_end_of_week()),
+				timetype_id: this.pddb.Weekly
+			})
+			
+			var total = 0;
+			if (pd_total) { total += parseInt(pd_total.total_time); }
+			if (tws_total) { total += parseInt(tws_total.total_time); }
+			
+			logger("total for the week is: " + total +" pd_total="+pd_total + " tws_total="+tws_total);
+			
+			var goal = this.pddb.prefs.get('hrs_per_week_goal', false);
+			// hr * 60m/hr * 60s/m
+			if (goal) {
+				var goal_in_s = parseInt(goal) * 60 * 60;
+			
+				var percentile = Math.floor( (total/goal) * 10 );
+				// 80 = goal
+				// 85 = quarter way to goal->limit
+				// 100 = limit or above
+			}
+*/
 		}
     },
     
@@ -76,44 +115,37 @@ var PD_ToolbarManager = {
 		var href = url;
 		var host = _host(href);
 		var sitegroup = null;
-		var sitegrouptagging = null;
 		var tag = null;
-		sitegroup = SiteGroup.get_or_null({ host: host });
-		
-		if (!sitegroup) {
-			sitegroup = SiteGroup.create({ name: host, host: host });
-			tag = Tag.get_or_null({ tag: PD_ToolbarManager.default_image_name })
-			sitegrouptagging = SiteGroupTagging.create({ sitegroup_id: sitegroup.id, tag_id: tag.id});
-		}
-		else {
-			sitegrouptagging = SiteGroupTagging.get_or_null({ sitegroup_id: sitegroup.id })
-			if (!sitegrouptagging) {
-				tag = Tag.get_or_null({ tag: PD_ToolbarManager.default_image_name })
-				sitegrouptagging = SiteGroupTagging.create({ sitegroup_id: sitegroup.id, tag_id: tag.id});
-			} else {
-				tag = Tag.get_or_null({ id: sitegrouptagging.tag_id })
+
+		var self = this;
+		sitegroup = this.pddb.SiteGroup.get_or_create(
+			{ host: host },
+			{ name: host,
+			  host: host,
+			  tag_id: 1
 			}
-		}
+		);
+		tag = this.pddb.Tag.get_or_null({ id: sitegroup.tag_id })
 		
-		return { sitegroup: sitegroup, sitegrouptagging: sitegrouptagging, tag: tag }
+		return { sitegroup: sitegroup, tag: tag }
 
     },
 
     onClassifyButtonCommand : function(e) {
-    	var d = PD_ToolbarManager.getDbRowsForLocation(_href());
+    	var d = this.getDbRowsForLocation(_href());
     	var sitegroup = d.sitegroup;
     	var tag = d.tag;
-    	var sitegrouptagging = d.sitegrouptagging;
     	
     	var new_tag_id = parseInt(tag.id) + 1;
 		if (new_tag_id > 3) { new_tag_id = 1; }
 		
-		// update tag
-		db.execute("update sitegrouptaggings set tag_id="+new_tag_id+" where sitegroup_id="+sitegroup.id);
+	if (!new_tag_id) { new_tag_id = 1; }
 
-		tag = Tag.get_or_null({ id: new_tag_id })
+		// update tag
+		this.pddb.SiteGroup.set({ tag_id: new_tag_id }, { id: sitegroup.id });
+		tag = this.pddb.Tag.get_or_null({ id: new_tag_id })
 		
-		PD_ToolbarManager.updateButtons({ sitegroup: sitegroup, tag: tag });
+		this.updateButtons({ sitegroup: sitegroup, tag: tag });
     },
     
     onProgressButtonCommand : function(e) {
@@ -121,6 +153,4 @@ var PD_ToolbarManager = {
     	window.content.location.href = constants.IMPACT_URL;
     }
 
-};
-
-window.addEventListener("load", PD_ToolbarManager.initialize, false);
+});
