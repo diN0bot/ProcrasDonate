@@ -11,7 +11,7 @@ urlpatterns = patterns('',
     
     # displays registration track
     # plugin alters page 
-    url(r'^start_now/$', main.start_now, name='start_now'),
+    url(r'^register/$', main.register, name='register'),
     # displays settings pages
     # plugin alters page 
     url(r'^settings/$', main.settings, name='settings'),

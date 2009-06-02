@@ -11,7 +11,7 @@ var constants = {};
 	constants.PD_URL = 'http://' + constants.PD_HOST;
 	
 	constants.PROCRASDONATE_URL = constants.PD_URL+'/';
-	constants.START_URL = constants.PD_URL+'/start_now/';
+	constants.REGISTER_URL = constants.PD_URL+'/register/';
 	constants.HOME_URL = constants.PD_URL+'/home/';
 	constants.LEARN_URL = constants.PD_URL+'/learn_more/';
 	constants.IMPACT_URL = constants.PD_URL+'/my_impact/';

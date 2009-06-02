@@ -10,27 +10,11 @@ from django.core.urlresolvers import reverse
 def main(request):
     return HttpResponseRedirect(reverse('home'))
 
-def start_now(request):
+def register(request):
     return render_response(request, 'procrasdonate/settings.html', locals())
 
 def settings(request):
     return render_response(request, 'procrasdonate/settings.html', locals())
-
-
-"""
-As long as templates extend 'twitter/base.html', then views must define three variables:
-    app_name = 'procrasdonate'
-    app_page = 'LearnMore'
-    page_name = 'Learn More'
-
-app_name should always be 'procrasdonate'
-
-app_page defines the menu item under which the page falls. It should be one of:
-   [LearnMore, StartNow(->Settings), MyImpact, OurCommunity]
-(feedback gets added automatically by the twitter templatetag)
-
-page_name is what gets displayed in the menu and can be anything
-"""
 
 def home(request):
     return render_response(request, 'procrasdonate/home.html', locals())

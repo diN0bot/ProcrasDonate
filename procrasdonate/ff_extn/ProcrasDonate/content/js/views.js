@@ -4,7 +4,6 @@
 // Controller
 // * handles 'views' for browser-generated ProcrasDonate.com pages
 var Controller = function(prefs, pddb) {
-	logger("Controller()");
 	this.prefs = prefs;
 	this.pddb = pddb;
 	this.page = new PageController(this.prefs, this.pddb);
@@ -55,12 +54,15 @@ _extend(Controller.prototype, {
 	
 	pd_dispatch_by_url: function(request) {
 		logger("pd_dispatch_by_url: "+ request.url);
+		this.page.default_inserts(request);
 		if (this.registration_complete()) {
 			this.page.registration_complete_inserts(request);
+		} else {
+			this.page.registration_incomplete_inserts(request);
 		}
 		
 		switch (request.url) {
-		case constants.START_URL:
+		case constants.REGISTER_URL:
 			var state_matched = this.insert_based_on_state(
 				request,
 				'register', 
@@ -93,7 +95,7 @@ _extend(Controller.prototype, {
 			}
 			break;
 		case constants.IMPACT_URL:
-			request.jQuery("#content").html("Coming Soon!");
+			request.jQuery("#content").html("Impact charts coming soon!");
 			/*
 			var state_matched = this.insert_based_on_state(
 				request,
@@ -111,13 +113,17 @@ _extend(Controller.prototype, {
 			}
 			*/
 			break;
+		case constants.HOME_URL:
+		case constants.LEARN_URL:
+			// remove start now button
+			request.jQuery("#StartButtonDiv").remove();
+			break;
 		case constants.RESET_URL:
 			this.reset_state_to_defaults();
 			this.reset_account_to_defaults();
 			break;
 		default:
 			//return false;
-			//throw new Error("Invalid ProcrasDonate URL: " + request.url);
 			logger("Invalid ProcrasDonate URL: " + request.url);
 		}
 		return true;
@@ -358,12 +364,31 @@ function PageController(prefs, pddb) {
 PageController.prototype = {};
 _extend(PageController.prototype, {
 	
+	default_inserts: function(request) {
+		// remove start button
+		request.jQuery("#DivRight").remove();
+
+		// add private menu items
+		var impact_menu_item = ["<div id='my_impact_menu_item'>",
+		                        "<a href='" + constants.IMPACT_URL + "'>My Impact</a>",
+		                        "</div>"];
+		request.jQuery("#community_menu_item").after(impact_menu_item.join("\n"));
+	},
+
 	registration_complete_inserts: function(request) {
-		request.jQuery("#start_now_menu_item a")
-			.attr("href", constants.SETTINGS_URL)
-			.html("Settings <small>(Private)</small>");
-		/*request.jQuery("#StartButton")
-			.attr("src", constants.MEDIA_URL+"img/DoneButton.png");*/
+		// add private menu items
+		var settings_menu_item = ["<div id='settings_menu_item'>",
+		                          "<a href='" + constants.SETTINGS_URL + "'>My Settings</a>",
+		                          "</div>"];
+		request.jQuery("#community_menu_item").after(settings_menu_item.join("\n"));
+	},
+	
+	registration_incomplete_inserts: function(request) {
+		// add private menu items
+		var register_menu_item = ["<div id='register_menu_item'>",
+		                          "<a href='" + constants.REGISTER_URL + "'>Not Done Registering !</a>",
+		                          "</div>"];
+		request.jQuery("#community_menu_item").after(register_menu_item.join("\n"));
 	},
 	
 	make_site_box: function(request, /*sitegroup_id,*/ name, url, tag) {
@@ -595,14 +620,12 @@ _extend(PageController.prototype, {
 					f(new_elem, tag, db_tag);
 				});
 				
-				logger(" hshshshshshs tag="+db_tag+"     site_name="+site_name);
 				// alter data in db
 				self.pddb.SiteGroup.set({
 					tag_id: db_tag.id
 				}, {
 					host: site_name
 				});
-				logger(" yes ");
 			};
 			request.jQuery(".move_to_timewellspent").click( function() {
 				f(request.jQuery(this), "timewellspent", self.pddb.TimeWellSpent);
@@ -618,13 +641,10 @@ _extend(PageController.prototype, {
 	},
 	
 	insert_register_site_classifications: function(request) {
-		logger("Inside insert_register_site_classifications!");
 		/* Inserts site classification html into page */
 		this.prefs.set('register_state', 'site_classifications');
-		logger("getting html");
 		var html = this.register_wrapper_snippet(
 			request, this.site_classifications_middle(request));
-		logger(html);
 		request.jQuery("#content").html(html);
 		this.activate_register_tab_events(request);
 		this.activate_site_classifications_middle(request);
@@ -663,8 +683,6 @@ _extend(PageController.prototype, {
 			var recipient = self.pddb.Recipient.get_or_null({ id: row.recipient_id });
 			var percent = parseFloat(row.percent).toFixed(4) * 100.0;
 			
-			logger(" inside recipients_middle: recipient="+recipient+" percent="+percent);
-			
 			if (recipient && recipient.twitter_name != "ProcrasDonate") {
 				user_recipients += self.recipient_with_percent_snippet(request, recipient, percent);
 				/*
@@ -686,9 +704,8 @@ _extend(PageController.prototype, {
 		var potential_recipients = "";
 		this.pddb.Recipient.select({ is_visible: True }, function(row) {
 			if (self.pddb.RecipientPercent.get_or_null({ recipient_id: row.id })) {
-				logger(" if=T inside recipients_middle: recipient="+row);
+
 			} else {
-				logger(" if=F inside recipients_middle: recipient="+row);
 				potential_recipients += self.recipient_snippet(request, row);
 			}
 		});
@@ -837,14 +854,12 @@ _extend(PageController.prototype, {
 		 * @param middle: html string to insert below tab_snippet and success, error, messages
 		 * 
 		 */
-		logger("_wrapper_snippet");
 		//logger(middle);
 		//logger(tab_snippet);
 		var context = new Context({
 			tab_snippet: tab_snippet,
 			middle: middle
 		});
-		logger("_wrapper_snippet: " + request)
 		//return request.jQuery("#content").html(
 		return Template.get("wrapper_snippet").render(context); //);
 	},
@@ -887,13 +902,11 @@ _extend(PageController.prototype, {
 		 * 
 		 * Slider input's alt must contain "last" value of input, so when do keyboard presses we can compute how to alter the other tabs.
 		 */
-		logger("insert_settings_recipients");
 		this.prefs.set('settings_state', 'recipients');
 		
 		var html= this.settings_wrapper_snippet(
 			request,
 			this.recipients_middle(request));
-		logger(html);
 		request.jQuery("#content").html(html);
 		
 		this.activate_settings_tab_events(request);
@@ -1412,18 +1425,13 @@ _extend(PageController.prototype, {
 		/* Inserts user's twitter account form into page */
 		this.prefs.set('register_state', 'twitter_account');
 		var html1 = this.twitter_account_middle(request);
-		//logger(html1);
 		var html = this.register_wrapper_snippet(request, html1);
-		//logger(html);
-		logger(document.defaultView);
-		//logger($("#content", document.defaultView.document).length);
 		request.jQuery("#content").html(html);
 		this.activate_register_tab_events(request);
 		this.activate_twitter_account_middle(request);
 	},
 	
 	impact_sites_middle: function(request, data, show_tags) {
-		logger(" IMPACT SITES MIDDLE "+data);
 		var context = new Context({
 			data: data,
 			show_tags: show_tags,
@@ -1457,7 +1465,6 @@ _extend(PageController.prototype, {
 			['news.ycombinator.com', 2, 2, 'timewellspent'],
 			['hulu.com', 1, 1, 'procrasdonate'],
 		];
-		logger(request);
 		request.jQuery("#content").html(
 			this.impact_wrapper_snippet(request, this.impact_sites_middle(sort_arr, true)) );
 		this.activate_impact_tab_events(request);
@@ -1516,13 +1523,11 @@ _extend(PageController.prototype, {
 			var d2 = new Date(d);
 			d2.setHours(d2.getHours()-offset_days_offset);
 			offset_days.push(d2);
-			//_logger("   past: "+d);
 		}
 		days.push(today);
 		var d2 = new Date(today);
 		d2.setHours(d2.getHours()-offset_days_offset);
 		offset_days.push(d2);
-		//_logger("   today: "+today);
 		for (var i = today.getDay()+1; i < 7; i++) {
 			var d = new Date();
 			d.setHours(24 * (i-today.getDay()) - offset,0,0,0);
@@ -1530,7 +1535,6 @@ _extend(PageController.prototype, {
 			var d2 = new Date(d);
 			d2.setHours(d2.getHours()-offset_days_offset);
 			offset_days.push(d2);
-			//_logger("   future: "+d);
 		}
 		
 		var start_time = new Date(days[0]);
@@ -1552,7 +1556,6 @@ _extend(PageController.prototype, {
 			data.push( [offset_days[i].getTime(), sum] );
 		}
 		data.push( [end_time.getTime(), sum] );
-		logger("DATA: "+data);
 		var options = {
 			xaxis: { mode: "time" },
 			grid: { hoverable: true, clickable: true, backgroundColor:"#FFF" },

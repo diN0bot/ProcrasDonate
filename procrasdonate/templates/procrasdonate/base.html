@@ -38,8 +38,6 @@
 				<div id="MainMenu">
 					<div {% ifequal selected "home" %}class="here_we_are"{% endifequal %} id='home_menu_item'><a href="{% url home %}">Home</a></div>
 					<div {% ifequal selected "learn_more" %}class="here_we_are"{% endifequal %} id='learn_more_menu_item'><a href="{% url learn_more %}">Learn More</a></div>
-					<div {% ifequal selected "start_now" %}class="here_we_are"{% endifequal %} id='start_now_menu_item'><a href="{% url start_now %}">Start Now</a></div>
-					<div {% ifequal selected "my_impact" %}class="here_we_are"{% endifequal %} id='my_impact_menu_item'><a href="{% url my_impact %}">My Impact <small>(Private)</small></a></div>
 					<div {% ifequal selected "community" %}class="here_we_are"{% endifequal %} id='community_menu_item'><a href="{% url community %}">Community</a></div>
 				</div>
 				<img src="{{ MEDIA_URL }}img/ClearBox.png" class="SmallSpacer">			
