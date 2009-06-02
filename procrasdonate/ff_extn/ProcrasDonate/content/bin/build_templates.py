@@ -1,16 +1,15 @@
 #!/usr/bin/env python
 
 import sys
-print sys.path
 import os
 
 # Make sure required paths are in 'sys.path'
-base_path = "/Users/clay/workspace/ProcrasDonate/"
-extra_paths = [
-        base_path,
-        os.path.join(base_path, "ext/lib"),
-        ]
-sys.path[0:0] = extra_paths
+#base_path = "/Users/clay/workspace/ProcrasDonate/"
+#extra_paths = [
+#        base_path,
+#        os.path.join(base_path, "ext/lib"),
+#        ]
+sys.path[0:0] = "procrasdonate/ff_extn/ProcrasDonate/content/js/ext/lib"
 #os.chdir(base_path)
 
 from django.conf import settings

@@ -103,7 +103,7 @@ def rebuild_extension_templates(request):
     import settings
 
     os.chdir(settings.PROJECT_PATH+bin)
-    #os.system("python %s/build_templates.py %s/*.html" % (bin, generated_templates_dir))
+    os.system("python %s/build_templates.py %s/*.html" % (bin, generated_templates_dir))
     os.system("cp %s/all.js %s/all.js.bkup" % (all_dir, all_dir))
     os.system("cat %s/*.js > %s/all.js" % (generated_templates_dir, all_dir))
     return json_response([ "SUCCESS" ])
