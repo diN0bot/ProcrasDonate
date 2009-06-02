@@ -56,9 +56,11 @@ _extend(PD_ToolbarManager.prototype, {
 				sitegroup = d.sitegroup;
 				tag = d.tag;
 			}
+			var tag_id = 0;
+			if (tag) { tag_id = tag.id; }
 			
 			// alter classify button
-			this.classify_button.setAttribute("image", this.images[tag.id]);
+			this.classify_button.setAttribute("image", this.images[tag_id]);
 			this.classify_button.setAttribute("label", tag.tag);
 			
 			var tooltip_text = this.classify_button.getAttribute("tooltiptext");

@@ -284,23 +284,27 @@ _extend(Schedule.prototype, {
 	do_once_daily_tasks: function() {
 		var self = this;
 		
+		// 1. Send all new Payments to TJ: no tipjoy id
+		// 2. Send all new Totals to PD: more recent time than 'last_total_time_send_to_pd'
+		// 3. Ask TJ for newly paid transactions: ask for xactions since 'last_paid_tipjoy_id', iterate until pledges. set 'last_paid_tipjoy_id'
+		// 4. Send newly paid transactions to PD: iterate 'last_paid_tipjoy_id_sent_to_pd' until pledges
+			
+		// 1.
 		if (this.pddb.controller.registration_complete()) {
-			// 1. Send all new Payments to TJ: no tipjoy id
-			// 2. Send all new Totals to PD: more recent time than 'last_total_time_send_to_pd'
-			// 3. Ask TJ for newly paid transactions: ask for xactions since 'last_paid_tipjoy_id', iterate until pledges. set 'last_paid_tipjoy_id'
-			// 4. Send newly paid transactions to PD: iterate 'last_paid_tipjoy_id_sent_to_pd' until pledges
+			this.tipjoy_api.send_new_payments(this.pddb);
+		}
 			
-			// 1.
-			this.tipjoy_api.send_new_payments(this.pddb)
+		// 2.
+		this.pd_api.send_new_totals(this.pddb);
 			
-			// 2.
-			this.pd_api.send_new_totals(this.pddb)
+		// 3.
+		if (this.pddb.controller.registration_complete()) {
+			this.tipjoy_api.update_pledges(this.pddb);
+		}
 			
-			// 3.
-			this.tipjoy_api.update_pledges(this.pddb)
-			
-			// 4.
-			this.pd_api.send_new_paid_pledges(this.pddb)
+		// 4.
+		if (this.pddb.controller.registration_complete()) {
+			this.pd_api.send_new_paid_pledges(this.pddb);
 		}
 		
 		// reset last_24hr_mark to now
