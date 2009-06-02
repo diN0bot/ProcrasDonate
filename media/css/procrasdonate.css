@@ -56,12 +56,12 @@ p { text-align: left; }
   margin: auto;
   min-width: 40em;
   text-align:center;
-  margin: 3em auto auto 0em;
+  margin: 1.6em auto auto 0em;
   position: absolute;
   left: 12em;
   /*top: 2em;*/
 }
-#thin_column { width: 90%; margin: auto; padding-left: 6em;  padding-bottom: 1em; }
+#thin_column { width: 85%; margin: auto; padding-left: 6em;  padding-bottom: 1em; }
 #footer { font-size: .8em; height: 5em;  font-weight: normal; margin: auto; padding-top: 2em; }
 
 
@@ -103,7 +103,7 @@ p { text-align: left; }
 .DivRight {text-align: right; }	
 .DivLeft {text-align: left; }
 
-.Banner { width: 45em; margin-right: 1.8em; margin-top: -.5em; margin-bottom: -4em; }
+.Banner { width: 44em; margin-right: 0em; margin-top: 0em; margin-bottom: -3em; }
 
 
 .subheader { color: #669933; font-size: .8em;}
@@ -228,8 +228,9 @@ label { padding-right: 1em; }
 
 .small-image { width: 3.3em; float: left; margin-left: -4.1em; margin-top: -2.6em; }
 .medium-image { width: 6em; float: left; margin-left: -4.1em; margin-top: -2.6em; }
-.screenshot-long { width: 27em; float: right; margin-right: .2em; margin-left: .5em; margin-top: .2em; }
-.screenshot-long-second { width: 27em; float: right; margin-right: .2em; margin-left: .5em; margin-top: 1.2em; }
+.screenshot-long { width: 16em; float: right; margin-right: .2em; margin-left: .5em; margin-top: .2em; 
+	border: 0.27em ridge #156451; -moz-border-radius: .4em; padding: .4em;
+}
 
 /**** RECIPIENTS ****/
 
