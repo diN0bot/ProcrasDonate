@@ -7,7 +7,8 @@ var constants = {};
 	 * Define all global variables here.
 	 */
 	constants.MEDIA_URL = '/procrasdonate_media/';
-	constants.PD_HOST = 'localhost:8000';
+	//constants.PD_HOST = 'localhost:8000';
+	constants.PD_HOST = 'procrasdonate.com';
 	constants.PD_URL = 'http://' + constants.PD_HOST;
 	
 	constants.PROCRASDONATE_URL = constants.PD_URL+'/';
