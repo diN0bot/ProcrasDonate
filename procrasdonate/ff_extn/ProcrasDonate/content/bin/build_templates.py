@@ -1,9 +1,11 @@
 #!/usr/bin/env python
 
-import sys, os
+import sys
+print sys.path
+import os
 
 # Make sure required paths are in 'sys.path'
-base_path = "/Users/lucy/sandbox/CalmProcrasDonate/"
+base_path = "/Users/clay/workspace/ProcrasDonate/"
 extra_paths = [
         base_path,
         os.path.join(base_path, "ext/lib"),
