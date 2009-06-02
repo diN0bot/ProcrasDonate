@@ -1,5 +1,81 @@
 {% extends 'procrasdonate/base.html' %}
 
 {% block content %}
+	
 
+	
+	<div id="thin_column">
+		<div class="DivRight">
+			<a href="{% url start_now %}">
+				<img src="{{ MEDIA_URL }}img/StartNow14.png" id="StartButton" class="StartButton">
+			</a>			
+		</div>
+		<h2></h2>
+				
+		<span class="horizontal"> 
+			<a href="#why">Schedule</a>
+		</span>
+		<span class="horizontal">
+			<a href="#quality">Time Well Spent</a>
+		</span>		<span class="horizontal"> 
+			<a href="#what">ProscrasDonate</a>
+		</span>
+		<span class="horizontal">
+			<a href="#goals">Goals</a>
+		</span>
+		<span class="horizontal">
+			<a href="#T-shirts">T-shirts</a>
+		</span>
+		<span class="horizontal">
+			<a href="#changes">Changes</a>
+		</span>		
+			
+		<h2><a name="why"></a>Feel Good About your Schedule</h2>
+		<img src="{{ MEDIA_URL }}img/Calendar.png" class="small-image">		
+		<img src="{{ MEDIA_URL }}img/ScreenshotUnsorted.png" class="screenshot-long">		
+		<p>How often do <b>you</b>... watch videos or tv?  Read the news?  Play games?  Chat?  Want to spend your online time better?
+		ProcrasDonate creates an easy, custom, and charitable incentive to help you feel <b>good</b> about being online.
+		</p>
+		<p>
+		Registration is <b>free</b> and takes about 5 minutes.  
+		After that just click the <i>question mark</i> on your browser to classify websites as either <i>ProcrasDonation</i> or <i>Time Well Spent</i>.
+		</p>
+			
+		<h2><a name="quality"></a>Time Well Spent: Support Quality Content</h2>
+		<img src="{{ MEDIA_URL }}img/ThumbsUp.png" class="small-image">		
+		<img src="{{ MEDIA_URL }}img/ScreenshotTWS.png" class="screenshot-long">		
+		<p>Pledge small donations <b>automatically</b> for good content <b>as</b> you use it.  
+		Click until you see the "thumbs up" icon to mark sites as <i>Time Well Spent</i> that you consider worthwhile.  
+		</p>		
+			
+		<h2><a name="what"></a>ProcrasDonate on your own terms</h2>
+		<img src="{{ MEDIA_URL }}img/ProcrasDonateLogoNoText.png" class="small-image">		
+		<img src="{{ MEDIA_URL }}img/ScreenshotPD.png" class="screenshot-long">		
+		<p>Pledge donations to benefit your favorite charities for every hour you spend <b>goofing</b> around online. 
+		Click until you see the offered sprout icon to mark a website as ProcrasDonation.  
+		</p>
+		
+		<h2><a name="goals"></a>Set your own goals</h2>
+		<img src="{{ MEDIA_URL }}img/HourGlass.png" class="small-image">	
+				<img src="{{ MEDIA_URL }}img/ScreenshotProgressBar.png" class="screenshot-long">		
+		<p>The <b>progress bar</b> shows how close you are to your weekly ProcrasDonation goal.  
+		When it starts going red you've ProcrasDonated more than expected.  
+		When the bar if full you've met your <b>limit</b> and no more pledges will be made until next week.	
+			
+		
+		<h2><a name="T-shirts"></a>Testers get a free shirt!</h2>
+		<img src="{{ MEDIA_URL }}img/ProcrasDonateShirt.png" class="medium-image">		
+		<img src="{{ MEDIA_URL }}img/ProcrasDonateShirtDetail.png" class="screenshot-long">		
+		<p>We need your feedback!  ProcrasDonate and TimeWellSpent are being <b>tested</b> by users like you.
+		<b>Register</b> and let us know what you think through our feedback page and we'll send you a <i>hand screened organic cotton work of art...</i>  
+		Thanks!
+		</p>
+		
+		<h2><a name="changes"></a>Expect Changes</h2>
+		<p>After registering you'll be able to use new features as we add them just by <b>updating</b> your Firefox browser when it asks you to.  
+		Security is our top priority: so your personal data will be <b>safe</b> during our testing stage.  
+		Some of your settings may have to be reinstalled when we release our beta <i>in June</i>.
+		</p>
+		
+	</div>
 {% endblock %}
