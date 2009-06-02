@@ -4,12 +4,12 @@
          xmlns:em="http://www.mozilla.org/2004/em-rdf#">
 
   <Description about="urn:mozilla:install-manifest">
-    <em:id>{5d393167-8b1c-4ce1-8593-0ba5f39f3210}</em:id>
+    <em:id>extension@procrasdonate.com</em:id>
     <em:name>ProcrasDonate</em:name>
     <em:version>0.4</em:version>
     <em:description>Monitor and support your internet addiction</em:description>
     <em:creator>ProcrasDonate</em:creator>
-    <em:contributor>http://www.thoughtandmemory.org/</em:contributor>
+    <em:contributor>http://www.bilumi.org/</em:contributor>
     <em:homepageURL>http://www.procrasdonate.com/</em:homepageURL>
     <em:targetApplication>
       <Description>

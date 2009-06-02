@@ -8,7 +8,7 @@ logger = function(msg) {
 	}
 };
 
-var ProcrasDonate__UUID="{5d393167-8b1c-4ce1-8593-0ba5f39f3210}";
+var ProcrasDonate__UUID="extension@procrasdonate.com";
 
 
 // from https://developer.mozilla.org/En/Code_snippets:On_page_load
