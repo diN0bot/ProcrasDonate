@@ -20,10 +20,14 @@ var constants = {};
 	constants.COMMUNITY_URL = constants.PD_URL+'/our_community';
 	constants.PRIVACY_URL = constants.PD_URL+'/privacy_guarantee/';
 	constants.RECIPIENTS_URL = constants.PD_URL+'/recipients';
-	constants.POST_DATA_URL = constants.PD_URL+'/data/';
 	
-	// these don't exist. used for development testing
-	constants.RESET_URL = constants.PD_URL+'/reset/';
+	constants.POST_TOTALS_URL = constants.PD_URL+'/post/totals/';
+	constants.POST_PAYMENTS_URL = constants.PD_URL+'/post/payments/';
+	
+	// used for development testing
+	constants.LOAD_FAKE_DATA = constants.PD_URL+'/load_fake_data/';
+	constants.TRIGGER_DAILY_CYCLE = constants.PD_URL+'/trigger_daily_cycle/';
+	constants.TRIGGER_WEEKLY_CYCLE = constants.PD_URL+'/trigger_weekly_cycle/';
 	
 	// enumeration of settings page state
 	constants.SETTINGS_STATE_ENUM = [
@@ -103,6 +107,9 @@ var constants = {};
 	
 	constants.DEFAULT_USERNAME = "";
 	constants.DEFAULT_PASSWORD = "";
+	constants.DEFAULT_EMAIL = "";
+	constants.DEFAULT_PROCRASDONATE_REASON = "ProcrasDonating for a good cause";
+	constants.DEFAULT_TIMEWELLSPENT_REASON = "TimeWellSpent for a good cause";
 	constants.DEFAULT_CENTS_PER_HR = 95;
 	constants.DEFAULT_HR_PER_WEEK_GOAL = 20;
 	constants.DEFAULT_HR_PER_WEEK_MAX = 30;

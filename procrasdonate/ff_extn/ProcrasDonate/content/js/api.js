@@ -31,6 +31,15 @@ _extend(API.prototype, {
 		if ( method == 'POST' ) {
 			headers["Content-type"] = "application/x-www-form-urlencoded";
 		}
+		
+		if (!onerror) {
+			onerror = function(r) {
+				var str = ""; for (var prop in r) {	str += prop + " value :" + r[prop]+ + " __ "; }
+				logger("standard_onerror for url="+url+" data="+data+": "+r+"_"+str);
+				// might as well try
+				request.jQuery("#errors").append("Something unexpected occurred.");
+			};
+		}
 	
 		var options = {
 			url: url,
@@ -48,26 +57,5 @@ _extend(API.prototype, {
 			logger(" HTTPREQUEST error occured in api.js "+e);
 			onerror("Something unexpected happened.");
 		}
-	},
-});
-
-// PD_API
-// * handles interaction with ProcrasDonate.com
-var ProcrasDonate_API = function() {
-	API.apply(this, arguments);
-};
-
-ProcrasDonate_API.prototype = new API();
-_extend(ProcrasDonate_API.prototype, {
-	/*
-	 * Posts anonymous information to procrasdonate server for community page
-	 * tracking
-	 */
-	post_anonymous_info: function() {
-		// get data from db
-		
-		// serialize into json
-	
-		// make request
 	},
 });

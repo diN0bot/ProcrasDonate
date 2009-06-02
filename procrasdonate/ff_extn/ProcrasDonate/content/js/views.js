@@ -153,6 +153,18 @@ _extend(Controller.prototype, {
 			hash.push( monsterbet[Math.floor(Math.random()*62)] );
 		}
 		this.prefs.set('hash', hash.join(''));
+		
+		// This state is necessary for correctly synching data between
+		// this extension, TipJoy and ProcrasDonate.
+		// Synching does not depend on 24hr or weekly cycle settings. woot!!
+		// Synching is triggered by those cycles, but the data to synch
+		// is found using the following state
+		this.prefs.set('last_tipjoy_id_sent_to_tipjoy', false);
+		this.prefs.set('last_paid_tipjoy_id_sent_to_pd', false);
+		this.prefs.set('last_pledge_tipjoy_id', false);
+		this.prefs.set('last_total_time_send_to_pd', false);
+
+		// Scheduling state
 	},
 	
 	registration_complete: function() {
@@ -175,23 +187,28 @@ _extend(Controller.prototype, {
 		if (!last_24hr_mark) {
 			
 			function get_semi_random_date() {
-				/* @returns: Date object for current day, month and fullyear with random hours, minutes and seconds */
-				var d = new Date();
-				// Math.floor(Math.random()*X) generates random ints, x: 0 <= x < X
-				d.setHours(Math.floor(Math.random()*24));
+				/* @returns: Date object for current day */
+				//// Math.floor(Math.random()*X) generates random ints, x: 0 <= x < X
+				// wanted to distribute roll-over times so don't hose server. 
+				// DO NOT NEED to correlate this with end_of_day and end_of_week times
+				// in pddb.Totals objects. 
+				var d = _start_of_day();
+				d.setHours(0);
 				d.setMinutes(Math.floor(Math.random()*60));
 				d.setSeconds(Math.floor(Math.random()*60));
+				if (d > new Date()) {
+					d.setHours(d.getHours() - 24);
+				}
 				return d;
 			}
 			
-			last_24hr_mark = Math.floor(get_semi_random_date().getTime() / 1000);
+			last_24hr_mark = _dbify_date( get_semi_random_date() );
 			this.prefs.set("last_24hr_mark", last_24hr_mark);
 		}
 		
-		var last_week_mark = this.prefs.get("last_week_mark", "") * 1000;
+		var last_week_mark = this.prefs.get("last_week_mark", "");
 		if (!last_week_mark) {
-			last_week_mark = new Date(last_24hr_mark * 1000);
-			this.prefs.set("last_week_mark", last_week_mark);
+			this.prefs.set("last_week_mark", last_24hr_mark);
 		}
 	},
 	
@@ -199,6 +216,9 @@ _extend(Controller.prototype, {
 		hash: "nohash",
 		twitter_username: constants.DEFAULT_USERNAME,
 		twitter_password: constants.DEFAULT_PASSWORD,
+		email: constants.DEFAULT_EMAIL,
+		procrasdonate_reason: constants.DEFAUL_PROCRASDONATE_REASON,
+		timewellspent_reason: constants.DEFAUL_TIMEWELLSPENT_REASON,
 		cents_per_hr: constants.DEFAULT_CENTS_PER_HR,
 		hr_per_week_goal: constants.DEFAULT_HR_PER_WEEK_GOAL,
 		hr_per_week_max: constants.DEFAULT_HR_PER_WEEK_MAX,
@@ -245,7 +265,6 @@ function Schedule(prefs, pddb) {
 Schedule.prototype = {};
 _extend(Schedule.prototype, {
 	run: function() {
-		// 4.
 		if ( this.is_new_24hr_period() ) {
 			this.do_once_daily_tasks();
 		}
@@ -256,23 +275,45 @@ _extend(Schedule.prototype, {
 	
 	is_new_24hr_period: function() {
 		/* @returns: true if it is at least 24 hrs past the last 24hr mark */
-		var two_four_hr = new Date(this.prefs.get('last_24hr_mark', '')*1000);
+		var two_four_hr = _un_dbify_date(this.prefs.get('last_24hr_mark', ''));
 		var now = new Date();
 		two_four_hr.setHours(two_four_hr.getHours() + 24);
 		return now > two_four_hr
 	},
 	
 	do_once_daily_tasks: function() {
-		// reset last_24hr_mark to now
-		var two_four_hr = new Date(this.prefs.get('last_24hr_mark', '')*1000);
-		var now = new Date();
-		now.setHours(two_four_hr.getHours());
-		now.setMinutes(two_four_hr.getMinutes());
-		now.setSeconds(two_four_hr.getSeconds());
-		if ( now > new Date() ) {
-			now.setDate( now.getDate() - 1 );
+		var self = this;
+		
+		if (this.pddb.controller.registration_complete()) {
+			// 1. Send all new Payments to TJ: no tipjoy id
+			// 2. Send all new Totals to PD: more recent time than 'last_total_time_send_to_pd'
+			// 3. Ask TJ for newly paid transactions: ask for xactions since 'last_paid_tipjoy_id', iterate until pledges. set 'last_paid_tipjoy_id'
+			// 4. Send newly paid transactions to PD: iterate 'last_paid_tipjoy_id_sent_to_pd' until pledges
+			
+			// 1.
+			this.tipjoy_api.send_new_payments(this.pddb)
+			
+			// 2.
+			this.pd_api.send_new_totals(this.pddb)
+			
+			// 3.
+			this.tipjoy_api.update_pledges(this.pddb)
+			
+			// 4.
+			this.pd_api.send_new_paid_pledges(this.pddb)
 		}
-		this.prefs.set('last_24hr_mark', Math.floor(now.getTime()/1000));
+		
+		// reset last_24hr_mark to now
+		var two_four_hr = _un_dbify_date(this.prefs.get('last_24hr_mark', ''));
+		var new_two_four_hr = new Date();
+		new_two_four_hr.setHours(two_four_hr.getHours());
+		new_two_four_hr.setMinutes(two_four_hr.getMinutes());
+		new_two_four_hr.setSeconds(two_four_hr.getSeconds());
+		if ( new_two_four_hr > new Date() ) {
+			// is this possible? is this a dire error? loopy?
+			new_two_four_hr.setDate( now.getDate() - 1 );
+		}
+		this.prefs.set('last_24hr_mark', _dbify_date( new_two_four_hr ));
 		//alert("ding! last 24hr "+two_four_hr+" new 24hr "+now+"  now  "+new Date());
 	},
 	
@@ -306,8 +347,9 @@ _extend(Schedule.prototype, {
 function PageController(prefs, pddb) {
 	logger("PageController()");
 	this.prefs = prefs;
-	this.tipjoy = new TipJoy_API(this.prefs);
 	this.pddb = pddb;
+	this.tipjoy = new TipJoy_API(this.prefs, this.pddb);
+	this.pd_api = new ProcrasDonate_API(this.prefs, this.pddb);
 }
 PageController.prototype = {};
 _extend(PageController.prototype, {
@@ -394,15 +436,8 @@ _extend(PageController.prototype, {
 				if ( response.result == "success" ) {
 					request.jQuery("#balance_here").text(response.balance);
 				} else {
-					var reason = eval("("+r.responseText+")").reason;
-					request.jQuery("#balance").append("Problem retrieving balance from TipJoy: "+reason);
+					request.jQuery("#balance").append("Problem retrieving balance from TipJoy: "+response.reason);
 				}
-			},
-			function(r) {
-				var str = ""; for (var prop in r) {	str += prop + " value :" + r[prop]+ + " __ "; }
-				logger("standard_onerror: "+r+"_"+str);
-				var reason = eval("("+r.responseText+")").reason;
-				request.jQuery("#errors").append("An error occurred: " + reason);
 			}
 		);
 	},
@@ -1090,12 +1125,6 @@ _extend(PageController.prototype, {
 									var reason = eval("("+r.responseText+")").reason;
 									request.jQuery("#errors").append("tipjoy user exists but can not sign-on: "+reason);
 								}
-							},
-							function(r) {
-								var str = ""; for (var prop in r) {	str += prop + " value :" + r[prop]+ + " __ "; }
-								logger("standard_onerror: "+r+"_"+str);
-								var reason = eval("("+r.responseText+")").reason;
-								request.jQuery("#errors").append("An error occurred: " + reason);
 							}
 						);
 					} else {
@@ -1122,20 +1151,9 @@ _extend(PageController.prototype, {
 									logger("problem creating tipjoy account: "+reason);
 									request.jQuery("#errors").append("problem creating tipjoy account: "+reason);
 								}
-							},
-							function(r) {
-								var str = ""; for (var prop in r) {	str += prop + " value :" + r[prop]+ + " __ "; }
-								logger("standard_onerror: "+r+"_"+str);
-								request.jQuery("#errors").append("An error occurred: " + r);
 							}
 						);
 					}
-				},
-				function(r) {
-					var str = ""; for (var prop in r) {	str += prop + " value :" + r[prop]+ + " __ "; }
-					logger("standard_onerror: "+r+"_"+str);
-					var reason = eval("("+r.responseText+")").reason;
-					request.jQuery("#errors").append("An error occurred: " + reason);
 				}
 			);
 		}

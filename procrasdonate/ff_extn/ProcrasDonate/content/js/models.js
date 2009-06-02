@@ -118,14 +118,14 @@ function load_models(db) {
 		indexes: []
 	});
 	
-	// Overall ProcrasDonate or TimeWellSpent
-	// Daily, weekly and forever total
+	// Aggregates visits in different ways
+	// Crosses different model slices (tags, recipients, sites, sitegroups)
+	// with different time spans (daily, weekly, forever)
 	var Total = new Model(db, "Total", {
 		table_name: "totals",
 		columns: {
 			_order: ["id","contenttype_id", "content_id", "total_time", 
-			         "total_amount", "time", "timetype_id", "is_payable", 
-			         "has_paid", "tipjoy_transaction_id"],
+			         "total_amount", "time", "timetype_id"],
 			         
 			id: "INTEGER PRIMARY KEY",
 
@@ -137,11 +137,22 @@ function load_models(db) {
 			total_time: "INTEGER", //seconds
 			total_amount: "REAL", //cents
 			time: "INTEGER", //"DATETIME"
-			timetype_id: "INTEGER",
-			// only daily site and recipient totals are payable
-			is_payable: "INTEGER", // use True or False definitions in utils
-			has_paid: "INTEGER", // use True or False definitions in utils
+			timetype_id: "INTEGER"
+		}
+	});
+	
+	// if balance can only partially cover payment, 
+	// then two payments will be created for total.
+	// one will be paid, one will be unpaid (initially)
+	var Payment = new Model(db, "Payment", {
+		table_name: "payments",
+		columns: {
+			_order: ["id", "total_id",
+			         "tipjoy_transaction_id", "is_pledge"],
+			id: "INTEGER PRIMARY KEY",
+			total_id: "INTEGER",
 			tipjoy_transaction_id: "INTEGER", // null if no payable
+			is_pledge: "INTEGER" // use True or False definitions in utils
 		}
 	});
 	
@@ -170,7 +181,7 @@ function load_models(db) {
                  "Recipient", "Category", "RecipientPercent",
                  "Tag", //"SiteGroupTagging",
 				 "Visit",
-				 "Total", "TimeType", "ContentType"],
+				 "Total", "Payment", "TimeType", "ContentType"],
         
         Site: Site,
 		SiteGroup: SiteGroup,
@@ -185,6 +196,7 @@ function load_models(db) {
         Visit: Visit,
         
 		Total: Total,
+		Payment: Payment,
 		TimeType: TimeType,
 		ContentType: ContentType
 		

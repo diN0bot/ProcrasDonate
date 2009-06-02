@@ -17,6 +17,8 @@
     <script type='application/x-javascript' 
             src='chrome://ProcrasDonate/content/js/ext/jquery-ui-1.6.custom.min.js'></script>
 -->
+    <script type='application/x-javascript' 
+            src='chrome://ProcrasDonate/content/js/ext/json2.js'></script>
   <!-- -->
 
     <script type='application/x-javascript' 
@@ -69,6 +71,8 @@
             src='chrome://ProcrasDonate/content/js/settings.js'></script>
     <script type='application/x-javascript'
             src='chrome://ProcrasDonate/content/js/api.js'></script>
+    <script type='application/x-javascript'
+            src='chrome://ProcrasDonate/content/js/pd.js'></script>
     <script type='application/x-javascript'
             src='chrome://ProcrasDonate/content/js/tipjoy.js'></script>
     <script type='application/x-javascript'

@@ -657,7 +657,6 @@ PDDB.prototype = {
 		//	contenttype instance
 		//  content instance
 		//  amt (float)
-		//  is_payable (True/False)
 		var content_instances = [];
 		
 		var self = this;
@@ -668,7 +667,6 @@ PDDB.prototype = {
 						contenttype: row,
 						content: site,
 						amt: rest_amount,
-						is_payable: True
 					});
 				}
 			} else if (row.modelname == "SiteGroup") {
@@ -676,7 +674,6 @@ PDDB.prototype = {
 					contenttype: row,
 					content: sitegroup,
 					amt: rest_amount,
-					is_payable: False
 				});
 
 			} else if (row.modelname == "Tag") {
@@ -684,7 +681,6 @@ PDDB.prototype = {
 					contenttype: row,
 					content: tag,
 					amt: rest_amount,
-					is_payable: False
 				});
 
 			} else if (row.modelname == "Recipient") {
@@ -695,7 +691,6 @@ PDDB.prototype = {
 								contenttype: row,
 								content: pd_recipient,
 								amt: skim_amount,
-								is_payable: True
 							});
 						} else {
 							if (tag == self.ProcrasDonate) {
@@ -703,7 +698,6 @@ PDDB.prototype = {
 									contenttype: row,
 									content: r,
 									amt: rest_amount * parseFloat(r.percent),
-									is_payable: True
 								});
 							}
 						}
@@ -718,20 +712,21 @@ PDDB.prototype = {
 		
 			for (var j = 0; i < content_instances.length; i++) {
 				var triple = content_instances[j];
+				var contenttype = triple[0];
+				var content = triple[1];
+				var amt = triple[2];
 				
 				logger(" .....timetypes="+timetypes+" length="+timetypes.length);
 				logger(" .....times="+times+" length="+times.length);
 				logger(" .....before.. total...");
 				var total = this.Total.get_or_create({
-					contenttype_id: triple.contenttype.id,
-					content_id: triple.content.id,
+					contenttype_id: contenttype.id,
+					content_id: content.id,
 					time: times[0],
 					timetype_id: timetypes[i].id
 				}, {
 					total_time: 0,
 					total_amount: 0,
-					is_payable: triple.is_payable,
-					has_paid: False
 				});
 				logger(" .....after.. total="+total);
 				
@@ -741,6 +736,14 @@ PDDB.prototype = {
 				}, {
 					id: total.id
 				});
+				
+				if (contenttype.modelname == "Tag") {
+					this.Payment.get_or_create({
+						total_id: total.id
+					}, {
+						tipjoy_transaction_id: 0,
+					});
+				}
 			}
 		}
 	},

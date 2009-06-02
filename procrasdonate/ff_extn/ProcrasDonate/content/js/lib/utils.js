@@ -207,6 +207,17 @@ function _iterate(o, fn) {
 //	return ret;
 //}
 
+var _start_of_day = function(date) {
+	if (!date) {
+		date = new Date();
+	}
+	date.setHours(0);
+	date.setMinutes(0);
+	date.setSeconds(0);
+	date.setMilliseconds(0);
+	return date;
+}
+
 var _end_of_forever = -3;
 
 var _end_of_day = function(date) {
@@ -235,6 +246,10 @@ var _end_of_week = function(date) {
 
 var _dbify_date = function(date) {
 	return Math.round(date.getTime() / 1000.0);
+}
+
+var _un_dbify_date = function(str) {
+	return new Date(parseInt(str) * 1000);
 }
 
 var host_regexp =  /^[\w]+:\/\/([^\/]+).*/g;
