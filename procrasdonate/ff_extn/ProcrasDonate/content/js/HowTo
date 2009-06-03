@@ -7,7 +7,7 @@ git pull
 ProcrasDonate:
 
 Using local host: 
-http://localhost:8000/start_now/
+http://localhost:8000/home/
 Viewing as an new user: ?
 svn update = git pull
 svn add    = git add
