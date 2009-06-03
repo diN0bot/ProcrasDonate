@@ -32,8 +32,8 @@ p { text-align: left; }
    red (menu border) 8A4304
    bright orange FF9900
    darker orange 
-	brown header text cc9966
-   dark brown text 330000
+	brown header text cd8047 (was cc9966 and b15b1c)
+   dark brown text (was 330000)
 */
 
 .new { color: #F37F19; }
@@ -115,11 +115,11 @@ h2 {
   text-align: left;
   font-family:"Trebuchet MS",Helvetica,Jamrul,sans-serif;
   font-size: 1.7em;
-  color: #cc9966;
+  color: #cd8047;
   margin: 1.5em 0em .5em 0em;
   font-variant: small-caps;
   font-weight: bold;
-  letter-spacing: .2em;
+  letter-spacing: .09em;
   border-bottom: .5px solid #ccff99; /*FAF3F4;*/
   /*background: #FAF3F4;*/
   padding: 1em 0em 0em .5em;
