@@ -54,7 +54,7 @@ _extend(TipJoy_API.prototype, {
 	send_new_payments: function() {
 		var self = this;
 		// 1. Send all new Payments to TJ: no tipjoy id
-		this.Payment.select({
+		this.pddb.Payment.select({
 			tipjoy_transaction_id: 0,
 		}, function(row) {
 			var total = self.pddb.Total.get_or_null({ id: row.total_id });

@@ -18,15 +18,21 @@ _extend(Controller.prototype, {
 	handle: function(request) {
 		logger("Controller.handler: url="+request.url);
 		var host = _host(request.url);
-		if (host.match(new RegExp(constants.PD_HOST)))
-			//request.do_in_page(_bind(this.page, this.page.insert_settings_recipients, request));
-			//request.do_in_page(
-			//	_bind(this.page, this.page.insert_settings_donation_amounts, request));
-			//request.do_in_page(_bind(this.page, this.page.insert_settings_twitter_account, request));
-			//request.do_in_page(_bind(this, this.pd_dispatch_by_url, request));
-			return this.pd_dispatch_by_url(request);
-		else
-			return false;
+		logger("VHOSTS F"+constants.VALID_HOSTS+" "+constants.VALID_HOSTS.length);
+		for (var i = 0; i < constants.VALID_HOSTS.length; i++) {
+			var valid_host = constants.VALID_HOSTS[i];
+			logger("host="+host);
+			logger("vhost="+valid_host);
+			if (host == valid_host) { //match(new RegExp(valid_host)))
+				//request.do_in_page(_bind(this.page, this.page.insert_settings_recipients, request));
+				//request.do_in_page(
+				//	_bind(this.page, this.page.insert_settings_donation_amounts, request));
+				//request.do_in_page(_bind(this.page, this.page.insert_settings_twitter_account, request));
+				//request.do_in_page(_bind(this, this.pd_dispatch_by_url, request));
+				return this.pd_dispatch_by_url(request);
+			}
+		}
+		return false;
 	},
 	
 	insert_based_on_state: function(request, state_name, state_enums, event_inserts) {
@@ -54,6 +60,7 @@ _extend(Controller.prototype, {
 	
 	pd_dispatch_by_url: function(request) {
 		logger("pd_dispatch_by_url: "+ request.url);
+		
 		this.page.default_inserts(request);
 		if (this.registration_complete()) {
 			this.page.registration_complete_inserts(request);
@@ -61,7 +68,10 @@ _extend(Controller.prototype, {
 			this.page.registration_incomplete_inserts(request);
 		}
 		
-		switch (request.url) {
+		var path = request.url.match(new RegExp("http:\/\/[^/]+(.*)"))
+		logger("  PATH: "+path+"  ____   "+path[1]);
+		
+		switch (path[1]) {
 		case constants.REGISTER_URL:
 			var state_matched = this.insert_based_on_state(
 				request,
@@ -294,23 +304,23 @@ _extend(Schedule.prototype, {
 		// 2. Send all new Totals to PD: more recent time than 'last_total_time_send_to_pd'
 		// 3. Ask TJ for newly paid transactions: ask for xactions since 'last_paid_tipjoy_id', iterate until pledges. set 'last_paid_tipjoy_id'
 		// 4. Send newly paid transactions to PD: iterate 'last_paid_tipjoy_id_sent_to_pd' until pledges
-			
+
 		// 1.
 		if (this.pddb.controller.registration_complete()) {
-			this.tipjoy_api.send_new_payments(this.pddb);
+			this.pddb.page.tipjoy.send_new_payments(this.pddb);
 		}
 			
 		// 2.
-		this.pd_api.send_new_totals(this.pddb);
+		this.pddb.page.pd_api.send_new_totals(this.pddb);
 			
 		// 3.
 		if (this.pddb.controller.registration_complete()) {
-			this.tipjoy_api.update_pledges(this.pddb);
+			this.pddb.page.tipjoy.update_pledges(this.pddb);
 		}
 			
 		// 4.
 		if (this.pddb.controller.registration_complete()) {
-			this.pd_api.send_new_paid_pledges(this.pddb);
+			this.pddb.page.pd_api.send_new_paid_pledges(this.pddb);
 		}
 		
 		// reset last_24hr_mark to now
@@ -366,7 +376,7 @@ _extend(PageController.prototype, {
 	
 	default_inserts: function(request) {
 		// remove start button
-		request.jQuery("#DivRight").remove();
+		request.jQuery("#StartButton").remove();
 
 		// add private menu items
 		var impact_menu_item = ["<div id='my_impact_menu_item'>",
