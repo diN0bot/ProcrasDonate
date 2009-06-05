@@ -761,7 +761,8 @@ _extend(PageController.prototype, {
 			}
 		});
 		
-		var spacer = "<div id='recipient_spacer_row'>&nbsp;----------------------thespacer------------</div>";
+		//var spacer = "<div id='recipient_spacer_row'>&nbsp;----------------------thespacer------------</div>";
+		var spacer = "<div id='recipient_spacer_row'><hr></div>";
 		
 		var potential_recipients = "";
 		this.pddb.Recipient.select({ is_visible: True }, function(row) {
@@ -787,6 +788,23 @@ _extend(PageController.prototype, {
 		var self = this;
 		
 		request.jQuery(".recipient_id").hide();
+		
+		request.jQuery(".description_toggle").click( function() {
+			try {
+				var e = request.jQuery(this);
+				if (e.text() == "(less)") {
+					e.text("(more)");
+					e.next().hide();
+				} else {
+					e.text("(less)");
+					e.next().show();
+				}
+			} catch(e) {
+				logger("ERROR ");
+			}
+		});
+		request.jQuery(".description_toggle").click();
+		
 		
 		var spacer = request.jQuery("#recipient_spacer_row");
 		
