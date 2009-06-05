@@ -25,7 +25,7 @@ URLBarListener.prototype = {
 		if (aIID.equals(Components.interfaces.nsIWebProgressListener) ||
 			aIID.equals(Components.interfaces.nsISupportsWeakReference) ||
 			aIID.equals(Components.interfaces.nsISupports)) {
-			logger("QueryInterface:: " + aIID);
+			//logger("QueryInterface:: " + aIID);
 			return this;
 		}
 		throw Components.results.NS_NOINTERFACE;
@@ -45,7 +45,7 @@ URLBarListener.prototype = {
 			msg += "load_stop ";
 			//logger("onStateChange::load_end: " + aWebProgress.DOMWindow.location.href);
 		}
-		logger(msg);
+		//logger(msg);
 	},
 	
 	onLocationChange: function(aProgress, aRequest, aURI) {
@@ -53,16 +53,16 @@ URLBarListener.prototype = {
 		// or when the user switches tabs. If you use myListener for more than one tab/window,
 		// use aProgress.DOMWindow to obtain the tab/window which triggered the change.
 		var href = aProgress.DOMWindow.location.href;
-		logger("onLocationChange:: " + href +" "+aURI);
+		//logger("onLocationChange:: " + href +" "+aURI);
 		//logger(jQuery(aProgress.DOMWindow,
 		//if (aURI == "about:config")
 		//	return;
-		logger(window);
-		logger(document);
-		logger(gBrowser);
-		logger(gBrowser.contentWindow);
-		logger(gBrowser.contentWindow.document);
-		logger(gBrowser.contentDocument);
+		//logger(window);
+		//logger(document);
+		//logger(gBrowser);
+		//logger(gBrowser.contentWindow);
+		//logger(gBrowser.contentWindow.document);
+		//logger(gBrowser.contentDocument);
 		
 		http_request = new HttpRequest(window, window);
 		var request = http_request.contentStartRequest({
@@ -70,20 +70,22 @@ URLBarListener.prototype = {
 			//url: "http://localhost:8000/start_now",
 			url: "http://www.google.com",
 			onload: function(event) {
-				logger(["HttpRequest->onload()", arguments.length]);
-				logger(event.responseText);
+				//logger(["HttpRequest->onload()", arguments.length]);
+				//logger(event.responseText);
 			},
 			onerror: function(event) {
-				logger(["HttpRequest->onerror()",arguments.length]); },
+				//logger(["HttpRequest->onerror()",arguments.length]);
+			},
 			onreadystatechange: function(event) {
-				logger(["HttpRequest->onreadystatechange()", arguments]); },
+				//logger(["HttpRequest->onreadystatechange()", arguments]);
+			},
 		});
 		
-		logger(jQuery("*", gBrowser.contentWindow.document).length);
+		//logger(jQuery("*", gBrowser.contentWindow.document).length);
 		//logger([]);
 		//logger([aProgress.DOMWindow.content]);
 		
-		logger(" location changed. start recording: "+href);
+		//logger(" location changed. start recording: "+href);
 		this.pddb.start_recording(href);
 
 		this.toolbar_manager.updateButtons({ url: href });
@@ -98,7 +100,7 @@ URLBarListener.prototype = {
 		//logger("onStatusChange:: " + aStatus + " => " + aMessage);
 	},
 	onSecurityChange: function(aWebProgress, aRequest, aState) {
-		logger("onSecurityChange:: " + aState);
+		//logger("onSecurityChange:: " + aState);
 	}
 	
 };
@@ -119,8 +121,8 @@ Prefs = Prefs.getBranch("extensions.my_extension_name.");
 //}
 
 function Overlay() {
-	logger("Overlay()");
-	logger([window, document, gBrowser]);
+	//logger("Overlay()");
+	//logger([window, document, gBrowser]);
 	
 	var self = this;
 	window.addEventListener("load", _bind(this, this.init), false);
@@ -137,8 +139,8 @@ Overlay.prototype = {
 	//},
 	
 	init: function() {
-		logger([window, document, gBrowser]);
-		logger("Overlay.init()");
+		//logger([window, document, gBrowser]);
+		//logger("Overlay.init()");
 		
 		this.pddb = new PDDB();
 		this.pddb.init_db();
@@ -152,7 +154,7 @@ Overlay.prototype = {
 		var appcontent = document.getElementById("appcontent");   // browser
 		
 		if(appcontent && !appcontent.seen_by_ProcrasDonate) {
-			logger("Overlay.init::appcontent!" + appcontent);
+			//logger("Overlay.init::appcontent!" + appcontent);
 			appcontent.seen_by_ProcrasDonate = true;
 			
 			// DOMContentLoaded - fires when DOM is ready but images not loaded
@@ -183,21 +185,21 @@ Overlay.prototype = {
 		//window.removeEventListener("load", this.eventListeners.load ,true);
 		//window.addEventListener("load", function(){ Overlay.onLoad(); }, false);
 		
-		logger("Overlay.init() => end");
+		//logger("Overlay.init() => end");
 	},
 	
 	uninit: function() {
-		logger("Overlay.uninit()");
+		//logger("Overlay.uninit()");
 		gBrowser.removeProgressListener(this.url_bar_listener);
 	},
 	
 	
 	onLoad: function() {
-		logger("Overlay.onLoad()");
+		//logger("Overlay.onLoad()");
 	},
 	
 	onUnload: function() {
-		logger("Overlay.onUnload()");
+		//logger("Overlay.onUnload()");
 	},
 	
 	onPageShow: function() {
@@ -211,14 +213,14 @@ Overlay.prototype = {
 	dispatch: function(href, event) {
 		var i, controller, request, response;
 		request = new PageRequest(href, event);
-		logger("request: " + request);
+		//logger("request: " + request);
 		for (i=0; i<this.page_controllers.length; i++) {
 			controller = this.page_controllers[i];
 			response = controller.handle(request);
 			if (response)
 				return response;
 		}
-		logger("done");
+		//logger("done");
 		return null;
 	},
 	
@@ -226,7 +228,7 @@ Overlay.prototype = {
 		// We only care about page load (DOMContentLoaded) when we're
 		// going to display a page.
 		var msg = "Overlay.onPageLoad:: ";
-		logger(msg);
+		//logger(msg);
 		
 		var unsafeWin = event.target.defaultView;
 		if (unsafeWin.wrappedJSObject)
@@ -235,7 +237,7 @@ Overlay.prototype = {
 		var href = new XPCNativeWrapper(
 			new XPCNativeWrapper(unsafeWin, "location").location, "href").href;
 		
-		logger("  x-x-x-x-x-x-x-x href="+href);
+		//logger("  x-x-x-x-x-x-x-x href="+href);
 		return this.dispatch(href, event);
 		
 		////////// OLD /////////////
@@ -298,7 +300,7 @@ Overlay.prototype = {
 	},
 	
 	injectScript: function(script, url, unsafeWin) {
-		logger("Overlay.injectScript:: url=" + url);
+		//logger("Overlay.injectScript:: url=" + url);
 	},
 	
 	onPageUnload: function(event) {
@@ -309,12 +311,12 @@ Overlay.prototype = {
 			//var doc = event.originalTarget;
 			//logger("page unloaded:" + doc.location.href);
 		}
-		logger(msg);
+		//logger(msg);
 	},
 	
 	
 	processNewURL: function(win, url) {
-		logger("Overlay.processNewURL:: url=" + url);
+		//logger("Overlay.processNewURL:: url=" + url);
 		//logger(jQuery("#content", win.document.defaultView).length);
 		this.pddb.house_keeping();
 		//if (is_procrasdonate_domain()) {
@@ -363,10 +365,10 @@ Overlay.prototype = {
 	},
 	
 	doInstall: function() { // 
-		logger("Overlay.doInstall::");
+		//logger("Overlay.doInstall::");
 	},
 	onInstall: function() { // execute on first run
-		logger("Overlay.onInstall::");
+		//logger("Overlay.onInstall::");
 		// The example below loads a page by opening a new tab.
 		// Useful for loading a mini tutorial
 		window.setTimeout(function() {
@@ -381,14 +383,14 @@ Overlay.prototype = {
 	},
 	
 	doUpgrade: function() { // make any necessary changes for a new version (upgrade)
-		logger("Overlay.doUpgrade::");
+		//logger("Overlay.doUpgrade::");
 	},
 	onUpgrade: function() { // execute after each new version (upgrade)
-		logger("Overlay.onUpgrade::");
+		//logger("Overlay.onUpgrade::");
 	},
 	
 	doMenuSelect: function() {
-		logger("Menu selected!");
+		//logger("Menu selected!");
 	},
 };
 
@@ -411,7 +413,7 @@ _extend(Dispatcher.prototype, {
 });
 
 var PDDB = function PDDB() {
-	logger("PDDB()");
+	//logger("PDDB()");
 	//if (Main.locked)
 	//	return Main.instance;
 	
@@ -424,13 +426,13 @@ var PDDB = function PDDB() {
 	logger(" &&&&&&&&&&&&&&&&&&&& last_url="+this.prefs.get('last_url', 'no last url'));
 	
 	this.controller = new Controller(this.prefs, this);
-	this.schedule = new Schedule(this.prefs, this);
 	this.page = new PageController(this.prefs, this);
+	this.schedule = new Schedule(this.prefs, this);
 };
 
 PDDB.prototype = {
 	init_db: function() {
-		logger("PDDB.init_db()");
+		//logger("PDDB.init_db()");
 		var db = new Backend__Firefox();
 		db.connect("test011.sqlite");
 		this.db = db;
@@ -438,7 +440,7 @@ PDDB.prototype = {
 		
 		var self = this;
 		_iterate(this.models, function(name, model) {
-			logger("model: "+name);
+			//logger("model: "+name);
 			self[name] = model; //new Model(db, name, spec);
 			
 			var already_exists = false;
@@ -875,7 +877,7 @@ PDDB.prototype = {
 	},
 	
 	dispatch: function(doc, url) {
-		logger("dispatch()", doc, url);
+		//logger("dispatch()", doc, url);
 		this.controller.dispatch_by_host(doc, _href());
 	},
 	
@@ -914,7 +916,7 @@ PDDB.prototype = {
 			this.prefs.set("last_url", null);
 			var start = this.prefs.get("last_start");
 			var now = Math.round((new Date()).getTime() / 1000.0);
-			logger(" start: "+start+" now: "+now+" diff: "+now-start);
+			//logger(" start: "+start+" now: "+now+" diff: "+now-start);
 			this.prefs.set("last_start", null);
 			var diff = now - start;
 			// cap diff at 20 mintes (60s/m * 20m)
@@ -958,7 +960,7 @@ PDDB.prototype = {
 	update_totals: function(site, visit) {
 		
 		var sitegroup = this.SiteGroup.get_or_null({ id: site.sitegroup_id });
-		var tag = this.Tag.get_or_null({ id: sitegroup.tag_id })
+		var tag = this.Tag.get_or_null({ id: sitegroup.tag_id });
 		if (!tag) {
 			tag = this.Unsorted;
 			if (tag) {
@@ -978,13 +980,15 @@ PDDB.prototype = {
 		var timetypes = [ this.Daily, this.Weekly, this.Forever ];
 		var times     = [ end_of_day, end_of_week, end_of_forever ];
 		
-		var cents_per_hour = this.prefs.get('cents_per_hour', 0);
-		var time_delta = visit.duration;
+		var cents_per_hr = this.prefs.get('cents_per_hr', 0);
+		logger("update visit="+visit);
+		var time_delta = parseInt(visit.duration);
 		// recipient percents and pd skim not applied
-		var full_amount_delta = ( time_delta / (60.0*60.0) ) * cents_per_hour
+		var full_amount_delta = ( time_delta / (60.0*60.0) ) * parseInt(cents_per_hr);
+		logger("time_delta="+time_delta+" cents_per_hr="+cents_per_hr+" parseInt(cents_per_hr)="+cents_per_hr+" t/60*60="+(time_delta / (60.0*60.0)));
 		var skim_amount = full_amount_delta * parseFloat(pd_recipientpercent.percent);
 		var rest_amount = full_amount_delta - skim_amount;
-		
+		logger(" the amounts: full="+full_amount_delta+" skim="+skim_amount+" rest="+rest_amount);
 		// array objects containing:
 		//	contenttype instance
 		//  content instance
@@ -994,7 +998,7 @@ PDDB.prototype = {
 		var self = this;
 		this.ContentType.select({}, function(row) {
 			if (row.modelname == "Site") {
-				if (tag == self.TimeWellSpent) {
+				if (tag.id == self.TimeWellSpent.id) {
 					content_instances.push({
 						contenttype: row,
 						content: site,
@@ -1016,16 +1020,22 @@ PDDB.prototype = {
 				});
 
 			} else if (row.modelname == "Recipient") {
-				if (tag != self.Unsorted) {
+				logger("zxcv");
+				if (tag.id != self.Unsorted.id) {
+					logger("not unsorted");
 					self.RecipientPercent.select({}, function(r) {
-						if (r == pd_recipientpercent) {
+						logger("recipientpercent="+r);
+						if (r.id == pd_recipientpercent.id) {
+							logger("pd recip");
 							content_instances.push({
 								contenttype: row,
 								content: pd_recipient,
 								amt: skim_amount,
 							});
 						} else {
-							if (tag == self.ProcrasDonate) {
+							logger("not pd recip");
+							if (tag.id == self.ProcrasDonate.id) {
+								logger("tag is pd");
 								content_instances.push({
 									contenttype: row,
 									content: r,
@@ -1042,23 +1052,25 @@ PDDB.prototype = {
 
 		for (var i = 0; i < timetypes.length; i++) {
 		
-			for (var j = 0; i < content_instances.length; i++) {
+			for (var j = 0; j < content_instances.length; j++) {
 				var triple = content_instances[j];
 				var contenttype = triple.contenttype;
 				var content = triple.content;
 				var amt = triple.amt;
+				logger(" `````` i "+i);
+				logger(" `````` j "+j);
 				logger(" `````triple: "+triple);
 				logger(" `````contenttype: "+contenttype);
 				logger(" `````content: "+content);
 				logger(" `````amt: "+amt);
 				
-				logger(" .....timetypes="+timetypes+" length="+timetypes.length);
-				logger(" .....times="+times+" length="+times.length);
+				logger(" .....timetypes="+timetypes[i]);
+				logger(" .....times="+times[i]);
 				logger(" .....before.. total...");
 				var total = this.Total.get_or_create({
 					contenttype_id: contenttype.id,
 					content_id: content.id,
-					time: times[0],
+					time: times[i],
 					timetype_id: timetypes[i].id
 				}, {
 					total_time: 0,
@@ -1068,7 +1080,7 @@ PDDB.prototype = {
 				
 				this.Total.set({
 					total_time: parseInt(total.total_time) + time_delta,
-					total_amount: parseFloat(total.total_amount) + triple.amt
+					total_amount: parseFloat(total.total_amount) + parseFloat(triple.amt)
 				}, {
 					id: total.id
 				});

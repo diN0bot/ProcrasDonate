@@ -102,11 +102,8 @@ def rebuild_extension_templates(request):
     all_dir = "procrasdonate/ff_extn/ProcrasDonate/content/js/templates"
     import settings
 
-    os.chdir(settings.PROJECT_PATH+bin)
+    os.chdir(settings.PROJECT_PATH)
     os.system("python %s/build_templates.py %s/*.html" % (bin, generated_templates_dir))
     os.system("cp %s/all.js %s/all.js.bkup" % (all_dir, all_dir))
     os.system("cat %s/*.js > %s/all.js" % (generated_templates_dir, all_dir))
-    return json_response([ "SUCCESS" ])
-    
-def reset_state(request):
     return json_response([ "SUCCESS" ])

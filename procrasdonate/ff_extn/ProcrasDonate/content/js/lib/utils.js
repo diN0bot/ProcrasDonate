@@ -71,6 +71,14 @@ var _print = function(msg) {
 	logger(msg);
 };
 
+var _pprint = function(object) {
+	var str = "";
+	for (var prop in object) {
+		str += prop+"="+object[prop]+", ";
+	}
+	logger(str);
+}
+
 
 // extend() from John Resig:
 //   http://ejohn.org/blog/javascript-getters-and-setters/

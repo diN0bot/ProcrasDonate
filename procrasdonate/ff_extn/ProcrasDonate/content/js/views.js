@@ -16,17 +16,20 @@ var Controller = function(prefs, pddb) {
 Controller.prototype = {};
 _extend(Controller.prototype, {
 	handle: function(request) {
-		logger("Controller.handler: url="+request.url);
+		//logger("Controller.handler: url="+request.url);
 		var host = _host(request.url);
-		if (host.match(new RegExp(constants.PD_HOST)))
-			//request.do_in_page(_bind(this.page, this.page.insert_settings_recipients, request));
-			//request.do_in_page(
-			//	_bind(this.page, this.page.insert_settings_donation_amounts, request));
-			//request.do_in_page(_bind(this.page, this.page.insert_settings_twitter_account, request));
-			//request.do_in_page(_bind(this, this.pd_dispatch_by_url, request));
-			return this.pd_dispatch_by_url(request);
-		else
-			return false;
+		for (var i = 0; i < constants.VALID_HOSTS.length; i++) {
+			var valid_host = constants.VALID_HOSTS[i];
+			if (host == valid_host) { //match(new RegExp(valid_host)))
+				//request.do_in_page(_bind(this.page, this.page.insert_settings_recipients, request));
+				//request.do_in_page(
+				//	_bind(this.page, this.page.insert_settings_donation_amounts, request));
+				//request.do_in_page(_bind(this.page, this.page.insert_settings_twitter_account, request));
+				//request.do_in_page(_bind(this, this.pd_dispatch_by_url, request));
+				return this.pd_dispatch_by_url(request);
+			}
+		}
+		return false;
 	},
 	
 	insert_based_on_state: function(request, state_name, state_enums, event_inserts) {
@@ -43,7 +46,7 @@ _extend(Controller.prototype, {
 		for (var i = 0; i < state_enums.length; i += 1) {
 			var state = state_enums[i];
 			if ( this.prefs.get(state_name + '_state', '') == state ) {
-				logger(event_inserts[i]);
+				//logger(event_inserts[i]);
 				//return false;
 				this.page[event_inserts[i]](request);
 				return true;
@@ -53,7 +56,8 @@ _extend(Controller.prototype, {
 	},
 	
 	pd_dispatch_by_url: function(request) {
-		logger("pd_dispatch_by_url: "+ request.url);
+		//logger("pd_dispatch_by_url: "+ request.url);
+		
 		this.page.default_inserts(request);
 		if (this.registration_complete()) {
 			this.page.registration_complete_inserts(request);
@@ -61,7 +65,8 @@ _extend(Controller.prototype, {
 			this.page.registration_incomplete_inserts(request);
 		}
 		
-		switch (request.url) {
+		var path = request.url.match(new RegExp("http:\/\/[^/]+(.*)"))
+		switch (path[1]) {
 		case constants.REGISTER_URL:
 			var state_matched = this.insert_based_on_state(
 				request,
@@ -95,8 +100,7 @@ _extend(Controller.prototype, {
 			}
 			break;
 		case constants.IMPACT_URL:
-			request.jQuery("#content").html("Impact charts coming soon!");
-			/*
+			//request.jQuery("#content").html("Impact charts coming soon!");
 			var state_matched = this.insert_based_on_state(
 				request,
 				'impact', 
@@ -111,16 +115,24 @@ _extend(Controller.prototype, {
 					constants.IMPACT_STATE_ENUM, 
 					constants.IMPACT_STATE_INSERTS);
 			}
-			*/
 			break;
 		case constants.HOME_URL:
 		case constants.LEARN_URL:
 			// remove start now button
 			request.jQuery("#StartButtonDiv").remove();
 			break;
-		case constants.RESET_URL:
+		case constants.RESET_STATE_URL:
 			this.reset_state_to_defaults();
-			this.reset_account_to_defaults();
+			//this.reset_account_to_defaults();
+			break;
+		case constants.ADD_RANDOM_VISITS_URL:
+			this.add_random_visits();
+			break;
+		case constants.TRIGGER_DAILY_CYCLE_URL:
+			this.trigger_daily_cycle();
+			break;
+		case constants.TRIGGER_WEEKLY_CYCLE_URL:
+			this.trigger_weekly_cycle();
 			break;
 		default:
 			//return false;
@@ -261,6 +273,56 @@ _extend(Controller.prototype, {
 			self.prefs.set(name, value);
 		});
 	},
+	
+	////////////////////////////// DEV TESTS //////////////////////////////////
+	
+	add_random_visits: function() {
+		var start = _start_of_day();
+		var duration = 2222;
+		var urls = ["http://test1.com/apage.html",
+		            "http://test1.com/bpage.html",
+		            "http://test1.com/apage.html",
+		            "http://test1.com/bpage.html",
+		            "http://test1.com/apage.html",
+		            
+		            "http://test2.com/cpage.html",
+		            "http://test2.com/cpage.html",
+		            "http://test2.com/cpage.html",
+		            "http://test2.com/cpage.html",
+		            "http://test2.com/cpage.html",
+		            "http://test2.com/cpage.html",
+		            /*
+		            "http://test1.com/apage.html",
+		            "http://test1.com/apage.html",
+		            "http://test1.com/apage.html",
+		            "http://test1.com/apage.html",
+		            "http://test1.com/apage.html",
+		            "http://test1.com/apage.html",
+		            "http://test1.com/apage.html",
+		            "http://test1.com/apage.html",
+		            "http://test1.com/apage.html",
+		            "http://test1.com/apage.html",
+		            "http://test1.com/apage.html",
+		            "http://test1.com/apage.html",
+		            "http://test1.com/apage.html",
+		            "http://test1.com/apage.html",
+		            "http://test1.com/apage.html",
+		            "http://test1.com/apage.html"
+		            */
+		            ];
+		for (var i = 0; i < urls.length; i++) {
+			this.pddb.store_visit(urls[i], _dbify_date(start), duration);
+			start.setMinutes( start.getMinutes + 10 );
+		}
+	},
+	
+	trigger_daily_cycle: function() {
+		
+	},
+	
+	trigger_weekly_cycle: function() {
+		
+	}
 });
 
 function Schedule(prefs, pddb) {
@@ -294,23 +356,23 @@ _extend(Schedule.prototype, {
 		// 2. Send all new Totals to PD: more recent time than 'last_total_time_send_to_pd'
 		// 3. Ask TJ for newly paid transactions: ask for xactions since 'last_paid_tipjoy_id', iterate until pledges. set 'last_paid_tipjoy_id'
 		// 4. Send newly paid transactions to PD: iterate 'last_paid_tipjoy_id_sent_to_pd' until pledges
-			
+
 		// 1.
 		if (this.pddb.controller.registration_complete()) {
-			this.tipjoy_api.send_new_payments(this.pddb);
+			this.pddb.page.tipjoy.send_new_payments(this.pddb);
 		}
 			
 		// 2.
-		this.pd_api.send_new_totals(this.pddb);
+		this.pddb.page.pd_api.send_new_totals(this.pddb);
 			
 		// 3.
 		if (this.pddb.controller.registration_complete()) {
-			this.tipjoy_api.update_pledges(this.pddb);
+			this.pddb.page.tipjoy.update_pledges(this.pddb);
 		}
 			
 		// 4.
 		if (this.pddb.controller.registration_complete()) {
-			this.pd_api.send_new_paid_pledges(this.pddb);
+			this.pddb.page.pd_api.send_new_paid_pledges(this.pddb);
 		}
 		
 		// reset last_24hr_mark to now
@@ -366,7 +428,7 @@ _extend(PageController.prototype, {
 	
 	default_inserts: function(request) {
 		// remove start button
-		request.jQuery("#DivRight").remove();
+		request.jQuery("#StartButton").remove();
 
 		// add private menu items
 		var impact_menu_item = ["<div id='my_impact_menu_item'>",
@@ -699,7 +761,8 @@ _extend(PageController.prototype, {
 			}
 		});
 		
-		var spacer = "<div id='recipient_spacer_row'>&nbsp;----------------------thespacer------------</div>";
+		//var spacer = "<div id='recipient_spacer_row'>&nbsp;----------------------thespacer------------</div>";
+		var spacer = "<div id='recipient_spacer_row'><hr></div>";
 		
 		var potential_recipients = "";
 		this.pddb.Recipient.select({ is_visible: True }, function(row) {
@@ -725,6 +788,23 @@ _extend(PageController.prototype, {
 		var self = this;
 		
 		request.jQuery(".recipient_id").hide();
+		
+		request.jQuery(".description_toggle").click( function() {
+			try {
+				var e = request.jQuery(this);
+				if (e.text() == "(less)") {
+					e.text("(more)");
+					e.next().hide();
+				} else {
+					e.text("(less)");
+					e.next().show();
+				}
+			} catch(e) {
+				logger("ERROR ");
+			}
+		});
+		request.jQuery(".description_toggle").click();
+		
 		
 		var spacer = request.jQuery("#recipient_spacer_row");
 		
@@ -1331,6 +1411,13 @@ _extend(PageController.prototype, {
 		}
 	},
 	
+	_proceed: function(request, event) {
+		var self = this;
+		return function() {
+			self[event](request);
+		}
+	},
+	
 	activate_settings_tab_events: function(request) {
 		/* Attaches EventListeners to settings tabs */
 		for (var i = 0; i < constants.SETTINGS_STATE_ENUM.length; i += 1) {
@@ -1364,7 +1451,8 @@ _extend(PageController.prototype, {
 			var event = constants.IMPACT_STATE_INSERTS[i];
 			// closure
 			request.jQuery("#"+tab_state+"_track, #"+tab_state+"_text").click(
-				(function(event) { return event; })(self[event])
+				//(function(event) { return event; })(self[event])
+				this._proceed(request, event)
 			);
 		}
 		// cursor pointer to tracks
@@ -1431,11 +1519,9 @@ _extend(PageController.prototype, {
 		this.activate_twitter_account_middle(request);
 	},
 	
-	impact_sites_middle: function(request, data, show_tags) {
+	impact_sites_middle: function(request, data) {
 		var context = new Context({
 			data: data,
-			show_tags: show_tags,
-			width: 100, //parseInt( ((data[i][1]+1)/max)*100.0 ),
 			constants: constants,
 		});
 		return Template.get("impact_sites_middle").render(context);
@@ -1455,44 +1541,134 @@ _extend(PageController.prototype, {
 	
 	insert_impact_sites: function(request) {
 		/* insert sites chart */
+		var self = this;
 		this.prefs.set('impact_state', 'sites');
-		var sort_arr = [
-			['www.ycombinator.com', 120, 200, 'timewellspent'],
-			['bilumi.org', 100, 100, 'procrasdonate'],
-			['gmail.com', 45, 75, 'timewellspent'],
-			['www.slashdot.com', 30, 50, 'other'],
-			['www.javascriptkit.com', 30, 50, 'other'],
-			['news.ycombinator.com', 2, 2, 'timewellspent'],
-			['hulu.com', 1, 1, 'procrasdonate'],
-		];
+		
+		var data = [];
+		var max_amount = 0;
+		var max_time = 0;
+		
+		var sitegroup_contenttype = this.pddb.ContentType.get_or_null({
+			modelname: "SiteGroup"
+		});
+		
+		this.pddb.Total.select({
+			timetype_id: self.pddb.Forever.id,
+			contenttype_id: sitegroup_contenttype.id,
+			time: _end_of_forever
+		}, function(row) {
+			var total_time = parseInt(row.total_time);
+			var total_amount = (parseFloat(row.total_amount) / 100).toFixed(2); // cents into dollar
+			if (total_time > max_time) { max_time = total_time; }
+			if (total_amount > max_amount) { max_amount = total_amount; }
+			logger(" row.total_time="+row.total_time+" max_time="+max_time+" max_amount="+max_amount);
+			var sitegroup = self.pddb.SiteGroup.get_or_null({
+				id: row.content_id
+			});
+			var tag = self.pddb.Tag.get_or_null({
+				id: sitegroup.tag_id
+			});
+			data.push({
+				sitegroup_name: sitegroup.host,
+				tag: tag.tag,
+				total_time: total_time,
+				total_amount: total_amount
+			});
+		},
+		"-total_time"
+		);
+		logger(" maxes: max_time="+max_time+" max_amount="+max_amount);
+		for (var i = 0; i < data.length; i++) {
+			var drow = data[i];
+			drow.time_pct = Math.round( (drow.total_time / max_time)*100 );
+			drow.amount_pct = Math.round( (drow.total_amount / max_amount)*100 );
+			logger("aaaaaaadata="+_pprint(drow));
+			logger("total_time="+drow.total_time);
+			logger("time_pct="+drow.time_pct);
+			var d = _start_of_day();
+			d.setSeconds(drow.total_time);
+			var hours = d.getHours();
+			var minutes = d.getMinutes();
+			if (minutes < 10) { minutes = "0" + minutes; }
+			var seconds = d.getSeconds();
+			if (seconds < 10) { seconds = "0" + seconds; }
+			//drow.total_time = d.toTimeString()
+			drow.total_time = hours + ":" + minutes + "." + seconds;
+			drow.total_amount = drow.total_amount;
+		}
 		request.jQuery("#content").html(
-			this.impact_wrapper_snippet(request, this.impact_sites_middle(sort_arr, true)) );
+			this.impact_wrapper_snippet(request, this.impact_sites_middle(request, data)) );
 		this.activate_impact_tab_events(request);
 		this.activate_impact_sites_middle(request);
 	},
 	
+	impact_recipients_middle: function(request, data) {
+		var context = new Context({
+			data: data,
+			constants: constants,
+		});
+		return Template.get("impact_recipients_middle").render(context);
+	},
+	
+	
 	insert_impact_recipients: function(request) {
 		/* insert sites chart */
+		var self = this;
+		
 		this.prefs.set('impact_state', 'recipients');
 		var data = [];
+		var max_amount = 0;
+		var max_time = 0;
 		
-		//var type = Type.get_or_create({ type: "Forever" });
-		//DailyVisit.select({ site_id: null }, function() {
-		//	var recipient = Recipient.get_or_null({ id: row.recipient_id });
-		//	var percent = RecipientPercent.get_or_null({ recipient_id: recipient.id }).percent;
-		//	percent = Math.round( parseFloat(percent) * 100 );
-		//	data.push( [dailyvisit, recipient, percent] );
-		//});
+		var recipient_contenttype = this.pddb.ContentType.get_or_null({
+			modelname: "Recipient"
+		});
 		
-		var sort_arr = [
-			['bilumi', 120, 200],
-			['miller', 100, 100],
-			['pd', 45, 75],
-		];
+		this.pddb.Total.select({
+			timetype_id: self.pddb.Forever.id,
+			contenttype_id: recipient_contenttype.id,
+			time: _end_of_forever
+		}, function(row) {
+			var total_time = parseInt(row.total_time);
+			var total_amount = (parseFloat(row.total_amount) / 100.0).toFixed(2); // cents into dollars;
+			if (total_time > max_time) { max_time = total_time; }
+			if (total_amount > max_amount) { max_amount = total_amount; }
+			logger(" row.total_time="+row.total_time+" max_time="+max_time+" max_amount="+max_amount);
+			var recipient = self.pddb.Recipient.get_or_null({
+				id: row.content_id
+			});
+			data.push({
+				recipient_name: recipient.name,
+				total_time: total_time,
+				total_amount: total_amount
+			});
+		},
+		"-total_time"
+		);
+		logger(" maxes: max_time="+max_time+" max_amount="+max_amount);
+		for (var i = 0; i < data.length; i++) {
+			var drow = data[i];
+			drow.time_pct = Math.round( (drow.total_time / max_time)*100 );
+			drow.amount_pct = Math.round( (drow.total_amount / max_amount)*100 );
+			logger("aaaaaaadata="+_pprint(drow));
+			logger("total_time="+drow.total_time);
+			logger("time_pct="+drow.time_pct);
+			var d = _start_of_day();
+			d.setSeconds(drow.total_time);
+			var hours = d.getHours();
+			var minutes = d.getMinutes();
+			if (minutes < 10) { minutes = "0" + minutes; }
+			var seconds = d.getSeconds();
+			if (seconds < 10) { seconds = "0" + seconds; }
+			//drow.total_time = d.toTimeString()
+			drow.total_time = hours + ":" + minutes + "." + seconds;
+		}
+		
 		request.jQuery("#content").html(
 			this.impact_wrapper_snippet(
 				request, 
-				this.impact_sites_middle(request, sort_arr, false)) );
+				this.impact_recipients_middle(request, data)) );
+		
 		this.activate_impact_tab_events(request);
 		this.activate_impact_sites_middle(request);
 	},

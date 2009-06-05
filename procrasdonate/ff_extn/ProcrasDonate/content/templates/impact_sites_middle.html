@@ -1,5 +1,4 @@
 <div id='ranks'>
-	{% if show_tags %}
 	<!--<fieldset class='rank_legend' style='-moz-border-radius:1em;'>-->
 	<div class='rank_legend'>
 		<h3>Site Classification Legend</h3>
@@ -10,34 +9,33 @@
 	</div>
 	<!--</fieldset>-->
 	<h3>Most Visited Sites</h3>
-	{% else %}
-	<h3>Most Supported Recipient</h3>
-	{% endif %}
 </div>
 <table>
 	<tbody>
-		{% for dailyvisit, recipient, percent in data %}
-		<tr class="site_rank">
-			<td class="site_name">{{ recipient.name }}</td>
+		{% for row in data %}
+		<tr class="rank">
+			<td class="name">{{ row.sitegroup_name }}</td>
 			<td class="rank">
-				<div class="bar {{ bar_class }}" style="width: {{ percent }}%">
-					{% if show_tags %}
-					<div class="rank_text">{{ dailyvisit.total_amount }}</div>
-					{% else %}
-					<div class="rank_text">${{ dailyvisit.total.time }}</div>
-					{% endif %}
+				<div class="bar {{ row.tag }}" style="width: {{ row.amount_pct }}%">
+					<div class="rank_text">${{ row.total_amount }}</div>
 				</div>
 			</td>
 		</tr>
 		{% endfor %}
 	</tbody>
 </table>
-
-name: "VARCHAR",
-		twitter_name: "VARCHAR",
-		mission: "VARCHAR",
-		description: "VARCHAR",
-		url: "VARCHAR",
-		category_id: "INTEGER",
-		is_visible: "INTEGER"
-		
+<hr>
+<table>
+	<tbody>
+		{% for row in data %}
+		<tr class="rank">
+			<td class="name">{{ row.sitegroup_name }}</td>
+			<td class="rank">
+				<div class="bar {{ row.tag }}" style="width: {{ row.time_pct }}%">
+					<div class="rank_text">{{ row.total_time }}</div>
+				</div>
+			</td>
+		</tr>
+		{% endfor %}
+	</tbody>
+</table>
