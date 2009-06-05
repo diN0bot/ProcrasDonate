@@ -26,10 +26,10 @@ var constants = {};
 	constants.POST_PAYMENTS_URL = '/post/payments/';
 	
 	// used for development testing
-	constants.RESET_STATE = '/reset_state/';
-	constants.ADD_RANDOM_VISITS = '/add_random_visits/';
-	constants.TRIGGER_DAILY_CYCLE = '/trigger_daily_cycle/';
-	constants.TRIGGER_WEEKLY_CYCLE = '/trigger_weekly_cycle/';
+	constants.RESET_STATE_URL = '/reset_state/';
+	constants.ADD_RANDOM_VISITS_URL = '/add_random_visits/';
+	constants.TRIGGER_DAILY_CYCLE_URL = '/trigger_daily_cycle/';
+	constants.TRIGGER_WEEKLY_CYCLE_URL = '/trigger_weekly_cycle/';
 	
 	// enumeration of settings page state
 	constants.SETTINGS_STATE_ENUM = [

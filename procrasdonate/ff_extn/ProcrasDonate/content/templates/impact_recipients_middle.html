@@ -1,0 +1,17 @@
+<div id='ranks'>
+	<h3>Most Supported Recipient</h3>
+</div>
+<table>
+	<tbody>
+		{% for recipient_name, total_time, total_amount in data %}
+		<tr class="rank">
+			<td class="name">{{ recipient_name }}</td>
+			<td class="rank">
+				<div class="bar" style="width: 100%">
+					<div class="rank_text">${{ total_amount }}</div>
+				</div>
+			</td>
+		</tr>
+		{% endfor %}
+	</tbody>
+</table>

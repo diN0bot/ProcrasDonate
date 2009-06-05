@@ -167,7 +167,7 @@ _extend(Model.prototype, {
 		 * @param fn: function(row) to execute on each row.
 		 */
 		query = this.sql_select.apply(this, [query]);
-		//logger(" sqlite3_firefox.js::select query="+query);
+		logger(" sqlite3_firefox.js::select query="+query);
 		var row_factory = this.row_factory;
 		fn = fn || function(row){ return row; };
 		function fn2(row) {

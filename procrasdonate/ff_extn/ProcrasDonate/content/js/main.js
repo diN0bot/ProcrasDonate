@@ -960,7 +960,7 @@ PDDB.prototype = {
 	update_totals: function(site, visit) {
 		
 		var sitegroup = this.SiteGroup.get_or_null({ id: site.sitegroup_id });
-		var tag = this.Tag.get_or_null({ id: sitegroup.tag_id })
+		var tag = this.Tag.get_or_null({ id: sitegroup.tag_id });
 		if (!tag) {
 			tag = this.Unsorted;
 			if (tag) {
@@ -996,7 +996,7 @@ PDDB.prototype = {
 		var self = this;
 		this.ContentType.select({}, function(row) {
 			if (row.modelname == "Site") {
-				if (tag == self.TimeWellSpent) {
+				if (tag.id == self.TimeWellSpent.id) {
 					content_instances.push({
 						contenttype: row,
 						content: site,
@@ -1018,16 +1018,22 @@ PDDB.prototype = {
 				});
 
 			} else if (row.modelname == "Recipient") {
-				if (tag != self.Unsorted) {
+				logger("zxcv");
+				if (tag.id != self.Unsorted.id) {
+					logger("not unsorted");
 					self.RecipientPercent.select({}, function(r) {
-						if (r == pd_recipientpercent) {
+						logger("recipientpercent="+r);
+						if (r.id == pd_recipientpercent.id) {
+							logger("pd recip");
 							content_instances.push({
 								contenttype: row,
 								content: pd_recipient,
 								amt: skim_amount,
 							});
 						} else {
-							if (tag == self.ProcrasDonate) {
+							logger("not pd recip");
+							if (tag.id == self.ProcrasDonate.id) {
+								logger("tag is pd");
 								content_instances.push({
 									contenttype: row,
 									content: r,
@@ -1044,23 +1050,25 @@ PDDB.prototype = {
 
 		for (var i = 0; i < timetypes.length; i++) {
 		
-			for (var j = 0; i < content_instances.length; i++) {
+			for (var j = 0; j < content_instances.length; j++) {
 				var triple = content_instances[j];
 				var contenttype = triple.contenttype;
 				var content = triple.content;
 				var amt = triple.amt;
+				logger(" `````` i "+i);
+				logger(" `````` j "+j);
 				logger(" `````triple: "+triple);
 				logger(" `````contenttype: "+contenttype);
 				logger(" `````content: "+content);
 				logger(" `````amt: "+amt);
 				
-				logger(" .....timetypes="+timetypes+" length="+timetypes.length);
-				logger(" .....times="+times+" length="+times.length);
+				logger(" .....timetypes="+timetypes[i]);
+				logger(" .....times="+times[i]);
 				logger(" .....before.. total...");
 				var total = this.Total.get_or_create({
 					contenttype_id: contenttype.id,
 					content_id: content.id,
-					time: times[0],
+					time: times[i],
 					timetype_id: timetypes[i].id
 				}, {
 					total_time: 0,
