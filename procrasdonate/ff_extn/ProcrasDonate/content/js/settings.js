@@ -7,28 +7,29 @@ var constants = {};
 	 * Define all global variables here.
 	 */
 	constants.MEDIA_URL = '/procrasdonate_media/';
-	//constants.PD_HOST = 'localhost:8000';
 	constants.PD_HOST = 'procrasdonate.com';
 	constants.PD_URL = 'http://' + constants.PD_HOST;
+	constants.VALID_HOSTS = ['localhost:8000', 'procrasdonate.com'];
 	
-	constants.PROCRASDONATE_URL = constants.PD_URL+'/';
-	constants.REGISTER_URL = constants.PD_URL+'/register/';
-	constants.HOME_URL = constants.PD_URL+'/home/';
-	constants.LEARN_URL = constants.PD_URL+'/learn_more/';
-	constants.IMPACT_URL = constants.PD_URL+'/my_impact/';
-	constants.SETTINGS_URL = constants.PD_URL+'/settings/';
+	constants.PROCRASDONATE_URL = '/';
+	constants.REGISTER_URL = '/register/';
+	constants.HOME_URL = '/home/';
+	constants.LEARN_URL = '/learn_more/';
+	constants.IMPACT_URL = '/my_impact/';
+	constants.SETTINGS_URL = '/settings/';
 	
-	constants.COMMUNITY_URL = constants.PD_URL+'/our_community';
-	constants.PRIVACY_URL = constants.PD_URL+'/privacy_guarantee/';
-	constants.RECIPIENTS_URL = constants.PD_URL+'/recipients';
+	constants.COMMUNITY_URL = '/our_community';
+	constants.PRIVACY_URL = '/privacy_guarantee/';
+	constants.RECIPIENTS_URL = '/recipients';
 	
-	constants.POST_TOTALS_URL = constants.PD_URL+'/post/totals/';
-	constants.POST_PAYMENTS_URL = constants.PD_URL+'/post/payments/';
+	constants.POST_TOTALS_URL = '/post/totals/';
+	constants.POST_PAYMENTS_URL = '/post/payments/';
 	
 	// used for development testing
-	constants.LOAD_FAKE_DATA = constants.PD_URL+'/load_fake_data/';
-	constants.TRIGGER_DAILY_CYCLE = constants.PD_URL+'/trigger_daily_cycle/';
-	constants.TRIGGER_WEEKLY_CYCLE = constants.PD_URL+'/trigger_weekly_cycle/';
+	constants.RESET_STATE_URL = '/reset_state/';
+	constants.ADD_RANDOM_VISITS_URL = '/add_random_visits/';
+	constants.TRIGGER_DAILY_CYCLE_URL = '/trigger_daily_cycle/';
+	constants.TRIGGER_WEEKLY_CYCLE_URL = '/trigger_weekly_cycle/';
 	
 	// enumeration of settings page state
 	constants.SETTINGS_STATE_ENUM = [

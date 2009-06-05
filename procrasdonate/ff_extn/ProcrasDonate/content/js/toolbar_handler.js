@@ -150,7 +150,7 @@ _extend(PD_ToolbarManager.prototype, {
     
     onProgressButtonCommand : function(e) {
     	//@TOD set my_impact substate to "goals"
-    	window.content.location.href = constants.IMPACT_URL;
+    	window.content.location.href = constants.PD_URL + constants.IMPACT_URL;
     }
 
 });

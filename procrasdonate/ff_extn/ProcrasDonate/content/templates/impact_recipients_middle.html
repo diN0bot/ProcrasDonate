@@ -1,0 +1,32 @@
+<div id='ranks'>
+	<h3>Most Supported Recipient</h3>
+</div>
+<table>
+	<tbody>
+		{% for row in data %}
+		<tr class="rank">
+			<td class="name">{{ row.recipient_name }}</td>
+			<td class="rank">
+				<div class="bar" style="width: {{ row.amount_pct }}%">
+					<div class="rank_text">${{ row.total_amount }}</div>
+				</div>
+			</td>
+		</tr>
+		{% endfor %}
+	</tbody>
+</table>
+<hr>
+<table>
+	<tbody>
+		{% for row in data %}
+		<tr class="rank">
+			<td class="name">{{ row.recipient_name }}</td>
+			<td class="rank">
+				<div class="bar" style="width: {{ row.time_pct }}%">
+					<div class="rank_text">{{ row.total_time }}</div>
+				</div>
+			</td>
+		</tr>
+		{% endfor %}
+	</tbody>
+</table>

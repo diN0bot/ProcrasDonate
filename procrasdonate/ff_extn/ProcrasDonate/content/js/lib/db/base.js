@@ -65,7 +65,9 @@ _extend(Backend.prototype, {
 		var cursor = this.cursor();
 		fn = fn || function(row) { return row; };
 		if (!fn) {
-			return cursor.execute(sql, params);
+			var r = cursor.execute(sql, params);
+			logger("base.js::execute: r="+r);
+			return r;
 		} else {
 			var ret = [];
 			try {
@@ -80,6 +82,7 @@ _extend(Backend.prototype, {
 				cursor.reset();
 				cursor.finalize();
 			}
+			logger("base.js::execute: ret="+ret);
 			return ret;
 		}
 	},

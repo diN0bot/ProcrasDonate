@@ -32,7 +32,7 @@ _extend(PageRequest.prototype, {
 	},
 	
 	jQuery: function(selector, context) {
-		logger("request.jQuery(): " + selector + this.event);
+		//logger("request.jQuery(): " + selector + this.event);
 		return jQuery.fn.init(selector, context || this.get_document());
 	},
 	do_in_page: function(fn) {
@@ -47,13 +47,15 @@ _extend(PageRequest.prototype, {
 			//url: "http://localhost:8000/start_now",
 			url: "http://www.google.com",
 			onload: function(event) {
-				logger(["HttpRequest->onload()", arguments.length]);
-				logger(event.responseText);
+				//logger(["HttpRequest->onload()", arguments.length]);
+				//logger(event.responseText);
 			},
 			onerror: function(event) {
-				logger(["HttpRequest->onerror()",arguments.length]); },
+				//logger(["HttpRequest->onerror()",arguments.length]);
+			},
 			onreadystatechange: function(event) {
-				logger(["HttpRequest->onreadystatechange()", arguments]); },
+				//logger(["HttpRequest->onreadystatechange()", arguments]);
+			},
 		});
 	},
 	

@@ -201,7 +201,7 @@ _extend(Template, {
 	//	}
 	//},
 	get: function(name) {
-		logger("Template.get(\"" + name + "\")");
+		//logger("Template.get(\"" + name + "\")");
 		var t = Template.Cache[name];
 		if (t)
 			return t;
