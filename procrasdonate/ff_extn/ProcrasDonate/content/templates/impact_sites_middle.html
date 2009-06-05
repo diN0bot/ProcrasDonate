@@ -12,12 +12,27 @@
 </div>
 <table>
 	<tbody>
-		{% for recipient_name, total_time, total_amount, tag in data %}
+		{% for row in data %}
 		<tr class="rank">
-			<td class="name">{{ recipient_name }}</td>
+			<td class="name">{{ row.sitegroup_name }}</td>
 			<td class="rank">
-				<div class="bar {{ tag }}" style="width: 100%">
-					<div class="rank_text">${{ total_amount }}</div>
+				<div class="bar {{ row.tag }}" style="width: {{ row.amount_pct }}%">
+					<div class="rank_text">${{ row.total_amount }}</div>
+				</div>
+			</td>
+		</tr>
+		{% endfor %}
+	</tbody>
+</table>
+<hr>
+<table>
+	<tbody>
+		{% for row in data %}
+		<tr class="rank">
+			<td class="name">{{ row.sitegroup_name }}</td>
+			<td class="rank">
+				<div class="bar {{ row.tag }}" style="width: {{ row.time_pct }}%">
+					<div class="rank_text">{{ row.total_time }}</div>
 				</div>
 			</td>
 		</tr>

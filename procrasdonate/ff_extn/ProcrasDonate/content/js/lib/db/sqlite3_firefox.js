@@ -159,15 +159,18 @@ _extend(Model.prototype, {
 		return this.columns;
 	},
 	
-	select: function(query, fn) {
+	select: function(query, fn, order_by) {
 		/*
 		 * @param query: string to execute, eg select * from sites where id=22
 		 * 		or object of key,values for where clause.
 		 *      empty object will return all rows
-		 * @param fn: function(row) to execute on each row.
+		 * @param fn: function(row) to execute on each row (optional)
+		 * @param orer_by: name of column to order results by (optional)
+		 * 		not applicable of query is sql statement
 		 */
-		query = this.sql_select.apply(this, [query]);
-		logger(" sqlite3_firefox.js::select query="+query);
+		logger(" the order_by:::"+order_by);
+		query = this.sql_select.apply(this, [query, order_by]);
+		logger(" sqlite3_firefox.js::select query="+query+" order_by="+order_by);
 		var row_factory = this.row_factory;
 		fn = fn || function(row){ return row; };
 		function fn2(row) {
@@ -192,7 +195,8 @@ _extend(Model.prototype, {
 			throw new Error("Don't know how to use query: " + query);
 		}
 	},
-	sql_select: function(query) {
+	sql_select: function(query, order_by) {
+		logger("sql_select="+order_by);
 		var sql=[], slots=[], params=[];
 		if (typeof(query) == "string") {
 			// execute the sql query
@@ -234,7 +238,21 @@ _extend(Model.prototype, {
 				} else {
 					sql = ["SELECT * FROM", this.table_name];
 				}
+				if (order_by) {
+					var desc = false;
+					if (order_by[0] == "-") {
+						order_by = order_by.substring(1);
+						desc = true;
+					}
+					sql.push("order by");
+					sql.push(order_by);
+					if (desc) {
+						sql.push("DESC");
+					}
+					//@TODO throw error if order by column is not a column of this table
+				}
 				sql = sql.join(" ");
+				logger(" THE SQL:::"+sql);
 				return [sql, params];
 			}
 		} else {
@@ -345,6 +363,10 @@ _extend(Model.prototype, {
 		}
 		str += ";"
 		this.db.execute(str);
+	},
+	
+	order_by: function(query, fn, order_bys) {
+		
 	},
 	
 	get_or_create: function(query, defaults) {

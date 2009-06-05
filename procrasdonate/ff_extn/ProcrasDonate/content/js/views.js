@@ -1527,24 +1527,57 @@ _extend(PageController.prototype, {
 		this.prefs.set('impact_state', 'sites');
 		
 		var data = [];
+		var max_amount = 0;
+		var max_time = 0;
 		
-		var sitegroup_contenttype_id = this.pddb.ContentType.get_or_null({
-				modelname: "SiteGroup"
-			}).id;
+		var sitegroup_contenttype = this.pddb.ContentType.get_or_null({
+			modelname: "SiteGroup"
+		});
+		
 		this.pddb.Total.select({
-			timetype_id: self.pddb.Forever,
-			time: _end_of_forever,
-			contenttype_id: sitegroup_contenttype_id
+			timetype_id: self.pddb.Forever.id,
+			contenttype_id: sitegroup_contenttype.id,
+			time: _end_of_forever
 		}, function(row) {
+			var total_time = parseInt(row.total_time);
+			var total_amount = (parseFloat(row.total_amount) / 100).toFixed(2); // cents into dollar
+			if (total_time > max_time) { max_time = total_time; }
+			if (total_amount > max_amount) { max_amount = total_amount; }
+			logger(" row.total_time="+row.total_time+" max_time="+max_time+" max_amount="+max_amount);
 			var sitegroup = self.pddb.SiteGroup.get_or_null({
 				id: row.content_id
-			})
+			});
 			var tag = self.pddb.Tag.get_or_null({
 				id: sitegroup.tag_id
 			});
-			data.push( [sitegroup.host, row.total_time, row.total_amount, tag.tag] );
-		});
-		
+			data.push({
+				sitegroup_name: sitegroup.host,
+				tag: tag.tag,
+				total_time: total_time,
+				total_amount: total_amount
+			});
+		},
+		"-total_time"
+		);
+		logger(" maxes: max_time="+max_time+" max_amount="+max_amount);
+		for (var i = 0; i < data.length; i++) {
+			var drow = data[i];
+			drow.time_pct = Math.round( (drow.total_time / max_time)*100 );
+			drow.amount_pct = Math.round( (drow.total_amount / max_amount)*100 );
+			logger("aaaaaaadata="+_pprint(drow));
+			logger("total_time="+drow.total_time);
+			logger("time_pct="+drow.time_pct);
+			var d = _start_of_day();
+			d.setSeconds(drow.total_time);
+			var hours = d.getHours();
+			var minutes = d.getMinutes();
+			if (minutes < 10) { minutes = "0" + minutes; }
+			var seconds = d.getSeconds();
+			if (seconds < 10) { seconds = "0" + seconds; }
+			//drow.total_time = d.toTimeString()
+			drow.total_time = hours + ":" + minutes + "." + seconds;
+			drow.total_amount = drow.total_amount;
+		}
 		request.jQuery("#content").html(
 			this.impact_wrapper_snippet(request, this.impact_sites_middle(request, data)) );
 		this.activate_impact_tab_events(request);
@@ -1566,28 +1599,52 @@ _extend(PageController.prototype, {
 		
 		this.prefs.set('impact_state', 'recipients');
 		var data = [];
+		var max_amount = 0;
+		var max_time = 0;
 		
 		var recipient_contenttype = this.pddb.ContentType.get_or_null({
 			modelname: "Recipient"
 		});
-		logger("ghjk recipient_contenttype="+recipient_contenttype);
-		logger("recipient_contenttype.id"+recipient_contenttype.id);
-		logger("recipient_contenttype.modelname"+recipient_contenttype.modelname);
-		logger("asdfghjk recipient_contenttype="+recipient_contenttype);
-		logger("timetype_id="+self.pddb.Forever.id+" contenttype_id="+recipient_contenttype.id+" time="+_end_of_forever);
 		
 		this.pddb.Total.select({
 			timetype_id: self.pddb.Forever.id,
 			contenttype_id: recipient_contenttype.id,
 			time: _end_of_forever
 		}, function(row) {
-			logger(" total="+row);
+			var total_time = parseInt(row.total_time);
+			var total_amount = (parseFloat(row.total_amount) / 100.0).toFixed(2); // cents into dollars;
+			if (total_time > max_time) { max_time = total_time; }
+			if (total_amount > max_amount) { max_amount = total_amount; }
+			logger(" row.total_time="+row.total_time+" max_time="+max_time+" max_amount="+max_amount);
 			var recipient = self.pddb.Recipient.get_or_null({
 				id: row.content_id
 			});
-			data.push( [recipient.name, row.total_time, row.total_amount] );
-		});
-		logger("aaaaaaadata="+data);
+			data.push({
+				recipient_name: recipient.name,
+				total_time: total_time,
+				total_amount: total_amount
+			});
+		},
+		"-total_time"
+		);
+		logger(" maxes: max_time="+max_time+" max_amount="+max_amount);
+		for (var i = 0; i < data.length; i++) {
+			var drow = data[i];
+			drow.time_pct = Math.round( (drow.total_time / max_time)*100 );
+			drow.amount_pct = Math.round( (drow.total_amount / max_amount)*100 );
+			logger("aaaaaaadata="+_pprint(drow));
+			logger("total_time="+drow.total_time);
+			logger("time_pct="+drow.time_pct);
+			var d = _start_of_day();
+			d.setSeconds(drow.total_time);
+			var hours = d.getHours();
+			var minutes = d.getMinutes();
+			if (minutes < 10) { minutes = "0" + minutes; }
+			var seconds = d.getSeconds();
+			if (seconds < 10) { seconds = "0" + seconds; }
+			//drow.total_time = d.toTimeString()
+			drow.total_time = hours + ":" + minutes + "." + seconds;
+		}
 		
 		request.jQuery("#content").html(
 			this.impact_wrapper_snippet(

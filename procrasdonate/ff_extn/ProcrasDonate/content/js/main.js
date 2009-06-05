@@ -980,13 +980,15 @@ PDDB.prototype = {
 		var timetypes = [ this.Daily, this.Weekly, this.Forever ];
 		var times     = [ end_of_day, end_of_week, end_of_forever ];
 		
-		var cents_per_hour = this.prefs.get('cents_per_hour', 0);
-		var time_delta = visit.duration;
+		var cents_per_hr = this.prefs.get('cents_per_hr', 0);
+		logger("update visit="+visit);
+		var time_delta = parseInt(visit.duration);
 		// recipient percents and pd skim not applied
-		var full_amount_delta = ( time_delta / (60.0*60.0) ) * cents_per_hour
+		var full_amount_delta = ( time_delta / (60.0*60.0) ) * parseInt(cents_per_hr);
+		logger("time_delta="+time_delta+" cents_per_hr="+cents_per_hr+" parseInt(cents_per_hr)="+cents_per_hr+" t/60*60="+(time_delta / (60.0*60.0)));
 		var skim_amount = full_amount_delta * parseFloat(pd_recipientpercent.percent);
 		var rest_amount = full_amount_delta - skim_amount;
-		
+		logger(" the amounts: full="+full_amount_delta+" skim="+skim_amount+" rest="+rest_amount);
 		// array objects containing:
 		//	contenttype instance
 		//  content instance
@@ -1078,7 +1080,7 @@ PDDB.prototype = {
 				
 				this.Total.set({
 					total_time: parseInt(total.total_time) + time_delta,
-					total_amount: parseFloat(total.total_amount) + triple.amt
+					total_amount: parseFloat(total.total_amount) + parseFloat(triple.amt)
 				}, {
 					id: total.id
 				});
