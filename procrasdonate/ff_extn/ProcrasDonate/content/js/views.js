@@ -180,7 +180,7 @@ _extend(Controller.prototype, {
 		this.prefs.set('last_tipjoy_id_sent_to_tipjoy', false);
 		this.prefs.set('last_paid_tipjoy_id_sent_to_pd', false);
 		this.prefs.set('last_pledge_tipjoy_id', false);
-		this.prefs.set('last_total_time_send_to_pd', false);
+		this.prefs.set('last_total_time_sent_to_pd', false);
 
 		// Scheduling state
 	},
@@ -235,8 +235,8 @@ _extend(Controller.prototype, {
 		twitter_username: constants.DEFAULT_USERNAME,
 		twitter_password: constants.DEFAULT_PASSWORD,
 		email: constants.DEFAULT_EMAIL,
-		procrasdonate_reason: constants.DEFAUL_PROCRASDONATE_REASON,
-		timewellspent_reason: constants.DEFAUL_TIMEWELLSPENT_REASON,
+		procrasdonate_reason: constants.DEFAULT_PROCRASDONATE_REASON,
+		timewellspent_reason: constants.DEFAULT_TIMEWELLSPENT_REASON,
 		cents_per_hr: constants.DEFAULT_CENTS_PER_HR,
 		hr_per_week_goal: constants.DEFAULT_HR_PER_WEEK_GOAL,
 		hr_per_week_max: constants.DEFAULT_HR_PER_WEEK_MAX,
@@ -317,11 +317,15 @@ _extend(Controller.prototype, {
 	},
 	
 	trigger_daily_cycle: function() {
-		
+		logger("triggering daily cycle...");
+		this.pddb.schedule.do_once_daily_tasks();
+		logger("...daily cycle done");
 	},
 	
 	trigger_weekly_cycle: function() {
-		
+		logger("triggering weekly cycle...");
+		this.pddb.schedule.do_once_weekly_tasks();
+		logger("...weekly cycle done");
 	}
 });
 
@@ -353,7 +357,7 @@ _extend(Schedule.prototype, {
 		var self = this;
 		
 		// 1. Send all new Payments to TJ: no tipjoy id
-		// 2. Send all new Totals to PD: more recent time than 'last_total_time_send_to_pd'
+		// 2. Send all new Totals to PD: more recent time than 'last_total_time_sent_to_pd'
 		// 3. Ask TJ for newly paid transactions: ask for xactions since 'last_paid_tipjoy_id', iterate until pledges. set 'last_paid_tipjoy_id'
 		// 4. Send newly paid transactions to PD: iterate 'last_paid_tipjoy_id_sent_to_pd' until pledges
 
@@ -1519,15 +1523,7 @@ _extend(PageController.prototype, {
 		this.activate_twitter_account_middle(request);
 	},
 	
-	impact_sites_middle: function(request, data) {
-		var context = new Context({
-			data: data,
-			constants: constants,
-		});
-		return Template.get("impact_sites_middle").render(context);
-	},
-	
-	activate_impact_sites_middle: function(request, has_tags) {
+	activate_impact_middle: function(request, has_tags) {
 		request.jQuery(".site_rank .rank_text").hide();
 		request.jQuery(".site_rank .bar").hover(
 			function() {
@@ -1539,141 +1535,255 @@ _extend(PageController.prototype, {
 		);
 	},
 	
+	impact_middle: function(request, acontext, template) {
+		var context = new Context({
+			context: acontext,
+			constants: constants,
+		});
+		return Template.get(template).render(context);
+	},
+	
 	insert_impact_sites: function(request) {
 		/* insert sites chart */
 		var self = this;
 		this.prefs.set('impact_state', 'sites');
 		
-		var data = [];
-		var max_amount = 0;
-		var max_time = 0;
-		
-		var sitegroup_contenttype = this.pddb.ContentType.get_or_null({
+		var contenttype = this.pddb.ContentType.get_or_null({
 			modelname: "SiteGroup"
 		});
 		
-		this.pddb.Total.select({
-			timetype_id: self.pddb.Forever.id,
-			contenttype_id: sitegroup_contenttype.id,
-			time: _end_of_forever
-		}, function(row) {
-			var total_time = parseInt(row.total_time);
-			var total_amount = (parseFloat(row.total_amount) / 100).toFixed(2); // cents into dollar
-			if (total_time > max_time) { max_time = total_time; }
-			if (total_amount > max_amount) { max_amount = total_amount; }
-			logger(" row.total_time="+row.total_time+" max_time="+max_time+" max_amount="+max_amount);
-			var sitegroup = self.pddb.SiteGroup.get_or_null({
-				id: row.content_id
-			});
-			var tag = self.pddb.Tag.get_or_null({
-				id: sitegroup.tag_id
-			});
-			data.push({
-				sitegroup_name: sitegroup.host,
-				tag: tag.tag,
-				total_time: total_time,
-				total_amount: total_amount
-			});
-		},
-		"-total_time"
+		var context = this.impact_data(
+			request,
+			contenttype,
+			self.pddb.Forever,
+			_end_of_forever,
+			true
 		);
-		logger(" maxes: max_time="+max_time+" max_amount="+max_amount);
-		for (var i = 0; i < data.length; i++) {
-			var drow = data[i];
-			drow.time_pct = Math.round( (drow.total_time / max_time)*100 );
-			drow.amount_pct = Math.round( (drow.total_amount / max_amount)*100 );
-			logger("aaaaaaadata="+_pprint(drow));
-			logger("total_time="+drow.total_time);
-			logger("time_pct="+drow.time_pct);
-			var d = _start_of_day();
-			d.setSeconds(drow.total_time);
-			var hours = d.getHours();
-			var minutes = d.getMinutes();
-			if (minutes < 10) { minutes = "0" + minutes; }
-			var seconds = d.getSeconds();
-			if (seconds < 10) { seconds = "0" + seconds; }
-			//drow.total_time = d.toTimeString()
-			drow.total_time = hours + ":" + minutes + "." + seconds;
-			drow.total_amount = drow.total_amount;
-		}
-		request.jQuery("#content").html(
-			this.impact_wrapper_snippet(request, this.impact_sites_middle(request, data)) );
-		this.activate_impact_tab_events(request);
-		this.activate_impact_sites_middle(request);
-	},
-	
-	impact_recipients_middle: function(request, data) {
-		var context = new Context({
-			data: data,
-			constants: constants,
-		});
-		return Template.get("impact_recipients_middle").render(context);
-	},
-	
-	
-	insert_impact_recipients: function(request) {
-		/* insert sites chart */
-		var self = this;
-		
-		this.prefs.set('impact_state', 'recipients');
-		var data = [];
-		var max_amount = 0;
-		var max_time = 0;
-		
-		var recipient_contenttype = this.pddb.ContentType.get_or_null({
-			modelname: "Recipient"
-		});
-		
-		this.pddb.Total.select({
-			timetype_id: self.pddb.Forever.id,
-			contenttype_id: recipient_contenttype.id,
-			time: _end_of_forever
-		}, function(row) {
-			var total_time = parseInt(row.total_time);
-			var total_amount = (parseFloat(row.total_amount) / 100.0).toFixed(2); // cents into dollars;
-			if (total_time > max_time) { max_time = total_time; }
-			if (total_amount > max_amount) { max_amount = total_amount; }
-			logger(" row.total_time="+row.total_time+" max_time="+max_time+" max_amount="+max_amount);
-			var recipient = self.pddb.Recipient.get_or_null({
-				id: row.content_id
-			});
-			data.push({
-				recipient_name: recipient.name,
-				total_time: total_time,
-				total_amount: total_amount
-			});
-		},
-		"-total_time"
-		);
-		logger(" maxes: max_time="+max_time+" max_amount="+max_amount);
-		for (var i = 0; i < data.length; i++) {
-			var drow = data[i];
-			drow.time_pct = Math.round( (drow.total_time / max_time)*100 );
-			drow.amount_pct = Math.round( (drow.total_amount / max_amount)*100 );
-			logger("aaaaaaadata="+_pprint(drow));
-			logger("total_time="+drow.total_time);
-			logger("time_pct="+drow.time_pct);
-			var d = _start_of_day();
-			d.setSeconds(drow.total_time);
-			var hours = d.getHours();
-			var minutes = d.getMinutes();
-			if (minutes < 10) { minutes = "0" + minutes; }
-			var seconds = d.getSeconds();
-			if (seconds < 10) { seconds = "0" + seconds; }
-			//drow.total_time = d.toTimeString()
-			drow.total_time = hours + ":" + minutes + "." + seconds;
-		}
+		context.title = "Most Supported Sites";
+		context.sub_title = "Time spent supporting sites"
+		context.submenus = [
+			[
+				{name: "Today"},
+				{name: "This Week"},
+				{name: "All Time", selected:1}
+			],
+			[
+				{name: "Daily", coming:1},
+				{name: "Weekly", coming:1}
+			],
+			[
+				{name: "Classify Sites"}
+			]
+		];
 		
 		request.jQuery("#content").html(
 			this.impact_wrapper_snippet(
 				request, 
-				this.impact_recipients_middle(request, data)) );
-		
+				this.impact_middle(request, context, "impact_middle")
+			)
+		);
+			
 		this.activate_impact_tab_events(request);
-		this.activate_impact_sites_middle(request);
+		this.activate_impact_middle(request);
+	},
+	
+	insert_impact_recipients: function(request) {
+		/* insert sites chart */
+		var self = this;
+		this.prefs.set('impact_state', 'recipients');
+		
+		var contenttype = this.pddb.ContentType.get_or_null({
+			modelname: "Recipient"
+		});
+		
+		var context = this.impact_data(
+			request,
+			contenttype,
+			self.pddb.Forever,
+			_end_of_forever,
+			false
+		);
+		context.title = "Most Supported Recipients";
+		context.sub_title = "Recipients ranked by your donations (in $)";
+		context.test = ["a", "b", "c"];
+		context.submenus = [
+			[
+				{name: "Today"},
+				{name: "This Week"},
+				{name: "All Time", selected:1}
+			],
+			[
+				{name: "Daily", coming:1},
+				{name: "Weekly", coming:1}
+			],
+			[
+				{name: "Select Recipients"}
+			]
+		];
+		
+		request.jQuery("#content").html(
+			this.impact_wrapper_snippet(
+				request, 
+				this.impact_middle(request, context, "impact_middle")
+			)
+		);
+			
+		this.activate_impact_tab_events(request);
+		this.activate_impact_middle(request);
+	},
+	
+	impact_menu_events: function() {
+		return {
+			"today": this.insert_subimpact_today,
+			"this_week": this.insert_subimpact_this_week,
+			"all_time": this.insert_subimpact_all_time,
+			
+			"daily": this.insert_subimpact_daily,
+			"weekly": this.insert_subimpact_weekly,
+			
+			"select_recipients": this.insert_subimpact_select_recipients,
+			"set_goals": this.insert_subimpact_set_goals
+		}
 	},
 	
 	insert_impact_goals: function(request) {
+		/* insert sites chart */
+		var self = this;
+		this.prefs.set('impact_state', 'goals');
+		
+		var contenttype = this.pddb.ContentType.get_or_null({
+			modelname: "Tag"
+		});
+		
+		var context = this.impact_data(
+			request,
+			contenttype,
+			self.pddb.Forever,
+			_end_of_forever,
+			true
+		);
+		context.title = "Goals";
+		context.sub_title = "Total impact";
+		// "Weekly progress towards goals"
+		// "Weekly score-cards"
+		context.submenus = [
+			[
+				{name: "Progress Today"},
+				{name: "Progress This Week"},
+				{name: "All Time", selected:1}
+			],
+			[
+				{name: "Daily Comparison", coming:1},
+				{name: "Weekly Comparison", coming:1}
+			],
+			[
+				{name: "Set Goals"}
+			]
+		];
+		
+		request.jQuery("#content").html(
+			this.impact_wrapper_snippet(
+				request, 
+				this.impact_middle(request, context, "impact_middle")
+			)
+		);
+			
+		this.activate_impact_tab_events(request);
+		this.activate_impact_middle(request);
+	},
+	
+	impact_data: function(request, contenttype, timetype, time, is_time) {
+		var self = this;
+		var data = [];
+		var class_names = {};
+		var max = 0;
+		var order_by = "-total_time";
+		if (!is_time) {
+			order_by = "-total_amount";
+		}
+		
+		this.pddb.Total.select({
+			timetype_id: timetype.id,
+			contenttype_id: contenttype.id,
+			time: time 
+		}, function(row) {
+			var total = 0;
+			if (is_time) {
+				// keep as dbified date for now
+				total = parseInt(row.total_time);
+			} else {
+				// cents into dollars;
+				total = (parseFloat(row.total_amount) / 100.0).toFixed(2);
+			}
+			if (total > max) { max = total; }
+			var name;
+			var class_name;
+			if (contenttype.modelname == "Recipient") {
+				var recipient = self.pddb.Recipient.get_or_null({
+					id: row.content_id
+				});
+				var category = self.pddb.Category.get_or_null({
+					id: recipient.category_id
+				});
+				name = recipient.name;
+				class_name = category.category;
+			} else if (contenttype.modelname == "SiteGroup") {
+				var sitegroup = self.pddb.SiteGroup.get_or_null({
+					id: row.content_id
+				});
+				var tag = self.pddb.Tag.get_or_null({
+					id: sitegroup.tag_id
+				});
+				name = sitegroup.host;
+				class_name = tag.tag;
+			} else if (contenttype.modelname == "Site") {
+				var site = self.pddb.Site.get_or_null({
+					id: row.content_id
+				});
+				name = site.url;
+				class_name = site.sitegroup_id;
+			} else if (contenttype.modelname == "Tag") {
+				var tag = self.pddb.Tag.get_or_null({
+					id: row.content_id
+				});
+				name = tag.tag;
+				class_name = tag.tag;
+			}
+			data.push({
+				name: name,
+				class_name: class_name,
+				total: total
+			});
+		},
+		order_by
+		);
+		
+		for (var i = 0; i < data.length; i++) {
+			var datum = data[i];
+			datum.percent = Math.round( (datum.total / max )*100 );
+			if (is_time) {
+				// format time
+				var t = _start_of_day();
+				t.setSeconds(datum.total);
+				var hours = t.getHours();
+				if (hours < 10) { hours = "0" + hours; }
+				var minutes = t.getMinutes();
+				if (minutes < 10) { minutes = "0" + minutes; }
+				var seconds = t.getSeconds();
+				if (seconds < 10) { seconds = "0" + seconds; }
+				datum.total = hours + ":" + minutes + "." + seconds;
+			}
+			// collate list of class_names
+			class_names[datum.class_name] = 1;
+		}
+		var cnames = [];
+		for (var cname in class_names) {
+			cnames.push(cname);
+		}
+		return {data: data, class_names: cnames}
+	},
+	
+	insert_impact_goals_old: function(request) {
 		/* Inserts weekly progress towards donation goals and max */
 		this.prefs.set('impact_state', 'goals');
 		

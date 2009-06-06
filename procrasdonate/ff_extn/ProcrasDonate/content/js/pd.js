@@ -11,14 +11,16 @@ ProcrasDonate_API.prototype = new API();
 _extend(ProcrasDonate_API.prototype, {
 	
 	send_new_totals: function(pddb) {
-		// 2. Send all new Totals to PD: more recent time than 'last_total_time_send_to_pd'
+		// 2. Send all new Totals to PD: more recent time than 'last_total_time_sent_to_pd'
 		var self = this;
 		var totals = [];
-		var time = this.prefs.get('last_total_time_send_to_pd', '0');
+		var time = this.prefs.get('last_total_time_sent_to_pd', 0);
+		var new_last_time = time;
 		this.pddb.Total.select({
 			timetype_id: self.pddb.Daily.id,
 			time__gte: time
 		}, function(row) {
+			if (parseInt(row.time) > new_last_time) { new_last_time = parseInt(row.time) ; }
 			var contenttype = self.pddb.ContentType.get_or_null({ id: row.contenttype_id });
 			var recipient = null;
 			var recipient_category = null;
@@ -59,6 +61,8 @@ _extend(ProcrasDonate_API.prototype, {
 		}, function(r) {
 			logger("Successfully posted totals to ProcrasDonate");
 		});
+		
+		this.prefs.set('last_total_time_sent_to_pd', new_last_time);
 	},
 	
 	send_new_paid_pledges: function(pddb) {
@@ -74,12 +78,12 @@ _extend(ProcrasDonate_API.prototype, {
 	 */
 	_post_data: function(data, onload) {
 		// serialize into json
-		JSON.stringify(data);
+		var json_data = JSON.stringify(data);
 		
 		// make request
 		this.make_request(
 			constants.PD_URL+"/totals/",
-			data,
+			{data: json_data},
 			"POST",
 			onload
 		);
