@@ -141,8 +141,9 @@ _extend(TipJoy_API.prototype, {
 	 *      "TimeWellSpent for a good cause"
 	 */
 	_make_payment_request: function(amt, reason, onload, onerror) {
-		//var text = "p " + amt + "¢¢ @" + this.prefs.get('recipient') + " " + escape(reason);
-		var text = "p " + parseInt(amt) + "&cent; ¢ &#162; @ProcrasDonate " + escape(reason) + escape("¢ &#162; &cent;");
+		//var text = "p " + parseInt(amt) + "¢ @ProcrasDonate " + escape(reason);
+		var dollar_amount = parseInt(amt)/100.0;
+		var text = "p $" + dollar_amount +" @ProcrasDonate " + escape(reason);
 		var username = this.prefs.get('twitter_username', '')
 		var password = this.prefs.get('twitter_password', '')
 		logger("tipjoy.js::_make_payment_request: text="+text);

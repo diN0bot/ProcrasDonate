@@ -1243,7 +1243,7 @@ _extend(PageController.prototype, {
 									self.prefs.set('twitter_username', twitter_username);
 									self.prefs.set('twitter_password', twitter_password);
 									
-									event();
+									self[event](request);
 								} else {
 									logger("problem creating tipjoy account");
 									var str = ""; for (var prop in result) {	str += prop + " value :" + result[prop]+ + " __ "; }
