@@ -5,14 +5,10 @@
 
 	
 	<div id="thin_column">
-		<div id="StartButtonDiv" class="">	
-			<a href="{{ MEDIA_URL }}xpi/ProcrasDonate_0.1.1.xpi">
-				<img src="{{ MEDIA_URL }}img/StartNow14.png" id="StartButton" class="StartButton">
-			</a>
-			<img src="{{ MEDIA_URL }}img/ProcrasDonateLineCartoon.png" class="Banner">						
-		</div>	
-		<h2></h2>
+	
+		{% include 'procrasdonate/snippets/banner.html' %}
 
+		{% comment %}
 		<span class="horizontal">
 			<a href="#follow">Progress</a>
 		</span>
@@ -34,6 +30,7 @@
 		<span class="horizontal"> 	
 			<a href="#stop">Unsubscribe</a>
 		</span>
+		{% endcomment %}
 
 
 		<h2><a name="follow"></a>Progress, Goals, and Budget</h2>

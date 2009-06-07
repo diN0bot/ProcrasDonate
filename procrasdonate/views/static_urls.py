@@ -5,6 +5,7 @@ urlpatterns = patterns('',
 
     # intro, FAQ
     url(r'^home/$', main.home, name='home'),
+    url(r'^noextn_home_noextn/$', main.home_noextn, name='home_noextn'),
     url(r'^learn_more/$', main.learn_more, name='learn_more'),
 
 )

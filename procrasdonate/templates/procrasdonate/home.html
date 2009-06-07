@@ -6,15 +6,9 @@
 	
 	<div id="thin_column">
 		
-		<div id="StartButtonDiv" class="">	
-			<img src="{{ MEDIA_URL }}img/ProcrasDonateLineCartoon.png" class="Banner">						
-			<a href="{{ MEDIA_URL }}xpi/ProcrasDonate_0.1.1.xpi">
-				<img src="{{ MEDIA_URL }}img/StartNow14.png" id="StartButton" class="StartButton">
-			</a>
-		</div>
-			
-		<h3>A Firefox Extension...</h3>
-				
+		{% include 'procrasdonate/snippets/banner.html' %}
+		
+		{% comment %}
 		<span class="horizontal"> 
 			<a href="#why">Schedule</a>
 		</span>
@@ -32,6 +26,7 @@
 		<span class="horizontal">
 			<a href="#changes">Changes</a>
 		</span>		
+		{% endcomment %}
 			
 		<h2><a name="why"></a>Feel Good About Your Time Online</h2>
 		<img src="{{ MEDIA_URL }}img/Calendar.png" class="small-image">		
@@ -39,30 +34,29 @@
 		<p>Give yourself a <b>charitable</b> incentive for good time management.
 		</p>
 		<p> 
-		After <a href="{{ MEDIA_URL }}xpi/ProcrasDonate_0.1.1.xpi">registering...</a> 
-				<b>click</b> the question mark on your browser to mark how <b>you</b> judge time spent on a particular website.
+		Our <a href="{{ MEDIA_URL }}xpi/ProcrasDonate_0.1.1.xpi">FireFox add-on</a> provides
+			convenient toolbar icons that you can click to classify the time you spend on particular websites.
 		</p>
 			
 		<h2><a name="what"></a>ProcrasDonate: <span class="subheader">Help Out By Goofing Around</span></h2>
 		<img src="{{ MEDIA_URL }}img/ProcrasDonateLogoNoText.png" class="small-image">		
 		<img src="{{ MEDIA_URL }}img/ScreenshotPD.png" class="screenshot-long">		
 		<p>Use the ''hands offering a sprout'' icon to mark <b>frivolous</b> sites as <i>ProcrasDonation</i>.  
-		</p>
-		<p>Hours you spend <i>ProcrasDonating</i> are <b>micro-pledges</b> to your favorite charities.
+		</p><p>Hours you spend <i>ProcrasDonating</i> are <b>micro-pledges</b> to your favorite charities.
 		</p>
 		
 		<h2><a name="quality"></a>Time Well Spent: <span class="subheader">Support Quality Content</span></h2>
 		<img src="{{ MEDIA_URL }}img/ThumbsUp.png" class="small-image">		
 		<img src="{{ MEDIA_URL }}img/ScreenshotTWS.png" class="screenshot-long">		
-		<p>It's just as <b>easy</b> to donate to your favorite sites for the hours you spend using them.
-		</p><p>Mark sites that provide you with worthwhile content as <i>Time Well Spent</i> using the ''thumbs up'' icon.  
-		</p>		
+		<p>Use the "thumbs up" icon to mark <b>worthwhile</b> sites as <i>Time Well Spent</i>.
+		</p><p>Support your <b>favorite</b> sites for providing you with quality content.
+		</p>
 		
 		<h2><a name="goals"></a>Set Your Own Goals: <span class="subheader">Feedback and Limits on Incentives</span></h2>
 		<img src="{{ MEDIA_URL }}img/HourGlass.png" class="small-image">	
 				<img src="{{ MEDIA_URL }}img/ScreenshotProgressBar.png" class="screenshot-long">		
-		<p>When your <b>progress bar</b> moves into the red you have passed your weekly ProcrasDonation goal.  
-		<p>When all bars are full you've reached your <b>limit</b> -> no more pledges will be made until next week.</p>	
+		<p>When your <b>progress bar</b> moves into the red you have passed your weekly ProcrasDonation and TimeWellSpent goal.  
+		<p>When all bars are full you have reached your <b>limit</b> &#x2014; no more pledges will be made until next week.</p>	
 			
 		
 		<h2><a name="T-shirts"></a>Testers get a free shirt!
@@ -71,17 +65,21 @@
 			</span></h2>
 		<img src="{{ MEDIA_URL }}img/ProcrasDonateShirt.png" class="small-image">		
 		<img src="{{ MEDIA_URL }}img/ProcrasDonateShirtDetail.png" class="screenshot-long">		
-		<p>Things are still pretty rough and we need your feedback to <b>improve</b>.
-		Please <a href="{{ MEDIA_URL }}xpi/ProcrasDonate_0.1.1.xpi">register</a> and use our feedback page to let us know what you think. 
-		</p><p>We'll send you a <i>hand screened organic cotton work of art...</i>  
+		<p>We need your feedback to <b>improve</b>.
+		Try our <a href="{{ MEDIA_URL }}xpi/ProcrasDonate_0.1.1.xpi">FireFox add-on</a>.
+		</p><p>Use our feedback page to tell us what <b>you think</b>, and we'll send you a <i>hand screened organic cotton work of art</i>.  
 		</p><p><b>Thanks!</b>
 		</p>
 		
 		<h2><a name="changes"></a>Expect Changes</h2>
-		<p>After registering you'll be able to use new features as we add them just by <b>updating</b> your Firefox browser when it asks you to.  
-		</p><p>Security is our top priority: so your personal data will be <b>safe</b> during our testing stage.  
-		Some of your settings may have to be reinstalled when we release our beta <i>in June</i>.
+		<p>You'll automatically receive add-on updates as we add new features each week.
+		</p><p>Some of your settings and data may be lost as we work to stabilize the current rough-cut.
 		</p>
+		
+		<h2>Privacy Guarantee: <span class="subheader">We only store anonymous information</h2>
+		<p>Privacy is important to us. Our browser add-on only sends us the information we need to make micro-payments.
+		</p><p>Your personal data stays on your machine. Your financial data stays with a trusted third party.
+		</p> 
 		
 	</div>
 {% endblock %}

@@ -427,7 +427,6 @@ var PDDB = function PDDB() {
 	this.prefs = new PreferenceManager("ProcrasDonate.", {
 		
 	});
-	logger(" &&&&&&&&&&&&&&&&&&&& last_url="+this.prefs.get('last_url', 'no last url'));
 	
 	this.controller = new Controller(this.prefs, this);
 	this.page = new PageController(this.prefs, this);

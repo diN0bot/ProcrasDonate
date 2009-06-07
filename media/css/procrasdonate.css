@@ -93,7 +93,6 @@ p { text-align: left; }
 .page_menu ul { list-style-type: none; }
 .page_menu ul li { text-align: right; }
 
-.StartButton { width: 13em; margin-bottom: -2.5em; margin-right: 1.5em; }
 
 .Spacer {width: 14em; height: 1.5em; }
 .SmallSpacer {width: 14em; height: 0.5em; }
@@ -103,8 +102,25 @@ p { text-align: left; }
 .DivRight {text-align: right; }	
 .DivLeft {text-align: left; }
 
-.Banner { width: 40em; margin-right: 0em; margin-top: -1em; margin-bottom: -1em; }
+#TheBanner {
+  margin: auto;
+  min-width: 45em;
+  text-align: center;
+}
+.StartButton { width: 13em; margin-top: 2em; }/*margin-top: -3.3em; margin-right: -40em; }*/
 
+#logo_banner { width: 40em; /*margin: -1em 0em 1.5em -17em;*/ }
+#firefox_addon_one_liner {
+  border:medium none;
+  margin:-.4em auto;
+  text-align:center;
+}
+#firefox_addon_one_liner span {
+  color:#999999;
+  font-size:0.7em;
+  font-variant:normal;
+  letter-spacing:normal;
+}
 
 .subheader { color: #669933; font-size: .8em;}
 

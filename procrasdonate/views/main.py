@@ -19,6 +19,9 @@ def settings(request):
 def home(request):
     return render_response(request, 'procrasdonate/home.html', locals())
 
+def home_noextn(request):
+    return render_response(request, 'procrasdonate/home.html', locals())
+
 def learn_more(request):
     return render_response(request, 'procrasdonate/learn_more.html', locals())
 
@@ -30,9 +33,6 @@ def my_impact(request):
 
 def recipients(request):
     return render_response(request, 'procrasdonate/recipients.html', locals())
-
-def my_impact(request):
-    return render_response(request, 'procrasdonate/my_impact.html', locals())
 
 def _POST(url, values):
     """

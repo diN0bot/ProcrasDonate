@@ -1776,7 +1776,7 @@ _extend(PageController.prototype, {
 				if (minutes < 10) { minutes = "0" + minutes; }
 				var seconds = t.getSeconds();
 				if (seconds < 10) { seconds = "0" + seconds; }
-				datum.total = hours + ":" + minutes + "." + seconds;
+				datum.total = hours + "h:" + minutes + "m." + seconds;
 			}
 			// collate list of class_names
 			class_names[datum.class_name] = 1;
