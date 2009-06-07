@@ -25,7 +25,7 @@ p { text-align: left; }
    dark blue 1C5492
    deep blue (sidebar) 003366
    soft blue (sidebar and links) 336699
-   
+   grey b3bdb6
    dark bluegreen 156451
    soft green (sidebar) 669933
    purple 6C0B5D
@@ -93,7 +93,7 @@ p { text-align: left; }
 .page_menu ul { list-style-type: none; }
 .page_menu ul li { text-align: right; }
 
-.StartButton { width: 17em; margin-bottom: -3em; margin-right: 2em; }
+.StartButton { width: 13em; margin-bottom: -2.5em; margin-right: 1.5em; }
 
 .Spacer {width: 14em; height: 1.5em; }
 .SmallSpacer {width: 14em; height: 0.5em; }
@@ -103,7 +103,7 @@ p { text-align: left; }
 .DivRight {text-align: right; }	
 .DivLeft {text-align: left; }
 
-.Banner { width: 44em; margin-right: 0em; margin-top: 0em; margin-bottom: -3em; }
+.Banner { width: 40em; margin-right: 0em; margin-top: -1em; margin-bottom: -1em; }
 
 
 .subheader { color: #669933; font-size: .8em;}
@@ -120,8 +120,7 @@ h2 {
   font-variant: small-caps;
   font-weight: bold;
   letter-spacing: .09em;
-  border-bottom: .5px solid #ccff99; /*FAF3F4;*/
-  /*background: #FAF3F4;*/
+  border-bottom: .5px solid #ccff99;
   padding: 1em 0em 0em .5em;
   margin-left: -.5em;
 }
@@ -133,13 +132,12 @@ h3 {
   text-align: left;
   font-family:"Trebuchet MS",Helvetica,Jamrul,sans-serif;
   font-size: 1.5em;
-  color: #cc9966;
+  color: #b3bdb6;
   margin: 1.5em 0em .5em 0em;
   font-variant: small-caps;
   font-weight: bold;
-  letter-spacing: .2em;
-  border-bottom: .5px solid #ccff99; /*FAF3F4;*/
-  /*background: #FAF3F4;*/
+  letter-spacing: .1em;
+  border-bottom: .5px solid #ccff99;
   padding: 1em 0em 0em .5em;
   margin-left: -.5em;
 }
