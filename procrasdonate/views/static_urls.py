@@ -20,4 +20,8 @@ if settings.DJANGO_SERVER:
         (r'^add_random_visits/$', 'direct_to_template', {'template': 'procrasdonate/dev_test.html'}),
         (r'^trigger_daily_cycle/$', 'direct_to_template', {'template': 'procrasdonate/dev_test.html'}),
         (r'^trigger_weekly_cycle/$', 'direct_to_template', {'template': 'procrasdonate/dev_test.html'}),
+        
+        # handle data posted to server
+        (r'^post/totals/$', main.totals),
+        (r'^post/payments/$', main.payments),
     )

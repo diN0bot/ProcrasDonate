@@ -58,6 +58,8 @@ _extend(TipJoy_API.prototype, {
 			tipjoy_transaction_id: 0,
 		}, function(row) {
 			var total = self.pddb.Total.get_or_null({ id: row.total_id });
+			logger("tipjoy.js::send_new_payments: payment="+row);
+			logger("tipjoy.js::send_new_payments: total="+total);
 			self._make_payment(total, row);
 		});
 	},
@@ -71,17 +73,20 @@ _extend(TipJoy_API.prototype, {
 	_make_payment: function(total, payment) {
 		var self = this;
 		var reason = this.prefs.get('timewellspent_reason', '');
+		logger("tipjoy.js::_make_payment: total="+total+" payment="+payment+" reason="+reason);
 		try {
 			// this should work if payment is for a tag-content total,
 			// which currently it should be...
-			self.pddb.Tag.get_or_null({
+			var tag = self.pddb.Tag.get_or_null({
 				id: total.content_id
-			}, function(row) {
-				if (row.tag == "ProcrasDonate") {
+			});
+			if (tag) {
+				if (tag.tag == "ProcrasDonate") {
 					reason = this.prefs.get('procrasdonate_reason', '');
 				}
-			});
+			}
 		} catch(e) {
+			logger("tipjoy.js::_make_payment: extracting tag for tipjoy payment reason raised exception");
 		}
 		// pay @ProcrasDonate via TipJoy
 		this._make_payment_request(
@@ -101,6 +106,7 @@ _extend(TipJoy_API.prototype, {
 	},
 		
 	_payment_success: function(total, payment, response) {
+		logger("tipjoy.js::_payment_success: response="+response);
 		var is_loan = False;
 		var tipjoy_transaction_id = "";
 		var fallover_is_loan = False;
@@ -135,11 +141,16 @@ _extend(TipJoy_API.prototype, {
 	 *      "TimeWellSpent for a good cause"
 	 */
 	_make_payment_request: function(amt, reason, onload, onerror) {
-		//var text = "p " + amt + "¢ @" + this.prefs.get('recipient') + " " + escape(reason);
-		var text = "p " + amt + "¢ @ProcrasDonate " + escape(reason);
+		//var text = "p " + parseInt(amt) + "¢ @ProcrasDonate " + escape(reason);
+		var dollar_amount = parseInt(amt)/100.0;
+		if (dollar_amount < 0.00) {
+			dollar_amount += 0.01; // 
+		}
+		var text = "p $" + dollar_amount +" @ProcrasDonate " + escape(reason);
 		var username = this.prefs.get('twitter_username', '')
 		var password = this.prefs.get('twitter_password', '')
-		//var params = "twitter_username=" + username + "&twitter_password=" + password + "&text=" + text;
+		logger("tipjoy.js::_make_payment_request: text="+text);
+		
 		var params = {
 			twitter_username: username,
 			twitter_password: password,
