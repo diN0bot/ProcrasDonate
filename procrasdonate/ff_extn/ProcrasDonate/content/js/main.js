@@ -1,3 +1,4 @@
+var STORE_VISIT_LOGGING = false;
 
 logger = function(msg) {
 	dump("---------\n" + msg + "\n");
@@ -64,6 +65,8 @@ URLBarListener.prototype = {
 		//logger(gBrowser.contentWindow.document);
 		//logger(gBrowser.contentDocument);
 		
+		/*
+		 this was for testing purposes, right? unnecessary
 		http_request = new HttpRequest(window, window);
 		var request = http_request.contentStartRequest({
 			method: "get",
@@ -80,6 +83,7 @@ URLBarListener.prototype = {
 				//logger(["HttpRequest->onreadystatechange()", arguments]);
 			},
 		});
+		*/
 		
 		//logger(jQuery("*", gBrowser.contentWindow.document).length);
 		//logger([]);
@@ -423,7 +427,6 @@ var PDDB = function PDDB() {
 	this.prefs = new PreferenceManager("ProcrasDonate.", {
 		
 	});
-	logger(" &&&&&&&&&&&&&&&&&&&& last_url="+this.prefs.get('last_url', 'no last url'));
 	
 	this.controller = new Controller(this.prefs, this);
 	this.page = new PageController(this.prefs, this);
@@ -892,8 +895,8 @@ PDDB.prototype = {
 		this.schedule.run();
 		
 		// @TODO might still want last vist to be time in seconds not 0 >>>??
-		var last_global = this.prefs.get('last_visit', 0);
-		var first = this.prefs.get('first_visit', 0);
+		//var last_global = this.prefs.get('last_visit', 0);
+		//var first = this.prefs.get('first_visit', 0);
 		// var currentTime = new Date();
 		// var t_in_s = Math.round(currentTime.getTime()/1000);
 		// this.prefs.set('last_visit', t_in_s);
@@ -928,15 +931,15 @@ PDDB.prototype = {
 	},
 	
 	store_visit: function(url, start_time, duration) {
-		logger("  >>>> store_visit ");
+		if (STORE_VISIT_LOGGING) logger("  >>>> store_visit ");
 		
 		var site = null;
 		this.Site.select({ url__eq: url }, function(row) {
-			logger(row[0]);
+			if (STORE_VISIT_LOGGING) logger(row[0]);
 			site = row;
 		});
 
-		logger(site);
+		if (STORE_VISIT_LOGGING) logger(site);
 		if (!site) {
 			var host = _host(url);
 			var sitegroup = this.SiteGroup.get_or_null({ host: host });
@@ -945,14 +948,14 @@ PDDB.prototype = {
 			}
 			site = this.Site.create({ url: url, sitegroup_id: sitegroup.id });
 		}
-		logger("store_visit site: "+site);
+		if (STORE_VISIT_LOGGING) logger("store_visit site: "+site);
 		
 		var visit = this.Visit.create({
 			site_id: site.id,
 			enter_at: start_time,
 			duration: duration
 		});
-		logger("store_visit visit: " + visit);
+		if (STORE_VISIT_LOGGING) logger("store_visit visit: " + visit);
 		
 		this.update_totals(site, visit);
 	},
@@ -981,14 +984,14 @@ PDDB.prototype = {
 		var times     = [ end_of_day, end_of_week, end_of_forever ];
 		
 		var cents_per_hr = this.prefs.get('cents_per_hr', 0);
-		logger("update visit="+visit);
+		if (STORE_VISIT_LOGGING) logger("update visit="+visit);
 		var time_delta = parseInt(visit.duration);
 		// recipient percents and pd skim not applied
 		var full_amount_delta = ( time_delta / (60.0*60.0) ) * parseInt(cents_per_hr);
-		logger("time_delta="+time_delta+" cents_per_hr="+cents_per_hr+" parseInt(cents_per_hr)="+cents_per_hr+" t/60*60="+(time_delta / (60.0*60.0)));
+		if (STORE_VISIT_LOGGING) logger("time_delta="+time_delta+" cents_per_hr="+cents_per_hr+" parseInt(cents_per_hr)="+cents_per_hr+" t/60*60="+(time_delta / (60.0*60.0)));
 		var skim_amount = full_amount_delta * parseFloat(pd_recipientpercent.percent);
 		var rest_amount = full_amount_delta - skim_amount;
-		logger(" the amounts: full="+full_amount_delta+" skim="+skim_amount+" rest="+rest_amount);
+		if (STORE_VISIT_LOGGING) logger(" the amounts: full="+full_amount_delta+" skim="+skim_amount+" rest="+rest_amount);
 		// array objects containing:
 		//	contenttype instance
 		//  content instance
@@ -1020,22 +1023,22 @@ PDDB.prototype = {
 				});
 
 			} else if (row.modelname == "Recipient") {
-				logger("zxcv");
+				if (STORE_VISIT_LOGGING) logger("zxcv");
 				if (tag.id != self.Unsorted.id) {
-					logger("not unsorted");
+					if (STORE_VISIT_LOGGING) logger("not unsorted");
 					self.RecipientPercent.select({}, function(r) {
-						logger("recipientpercent="+r);
+						if (STORE_VISIT_LOGGING) logger("recipientpercent="+r);
 						if (r.id == pd_recipientpercent.id) {
-							logger("pd recip");
+							if (STORE_VISIT_LOGGING) logger("pd recip");
 							content_instances.push({
 								contenttype: row,
 								content: pd_recipient,
 								amt: skim_amount,
 							});
 						} else {
-							logger("not pd recip");
+							if (STORE_VISIT_LOGGING) logger("not pd recip");
 							if (tag.id == self.ProcrasDonate.id) {
-								logger("tag is pd");
+								if (STORE_VISIT_LOGGING) logger("tag is pd");
 								content_instances.push({
 									contenttype: row,
 									content: r,
@@ -1057,16 +1060,16 @@ PDDB.prototype = {
 				var contenttype = triple.contenttype;
 				var content = triple.content;
 				var amt = triple.amt;
-				logger(" `````` i "+i);
-				logger(" `````` j "+j);
-				logger(" `````triple: "+triple);
-				logger(" `````contenttype: "+contenttype);
-				logger(" `````content: "+content);
-				logger(" `````amt: "+amt);
+				if (STORE_VISIT_LOGGING) logger(" `````` i "+i);
+				if (STORE_VISIT_LOGGING) logger(" `````` j "+j);
+				if (STORE_VISIT_LOGGING) logger(" `````triple: "+triple);
+				if (STORE_VISIT_LOGGING) logger(" `````contenttype: "+contenttype);
+				if (STORE_VISIT_LOGGING) logger(" `````content: "+content);
+				if (STORE_VISIT_LOGGING) logger(" `````amt: "+amt);
 				
-				logger(" .....timetypes="+timetypes[i]);
-				logger(" .....times="+times[i]);
-				logger(" .....before.. total...");
+				if (STORE_VISIT_LOGGING) logger(" .....timetypes="+timetypes[i]);
+				if (STORE_VISIT_LOGGING) logger(" .....times="+times[i]);
+				if (STORE_VISIT_LOGGING) logger(" .....before.. total...");
 				var total = this.Total.get_or_create({
 					contenttype_id: contenttype.id,
 					content_id: content.id,
@@ -1076,7 +1079,7 @@ PDDB.prototype = {
 					total_time: 0,
 					total_amount: 0,
 				});
-				logger(" .....after.. total="+total);
+				if (STORE_VISIT_LOGGING) logger(" .....after.. total="+total);
 				
 				this.Total.set({
 					total_time: parseInt(total.total_time) + time_delta,

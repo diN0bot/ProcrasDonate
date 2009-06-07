@@ -226,6 +226,19 @@ var _start_of_day = function(date) {
 	return date;
 }
 
+var _start_of_week = function(date) {
+	if (!date) {
+		date = new Date();
+	}
+	date.setHours(0);
+	date.setMinutes(0);
+	date.setSeconds(0);
+	date.setMilliseconds(0);
+	// first day of week. getDay should now = 0
+	date.setDate(date.getDate() - date.getDay());
+	return date;
+}
+
 var _end_of_forever = -3;
 
 var _end_of_day = function(date) {

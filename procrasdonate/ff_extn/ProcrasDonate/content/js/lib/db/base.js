@@ -1,4 +1,4 @@
-
+var BASE_LOGGING = false;
 //_include("lib/utils/log.js")
 
 function ERROR(msg, obj) {
@@ -66,7 +66,7 @@ _extend(Backend.prototype, {
 		fn = fn || function(row) { return row; };
 		if (!fn) {
 			var r = cursor.execute(sql, params);
-			logger("base.js::execute: r="+r);
+			if (BASE_LOGGING) logger("base.js::execute: r="+r);
 			return r;
 		} else {
 			var ret = [];
@@ -82,7 +82,7 @@ _extend(Backend.prototype, {
 				cursor.reset();
 				cursor.finalize();
 			}
-			logger("base.js::execute: ret="+ret);
+			if (BASE_LOGGING) logger("base.js::execute: ret="+ret);
 			return ret;
 		}
 	},

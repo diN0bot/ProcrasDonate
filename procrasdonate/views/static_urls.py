@@ -5,6 +5,7 @@ urlpatterns = patterns('',
 
     # intro, FAQ
     url(r'^home/$', main.home, name='home'),
+    url(r'^noextn_home_noextn/$', main.home_noextn, name='home_noextn'),
     url(r'^learn_more/$', main.learn_more, name='learn_more'),
 
 )
@@ -20,4 +21,8 @@ if settings.DJANGO_SERVER:
         (r'^add_random_visits/$', 'direct_to_template', {'template': 'procrasdonate/dev_test.html'}),
         (r'^trigger_daily_cycle/$', 'direct_to_template', {'template': 'procrasdonate/dev_test.html'}),
         (r'^trigger_weekly_cycle/$', 'direct_to_template', {'template': 'procrasdonate/dev_test.html'}),
+        
+        # handle data posted to server
+        (r'^post/totals/$', main.totals),
+        (r'^post/payments/$', main.payments),
     )

@@ -19,6 +19,9 @@ def settings(request):
 def home(request):
     return render_response(request, 'procrasdonate/home.html', locals())
 
+def home_noextn(request):
+    return render_response(request, 'procrasdonate/home.html', locals())
+
 def learn_more(request):
     return render_response(request, 'procrasdonate/learn_more.html', locals())
 
@@ -28,39 +31,8 @@ def privacy_guarantee(request):
 def my_impact(request):
     return render_response(request, 'procrasdonate/my_impact.html', locals())
 
-def data(request):
-    """
-    handles post data from extension
-    """
-    if not request.POST:
-        return json_response({'result':'failure', 'reason':'must *POST* site, time_spent, amt and recipient (time is optional)'})
-    
-    site = request.POST.get('site','')
-    time_spent = request.POST.get('time_spent','')
-    amt = request.POST.get('amt','')
-    recipient = request.POST.get('recipient','')
-    print site, time_spent, amt, recipient, request.POST
-    
-    if not site or not time_spent or not amt or not recipient:
-        return json_response({'result':'failure', 'reason':'must POST *site, time, amt and recipient* (time is optional)'})
-    # seconds since the epoch
-    time = request.POST.get('time',None)
-    try:
-        time_spent = int(time_spent)
-        if time:
-            time = int(time)
-        amt = float(amt)
-    except ValueError:
-        return json_response({'result':'failure', 'reason':'must POST site, time_spent (*int*, seconds), amt (*float*, cents) and recipient (time (*int*, seconds since epoch) is optional)'})
-    
-    record_payment(site, time_spent, amt, recipient, time)
-    return json_response({'result':'success'})
-
 def recipients(request):
     return render_response(request, 'procrasdonate/recipients.html', locals())
-
-def my_impact(request):
-    return render_response(request, 'procrasdonate/my_impact.html', locals())
 
 def _POST(url, values):
     """
@@ -107,3 +79,29 @@ def rebuild_extension_templates(request):
     os.system("cp %s/all.js %s/all.js.bkup" % (all_dir, all_dir))
     os.system("cat %s/*.js > %s/all.js" % (generated_templates_dir, all_dir))
     return json_response([ "SUCCESS" ])
+
+
+
+def totals(request):
+    """
+    handles totals posted from extension
+    """
+    print request
+    
+    if not request.POST:
+        return json_response({'result':'failure', 'reason':'must *POST* data'})
+    
+    data = simplejson.loads(request.POST.get('data',''))
+    print "THE DATA = ", data
+    
+    print data['hash']
+    print data['totals']
+    
+    #if not site or not time_spent or not amt or not recipient:
+    #    return json_response({'result':'failure', 'reason':'must POST *site, time, amt and recipient* (time is optional)'})
+    
+    #record_payment(site, time_spent, amt, recipient, time)
+    return json_response({'result':'success'})
+
+def payments(request):
+    pass
