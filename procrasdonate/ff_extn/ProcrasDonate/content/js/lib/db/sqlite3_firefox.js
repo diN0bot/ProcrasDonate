@@ -1,4 +1,4 @@
-
+var SQLITE3_FIREFOX_LOGGING = false;
 //eval(_include("pd/backends/base.js"));
 
 
@@ -168,9 +168,9 @@ _extend(Model.prototype, {
 		 * @param orer_by: name of column to order results by (optional)
 		 * 		not applicable of query is sql statement
 		 */
-		logger(" the order_by:::"+order_by);
+		if (SQLITE3_FIREFOX_LOGGING) logger(" the order_by:::"+order_by);
 		query = this.sql_select.apply(this, [query, order_by]);
-		logger(" sqlite3_firefox.js::select query="+query+" order_by="+order_by);
+		if (SQLITE3_FIREFOX_LOGGING) logger(" sqlite3_firefox.js::select query="+query+" order_by="+order_by);
 		var row_factory = this.row_factory;
 		fn = fn || function(row){ return row; };
 		function fn2(row) {
@@ -196,7 +196,7 @@ _extend(Model.prototype, {
 		}
 	},
 	sql_select: function(query, order_by) {
-		logger("sql_select="+order_by);
+		if (SQLITE3_FIREFOX_LOGGING) logger("sql_select="+order_by);
 		var sql=[], slots=[], params=[];
 		if (typeof(query) == "string") {
 			// execute the sql query
@@ -252,7 +252,7 @@ _extend(Model.prototype, {
 					//@TODO throw error if order by column is not a column of this table
 				}
 				sql = sql.join(" ");
-				logger(" THE SQL:::"+sql);
+				if (SQLITE3_FIREFOX_LOGGING) logger(" THE SQL:::"+sql);
 				return [sql, params];
 			}
 		} else {
@@ -342,7 +342,7 @@ _extend(Model.prototype, {
 			}
 		}
 		str += ";";
-		logger(" sqlite3_firefox::set sql query="+str);
+		if (SQLITE3_FIREFOX_LOGGING) logger(" sqlite3_firefox::set sql query="+str);
 		this.db.execute(str);
 	},
 	
@@ -363,10 +363,6 @@ _extend(Model.prototype, {
 		}
 		str += ";"
 		this.db.execute(str);
-	},
-	
-	order_by: function(query, fn, order_bys) {
-		
 	},
 	
 	get_or_create: function(query, defaults) {

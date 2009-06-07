@@ -143,6 +143,9 @@ _extend(TipJoy_API.prototype, {
 	_make_payment_request: function(amt, reason, onload, onerror) {
 		//var text = "p " + parseInt(amt) + "¢ @ProcrasDonate " + escape(reason);
 		var dollar_amount = parseInt(amt)/100.0;
+		if (dollar_amount < 0.00) {
+			dollar_amount += 0.01; // 
+		}
 		var text = "p $" + dollar_amount +" @ProcrasDonate " + escape(reason);
 		var username = this.prefs.get('twitter_username', '')
 		var password = this.prefs.get('twitter_password', '')

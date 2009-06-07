@@ -8,7 +8,8 @@ var constants = {};
 	 */
 	constants.MEDIA_URL = '/procrasdonate_media/';
 	constants.PD_HOST = 'procrasdonate.com';
-	constants.PD_URL = 'http://' + constants.PD_HOST;
+	//constants.PD_URL = 'http://' + constants.PD_HOST;
+	constants.PD_URL = 'http://localhost:8000';
 	constants.VALID_HOSTS = ['localhost:8000', 'procrasdonate.com'];
 	
 	constants.PROCRASDONATE_URL = '/';
@@ -107,6 +108,7 @@ var constants = {};
 		"process_done"
 	];
 	
+	constants.DEFAULT_HASH = "nohash";
 	constants.DEFAULT_USERNAME = "";
 	constants.DEFAULT_PASSWORD = "";
 	constants.DEFAULT_EMAIL = "";

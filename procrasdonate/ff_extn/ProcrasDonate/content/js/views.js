@@ -164,14 +164,6 @@ _extend(Controller.prototype, {
 		this.initialize_account_defaults_if_necessary();
 		this.initialize_state_if_necessary();
 		
-		// construct user hash
-		var monsterbet = "abcdefghijklmnopqrstuvwxyzABCEFGHIJKLMNOPQRSTUVXYZ0123456789";
-		var hash = [];
-		for (var i = 0; i < 22; i++) {
-			hash.push( monsterbet[Math.floor(Math.random()*62)] );
-		}
-		this.prefs.set('hash', hash.join(''));
-		
 		// This state is necessary for correctly synching data between
 		// this extension, TipJoy and ProcrasDonate.
 		// Synching does not depend on 24hr or weekly cycle settings. woot!!
@@ -231,7 +223,7 @@ _extend(Controller.prototype, {
 	},
 	
 	ACCOUNT_DEFAULTS: {
-		hash: "nohash",
+		hash: constants.DEFAULT_HASH,
 		twitter_username: constants.DEFAULT_USERNAME,
 		twitter_password: constants.DEFAULT_PASSWORD,
 		email: constants.DEFAULT_EMAIL,
@@ -252,6 +244,20 @@ _extend(Controller.prototype, {
 			if (!self.prefs.get(name, ''))
 				return self.prefs.set(name, value);
 		});
+		
+		if (!this.prefs.get('hash', false)) {
+			this.set_user_hash();
+		}
+	},
+	
+	set_user_hash: function() {
+		// construct user hash
+		var monsterbet = "abcdefghijklmnopqrstuvwxyzABCEFGHIJKLMNOPQRSTUVXYZ0123456789";
+		var hash = [];
+		for (var i = 0; i < 22; i++) {
+			hash.push( monsterbet[Math.floor(Math.random()*62)] );
+		}
+		this.prefs.set('hash', hash.join(''));
 	},
 	
 	reset_account_to_defaults: function() {
@@ -330,7 +336,6 @@ _extend(Controller.prototype, {
 });
 
 function Schedule(prefs, pddb) {
-	logger("Schedule()");
 	this.prefs = prefs;
 	this.pddb = pddb;
 }
@@ -385,7 +390,8 @@ _extend(Schedule.prototype, {
 		new_two_four_hr.setHours(two_four_hr.getHours());
 		new_two_four_hr.setMinutes(two_four_hr.getMinutes());
 		new_two_four_hr.setSeconds(two_four_hr.getSeconds());
-		if ( new_two_four_hr > new Date() ) {
+		var now = new Date();
+		if ( new_two_four_hr > now ) {
 			// is this possible? is this a dire error? loopy?
 			new_two_four_hr.setDate( now.getDate() - 1 );
 		}
@@ -421,7 +427,6 @@ _extend(Schedule.prototype, {
 /********** HTML INSERTION FUNCTIONS AND HELPERS ***************/
 
 function PageController(prefs, pddb) {
-	logger("PageController()");
 	this.prefs = prefs;
 	this.pddb = pddb;
 	this.tipjoy = new TipJoy_API(this.prefs, this.pddb);

@@ -25,9 +25,6 @@ urlpatterns = patterns('',
     url(r'^community/$', main.community, name='community'),
     url(r'^community/recipients', main.community_recipients, name='community_recipients'),
     url(r'^community/sites', main.community_sites, name='community_sites'),
-
-    # post handler from extension
-    url(r'^data/$', main.data, name='data'),
     
 )
 
