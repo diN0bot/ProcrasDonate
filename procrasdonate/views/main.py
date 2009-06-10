@@ -74,7 +74,8 @@ def rebuild_extension_templates(request):
     generated_templates_dir = "%s/procrasdonate/ff_extn/ProcrasDonate/content/templates" % settings.PROJECT_PATH
     all_dir = "%s/procrasdonate/ff_extn/ProcrasDonate/content/js/templates" % settings.PROJECT_PATH
     
-    subprocess.Popen(["python", "%s/build_templates.py" % bin, "%s/*.html" % generated_templates_dir])
+    if not "clay" in settings.PROJECT_PATH:
+        subprocess.Popen(["python", "%s/build_templates.py" % bin, "%s/*.html" % generated_templates_dir])
     subprocess.Popen(["cp", "%s/all.js" % all_dir, "%s/all.js.bkup" % all_dir])
     import os
     os.system("cat %s/*.js > %s/all.js" % (generated_templates_dir, all_dir))
