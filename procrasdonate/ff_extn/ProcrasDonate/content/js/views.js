@@ -917,7 +917,7 @@ _extend(PageController.prototype, {
 		var context = new Context({
 			hr_per_week_max: this.prefs.get("hr_per_week_max", ""),
 			hr_per_week_goal: this.prefs.get("hr_per_week_goal", ""),
-			cents_per_hr: this.prefs.get("cents_per_hr", ""),
+			cents_per_hr: this.prefs.get("cents_per_hr", "22"),
 			constants: constants,
 		});
 		return Template.get("donation_amounts_middle").render(context);

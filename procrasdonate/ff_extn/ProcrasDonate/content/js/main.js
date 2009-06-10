@@ -369,14 +369,14 @@ Overlay.prototype = {
 	},
 	
 	doInstall: function() { // 
-		//logger("Overlay.doInstall::");
+		logger("Overlay.doInstall::");
 	},
 	onInstall: function() { // execute on first run
-		//logger("Overlay.onInstall::");
+		logger("Overlay.onInstall::");
 		// The example below loads a page by opening a new tab.
 		// Useful for loading a mini tutorial
 		window.setTimeout(function() {
-			gBrowser.selectedTab = gBrowser.addTab(constants.REGISTER_URL);
+			gBrowser.selectedTab = gBrowser.addTab(constants.PD_URL + constants.REGISTER_URL);
 		}, 1500); //Firefox 2 fix - or else tab will get closed
 		
 		// initialize state
@@ -387,10 +387,16 @@ Overlay.prototype = {
 	},
 	
 	doUpgrade: function() { // make any necessary changes for a new version (upgrade)
-		//logger("Overlay.doUpgrade::");
+		logger("Overlay.doUpgrade::");
 	},
 	onUpgrade: function() { // execute after each new version (upgrade)
-		//logger("Overlay.onUpgrade::");
+		logger("Overlay.onUpgrade::");
+		// The example below loads a page by opening a new tab.
+		// Useful for loading a mini tutorial
+		window.setTimeout(function() {
+			gBrowser.selectedTab = gBrowser.addTab(constants.PD_URL + constants.IMPACT_URL);
+		}, 1500); //Firefox 2 fix - or else tab will get closed
+		
 	},
 	
 	doMenuSelect: function() {
