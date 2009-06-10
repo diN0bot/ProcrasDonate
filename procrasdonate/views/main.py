@@ -68,15 +68,15 @@ def community_procrasdonations(request):
 
 
 def rebuild_extension_templates(request):
-    import os
-    bin = "procrasdonate/ff_extn/ProcrasDonate/content/bin"
-    generated_templates_dir = "procrasdonate/ff_extn/ProcrasDonate/content/templates"
-    all_dir = "procrasdonate/ff_extn/ProcrasDonate/content/js/templates"
+    import subprocess
     import settings
-
-    os.chdir(settings.PROJECT_PATH)
-    os.system("python %s/build_templates.py %s/*.html" % (bin, generated_templates_dir))
-    os.system("cp %s/all.js %s/all.js.bkup" % (all_dir, all_dir))
+    bin = "%s/procrasdonate/ff_extn/ProcrasDonate/content/bin" % settings.PROJECT_PATH
+    generated_templates_dir = "%s/procrasdonate/ff_extn/ProcrasDonate/content/templates" % settings.PROJECT_PATH
+    all_dir = "%s/procrasdonate/ff_extn/ProcrasDonate/content/js/templates" % settings.PROJECT_PATH
+    
+    subprocess.Popen(["python", "%s/build_templates.py" % bin, "%s/*.html" % generated_templates_dir])
+    subprocess.Popen(["cp", "%s/all.js" % all_dir, "%s/all.js.bkup" % all_dir])
+    import os
     os.system("cat %s/*.js > %s/all.js" % (generated_templates_dir, all_dir))
     return json_response([ "SUCCESS" ])
 
