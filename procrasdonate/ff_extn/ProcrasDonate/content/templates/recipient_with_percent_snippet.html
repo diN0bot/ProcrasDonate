@@ -1,7 +1,9 @@
 <div class='recipient'>
 	<!-- id class needed for js -->
 	<div class="recipient_id">{{ id }}</div>
-	<div class='remove_recipient' title="Remove recipient from list">Remove</div>
+	<div class='remove_recipient' title="Remove recipient from list">
+		<img src="{{ MEDIA_URL }}img/Remove.png" class="small-image">		
+	</div>
 	<div class='recipient_percent'>
 		<input type="text" name="percent" id="recipient_{{ id }}" value="{{ percent }}" />
 		<div class='percent_symbol'>%</div>

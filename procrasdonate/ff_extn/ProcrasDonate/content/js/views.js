@@ -56,6 +56,7 @@ _extend(Controller.prototype, {
 	},
 	
 	pd_dispatch_by_url: function(request) {
+		
 		//logger("pd_dispatch_by_url: "+ request.url);
 		
 		this.page.default_inserts(request);
@@ -782,15 +783,11 @@ _extend(PageController.prototype, {
 			}
 		});
 		
-		var cell_text =
-			"<div id='user_recipients'>" +
-				user_recipients +
-			"</div>" +
-			spacer +
-			"<div id='potential_recipients'>" +
-				potential_recipients +
-			"</div>";
-		return cell_text;
+		var context = new Context({
+			potential_recipients: potential_recipients,
+			user_recipients: user_recipients
+		});
+		return Template.get("recipients_middle").render(context);
 	},
 	
 	activate_recipients_middle: function(request) {
@@ -1300,17 +1297,13 @@ _extend(PageController.prototype, {
 	register_tab_snippet: function(request) {
 		/* Creates register state track. Does not call _tab_snippet! */
 		var ret = this._track_snippet(request, 'register', constants.REGISTER_STATE_ENUM, constants.REGISTER_STATE_TAB_NAMES, true);
-		var next_src = constants.MEDIA_URL +"img/NextArrow.png";
-		if ( this.prefs.get('register_state','') == 'balance' ) {
-			next_src = constants.MEDIA_URL +"img/DoneButton.png";
-		}
-		ret += "" +
-			"<div id='register_prev_next'>" +
-				"<img src='"+ constants.MEDIA_URL +"img/BackArrow.png' id='prev_register_track' class='link register_button'>" +
-				"<img src='"+ next_src +"' id='next_register_track' class='link register_button'>"	+		
-			"</div>";
-			//"<input id='prev_register_track' class='link' type='button' name='save' value='Prev'>" +
-			//"<input id='next_register_track' class='link' type='button' name='save' value='" + next_value + "'>";
+		var is_done = ( this.prefs.get('register_state','') == 'balance' );
+		
+		var context = new Context({
+			constants: constants,
+			is_done: is_done, 
+		});
+		ret += Template.get("next_prev_buttons").render(context);
 		return ret;
 	},
 	
