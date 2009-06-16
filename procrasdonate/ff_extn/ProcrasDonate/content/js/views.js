@@ -233,6 +233,7 @@ _extend(Controller.prototype, {
 		cents_per_hr: constants.DEFAULT_CENTS_PER_HR,
 		hr_per_week_goal: constants.DEFAULT_HR_PER_WEEK_GOAL,
 		hr_per_week_max: constants.DEFAULT_HR_PER_WEEK_MAX,
+		tos: false,
 	},
 	
 	initialize_account_defaults_if_necessary: function() {
@@ -955,6 +956,7 @@ _extend(PageController.prototype, {
 		var context = new Context({
 			twitter_username: this.prefs.get("twitter_username", ""),
 			twitter_password: this.prefs.get("twitter_password", ""),
+			tos: this.prefs.get("tos", ""),
 			constants: constants,
 		});
 		return Template.get("twitter_account_middle").render(context);
@@ -1192,7 +1194,10 @@ _extend(PageController.prototype, {
 		if (tos && !tos.attr("checked")) {
 			request.jQuery("#errors").append("<p>To continue, please agree to the Terms of Use.</p>");
 			ret = false;
+			this.prefs.set("tos", false);
 			return false;
+		} else {
+			this.prefs.set("tos", true);
 		}
 		
 		if ( !this.validate_twitter_username_and_password(twitter_username, 
@@ -1482,11 +1487,11 @@ _extend(PageController.prototype, {
 				if ( i > 0 ) {
 					var prev = constants.REGISTER_STATE_INSERTS[i-1];
 					request.jQuery("#prev_register_track").click(
-							this._process_before_proceeding(
-								request, 
-								'register', 
-								constants.REGISTER_STATE_ENUM, 
-								constants.REGISTER_STATE_PROCESSORS, prev) );
+						this._process_before_proceeding(
+							request, 
+							'register', 
+							constants.REGISTER_STATE_ENUM, 
+							constants.REGISTER_STATE_PROCESSORS, prev) );
 				} else { request.jQuery("#prev_register_track").hide(); }
 				
 				if ( i < constants.REGISTER_STATE_ENUM.length ) {

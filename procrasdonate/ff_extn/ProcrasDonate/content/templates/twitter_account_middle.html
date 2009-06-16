@@ -27,7 +27,8 @@
 	<table>
 		<tbody>
 			<tr>
-				<td><input class='right' type='checkbox' name='tos' value='agree' /></td>
+				<td><input class='right' type='checkbox' name='tos' value='agree' 
+					{% if tos %}checked {% endif %}/></td>
 				<td><label class='left'>I agree to the Terms of Use</label></td>
 			</tr>		
 		</tbody>
