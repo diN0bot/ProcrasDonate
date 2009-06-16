@@ -11,6 +11,7 @@ a, .link { color:#336699; text-decoration:underline; cursor: pointer; }
 a:hover, .link:hover { color:#FF9900; text-decoration:underline; cursor: pointer; }
 a img { border: none; }
 
+img { -ms-interpolation-mode:bicubic; }
 .img_link { text-decoration: none; cursor: pointer; }
 
 .paragraph_list li { margin-top: 1em; }
