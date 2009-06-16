@@ -75,7 +75,7 @@ a img { border: none; }
 }
 #MainMenu #learn_more_menu_item.here_we_are a { word-spacing: inherit; letter-spacing: .1em; }
 
-.tracks { margin: auto; margin-bottom: 2em; }
+.tracks { margin-bottom: 1.5em; }
 .tracks tr td { padding: 0em; vertical-align: bottom }
 .tracks tr .track_text { width: 4.5em; max-width: 4.5em; overflow: visible; text-align: center; }
 .tracks tr .done { color: green; }
@@ -246,6 +246,7 @@ td { padding: .6em 0em .5em 0em; vertical-align: middle; }
 #register_next_prev { clear: both; }
 .register_button {
   width: 5.2em;
+  padding: 0 36.3%;
 }
 
 #what_is_twitter.open { padding-left: 2em; }
@@ -257,6 +258,7 @@ td { padding: .6em 0em .5em 0em; vertical-align: middle; }
 .screenshot-long { width: 16em; float: right; margin-right: .2em; margin-left: .5em; margin-top: .2em; 
 	border: 0.27em ridge #156451; -moz-border-radius: .4em; padding: .4em;
 }
+.recipient-image { width: 11em; margin-left: 1em; margin-top: 1em; }
 
 /**** RECIPIENTS ****/
 

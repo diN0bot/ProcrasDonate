@@ -1,3 +1,3 @@
 
-    Template.compile(["<h3 class='RegisterHeader'>Your charitable recipients.<\/h3>\n<p><ul>\n\t<li>Add <b>non-profits<\/b> from the list at the bottom.<\/li>\n\t<li>Assign a <b>percentage<\/b> of your pledges to each selection.<\/li>\n<\/ul><\/p>\n<div id='user_recipients'>\n\t", ["var", ["user_recipients"], []], "\n<\/div>\n<div id='potential_recipients'>\n\t", ["var", ["potential_recipients"], []], "\n<\/div>\n\n"], "recipients_middle");
+    Template.compile(["<h3 class='RegisterHeader'>Your charitable recipients.</h3>\n<p><ul>\n\t<li>Add <b>non-profits</b> from the list at the bottom.</li>\n\t<li>Assign a <b>percentage</b> of your pledges to each selection.</li>\n</ul></p>\n<div id='user_recipients'>\n\t", ["var", ["user_recipients"], []], "\n</div>\n<div id='potential_recipients'>\n\t", ["var", ["potential_recipients"], []], "\n</div>\n\n"], "recipients_middle");
     
