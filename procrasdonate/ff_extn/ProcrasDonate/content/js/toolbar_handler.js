@@ -96,8 +96,8 @@ _extend(PD_ToolbarManager.prototype, {
 			logger("total for the week is: " + total +" pd_total="+pd_total + " tws_total="+tws_total);
 			logger(" days, hours, minutes="+days+" hr="+hours+" mi="+minutes);
 			
-			var goal = parseFloat(this.pddb.prefs.get('hr_per_week_goal', 1));
-			var limit = parseFloat(this.pddb.prefs.get('hr_per_week_max', 1));
+			var goal = parseFloat(this.pddb.prefs.get('pd_hr_per_week_goal', 1));
+			var limit = parseFloat(this.pddb.prefs.get('pd_hr_per_week_max', 1));
 			logger("goal="+goal+" limit="+limit);
 			// wk * 7d/wk * 24hr/d * 60m/hr * 60s/m
 			var goal_in_s = parseInt(goal) * 7 * 24 * 60 * 60;

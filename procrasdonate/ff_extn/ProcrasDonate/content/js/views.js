@@ -230,9 +230,12 @@ _extend(Controller.prototype, {
 		email: constants.DEFAULT_EMAIL,
 		procrasdonate_reason: constants.DEFAULT_PROCRASDONATE_REASON,
 		timewellspent_reason: constants.DEFAULT_TIMEWELLSPENT_REASON,
-		cents_per_hr: constants.DEFAULT_CENTS_PER_HR,
-		hr_per_week_goal: constants.DEFAULT_HR_PER_WEEK_GOAL,
-		hr_per_week_max: constants.DEFAULT_HR_PER_WEEK_MAX,
+		pd_cents_per_hr: constants.PD_DEFAULT_CENTS_PER_HR,
+		pd_hr_per_week_goal: constants.PD_DEFAULT_HR_PER_WEEK_GOAL,
+		pd_hr_per_week_max: constants.PD_DEFAULT_HR_PER_WEEK_MAX,
+		tws_cents_per_hr: constants.TWS_DEFAULT_CENTS_PER_HR,
+		tws_hr_per_week_goal: constants.TWS_DEFAULT_HR_PER_WEEK_GOAL,
+		tws_hr_per_week_max: constants.TWS_DEFAULT_HR_PER_WEEK_MAX,
 		tos: false,
 	},
 	
@@ -913,9 +916,12 @@ _extend(PageController.prototype, {
 	
 	donation_amounts_middle: function(request) {
 		var context = new Context({
-			hr_per_week_max: this.prefs.get("hr_per_week_max", ""),
-			hr_per_week_goal: this.prefs.get("hr_per_week_goal", ""),
-			cents_per_hr: this.prefs.get("cents_per_hr", "22"),
+			pd_hr_per_week_max: this.prefs.get("pd_hr_per_week_max", constants.PD_DEFAULT_HR_PER_WEEK_MAX),
+			pd_hr_per_week_goal: this.prefs.get("pd_hr_per_week_goal", constants.PD_DEFAULT_HR_PER_WEEK_GOAL),
+			pd_cents_per_hr: this.prefs.get("pd_cents_per_hr", constants.PD_DEFAULT_CENTS_PER_HR),
+			tws_hr_per_week_max: this.prefs.get("tws_hr_per_week_max", constants.TWS_DEFAULT_HR_PER_WEEK_MAX),
+			tws_hr_per_week_goal: this.prefs.get("tws_hr_per_week_goal", constants.TWS_DEFAULT_HR_PER_WEEK_MAX),
+			tws_cents_per_hr: this.prefs.get("tws_cents_per_hr", constants.TWS_DEFAULT_CENTS_PER_HR),
 			constants: constants,
 		});
 		return Template.get("donation_amounts_middle").render(context);
@@ -1116,23 +1122,38 @@ _extend(PageController.prototype, {
 		 * hr_per_week_goal: pos float < 25
 		 * hr_per_week_max: pos float < 25
 		 */
-		var cents_per_hr = parseInt(
-			request.jQuery("input[name='cents_per_hr']").attr("value"));
-		var hr_per_week_goal = parseFloat(
-			request.jQuery("input[name='hr_per_week_goal']").attr("value"));
-		var hr_per_week_max = parseFloat(
-			request.jQuery("input[name='hr_per_week_max']").attr("value"));
+		var pd_cents_per_hr = parseInt(
+			request.jQuery("input[name='pd_cents_per_hr']").attr("value"));
+		var pd_hr_per_week_goal = parseFloat(
+			request.jQuery("input[name='pd_hr_per_week_goal']").attr("value"));
+		var pd_hr_per_week_max = parseFloat(
+			request.jQuery("input[name='pd_hr_per_week_max']").attr("value"));
+		
+		var tws_cents_per_hr = parseInt(
+			request.jQuery("input[name='tws_cents_per_hr']").attr("value"));
+		var tws_hr_per_week_goal = parseFloat(
+			request.jQuery("input[name='tws_hr_per_week_goal']").attr("value"));
+		var tws_hr_per_week_max = parseFloat(
+			request.jQuery("input[name='tws_hr_per_week_max']").attr("value"));
+
 		request.jQuery("#errors").text("");
-		if ( !this.validate_cents_input(request, cents_per_hr) ) {
+		if ( !this.validate_cents_input(request, pd_cents_per_hr) || 
+				!this.validate_cents_input(request, tws_cents_per_hr) ) {
 			request.jQuery("#errors").append("<p>Please enter a valid dollar amount. For example, to donate $2.34 an hour, please enter 2.34</p>");
-		} else if ( !this.validate_hours_input(request, hr_per_week_goal) ) {
+		} else if ( !this.validate_hours_input(request, pd_hr_per_week_goal) ||
+				!this.validate_hours_input(request, tws_hr_per_week_goal)) {
 			request.jQuery("#errors").append("<p>Please enter number of hours. For example, enter 1 hr and 15 minutes as 1.25</p>");
-		} else if (!this.validate_hours_input(request, hr_per_week_max) ) {
+		} else if ( !this.validate_hours_input(request, pd_hr_per_week_max) ||
+				!this.validate_hours_input(request, tws_hr_per_week_max)) {
 			request.jQuery("#errors").append("<p>Please enter number of hours. For example, enter 30 minutes as .5</p>");
 		} else {
-			this.prefs.set('cents_per_hr', this.clean_cents_input(cents_per_hr));
-			this.prefs.set('hr_per_week_goal', this.clean_hours_input(hr_per_week_goal));
-			this.prefs.set('hr_per_week_max', this.clean_hours_input(hr_per_week_max));
+			this.prefs.set('pd_cents_per_hr', this.clean_cents_input(pd_cents_per_hr));
+			this.prefs.set('pd_hr_per_week_goal', this.clean_hours_input(pd_hr_per_week_goal));
+			this.prefs.set('pd_hr_per_week_max', this.clean_hours_input(pd_hr_per_week_max));
+			
+			this.prefs.set('tws_cents_per_hr', this.clean_cents_input(tws_cents_per_hr));
+			this.prefs.set('tws_hr_per_week_goal', this.clean_hours_input(tws_hr_per_week_goal));
+			this.prefs.set('tws_hr_per_week_max', this.clean_hours_input(tws_hr_per_week_max));
 			return true;
 		}
 		return false;

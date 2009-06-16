@@ -114,9 +114,12 @@ var constants = {};
 	constants.DEFAULT_EMAIL = "";
 	constants.DEFAULT_PROCRASDONATE_REASON = "ProcrasDonating for a good cause";
 	constants.DEFAULT_TIMEWELLSPENT_REASON = "TimeWellSpent for a good cause";
-	constants.DEFAULT_CENTS_PER_HR = 95;
-	constants.DEFAULT_HR_PER_WEEK_GOAL = 20;
-	constants.DEFAULT_HR_PER_WEEK_MAX = 30;
+	constants.PD_DEFAULT_CENTS_PER_HR = 95;
+	constants.PD_DEFAULT_HR_PER_WEEK_GOAL = 20;
+	constants.PD_DEFAULT_HR_PER_WEEK_MAX = 30;
+	constants.TWS_DEFAULT_CENTS_PER_HR = 95;
+	constants.TWS_DEFAULT_HR_PER_WEEK_GOAL = 20;
+	constants.TWS_DEFAULT_HR_PER_WEEK_MAX = 30;
 	
 	constants.DEFAULT_SETTINGS_STATE = "twitter_account";
 	constants.DEFAULT_REGISTER_STATE = "twitter_account";

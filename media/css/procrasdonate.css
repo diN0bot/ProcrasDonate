@@ -275,6 +275,11 @@ td { padding: .6em 0em .5em 0em; vertical-align: middle; }
 
 .recipient_percent { float: right; }
 
+/**** DONATION AND GOALS, LIMIT ****/
+
+#donation_form table { float: left; margin-left: 3em; margin-bottom: 3em; }
+#donation_form p { clear: both; }
+
 /**** SUPPORT ****/
 #support_slider { width: 10em; }
 #support_input {} 
