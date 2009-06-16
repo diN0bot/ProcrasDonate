@@ -3,7 +3,6 @@ body {
 	color: #330000;
 	margin:0em;
 	padding:0em;
-	text-align:center;
 	font-family:Verdana, Arial, Helvetica, sans-serif;
 	font-size:12px;
 }
@@ -14,8 +13,7 @@ a img { border: none; }
 
 .img_link { text-decoration: none; cursor: pointer; }
 
-p { text-align: left; }
-.paragraph_list li { text-align: left; margin-top: 1em; }
+.paragraph_list li { margin-top: 1em; }
 
 /*
  colors (solid, dark unless stated otherwise):
@@ -49,13 +47,13 @@ p { text-align: left; }
   position: absolute;
   margin: 2em auto auto 1.7em;
   width: 8.9em;
+  text-align: center;
 }
 #static_menu div { display: block; padding: 0.3em 0em; margin: 1em 0em; }
 
 #content {
   margin: auto;
   min-width: 40em;
-  text-align:center;
   margin: 1.6em auto auto 0em;
   position: absolute;
   left: 12em;
@@ -79,7 +77,7 @@ p { text-align: left; }
 
 .tracks { margin: auto; margin-bottom: 2em; }
 .tracks tr td { padding: 0em; vertical-align: bottom }
-.tracks tr .track_text { width: 4.5em; max-width: 4.5em; overflow: visible; }
+.tracks tr .track_text { width: 4.5em; max-width: 4.5em; overflow: visible; text-align: center; }
 .tracks tr .done { color: green; }
 .tracks tr .selected { color: #336699; }
 .StageBar	{ width: 4em; height: 2em; margin: 0 -1em; }
@@ -134,7 +132,6 @@ p { text-align: left; }
 
 h2 {
   clear: both;
-  text-align: left;
   font-family:"Trebuchet MS",Helvetica,Jamrul,sans-serif;
   font-size: 1.7em;
   color: #cd8047;
@@ -155,7 +152,6 @@ h2 {
 
 h3 {
   clear: both;
-  text-align: left;
   font-family:"Trebuchet MS",Helvetica,Jamrul,sans-serif;
   font-size: 1.38em;
   color: #89958c;
@@ -175,7 +171,6 @@ h4 {
   margin: 2.5em 0em 0em 0em;
   font-weight: normal;
   color: #156451;
-  text-align: left;
 }
 
 /************ REGISTER/SETTINGS FORM ********/
@@ -213,7 +208,10 @@ td { padding: .6em 0em .5em 0em; vertical-align: middle; }
 .tabs .selected { background: white; border-bottom: none; padding-bottom: .1em; }
 
 #site_classifications { clear: both; width: 100%; }
-#site_classifications .column { width: 32.25%; vertical-align: top; float: left; background: #f7edb4; border: 0.25em ridge #c76631; -moz-border-radius: .4em;}
+#site_classifications .column { width: 32.25%; vertical-align: top; float: left; 
+	background: #f7edb4; border: 0.25em ridge #c76631; -moz-border-radius: .4em;
+	text-align: center;
+}
 #site_classifications .title { font-weight: bold; padding: 1em .5em .5em .5em; }
 
 .site { background: #FBFBDE; border-top: 0.1em dotted #ffffff; -moz-border-radius: 0em; 
@@ -228,7 +226,7 @@ td { padding: .6em 0em .5em 0em; vertical-align: middle; }
 .submenu_column { float: left; width: 30%; }
 .submenu_column .selected { text-decoration: none; }
 
-#ranks { text-align: left; }
+#ranks {}
 .rank {}
 .rank span {}
 .rank .site_name { padding-right:1.5em; text-align:right; }
@@ -265,19 +263,21 @@ td { padding: .6em 0em .5em 0em; vertical-align: middle; }
 .recipient_row div { float: left; }
 .recipient { border: 1px solid #DDDDFF; -moz-border-radius: 4px; margin: .3em 0em; width: 60%; }
 .recipient .name { font-size: 1.4em; padding: .2em .4em; }
-.recipient .description { padding: .2em .4em; text-align: left; }
+.recipient .description { padding: .2em .4em; }
 .recipient_row .remove { text-decoration: none; background: #FFDDDD; -moz-border-radius: 4px; margin-top: .3em; padding: .2em .4em; }
 .recipient_row .add { text-decoration: none; background: #DDFFFF; -moz-border-radius: 4px; margin-top: .3em; padding: .2em .4em; }
 .recipient_row .slider { width: 25%; }
 .recipient_row .input { float: left; margin: 0em 1em; }
 .recipient_spacer_row { height: 4em; width: 100%; clear: both; }
 
+.recipient_percent { float: right; }
+
 /**** SUPPORT ****/
 #support_slider { width: 10em; }
 #support_input {} 
 
 /***** SLIDER ******/
-.ui-slider { position: relative; text-align: left; }
+.ui-slider { position: relative; }
 .ui-slider .ui-slider-handle { position: absolute; z-index: 2; width: 1.2em; height: 1.2em; cursor: default; }
 .ui-slider .ui-slider-range { position: absolute; z-index: 1; font-size: .7em; display: block; border: 0; }
 

@@ -1,25 +1,32 @@
+<h3 class='RegisterHeader'>Donation and Goal options (can be changed later.)</h3>
+	
 <form name='account_form' onSubmit='return false'>
+	<p>How many <b>pennies/hour</b> will you donate when <i>ProcrasDonating</i>?</p>
 	<table>
 		<tbody>
-			<tr>
-				<td><label class='right'>ProcrasDonation rate</label></td>
-				<td><input class='left' type='text' size='4' name='cents_per_hr' value='{{ cents_per_hr }}'></td>
-				<td><div class='help'>&cent; per hour</div></td>
+				<td><input class='form-right form-value' type='text' size='4' name='cents_per_hr' value='{{ cents_per_hr }}'></td>
+				<td><div class='help form-left form-label'>&cent; per hour</div></td>
 			</tr>
-			
+		</tbody>
+	</table>
+	<p>What is your <b>goal</b>? How much procrasdonaton are you <i>striving</i> for?</p>
+	<table>
+		<tbody>				
 			<tr>
-				<td><label class='right'>ProcrasDonation goal</label></td>
-				<td><input class='left' id='hr_per_week_goal' type='text' size='4' name='hr_per_week_goal' value='{{ hr_per_week_goal }}'></td>
+				<td><input class='form-right form-value' id='hr_per_week_goal' type='text' size='4' name='hr_per_week_goal' value='{{ hr_per_week_goal }}'></td>
 				<td>
-					<div class='help'>hours per week</div>
+					<div class='help form-left form-label'>hours per week</div>
 					<span id='cents_per_week_goal'></span>
 				</td>
 			</tr>
-			
+		</tbody>
+	</table>			
+	<p>What is your <b>limit</b>? No pledges will be made <i>past</i> your weekly limit.</p>
+	<table>
+		<tbody>
 			<tr>
-				<td><label class='right'>ProcrasDonation limit</label></td>
-				<td><input class='press_enter_for_next left' id='hr_per_week_max' type='text' size='4' name='hr_per_week_max' value='{{ hr_per_week_max }}'></td>
-				<td><div class='help'>hours per week</div></td>
+				<td><input class='press_enter_for_next form-right form-value' id='hr_per_week_max' type='text' size='4' name='hr_per_week_max' value='{{ hr_per_week_max }}'></td>
+				<td><div class='help form-left form-label'>hours per week</div></td>
 			</tr>
 		</tbody>
 	</table>
