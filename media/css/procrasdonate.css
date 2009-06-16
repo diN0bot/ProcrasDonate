@@ -112,10 +112,10 @@ a img { border: none; }
 }
 .StartButton { width: 13em; margin-top: 2em; }/*margin-top: -3.3em; margin-right: -40em; }*/
 
-#logo_banner { width: 38em; /*margin: -1em 0em 1.5em -17em;*/ }
+#logo_banner { width: 38em; margin-left: -3em; }
 #firefox_addon_one_liner {
   border:medium none;
-  margin:-.4em auto;
+  margin:-.4em 0 -.4em -3em;
   text-align:center;
 }
 #firefox_addon_one_liner span {
@@ -125,6 +125,7 @@ a img { border: none; }
   letter-spacing:normal;
 }
 
+.superheader { color: #669933; font-size: .8em; vertical-align: top; }
 .subheader { color: #669933; font-size: .8em; }
 .subbanner { color: #669933; font-size: 1.2em; }
 
@@ -261,7 +262,7 @@ td { padding: .6em 0em .5em 0em; vertical-align: middle; }
 
 .recipient_row { margin: .2em 0em .2em 0em; clear: both; }
 .recipient_row div { float: left; }
-.recipient { border: 1px solid #DDDDFF; -moz-border-radius: 4px; margin: .3em 0em; width: 60%; }
+.recipient { border: 1px solid #DDDDFF; -moz-border-radius: 4px; margin: .8em 0em; padding: .8em; width: 60%; }
 .recipient .name { font-size: 1.4em; padding: .2em .4em; }
 .recipient .description { padding: .2em .4em; }
 .recipient_row .remove { text-decoration: none; background: #FFDDDD; -moz-border-radius: 4px; margin-top: .3em; padding: .2em .4em; }
