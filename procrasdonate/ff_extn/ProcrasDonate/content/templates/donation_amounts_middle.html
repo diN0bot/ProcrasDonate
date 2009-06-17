@@ -1,10 +1,13 @@
 <h3 class='RegisterHeader'>Donations and Goals (can be changed later)</h3>
 	
 <form id="donation_form" name="donation_form" onSubmit="return false">
-	<p>How many <b>pennies/hour</b> will you donate?</p>
+	<p>How many <b>pennies per hour</b> will you donate?</p>
 	<table>
 		<tbody>
-			<tr><td colspan="2">when <i>ProcrasDonating</i></td></tr>
+			<tr><td colspan="2">		
+					<img src="{{ constants.MEDIA_URL }}img/ToolbarImages/ProcrasDonateIcon.png" class="icon-image">		
+					when <i>ProcrasDonating</i>
+				</td></tr>
 			<tr>
 				<td><input class='form-right form-value' type='text' size='4' name='pd_cents_per_hr' value='{{ pd_cents_per_hr }}'></td>
 				<td><div class='help form-left form-label'>&cent; per hour</div></td>
@@ -13,17 +16,23 @@
 	</table>
 	<table>
 		<tbody>
-			<tr><td colspan="2"><i>TimeWellSpent</i></td></tr>
+			<tr><td colspan="2">
+					<img src="{{ constants.MEDIA_URL }}img/ToolbarImages/TimeWellSpentIcon.png" class="icon-image">		
+					on <i>TimeWellSpent</i>
+				</td></tr>
 			<tr>
 				<td><input class='form-right form-value' type='text' size='4' name='tws_cents_per_hr' value='{{ tws_cents_per_hr }}'></td>
 				<td><div class='help form-left form-label'>&cent; per hour</div></td>
 			</tr>
 		</tbody>
 	</table>
-	<p>What is your <b>goal</b>? How much are you <i>striving</i> for?</p>
+	<p>What are your online time management <b>goals</b>?</p>
 	<table>
 		<tbody>
-			<tr><td colspan="2">when <i>ProcrasDonating</i></td></tr>
+			<tr><td colspan="2">
+				<img src="{{ constants.MEDIA_URL }}img/ToolbarImages/ProcrasDonateIcon.png" class="icon-image">		
+					when <i>ProcrasDonating</i>
+				</td></tr>
 			<tr>
 				<td><input class='form-right form-value' id='pd_hr_per_week_goal' type='text' size='4' name='pd_hr_per_week_goal' value='{{ pd_hr_per_week_goal }}'></td>
 				<td>
@@ -35,7 +44,10 @@
 	</table>
 	<table>
 		<tbody>
-			<tr><td colspan="2"><i>TimeWellSpent</i></td></tr>
+			<tr><td colspan="2">
+					<img src="{{ constants.MEDIA_URL }}img/ToolbarImages/TimeWellSpentIcon.png" class="icon-image">		
+					on <i>TimeWellSpent</i>
+				</td></tr>
 			<tr>
 				<td><input class='form-right form-value' id='tws_hr_per_week_goal' type='text' size='4' name='tws_hr_per_week_goal' value='{{ tws_hr_per_week_goal }}'></td>
 				<td>
@@ -45,10 +57,13 @@
 			</tr>
 		</tbody>
 	</table>			
-	<p>What is your <b>limit</b>? No pledges will be made <i>past</i> your weekly limit.</p>
+	<p>No pledges will be made <i>past</i> your weekly <b>limit</b>.</p>
 	<table>
 		<tbody>
-			<tr><td colspan="2">when <i>ProcrasDonating</i></td></tr>
+			<tr><td colspan="2">
+					<img src="{{ constants.MEDIA_URL }}img/ToolbarImages/ProcrasDonateIcon.png" class="icon-image">		
+					when <i>ProcrasDonating</i>
+				</td></tr>
 			<tr>
 				<td><input class='press_enter_for_next form-right form-value' id='pd_hr_per_week_max' type='text' size='4' name='pd_hr_per_week_max' value='{{ pd_hr_per_week_max }}'></td>
 				<td><div class='help form-left form-label'>hours per week</div></td>
@@ -57,7 +72,10 @@
 	</table>
 	<table>
 		<tbody>
-			<tr><td colspan="2"><i>TimeWellSpent</i></td></tr>
+			<tr><td colspan="2">
+					<img src="{{ constants.MEDIA_URL }}img/ToolbarImages/TimeWellSpentIcon.png" class="icon-image">		
+					on <i>TimeWellSpent</i>
+				</td></tr>
 			<tr>
 				<td><input class='press_enter_for_next form-right form-value' id='tws_hr_per_week_max' type='text' size='4' name='tws_hr_per_week_max' value='{{ tws_hr_per_week_max }}'></td>
 				<td><div class='help form-left form-label'>hours per week</div></td>

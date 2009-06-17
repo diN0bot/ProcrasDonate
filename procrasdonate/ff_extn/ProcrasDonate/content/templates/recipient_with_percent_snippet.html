@@ -1,17 +1,19 @@
 <div class='recipient'>
 	<!-- id class needed for js -->
-	<div class="recipient_id">{{ id }}</div>
-	<div class='recipient_percent'>
+	<div class="recipient_id">{{ id }}</div>	
+
+	<div class='remove_recipient' title="Remove recipient from list">
+		<img src="{{ constants.MEDIA_URL }}img/Remove.png" class="recipient-image">		
+	</div>
+	<div class='recipient_percent form-input'>
 		<input type="text" name="percent" id="recipient_{{ id }}" size='2' value="{{ percent }}" />
 		<div class='percent_symbol'>%</div>
 	</div>
 	<div class='name'><a href='{{ url }}'>{{ name }}</a></div>
+
 	<div class="category">{{ category }}</div>
 	<div class='mission'>{{ mission }}
 		<span class='link description_toggle'>(less)</span>
 	</div>
 	<div class='description'><p>{{ description }}</p></div>
-	<div class='remove_recipient' title="Remove recipient from list">
-		<img src="{{ constants.MEDIA_URL }}img/Remove.png" class="recipient-image">		
-	</div>
 </div>
