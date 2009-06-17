@@ -180,7 +180,8 @@ _extend(Controller.prototype, {
 	
 	registration_complete: function() {
 		var reg_state = this.prefs.get('register_state', false);
-		return reg_state && reg_state == "done";
+		var tos_accepted = this.prefs.get('tos', false);
+		return reg_state && reg_state == "done" && tos_accepted;
 	},
 	
 	initialize_state_if_necessary: function() {
@@ -679,6 +680,8 @@ _extend(PageController.prototype, {
 		//if ( this.prefs.get('site_classifications_settings_activated', false) ) {
 			
 			var f = function(elem, tag, db_tag) {
+				elem.unbind("click");
+				
 				var site_name = elem.siblings(".name").text();
 				elem.parent().fadeOut("slow", function() { 
 					request.jQuery(this).remove();
@@ -692,8 +695,14 @@ _extend(PageController.prototype, {
 					.after(new_elem)
 					.next().hide().fadeIn("slow");
 				
-				new_elem.click( function() {
-					f(new_elem, tag, db_tag);
+				new_elem.children(".move_to_timewellspent").click( function() {
+					f(request.jQuery(this), "timewellspent", self.pddb.TimeWellSpent);
+				});
+				new_elem.children(".move_to_unsorted").click( function() {
+					f(request.jQuery(this), "unsorted", self.pddb.Unsorted);
+				});
+				new_elem.children(".move_to_procrasdonate").click( function() {
+					f(request.jQuery(this), "procrasdonate", self.pddb.ProcrasDonate);
 				});
 				
 				// alter data in db
@@ -727,10 +736,16 @@ _extend(PageController.prototype, {
 	},
 	
 	recipient_snippet: function(request, recipient) {
+		var category = this.pddb.Category.get_or_null({ id: recipient.category_id });
+		var category_name = null;
+		if (category) {
+			category_name = category.category;
+		}
 		var context = new Context({
 			id: recipient.id,
 			url: recipient.url,
 			name: recipient.name,
+			category: category_name,
 			mission: recipient.mission,
 			description: recipient.description,
 			constants: constants
@@ -739,10 +754,16 @@ _extend(PageController.prototype, {
 	},
 	
 	recipient_with_percent_snippet: function(request, recipient, percent) {
+		var category = this.pddb.Category.get_or_null({ id: recipient.category_id });
+		var category_name = null;
+		if (category) {
+			category_name = category.category;
+		}
 		var context = new Context({
 			id: recipient.id,
 			url: recipient.url,
 			name: recipient.name,
+			category: category_name,
 			mission: recipient.mission,
 			description: recipient.description,
 			percent: percent,
@@ -794,41 +815,111 @@ _extend(PageController.prototype, {
 		return Template.get("recipients_middle").render(context);
 	},
 	
+	activate_a_recipient: function(request, recipient_elem) {
+		var self = this;
+		recipient_elem.children(".recipient_id").hide();
+		
+		var dtoggle = recipient_elem.children(".mission").children(".description_toggle");
+		dtoggle.click( function() {
+			if (dtoggle.text() == "(less)") {
+				dtoggle.text("(more)");
+				dtoggle.parent().siblings(".description").hide();
+			} else {
+				dtoggle.text("(less)");
+				dtoggle.parent().siblings(".description").show();
+			}
+		})
+		if (dtoggle.text() == "(less)") {
+			dtoggle.text("(more)")
+			dtoggle.parent().siblings(".description").hide();
+		}
+		
+		var user_recipients_div = request.jQuery("#user_recipients");
+		var potential_recipients_div = request.jQuery("#potential_recipients");
+		
+		recipient_elem.children(".add_recipient").click(function() {
+			var recipient_id = request.jQuery(this).siblings(".recipient_id").text();
+			var recipient = self.pddb.Recipient.get_or_null({ id: recipient_id });
+			var percent = .20;
+			self.pddb.RecipientPercent.create({
+				recipient_id: recipient_id,
+				percent: percent
+			});
+			request.jQuery(this).parent().fadeOut("slow", function() {
+				request.jQuery(this).remove();
+			});
+			
+			var new_recip = request.jQuery(self.recipient_with_percent_snippet(request, recipient, percent*100));
+			user_recipients_div.append(new_recip);
+			
+			self.activate_a_recipient(request, new_recip);
+		});
+		
+		recipient_elem.children(".remove_recipient").click(function() {
+			var recipient_id = request.jQuery(this).siblings(".recipient_id").text();
+			self.pddb.RecipientPercent.del({
+				recipient_id: recipient_id
+			});
+			var recipient = self.pddb.Recipient.get_or_null({ id: recipient_id });
+			
+			//request.jQuery(this).parent().clone(true).insertAfter(spacer);
+			request.jQuery(this).parent().fadeOut("slow", function() {
+				request.jQuery(this).remove();
+			});
+
+			var new_recip = request.jQuery(self.recipient_snippet(request, recipient));
+			potential_recipients_div.prepend(new_recip);
+			
+			self.activate_a_recipient(request, new_recip);
+		});
+	},
+	
 	activate_recipients_middle: function(request) {
 		var self = this;
-		
+		request.jQuery(".recipient").each( function() {
+			self.activate_a_recipient(request, request.jQuery(this));
+		});
+		/*
 		request.jQuery(".recipient_id").hide();
 		
 		request.jQuery(".description_toggle").click( function() {
-			try {
-				var e = request.jQuery(this);
-				if (e.text() == "(less)") {
-					e.text("(more)");
-					e.next().hide();
-				} else {
-					e.text("(less)");
-					e.next().show();
-				}
-			} catch(e) {
-				logger("ERROR ");
+			var e = request.jQuery(this);
+			if (e.text() == "(less)") {
+				e.text("(more)");
+				e.parent().siblings(".description").hide();
+			} else {
+				e.text("(less)");
+				e.parent().siblings(".description").show();
+			}
+		}).each( function() {
+			var e = request.jQuery(this);
+			if (e.text() == "(less)") {
+				e.text("(more)");
+				e.parent().siblings(".description").hide();
 			}
 		});
-		request.jQuery(".description_toggle").click();
 		
-		
-		var spacer = request.jQuery("#recipient_spacer_row");
+		var user_recipients_div = request.jQuery("#user_recipients");
+		var potential_recipients_div = request.jQuery("#potential_recipients");
 		
 		request.jQuery(".add_recipient").click(function() {
 			var recipient_id = request.jQuery(this).siblings(".recipient_id").text();
 			var recipient = self.pddb.Recipient.get_or_null({ id: recipient_id });
+			var percent = .20;
 			self.pddb.RecipientPercent.create({
 				recipient_id: recipient_id,
-				percent: 0
+				percent: percent
 			});
-			request.jQuery(this).parent().remove();
-			spacer.before(self.recipient_with_percent_snippet(request, recipient, 0));
+			request.jQuery(this).parent().fadeOut("slow", function() {
+				request.jQuery(this).remove();
+			});
 			
-			self.activate_recipients_middle(request);
+			var new_recip = request.jQuery(self.recipient_with_percent_snippet(request, recipient, percent));
+			user_recipients_div.append(new_recip);
+			new_recip.children(".remove_recipient").click(function() {
+				request.jQuery(this).parent().css("background", "red");
+			});
+			request.jQuery(".recipient_id").hide();
 		});
 		
 		request.jQuery(".remove_recipient").click(function() {
@@ -839,11 +930,18 @@ _extend(PageController.prototype, {
 			var recipient = self.pddb.Recipient.get_or_null({ id: recipient_id });
 			
 			//request.jQuery(this).parent().clone(true).insertAfter(spacer);
-			request.jQuery(this).parent().remove();
-			spacer.after(self.recipient_snippet(request, recipient));
-			
-			self.activate_recipients_middle(request);
+			request.jQuery(this).parent().fadeOut("slow", function() {
+				request.jQuery(this).remove();
+			});
+
+			var new_recip = request.jQuery(self.recipient_snippet(request, recipient));
+			potential_recipients_div.append(new_recip);
+			new_recip.children(".add_recipient").click(function() {
+				request.jQuery(this).parent().css("background", "red");
+			});
+			request.jQuery(".recipient_id").hide();
 		});
+		*/
 		
 		/*
 		var slider_elems = [];

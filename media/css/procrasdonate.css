@@ -267,7 +267,9 @@ td { padding: .6em 0em .5em 0em; vertical-align: middle; }
 .recipient_row div { float: left; }
 .recipient { border: 1px solid #DDDDFF; -moz-border-radius: 4px; margin: .8em 0em; padding: .8em; width: 60%; }
 .recipient .name { font-size: 1.4em; padding: .2em .4em; }
+.recipient .category { color:green; display:inline; float:left; padding:.5em 1em .5em 0; }
 .recipient .description { padding: .2em .4em; }
+.recipient .description_toggle { }
 .recipient_row .remove { text-decoration: none; background: #FFDDDD; -moz-border-radius: 4px; margin-top: .3em; padding: .2em .4em; }
 .recipient_row .add { text-decoration: none; background: #DDFFFF; -moz-border-radius: 4px; margin-top: .3em; padding: .2em .4em; }
 .recipient_row .slider { width: 25%; }

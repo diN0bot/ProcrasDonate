@@ -6,9 +6,11 @@
 		<div class='percent_symbol'>%</div>
 	</div>
 	<div class='name'><a href='{{ url }}'>{{ name }}</a></div>
-	<div class='mission'>{{ mission }}</div>
-	<div class='link description_toggle'>(less)</div>
-	<div class='description'>{{ description }}</div>
+	<div class="category">{{ category }}</div>
+	<div class='mission'>{{ mission }}
+		<span class='link description_toggle'>(less)</span>
+	</div>
+	<div class='description'><p>{{ description }}</p></div>
 	<div class='remove_recipient' title="Remove recipient from list">
 		<img src="{{ constants.MEDIA_URL }}img/Remove.png" class="recipient-image">		
 	</div>
