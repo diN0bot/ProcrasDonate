@@ -130,5 +130,15 @@ _extend(ProcrasDonate_API.prototype, {
 			onload
 		);
 	},
+	
+	send_welcome_email: function(email_address) {
+		logger("send welcome email: "+email_address)
+		this.make_request(
+			constants.PD_URL + constants.POST_EMAIL_URL,
+			{email_address: email_address},
+			"POST",
+			function() {}
+		);
+	}
 
 });

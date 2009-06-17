@@ -3,7 +3,28 @@ from lib import model_utils
 
 import re
 
-__all__ = ['User', 'Site', 'SiteGroup', 'Recipient', 'DailySitePledge', 'DailyRecipientPledge', 'DailySitePayment', 'DailyRecipientPayment']
+__all__ = ['Email', 'User', 'Site', 'SiteGroup', 'Recipient', 'DailySitePledge', 'DailyRecipientPledge', 'DailySitePayment', 'DailyRecipientPayment']
+
+class Email(models.Model):
+    email = models.EmailField()
+    
+    def send_email(self, message, subject, sender):
+        pass
+    
+    @classmethod
+    def get_or_create(klass, email):
+        return Email.add(email)
+    
+    @classmethod
+    def make(klass, email):
+        e = Email.get_or_none(email=email)
+        if e:
+            return e
+        else:
+            return Email(email=email)
+        
+    def __unicode__(self):
+        return "%s" % self.email
 
 class User(models.Model):
     """
@@ -101,6 +122,26 @@ class Recipient(models.Model):
                          description=description,
                          is_visible=is_visible)
 
+class Tag(models.Model):
+    """
+    """
+    tag = models.CharField(max_length=64)
+    
+    @classmethod
+    def get_or_create(klass, tag):
+        t = Tag.get_or_none(tag=tag)
+        if t:
+            return t
+        else:
+            return Tag.add(tag)
+    
+    @classmethod
+    def make(klass, tag):
+        return Tag(tag=tag)
+    
+    def __unicode__(self):
+        return self.tag
+
 class DailySomething(models.Model):
     """
     Daily payment or pledge or something from a single user.
@@ -119,10 +160,11 @@ class DailySomething(models.Model):
     # amount donated
     total_amount = models.FloatField()
     # rate of payment in cents per hour 
+    # GENERATED based on total_time and total_amount
     # WARNING: this is the rate at the time of payment. 
     # the rate could have changed halfway through the day,
     # so do not expect a meaningful relationship between rate and totals
-    rate = models.IntegerField()
+    rate = models.IntegerField(default=0)
 
     # transaction id of user extension's payment to @ProcrasDoante via TipJoy
     incoming_tipjoy_transaction_id = models.IntegerField()
@@ -143,6 +185,16 @@ class DailySitePledge(DailyPledge):
     """
     """
     site = models.ForeignKey(Site)
+
+class DailySiteGroupPledge(DailyPledge):
+    """
+    """
+    sitegroup = models.ForeignKey(SiteGroup)
+
+class DailyTagPledge(DailyPledge):
+    """
+    """
+    tag = models.ForeignKey(Tag)
 
 class DailyRecipientPledge(DailyPledge):
     """
@@ -170,4 +222,4 @@ class DailyRecipientPayment(DailyPayment):
     """
     recipient = models.ForeignKey(Recipient)
 
-ALL_MODELS = [User, Site, SiteGroup, Recipient, DailySitePledge, DailyRecipientPledge, DailySitePayment, DailyRecipientPayment]
+ALL_MODELS = [Email, User, Site, SiteGroup, Recipient, DailySitePledge, DailyRecipientPledge, DailySitePayment, DailyRecipientPayment]

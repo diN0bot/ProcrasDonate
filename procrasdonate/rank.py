@@ -17,8 +17,8 @@ class Aggregate(models.Model):
                          (TIME_TYPES['WEEKLY'], 'Weekly',),
                          (TIME_TYPES['FOREVER'], 'All Time',))
 
-    total_amount = models.FloatField(default=0.0)
-    total_time = models.FloatField(default=0.0)
+    total_amount = models.FloatField(default=0.0, db_index=True)
+    total_time = models.FloatField(default=0.0, db_index=True)
     time = models.DateField()
     time_type = models.CharField(max_length=1, choices=TIME_TYPE_CHOICES, default=TIME_TYPES['DAILY'])
     last_updated = models.DateTimeField()

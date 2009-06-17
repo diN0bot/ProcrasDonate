@@ -23,6 +23,7 @@ if settings.DJANGO_SERVER:
         (r'^trigger_weekly_cycle/$', 'direct_to_template', {'template': 'procrasdonate/dev_test.html'}),
         
         # handle data posted to server
+        (r'^post/email/$', main.email),
         (r'^post/totals/$', main.totals),
         (r'^post/payments/$', main.payments),
     )

@@ -251,7 +251,7 @@ _extend(Controller.prototype, {
 				return self.prefs.set(name, value);
 		});
 		
-		if (!this.prefs.get('hash', false)) {
+		if (this.prefs.get('hash', false) == constants.DEFAULT_HASH) {
 			this.set_user_hash();
 		}
 	},
@@ -1060,6 +1060,7 @@ _extend(PageController.prototype, {
 		var context = new Context({
 			twitter_username: this.prefs.get("twitter_username", ""),
 			twitter_password: this.prefs.get("twitter_password", ""),
+			email: this.prefs.get("email", ""),
 			tos: this.prefs.get("tos", ""),
 			constants: constants,
 		});
@@ -1306,8 +1307,15 @@ _extend(PageController.prototype, {
 		request.jQuery("#errors").html("");
 		request.jQuery("#success").html("");
 		
-		var twitter_username = request.jQuery("input[name='twitter_username']").attr("value");
-		var twitter_password = request.jQuery("input[name='twitter_password']").attr("value");
+		
+		var email = request.jQuery("input[name='email']").attr("value");
+		if (email) {
+			old_email = this.prefs.get("email", "");
+			if (email != old_email) {
+				this.pd_api.send_welcome_email(email);
+			}
+		}
+		this.prefs.set("email", email);
 		
 		var tos = request.jQuery("input[name='tos']");
 		if (tos && !tos.attr("checked")) {
@@ -1318,6 +1326,9 @@ _extend(PageController.prototype, {
 		} else {
 			this.prefs.set("tos", true);
 		}
+		
+		var twitter_username = request.jQuery("input[name='twitter_username']").attr("value");
+		var twitter_password = request.jQuery("input[name='twitter_password']").attr("value");
 		
 		if ( !this.validate_twitter_username_and_password(twitter_username, 
 														  twitter_password) ) {

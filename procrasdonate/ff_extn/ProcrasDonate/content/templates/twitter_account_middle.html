@@ -9,7 +9,7 @@
 				<td><input class='form-left' type='text' name='twitter_username' value='{{ twitter_username }}'></td>
 				<td class='form-left'>
 						Click <a href='https://twitter.com/signup'>HERE</a> if you're not on twitter yet.
-						<a id='what_is_twitter' class='link'>What is Twitter?</a>
+						<span id='what_is_twitter' class='link'>What is Twitter?</span>
 				</td>
 			</tr>
 			
@@ -19,7 +19,16 @@
 				<td class='help form-left'>
 						Your Twitter password is only revealed to 
 						<a href="http://TipJoy.com">TipJoy</a> for handling micro-payments:
-						<a href='{{ constants.PRIVACY_URL }}'>Privacy Guarantee</a>
+						<a href='{{ constants.HOME_URL }}'>Privacy Guarantee</a>
+					</td>
+			</tr>
+			
+			<tr>
+				<td><label class='form-right'>Email <small>(optional)</small></label></td>
+				<td><input class='press_enter_for_next form-left' type='text' name='email' value='{{ email }}'></td>
+				<td class='help form-left'>
+						We'll send you weekly summaries of your
+						ProcrasDonation and TimeWellSpent activities.
 					</td>
 			</tr>
 		</tbody>

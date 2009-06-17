@@ -82,26 +82,42 @@ def rebuild_extension_templates(request):
     return json_response([ "SUCCESS" ])
 
 
+def email(request):
+    if not request.POST:
+        return json_response({'result':'failure', 'reason':'must *POST* email address'})
+    
+    email_address = request.POST.get('email_address','')
+    email = Email.add(email_address)
+    
+    #@todo send welcome email...if new address? or always
+    
+    return json_response({'result':'success'})
 
 def totals(request):
     """
     handles totals posted from extension
     """
-    print request
-    
     if not request.POST:
         return json_response({'result':'failure', 'reason':'must *POST* data'})
     
     data = simplejson.loads(request.POST.get('data',''))
-    print "THE DATA = ", data
+    print "TOTALS from ", data['hash']
     
-    print data['hash']
-    print data['totals']
+    user = User.get_or_create(data['hash'])
+
+    for total in data['totals']
+        if 'recipient' in total:
+            
+            
+        elif 'sitegroup' in total:
+        
+        elif 'site' in total:
+            
+        elif 'tag' in total:
+            
+        else:
+            pass
     
-    #if not site or not time_spent or not amt or not recipient:
-    #    return json_response({'result':'failure', 'reason':'must POST *site, time, amt and recipient* (time is optional)'})
-    
-    #record_payment(site, time_spent, amt, recipient, time)
     return json_response({'result':'success'})
 
 def payments(request):
