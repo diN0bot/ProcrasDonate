@@ -3,7 +3,7 @@ from lib import model_utils
 
 import re
 
-__all__ = ['Email', 'User', 'Site', 'SiteGroup', 'Recipient', 'DailySitePledge', 'DailyRecipientPledge', 'DailySitePayment', 'DailyRecipientPayment']
+__all__ = ['Email', 'User', 'Site', 'SiteGroup', 'Tag', 'Category', 'Recipient', 'DailySite', 'DailySiteGroup', 'DailyRecipient', 'DailyTag', 'RecipientPayment', 'SitePayment']
 
 class Email(models.Model):
     email = models.EmailField()
@@ -37,7 +37,7 @@ class User(models.Model):
     name = models.CharField(max_length=128, blank=True, null=True)
     twitter_name = models.CharField(max_length=32, blank=True, null=True)
     url = models.URLField(blank=True, null=True)
-    email = models.EmailField(blank=True, null=True)
+    email = models.ForeignKey(Email, blank=True, null=True)
     is_on_email_list = models.URLField(default=False)
     
     @classmethod
@@ -97,6 +97,13 @@ class SiteGroup(models.Model):
         return url
     
     @classmethod
+    def get_or_create(klass, host):
+        s = SiteGroup.get_or_none(host=host)
+        if not s:
+            s = SiteGroup.add(host)
+        return s
+    
+    @classmethod
     def make(klass, host, url_re=None, name=None):
         return SiteGroup(host=host,
                          url_re=url_re,
@@ -112,15 +119,26 @@ class Recipient(models.Model):
     mission = models.CharField(max_length=256, null=True, blank=True)
     description = models.TextField(null=True, blank=True)
     is_visible = models.BooleanField(default=False)
+    category = models.ForeignKey('Category', blank=True, null=True)
     
     @classmethod
-    def make(klass, twitter_name=None, name=None, url=None, mission=None, description=None, is_visible=True):
+    def make(klass,
+             twitter_name=None,
+             name=None,
+             url=None,
+             mission=None,
+             description=None,
+             is_visible=True,
+             category=None):
+        if category:
+            category = Category.get_or_create(category)
         return Recipient(twitter_name=twitter_name,
                          name=name,
                          url=url,
                          mission=mission,
                          description=description,
-                         is_visible=is_visible)
+                         is_visible=is_visible, 
+                         category=category)
 
 class Tag(models.Model):
     """
@@ -141,6 +159,26 @@ class Tag(models.Model):
     
     def __unicode__(self):
         return self.tag
+
+class Category(models.Model):
+    """
+    """
+    category = models.CharField(max_length=200)
+    
+    @classmethod
+    def get_or_create(klass, category):
+        t = Category.get_or_none(category=category)
+        if t:
+            return t
+        else:
+            return Category.add(category)
+    
+    @classmethod
+    def make(klass, category):
+        return Category(category=category)
+    
+    def __unicode__(self):
+        return self.category
 
 class DailySomething(models.Model):
     """
@@ -166,60 +204,56 @@ class DailySomething(models.Model):
     # so do not expect a meaningful relationship between rate and totals
     rate = models.IntegerField(default=0)
 
-    # transaction id of user extension's payment to @ProcrasDoante via TipJoy
-    incoming_tipjoy_transaction_id = models.IntegerField()
-    
     user = models.ForeignKey(User, null=True, blank=True)
+    # id of item in extension database
+    extn_id = models.IntegerField()
     
     class Meta:
         abstract = True
         ordering = ('time',)
 
-class DailyPledge(DailySomething):
-    """
-    """
-    class Meta:
-        abstract = True
-
-class DailySitePledge(DailyPledge):
-    """
-    """
-    site = models.ForeignKey(Site)
-
-class DailySiteGroupPledge(DailyPledge):
+class DailySiteGroup(DailySomething):
     """
     """
     sitegroup = models.ForeignKey(SiteGroup)
 
-class DailyTagPledge(DailyPledge):
-    """
-    """
-    tag = models.ForeignKey(Tag)
-
-class DailyRecipientPledge(DailyPledge):
-    """
-    """
-    recipient = models.ForeignKey(Recipient)
-
-class DailyPayment(DailySomething):
-    """
-    """
-    # transaction id of @ProcrasDonate's payment via TipJoy 
-    # to a recipient (twitter_name) or Site (url)
-    outgoing_tipjoy_transaction_id = models.IntegerField()
-    
-    class Meta:
-        abstract = True
-
-
-class DailySitePayment(DailyPayment):
+class DailySite(DailySomething):
     """
     """
     site = models.ForeignKey(Site)
 
-class DailyRecipientPayment(DailyPayment):
+class DailyRecipient(DailySomething):
     """
     """
     recipient = models.ForeignKey(Recipient)
 
-ALL_MODELS = [Email, User, Site, SiteGroup, Recipient, DailySitePledge, DailyRecipientPledge, DailySitePayment, DailyRecipientPayment]
+class DailyTag(DailySomething):
+    """
+    """
+    tag = models.ForeignKey(Tag)
+
+class Payment(models.Model):
+    """
+    """
+    # transaction id of user extension's payment to @ProcrasDoante via TipJoy
+    incoming_tipjoy_transaction_id = models.IntegerField()
+    
+    # transaction id of @ProcrasDonate's payment via TipJoy 
+    # to a recipient (twitter_name) or Site (url)
+    outgoing_tipjoy_transaction_id = models.IntegerField(null=True, blank=True)
+
+    class Meta:
+        abstract = True
+        ordering = ('incoming_tipjoy_transaction_id',)
+       
+class RecipientPayment(Payment):
+    """
+    """
+    recipient = models.ForeignKey(Recipient)
+
+class SitePayment(Payment):
+    """
+    """
+    site = models.ForeignKey(Site)
+
+ALL_MODELS = [Email, User, Site, SiteGroup, Tag, Category, Recipient, DailySite, DailySiteGroup, DailyRecipient, DailyTag, RecipientPayment, SitePayment]

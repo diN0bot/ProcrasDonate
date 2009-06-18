@@ -3,7 +3,7 @@ from data import Site, Recipient
 
 from data import *
 
-__all__ = ['AggregateSiteGroup', 'AggregateRecipient', 'AggregateUser'] #, 'SiteGroupRank', 'RecipientRank', 'UserRank']
+__all__ = ['AggregateSiteGroup', 'AggregateRecipient', 'AggregateUser', 'AggregateSite', 'AggregateTag']
 
 class Aggregate(models.Model):
     """
@@ -41,43 +41,15 @@ class AggregateUser(Aggregate):
     """
     user = models.ForeignKey(User)
 
-'''
-#well, shoot and dang. can't you just use order by? heck yeah.
-
-class Rank(models.Model):
+class AggregateSite(Aggregate):
     """
     """
-    # Valid Ranking Metrics                                                                                                                                                        
-    METRICS = {'TIME':'T',
-               'AMOUNT':'A',
-               'NEW':'N'}
-    # for database (data, friendly_name)                                                                                                                                           
-    METRIC_CHOICES = ((METRICS['TIME'], 'Total Time',),
-                      (METRICS['AMOUNT'], 'Total Amount',),
-                      (METRICS['NEW'], 'New',))
+    site = models.ForeignKey(Site)
 
-    rank = models.IntegerField()
-    metric = models.CharField(max_length=1,
-                              choices=METRIC_CHOICES,
-                              default=METRICS['TIME'])
+class AggregateTag(Aggregate):
+    """
+    """
+    tag = models.ForeignKey(Tag)
+
     
-    class Meta:
-        abstract = True
-
-class SiteGroupRank(Rank):
-    """
-    """
-    sitegroup = models.ForeignKey(SiteGroup)
-
-class RecipientRank(Rank):
-    """
-    """
-    recipient = models.ForeignKey(Recipient)
-
-class UserRank(Rank):
-    """
-    """
-    user = models.ForeignKey(User)
-'''
-    
-ALL_MODELS = [AggregateSiteGroup, AggregateRecipient, AggregateUser] #, SiteGroupRank, RecipientRank, UserRank]
+ALL_MODELS = [AggregateSiteGroup, AggregateRecipient, AggregateUser, AggregateSite, AggregateTag]

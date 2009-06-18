@@ -89,7 +89,7 @@ def email(request):
     email_address = request.POST.get('email_address','')
     email = Email.add(email_address)
     
-    #@todo send welcome email...if new address? or always
+    #@todo send welcome email
     
     return json_response({'result':'success'})
 
@@ -105,15 +105,18 @@ def totals(request):
     
     user = User.get_or_create(data['hash'])
 
-    for total in data['totals']
+    for total in data['totals']:
         if 'recipient' in total:
-            
+            DailyRecipient.add()
             
         elif 'sitegroup' in total:
-        
+            DailySiteGroup.add()
+            
         elif 'site' in total:
+            DailySite.add()
             
         elif 'tag' in total:
+            DailyTag.add()
             
         else:
             pass
