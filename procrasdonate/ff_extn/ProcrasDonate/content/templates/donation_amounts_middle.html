@@ -31,10 +31,11 @@
 		<tbody>
 			<tr><td colspan="2">
 				<img src="{{ constants.MEDIA_URL }}img/ToolbarImages/ProcrasDonateIcon.png" class="icon-image">		
-					when <i>ProcrasDonating</i>
+					for <i>ProcrasDonating</i>
 				</td></tr>
 			<tr>
-				<td><input class='form-right form-value' id='pd_hr_per_week_goal' type='text' size='4' name='pd_hr_per_week_goal' value='{{ pd_hr_per_week_goal }}'></td>
+				<td><input class='form-right form-value' id='pd_hr_per_week_goal' type='text' size='4' 
+						name='pd_hr_per_week_goal' value='{{ pd_hr_per_week_goal }}'></td>
 				<td>
 					<div class='help form-left form-label'>hours per week</div>
 					<span id='cents_per_week_goal'></span>
@@ -46,7 +47,7 @@
 		<tbody>
 			<tr><td colspan="2">
 					<img src="{{ constants.MEDIA_URL }}img/ToolbarImages/TimeWellSpentIcon.png" class="icon-image">		
-					on <i>TimeWellSpent</i>
+					for <i>TimeWellSpent</i>
 				</td></tr>
 			<tr>
 				<td><input class='form-right form-value' id='tws_hr_per_week_goal' type='text' size='4' name='tws_hr_per_week_goal' value='{{ tws_hr_per_week_goal }}'></td>
@@ -57,12 +58,12 @@
 			</tr>
 		</tbody>
 	</table>			
-	<p>No pledges will be made <i>past</i> your weekly <b>limit</b>.</p>
+	<p>What is your weekly <b>limit</b>, beyond which no pledges will be made?</p>
 	<table>
 		<tbody>
 			<tr><td colspan="2">
 					<img src="{{ constants.MEDIA_URL }}img/ToolbarImages/ProcrasDonateIcon.png" class="icon-image">		
-					when <i>ProcrasDonating</i>
+					of <i>ProcrasDonation</i>
 				</td></tr>
 			<tr>
 				<td><input class='press_enter_for_next form-right form-value' id='pd_hr_per_week_max' type='text' size='4' name='pd_hr_per_week_max' value='{{ pd_hr_per_week_max }}'></td>
@@ -74,7 +75,7 @@
 		<tbody>
 			<tr><td colspan="2">
 					<img src="{{ constants.MEDIA_URL }}img/ToolbarImages/TimeWellSpentIcon.png" class="icon-image">		
-					on <i>TimeWellSpent</i>
+					of <i>TimeWellSpent</i>
 				</td></tr>
 			<tr>
 				<td><input class='press_enter_for_next form-right form-value' id='tws_hr_per_week_max' type='text' size='4' name='tws_hr_per_week_max' value='{{ tws_hr_per_week_max }}'></td>
