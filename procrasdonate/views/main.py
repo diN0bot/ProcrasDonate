@@ -104,7 +104,7 @@ def totals(request):
     print "TOTALS from ", data['hash']
     
     user = User.get_or_create(data['hash'])
-
+    """
     for total in data['totals']
         if 'recipient' in total:
             
@@ -117,7 +117,7 @@ def totals(request):
             
         else:
             pass
-    
+   """ 
     return json_response({'result':'success'})
 
 def payments(request):

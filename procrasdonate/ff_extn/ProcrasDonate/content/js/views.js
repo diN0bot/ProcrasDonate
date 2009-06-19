@@ -671,6 +671,7 @@ _extend(PageController.prototype, {
 			timewellspent_text: timewellspent_text,
 			procrasdonate_text: procrasdonate_text,
 			unsorted_text: unsorted_text,
+			constants: constants,
 		});
 		return Template.get("site_classifications_middle").render(context);
 	},
