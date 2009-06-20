@@ -111,6 +111,7 @@ def totals(request):
         TotalProcessor.process_json(total, user)
     
     print "\n\nDONE\n\n"
+
     return json_response({'result':'success'})
 
 def payments(request):
