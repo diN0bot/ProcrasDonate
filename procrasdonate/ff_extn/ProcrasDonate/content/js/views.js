@@ -126,6 +126,9 @@ _extend(Controller.prototype, {
 			this.reset_state_to_defaults();
 			//this.reset_account_to_defaults();
 			break;
+		case constants.ON_INSTALL_URL:
+			this.initialize_state();
+			break;
 		case constants.ADD_RANDOM_VISITS_URL:
 			this.add_random_visits();
 			break;
@@ -251,7 +254,7 @@ _extend(Controller.prototype, {
 				return self.prefs.set(name, value);
 		});
 		
-		if (this.prefs.get('hash', false) == constants.DEFAULT_HASH) {
+		if (this.prefs.get('hash', constants.DEFAULT_HASH) == constants.DEFAULT_HASH) {
 			this.set_user_hash();
 		}
 	},
@@ -324,13 +327,22 @@ _extend(Controller.prototype, {
 		            ];
 		for (var i = 0; i < urls.length; i++) {
 			this.pddb.store_visit(urls[i], _dbify_date(start), duration);
-			start.setMinutes( start.getMinutes + 10 );
+			logger("the gobble start ="+start);
+			start.setMinutes( start.getMinutes() + 10 );
 		}
 	},
 	
 	trigger_daily_cycle: function() {
 		logger("triggering daily cycle...");
+		// save time so will resend all information.
+		var t = this.prefs.get('last_total_time_sent_to_pd', '');
+		var p = this.prefs.get('last_paid_tipjoy_id_sent_to_pd', '');
+		
 		this.pddb.schedule.do_once_daily_tasks();
+		
+		this.prefs.set('last_total_time_sent_to_pd', t);
+		this.prefs.set('last_paid_tipjoy_id_sent_to_pd', p);
+		
 		logger("...daily cycle done");
 	},
 	
@@ -358,7 +370,7 @@ _extend(Schedule.prototype, {
 	
 	is_new_24hr_period: function() {
 		/* @returns: true if it is at least 24 hrs past the last 24hr mark */
-		var two_four_hr = _un_dbify_date(this.prefs.get('last_24hr_mark', ''));
+		var two_four_hr = _un_dbify_date(this.prefs.get('last_24hr_mark', 0));
 		var now = new Date();
 		two_four_hr.setHours(two_four_hr.getHours() + 24);
 		return now > two_four_hr
@@ -391,7 +403,7 @@ _extend(Schedule.prototype, {
 		}
 		
 		// reset last_24hr_mark to now
-		var two_four_hr = _un_dbify_date(this.prefs.get('last_24hr_mark', ''));
+		var two_four_hr = _un_dbify_date(this.prefs.get('last_24hr_mark', 0));
 		var new_two_four_hr = new Date();
 		new_two_four_hr.setHours(two_four_hr.getHours());
 		new_two_four_hr.setMinutes(two_four_hr.getMinutes());
@@ -407,7 +419,7 @@ _extend(Schedule.prototype, {
 	
 	is_new_week_period: function() {
 		/* @returns: true if it is at least 1 week past the last week mark */
-		var week_hr = new Date(this.prefs.get('last_week_mark', '')*1000);
+		var week_hr = new Date(this.prefs.get('last_week_mark', 0)*1000);
 		var now = new Date();
 		week_hr.setDate(week_hr.getDate() + 7);
 		return now > week_hr
@@ -415,7 +427,7 @@ _extend(Schedule.prototype, {
 	
 	do_once_weekly_tasks: function() {
 		// reset last_week_mark to now
-		var week_hr = new Date(this.prefs.get('last_week_mark', '')*1000);
+		var week_hr = new Date(this.prefs.get('last_week_mark', 0)*1000);
 		var now = new Date();
 		now.setHours(week_hr.getHours());
 		now.setMinutes(week_hr.getMinutes());
@@ -424,7 +436,6 @@ _extend(Schedule.prototype, {
 			now.setDate( now.getDate() - 1 );
 		}
 		this.prefs.set('last_week_mark', Math.floor(now.getTime()/1000));
-		
 		//alert("ding! last week "+week_hr+" new week "+now+"  now  "+new Date());
 	},
 });
@@ -565,8 +576,14 @@ _extend(PageController.prototype, {
 		var pd_recipientpercent = this.pddb.RecipientPercent.get_or_null({
 			recipient_id: pd_recipient.id
 		});
+		var pct = parseFloat(pd_recipientpercent.percent) * 100.0;
+		if ( parseInt(pct) == pct ) {
+			pct = parseInt(pct);
+		} else {
+			pct = pct.toFixed(2);
+		}
 		var context = new Context({
-			pct: parseFloat(pd_recipientpercent.percent).toFixed(4) * 100.0,
+			pct: pct,
 			constants: constants,
 		});
 		return Template.get("support_middle").render(context);
@@ -778,7 +795,12 @@ _extend(PageController.prototype, {
 		
 		this.pddb.RecipientPercent.select({}, function(row) {
 			var recipient = self.pddb.Recipient.get_or_null({ id: row.recipient_id });
-			var percent = parseFloat(row.percent).toFixed(4) * 100.0;
+			var percent = parseFloat(row.percent) * 100.0;
+			if ( parseInt(percent) == percent ) {
+				percent = parseInt(percent);
+			} else {
+				percent = percent.toFixed(2);
+			}
 			
 			if (recipient && recipient.twitter_name != "ProcrasDonate") {
 				user_recipients += self.recipient_with_percent_snippet(request, recipient, percent);
@@ -1093,7 +1115,8 @@ _extend(PageController.prototype, {
 		/*
 		 * Inserts form so that user may select recipients.
 		 * 
-		 * Slider input's alt must contain "last" value of input, so when do keyboard presses we can compute how to alter the other tabs.
+		 * Slider input's alt must contain "last" value of input, 
+		 * so when do keyboard presses we can compute how to alter the other tabs.
 		 */
 		this.prefs.set('settings_state', 'recipients');
 		
@@ -1148,10 +1171,11 @@ _extend(PageController.prototype, {
 	},
 	
 	process_support: function(request, event) {
-		var support_input = parseFloat(
-			request.jQuery("input[name='support_input']").attr("value"))
-		
-		if ( support_input < 0 || support_input > 100 ) {
+		var support_input = parseFloat( request.jQuery("#support_input").attr("value") );
+			//request.jQuery("input[name='support_input']").attr("value"))
+
+		logger("process_support:: support="+support_input);
+		if ( support_input < 0 || support_input > 10 ) {
 			request.jQuery("#errors").text("<p>Please enter a percent between 0 and 10.</p>");
 		} else {
 			var pd_recipient = this.pddb.Recipient.get_or_null({ name: "ProcrasDonate" });
@@ -1284,6 +1308,7 @@ _extend(PageController.prototype, {
 				ret = false;
 			}
 			var recipient_id = request.jQuery(this).parent().siblings(".recipient_id").text();
+			logger("process_recipients:: rid="+recipient_id+" pct="+percent);
 			self.pddb.RecipientPercent.set({ percent: percent }, { recipient_id: recipient_id });
 		});
 		logger(" process_recipients says okiedokie");

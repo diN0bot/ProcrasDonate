@@ -24,7 +24,7 @@ class Email(models.Model):
             return Email(email=email)
         
     def __unicode__(self):
-        return "%s" % self.email
+        return u"%s" % self.email
 
 class User(models.Model):
     """
@@ -55,6 +55,14 @@ class User(models.Model):
                     url=url,
                     email=email,
                     is_on_email_list=is_on_email_list)
+        
+    def __unicode__(self):
+        return u"%s - %s - %s - %s - %s - %s" % (self.hash,
+                                                 self.name,
+                                                 self.twitter_name,
+                                                 self.url,
+                                                 self.email,
+                                                 self.is_on_email_list)
 
 class Site(models.Model):
     """
@@ -69,7 +77,7 @@ class Site(models.Model):
     def get_or_create(klass, url):
         s = Site.get_or_none(url=url)
         if not s:
-            host = SiteGroup.host(url)
+            host = SiteGroup.extract_host(url)
             s = Site.add(url,
                          SiteGroup.get_or_create(host=host))
         return s
@@ -77,6 +85,9 @@ class Site(models.Model):
     @classmethod
     def make(klass, url, sitegroup):
         return Site(url=url, sitegroup=sitegroup)
+    
+    def __unicode__(self):
+        return u"%s (%s)" % (self.url, self.sitegroup)
 
 class SiteGroup(models.Model):
     """
@@ -86,18 +97,18 @@ class SiteGroup(models.Model):
     # describes valid urls
     url_re = models.CharField(max_length=128, null=True, blank=True)
     name = models.CharField(max_length=128, null=True, blank=True)
-
+    
     HOST_RE = re.compile("http://([^/]+)")
     
     @classmethod
-    def host(klass, url):
-        match = HOST_RE.match(url)
+    def extract_host(klass, url):
+        match = SiteGroup.HOST_RE.match(url)
         if match:
             return match.groups()[0]
         return url
     
     @classmethod
-    def get_or_create(klass, host):
+    def get_or_create(klass, host, url_re=None, name=None):
         s = SiteGroup.get_or_none(host=host)
         if not s:
             s = SiteGroup.add(host)
@@ -108,6 +119,9 @@ class SiteGroup(models.Model):
         return SiteGroup(host=host,
                          url_re=url_re,
                          name=name)
+    
+    def __unicode__(self):
+        return u"%s" % self.host
 
 class Recipient(models.Model):
     """
@@ -139,6 +153,12 @@ class Recipient(models.Model):
                          description=description,
                          is_visible=is_visible, 
                          category=category)
+        
+    def __unicode__(self):
+        return u"%s - %s - %s - %s" % (self.twitter_name,
+                                       self.name,
+                                       self.category,
+                                       self.is_visible)
 
 class Tag(models.Model):
     """
@@ -147,18 +167,21 @@ class Tag(models.Model):
     
     @classmethod
     def get_or_create(klass, tag):
+        print "GOC", tag
         t = Tag.get_or_none(tag=tag)
         if t:
+            print t
             return t
         else:
             return Tag.add(tag)
     
     @classmethod
     def make(klass, tag):
+        print "MAKE", tag
         return Tag(tag=tag)
     
     def __unicode__(self):
-        return self.tag
+        return u"%s" % self.tag
 
 class Category(models.Model):
     """
@@ -179,6 +202,9 @@ class Category(models.Model):
     
     def __unicode__(self):
         return self.category
+    
+    def __unicode__(self):
+        return u"%s" % self.category
 
 class DailySomething(models.Model):
     """
@@ -195,14 +221,14 @@ class DailySomething(models.Model):
     time = models.DateField()
     # time spent procrastinating in seconds. likely max is 24 (hr) * 60 (min) * 60 (s)
     total_time = models.FloatField()
-    # amount donated
+    # amount donated in cents
     total_amount = models.FloatField()
     # rate of payment in cents per hour 
     # GENERATED based on total_time and total_amount
     # WARNING: this is the rate at the time of payment. 
     # the rate could have changed halfway through the day,
     # so do not expect a meaningful relationship between rate and totals
-    rate = models.IntegerField(default=0)
+    rate = models.FloatField(default=0)
 
     user = models.ForeignKey(User, null=True, blank=True)
     # id of item in extension database
@@ -211,26 +237,102 @@ class DailySomething(models.Model):
     class Meta:
         abstract = True
         ordering = ('time',)
-
+    
+    def __unicode__(self):
+        return u"%s :%s: - %s - %s cents" % (self.time,
+                                             self.user.hash,
+                                             self.total_time,
+                                             self.total_amount)
+    @classmethod
+    def make(klass, time, total_time, total_amount, user, extn_id, extn_inst, extn_inst_name, the_klass):
+        """
+        """
+        # total_amount / total_time
+        rate = (total_amount * 3600) / total_time;
+        the_inst = the_klass(time=time,
+                             total_time=total_time,
+                             total_amount=total_amount,
+                             rate=rate,
+                             user=user,
+                             extn_id=extn_id)
+        setattr(the_inst, extn_inst_name, extn_inst)
+        return the_inst
+        
 class DailySiteGroup(DailySomething):
     """
     """
     sitegroup = models.ForeignKey(SiteGroup)
+    
+    @classmethod
+    def make(klass, sitegroup, time, total_time, total_amount, user, extn_id):
+       return DailySomething.make(time,
+                                  total_time,
+                                  total_amount,
+                                  user,
+                                  extn_id,
+                                  sitegroup,
+                                  "sitegroup",
+                                  DailySiteGroup)
+    
+    def __unicode__(self):
+        return "%s [[%s]]" % (self.sitegroup, super(DailySiteGroup, self).__unicode__())
 
 class DailySite(DailySomething):
     """
     """
     site = models.ForeignKey(Site)
+    
+    @classmethod
+    def make(klass, site, time, total_time, total_amount, user, extn_id):
+       return DailySomething.make(time,
+                                  total_time,
+                                  total_amount,
+                                  user,
+                                  extn_id,
+                                  site,
+                                  "site",
+                                  DailySite)
+    
+    def __unicode__(self):
+        return "%s [[%s]]" % (self.site, super(DailySite, self).__unicode__())
 
 class DailyRecipient(DailySomething):
     """
     """
     recipient = models.ForeignKey(Recipient)
+    
+    @classmethod
+    def make(klass, recipient, time, total_time, total_amount, user, extn_id):
+       return DailySomething.make(time,
+                                  total_time,
+                                  total_amount,
+                                  user,
+                                  extn_id,
+                                  recipient,
+                                  "recipient",
+                                  DailyRecipient)
+    
+    def __unicode__(self):
+        return "%s [[%s]]" % (self.recipient, super(DailyRecipient, self).__unicode__())
 
 class DailyTag(DailySomething):
     """
     """
     tag = models.ForeignKey(Tag)
+    
+    @classmethod
+    def make(klass, tag, time, total_time, total_amount, user, extn_id):
+       return DailySomething.make(time,
+                                  total_time,
+                                  total_amount,
+                                  user,
+                                  extn_id,
+                                  tag,
+                                  "tag",
+                                  DailyTag)
+       
+    def __unicode__(self):
+        return "%s [[%s]]" % (self.tag, super(DailyTag, self).__unicode__())
 
 class Payment(models.Model):
     """

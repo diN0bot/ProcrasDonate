@@ -2,6 +2,8 @@ from lib.view_utils import render_response, HttpResponseRedirect
 from lib.json_utils import json_response
 from procrasdonate.models import *
 
+from procrasdonate.processors import *
+
 import urllib, urllib2
 from django.utils import simplejson
 
@@ -101,26 +103,14 @@ def totals(request):
         return json_response({'result':'failure', 'reason':'must *POST* data'})
     
     data = simplejson.loads(request.POST.get('data',''))
-    print "TOTALS from ", data['hash']
+    print len(data['totals']), "TOTALS from ", data['hash']
     
     user = User.get_or_create(data['hash'])
 
     for total in data['totals']:
-        if 'recipient' in total:
-            DailyRecipient.add()
-            
-        elif 'sitegroup' in total:
-            DailySiteGroup.add()
-            
-        elif 'site' in total:
-            DailySite.add()
-            
-        elif 'tag' in total:
-            DailyTag.add()
-            
-        else:
-            pass
+        TotalProcessor.process_json(total, user)
     
+    print "\n\nDONE\n\n"
     return json_response({'result':'success'})
 
 def payments(request):

@@ -28,6 +28,7 @@ var constants = {};
 	constants.POST_PAYMENTS_URL = '/post/payments/';
 	
 	// used for development testing
+	constants.ON_INSTALL_URL = '/on_install/';
 	constants.RESET_STATE_URL = '/reset_state/';
 	constants.ADD_RANDOM_VISITS_URL = '/add_random_visits/';
 	constants.TRIGGER_DAILY_CYCLE_URL = '/trigger_daily_cycle/';

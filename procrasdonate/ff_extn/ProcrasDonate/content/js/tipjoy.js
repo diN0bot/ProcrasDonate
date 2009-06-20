@@ -149,7 +149,7 @@ _extend(TipJoy_API.prototype, {
 		var text = "p $" + dollar_amount +" @ProcrasDonate " + escape(reason);
 		var username = this.prefs.get('twitter_username', '')
 		var password = this.prefs.get('twitter_password', '')
-		logger("tipjoy.js::_make_payment_request: text="+text);
+		logger("tipjoy.js::_make_payment_request: amt="+amt+" dollar_amount="+dollar_amount+" text="+text);
 		
 		var params = {
 			twitter_username: username,

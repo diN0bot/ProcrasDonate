@@ -52,7 +52,7 @@ _extend(ProcrasDonate_API.prototype, {
 			var total_data = {
 				total_time: row.total_time,
 				total_amount: row.total_amount,
-				time: row.time
+				time: _date_to_http_format( _un_dbify_date( row.time ) )
 			};
 			if (recipient) {
 				var category = "Uncategorized";
@@ -125,7 +125,6 @@ _extend(ProcrasDonate_API.prototype, {
 	_post_data: function(url, data, onload) {
 		// serialize into json
 		var json_data = JSON.stringify(data);
-		
 		// make request
 		this.make_request(
 			url,
