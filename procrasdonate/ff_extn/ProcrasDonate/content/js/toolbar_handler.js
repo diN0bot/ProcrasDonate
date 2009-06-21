@@ -69,7 +69,12 @@ _extend(PD_ToolbarManager.prototype, {
 			var new_tooltip_text = tooltip_text.replace(/: [\w]+\./, ": "+tag.tag+".");
 			this.classify_button.setAttribute("tooltiptext", new_tooltip_text);
 			
-			// alter progress bar
+			// alter progress bars only if they exist
+			if ( !this.pd_progress_button && !this.tws_progress_button ) {
+				return;
+			}
+			
+			// alter progress bars
 			var tag_content_type = this.pddb.ContentType.get_or_null({ modelname: "Tag" });
 			var pd_total = this.pddb.Total.get_or_null({
 				contenttype_id: tag_content_type.id,
@@ -91,20 +96,20 @@ _extend(PD_ToolbarManager.prototype, {
 			var tws_goal = parseFloat(this.pddb.prefs.get('tws_hr_per_week_goal', 1));
 			var tws_limit = parseFloat(this.pddb.prefs.get('tws_hr_per_week_max', 1));
 			
-			if ( pd_total) {
+			if ( pd_total && this.pd_progress_button) {
 				pd_total = parseInt(pd_total.total_time);
-				this.update_progress(pd_total, pd_goal, pd_limit, this.pd_progress_button)
+				this.update_progress(pd_total, pd_goal, pd_limit, this.pd_progress_button, "PD")
 			}
 			
-			if ( tws_total ) {
+			if ( tws_total && this.tws_progress_button) {
 				tws_total = parseInt(tws_total.total_time);
-				this.update_progress(tws_total, tws_goal, tws_limit, this.tws_progress_button)
+				this.update_progress(tws_total, tws_goal, tws_limit, this.tws_progress_button, "TWS")
 			}
 			
 		}
     },
 
-	update_progress: function(total, goal, limit, button) {
+	update_progress: function(total, goal, limit, button, label) {
 		var total_in_date = _start_of_week();
 		total_in_date.setSeconds(total);
 		
@@ -159,8 +164,8 @@ _extend(PD_ToolbarManager.prototype, {
 		var diff_str = "";
 		if (days > 0) { diff_str += days+" days, "; }
 		if (hours > 0) { diff_str += hours+" hr, "; }
-		if (minutes > 0) { diff_str += minutes+" min"; }
-		button.setAttribute("label", "Progress: "+diff_str);
+		if (minutes >= 0) { diff_str += minutes+" min"; }
+		button.setAttribute("label", label+": "+diff_str);
     },
     
     getDbRowsForLocation : function(url) {

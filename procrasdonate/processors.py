@@ -51,15 +51,8 @@ class TotalProcessor(Processor):
             recipient = Recipient.get_or_none(twitter_name=twitter_name)
             print " ---------- recipient", recipient
             if not recipient:
-                #@todo load recipients and categories
                 #raise Exception("Paid unknown recipient! "+json)
-                recipient = Recipient.add(twitter_name=twitter_name,
-                                          name=name,
-                                          description=description,
-                                          category=category,
-                                          mission=mission,
-                                          url=url)
-                print " -------new recipient", recipient
+                pass
             
             DailyRecipient.add(recipient=recipient,
                                total_amount=total_amount,

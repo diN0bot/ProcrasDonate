@@ -98,7 +98,7 @@
         
         <toolbarbutton id="PD-progress-toolbar-button"
                        autoCheck="true"
-                       label="Progress: 0"
+                       label="PD: 0"
                        tooltiptext="Progress towards weekly ProcrasDonate goal"
                        oncommand="myOverlay.url_bar_listener.toolbar_manager.onProgressButtonPDCommand();"
                        image="chrome://ProcrasDonate/skin/IconBar0.png"
@@ -106,7 +106,7 @@
 
 	<toolbarbutton id="TWS-progress-toolbar-button"
                        autoCheck="true"
-                       label="Progress: 0"
+                       label="TWS: 0"
                        tooltiptext="Progress towards weekly TimeWellSpent goal"
                        oncommand="myOverlay.url_bar_listener.toolbar_manager.onProgressButtonTWSCommand();"
                        image="chrome://ProcrasDonate/skin/IconBar0.png"

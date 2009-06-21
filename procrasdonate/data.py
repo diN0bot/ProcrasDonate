@@ -130,6 +130,7 @@ class Recipient(models.Model):
     twitter_name = models.CharField(max_length=32, null=True, blank=True)
     name = models.CharField(max_length=128, null=True, blank=True)
     url = models.URLField(null=True, blank=True)
+    email = models.EmailField()
     mission = models.CharField(max_length=256, null=True, blank=True)
     description = models.TextField(null=True, blank=True)
     is_visible = models.BooleanField(default=False)
@@ -140,6 +141,7 @@ class Recipient(models.Model):
              twitter_name=None,
              name=None,
              url=None,
+             email=None,
              mission=None,
              description=None,
              is_visible=True,
@@ -149,6 +151,7 @@ class Recipient(models.Model):
         return Recipient(twitter_name=twitter_name,
                          name=name,
                          url=url,
+                         email=email,
                          mission=mission,
                          description=description,
                          is_visible=is_visible, 
