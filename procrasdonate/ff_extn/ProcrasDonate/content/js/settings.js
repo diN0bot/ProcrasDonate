@@ -23,10 +23,12 @@ var constants = {};
 	constants.PRIVACY_URL = '/privacy_guarantee/';
 	constants.RECIPIENTS_URL = '/recipients';
 	
+	constants.POST_EMAIL_URL = '/post/email/';
 	constants.POST_TOTALS_URL = '/post/totals/';
 	constants.POST_PAYMENTS_URL = '/post/payments/';
 	
 	// used for development testing
+	constants.ON_INSTALL_URL = '/on_install/';
 	constants.RESET_STATE_URL = '/reset_state/';
 	constants.ADD_RANDOM_VISITS_URL = '/add_random_visits/';
 	constants.TRIGGER_DAILY_CYCLE_URL = '/trigger_daily_cycle/';
@@ -114,9 +116,12 @@ var constants = {};
 	constants.DEFAULT_EMAIL = "";
 	constants.DEFAULT_PROCRASDONATE_REASON = "ProcrasDonating for a good cause";
 	constants.DEFAULT_TIMEWELLSPENT_REASON = "TimeWellSpent for a good cause";
-	constants.DEFAULT_CENTS_PER_HR = 95;
-	constants.DEFAULT_HR_PER_WEEK_GOAL = 20;
-	constants.DEFAULT_HR_PER_WEEK_MAX = 30;
+	constants.PD_DEFAULT_CENTS_PER_HR = 95;
+	constants.PD_DEFAULT_HR_PER_WEEK_GOAL = 20;
+	constants.PD_DEFAULT_HR_PER_WEEK_MAX = 30;
+	constants.TWS_DEFAULT_CENTS_PER_HR = 95;
+	constants.TWS_DEFAULT_HR_PER_WEEK_GOAL = 20;
+	constants.TWS_DEFAULT_HR_PER_WEEK_MAX = 30;
 	
 	constants.DEFAULT_SETTINGS_STATE = "twitter_account";
 	constants.DEFAULT_REGISTER_STATE = "twitter_account";

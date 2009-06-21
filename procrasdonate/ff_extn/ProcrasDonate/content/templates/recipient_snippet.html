@@ -1,9 +1,14 @@
-<div class='recipient'>
+<div class='recipient recipient_to_add'>
 	<!-- id class needed for js -->
 	<div class="recipient_id">{{ id }}</div>
-	<div class='add_recipient' title="Add recipient to list"> Add Recipient Test reTest Test</div>
-	<div class='name'><a href='{{ url }}'>{{ name }}</a></div>
-	<div class='mission'>{{ mission }}</div>
-	<div class='link description_toggle'>(less)</div>
-	<div class='description'>{{ description }}</div>
+	<div class='add_recipient' title="Add recipient to list"> 
+		<img src="{{ constants.MEDIA_URL }}img/AddRecipient.png" class="recipient-image img_link">		
+	 </div>
+	 <div class='name'><a href='{{ url }}'>{{ name }}</a></div>
+	<div class="category">{{ category }}</div>
+	<div class='mission'>{{ mission }}
+		<span class='link description_toggle'>(less)</span>
+	</div>
+	<div class='description'><p>{{ description }}</p></div>
+
 </div>

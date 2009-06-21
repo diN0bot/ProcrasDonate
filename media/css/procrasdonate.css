@@ -3,7 +3,6 @@ body {
 	color: #330000;
 	margin:0em;
 	padding:0em;
-	text-align:center;
 	font-family:Verdana, Arial, Helvetica, sans-serif;
 	font-size:12px;
 }
@@ -12,10 +11,10 @@ a, .link { color:#336699; text-decoration:underline; cursor: pointer; }
 a:hover, .link:hover { color:#FF9900; text-decoration:underline; cursor: pointer; }
 a img { border: none; }
 
+img { -ms-interpolation-mode:bicubic; }
 .img_link { text-decoration: none; cursor: pointer; }
 
-p { text-align: left; }
-.paragraph_list li { text-align: left; margin-top: 1em; }
+.paragraph_list li { margin-top: 1em; }
 
 /*
  colors (solid, dark unless stated otherwise):
@@ -34,6 +33,8 @@ p { text-align: left; }
    darker orange 
 	brown header text cd8047 (was cc9966 and b15b1c)
    dark brown text (was 330000)
+   yellow chart background f7edb4
+   beige highlight for accounting FBFBDE
 */
 
 .new { color: #F37F19; }
@@ -46,16 +47,14 @@ p { text-align: left; }
   font-size: 1.2em;
   position: absolute;
   margin: 2em auto auto 1.7em;
-  /*left: 1.7em;
-  top: 2em;*/
-  width: 8.3em;
+  width: 8.9em;
+  text-align: center;
 }
 #static_menu div { display: block; padding: 0.3em 0em; margin: 1em 0em; }
 
 #content {
   margin: auto;
   min-width: 40em;
-  text-align:center;
   margin: 1.6em auto auto 0em;
   position: absolute;
   left: 12em;
@@ -65,7 +64,7 @@ p { text-align: left; }
 #footer { font-size: .8em; height: 5em;  font-weight: normal; margin: auto; padding-top: 2em; }
 
 
-#MainMenu { background: #bb8230; font-size: 1.1em; border: 0.34em ridge #8A4304; -moz-border-radius: .4em; }
+#MainMenu { background: #bb8230; border: 0.34em ridge #8A4304; -moz-border-radius: .4em; }
 #MainMenu div { background: #b47925; border-top: 0.1em dotted #DBBF75; -moz-border-radius: 0em; }
 #MainMenu div a { font-variant: small-caps; letter-spacing: .1em; text-decoration: none; color: #f9fdf4; }
 #MainMenu .here_we_are { background: #dbbf75; border-top: 0.1em dotted white; }
@@ -77,15 +76,15 @@ p { text-align: left; }
 }
 #MainMenu #learn_more_menu_item.here_we_are a { word-spacing: inherit; letter-spacing: .1em; }
 
-.tracks { margin: auto; margin-bottom: 2em; }
+.tracks { margin-bottom: 1.5em; }
 .tracks tr td { padding: 0em; vertical-align: bottom }
-.tracks tr .track_text { width: 4.5em; max-width: 4.5em; overflow: visible; }
+.tracks tr .track_text { width: 4.5em; max-width: 4.5em; overflow: visible; text-align: center; }
 .tracks tr .done { color: green; }
 .tracks tr .selected { color: #336699; }
 .StageBar	{ width: 4em; height: 2em; margin: 0 -1em; }
 .StageCircle { width: 4.5em; }
 
-#logo { width: 8.3em; margin-left: .08em; }
+#logo { width: 8.5em; margin-left: .08em; }
 
 .page_menu { position: absolute; left: 0em; top: 10.6em; }
 .page_menu h3 { text-align: right; }
@@ -94,6 +93,7 @@ p { text-align: left; }
 .page_menu ul li { text-align: right; }
 
 
+.NextPrevSpacer {width: 6%; height: 1.5em; }
 .Spacer {width: 14em; height: 1.5em; }
 .SmallSpacer {width: 14em; height: 0.5em; }
 
@@ -102,6 +102,10 @@ p { text-align: left; }
 .DivRight {text-align: right; }	
 .DivLeft {text-align: left; }
 
+.Right {text-align: right; }	
+.Left {text-align: left; }
+
+
 #TheBanner {
   margin: auto;
   min-width: 45em;
@@ -109,10 +113,10 @@ p { text-align: left; }
 }
 .StartButton { width: 13em; margin-top: 2em; }/*margin-top: -3.3em; margin-right: -40em; }*/
 
-#logo_banner { width: 40em; /*margin: -1em 0em 1.5em -17em;*/ }
+#logo_banner { width: 38em; margin-left: -3em; }
 #firefox_addon_one_liner {
   border:medium none;
-  margin:-.4em auto;
+  margin:-.4em 0 -.4em -3em;
   text-align:center;
 }
 #firefox_addon_one_liner span {
@@ -122,6 +126,7 @@ p { text-align: left; }
   letter-spacing:normal;
 }
 
+.superheader { color: #669933; font-size: .8em; vertical-align: top; }
 .subheader { color: #669933; font-size: .8em; }
 .subbanner { color: #669933; font-size: 1.2em; }
 
@@ -129,7 +134,6 @@ p { text-align: left; }
 
 h2 {
   clear: both;
-  text-align: left;
   font-family:"Trebuchet MS",Helvetica,Jamrul,sans-serif;
   font-size: 1.7em;
   color: #cd8047;
@@ -142,21 +146,23 @@ h2 {
   margin-left: -.5em;
 }
 
+.h2-no-margin {margin: 0 0 0 0; }
+
 /*** h3 used as title to description on worksheet pages ***/
+
+.RegisterHeader {	margin: .5em 0 1.5em -.5em; }
 
 h3 {
   clear: both;
-  text-align: left;
   font-family:"Trebuchet MS",Helvetica,Jamrul,sans-serif;
-  font-size: 1.26em;
+  font-size: 1.38em;
   color: #89958c;
-  margin: 1.5em 0em .5em 0em;
+  margin: 1.5em 0em .5em -.5em;
   font-variant: small-caps;
   font-weight: bold;
   letter-spacing: .1em;
   border-bottom: .5px solid #ccff99;
   padding: 1em 0em 0em .5em;
-  margin-left: -.5em;
 }
 
 h4 {
@@ -167,17 +173,20 @@ h4 {
   margin: 2.5em 0em 0em 0em;
   font-weight: normal;
   color: #156451;
-  text-align: left;
 }
 
 /************ REGISTER/SETTINGS FORM ********/
-form, form p { text-align: center; clear: both; }
+
+.form-label { font-size: 1.1em; margin-top: -.4em; }
+.form-value { font-size: 1.1em; margin-top: -.4em; }
+.form-right { text-align: right; padding-right: 0.8em;}
+.form-left { text-align: left; padding-left: 0.8em;}
 
 .help { color: #777777; }
 .summaryhelp { float: left; padding: .5em 0em 0em .5em; color: #777777; }
-td { padding: 1em 0em 1em 0em; vertical-align: middle; }
+td { padding: .6em 0em .5em 0em; vertical-align: middle; }
 
-label { padding-right: 1em; }
+.label { padding-right: 0em; }
 
 .horizontal { margin-right: 1em; }
 
@@ -201,13 +210,25 @@ label { padding-right: 1em; }
 .tabs .selected { background: white; border-bottom: none; padding-bottom: .1em; }
 
 #site_classifications { clear: both; width: 100%; }
-#site_classifications .column { width: 32%; vertical-align: top; float: left; }
-#site_classifications .title { font-weight: bold; }
+#site_classifications .column { width: 31%; vertical-align: top; float: left; 
+	background: #f7edb4; border: 0.25em ridge #c76631; -moz-border-radius: .4em;
+	text-align: center;
+}
+#site_classifications .title { font-weight: bold; padding: 1em .5em .5em .5em; }
+
+.site { background: #FBFBDE; border-top: 0.1em dotted #ffffff; -moz-border-radius: 0em; 
+	padding: .5em; margin: .2em; 
+} 
+.whateverisaroundsite {background: #fcfcfa; border: 0.15em ridge #c0d4c5; 
+	-moz-border-radius: .4em; padding: .5em; margin: .1em;  
+}
+
+#balance_here { background: #fbfbde; font-size: 1.05em; }
 
 .submenu_column { float: left; width: 30%; }
 .submenu_column .selected { text-decoration: none; }
 
-#ranks { text-align: left; }
+#ranks {}
 .rank {}
 .rank span {}
 .rank .site_name { padding-right:1.5em; text-align:right; }
@@ -225,51 +246,52 @@ label { padding-right: 1em; }
 /**** REGISTER ****/
 #register_next_prev { clear: both; }
 .register_button {
-  height: 5em;
-  width: 5em;
-}
-#next_register_track {
-  margin: 0em 0em 0em 35%;
-  float: right;
-}
-
-#next_register_track.done { /* no space is intentional!! #..._track.done */
-}
-
-#prev_register_track {
-  margin: 0em 40% 0em 0em;
-  float: left;
+  width: 5.5em;
+  padding: 0 35.5%;
 }
 
 #what_is_twitter.open { padding-left: 2em; }
 
 /**** IMAGES ****/
 
+.icon-image { width: 1.6em; vertical-align: bottom; }
 .small-image { width: 3.3em; float: left; margin-left: -4.1em; margin-top: -2.6em; }
 .medium-image { width: 6em; float: left; margin-left: -4.1em; margin-top: -2.6em; }
 .screenshot-long { width: 16em; float: right; margin-right: .2em; margin-left: .5em; margin-top: .2em; 
 	border: 0.27em ridge #156451; -moz-border-radius: .4em; padding: .4em;
 }
+.recipient-image { width: 10.25em; margin-left: 1em; float: right; padding: 0.2em 1.4em; }
 
 /**** RECIPIENTS ****/
 
 .recipient_row { margin: .2em 0em .2em 0em; clear: both; }
 .recipient_row div { float: left; }
-.recipient { border: 1px solid #DDDDFF; -moz-border-radius: 4px; margin: .3em 0em; width: 60%; }
-.recipient .name { font-size: 1.4em; padding: .2em .4em; }
-.recipient .description { padding: .2em .4em; text-align: left; }
+.recipient { border: 1px solid #DDDDFF; -moz-border-radius: 4px; margin: .8em 0em; padding: 0.8em .8em 1.2em .8em; width: 90%;
+	background: #FBFBDE; }
+.recipient_to_add { background: #faf6f3; }
+.recipient .name { font-size: 1.4em; padding: 0.2em 0.4em 0.7em 0; }
+.recipient .category { color:green; display:inline; float:left; padding: 0.5em 1.5em 0.7em 0; font-size: 1.08em; }
+.recipient .description { padding: .2em .4em; }
+.recipient .description_toggle { }
 .recipient_row .remove { text-decoration: none; background: #FFDDDD; -moz-border-radius: 4px; margin-top: .3em; padding: .2em .4em; }
 .recipient_row .add { text-decoration: none; background: #DDFFFF; -moz-border-radius: 4px; margin-top: .3em; padding: .2em .4em; }
 .recipient_row .slider { width: 25%; }
 .recipient_row .input { float: left; margin: 0em 1em; }
 .recipient_spacer_row { height: 4em; width: 100%; clear: both; }
+.recipient_instructions { margin-bottom: 2em; }
+.recipient_percent { float: right; padding: 0.2em 1.4em; }
+
+/**** DONATION AND GOALS, LIMIT ****/
+
+#donation_form table { float: left; margin-left: 2em; margin-bottom: 3.5em; }
+#donation_form p { clear: both; margin-bottom: -.05em; }
 
 /**** SUPPORT ****/
 #support_slider { width: 10em; }
 #support_input {} 
 
 /***** SLIDER ******/
-.ui-slider { position: relative; text-align: left; }
+.ui-slider { position: relative; }
 .ui-slider .ui-slider-handle { position: absolute; z-index: 2; width: 1.2em; height: 1.2em; cursor: default; }
 .ui-slider .ui-slider-range { position: absolute; z-index: 1; font-size: .7em; display: block; border: 0; }
 

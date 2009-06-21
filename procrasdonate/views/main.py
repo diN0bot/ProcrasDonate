@@ -2,6 +2,8 @@ from lib.view_utils import render_response, HttpResponseRedirect
 from lib.json_utils import json_response
 from procrasdonate.models import *
 
+from procrasdonate.processors import *
+
 import urllib, urllib2
 from django.utils import simplejson
 
@@ -74,33 +76,42 @@ def rebuild_extension_templates(request):
     generated_templates_dir = "%s/procrasdonate/ff_extn/ProcrasDonate/content/templates" % settings.PROJECT_PATH
     all_dir = "%s/procrasdonate/ff_extn/ProcrasDonate/content/js/templates" % settings.PROJECT_PATH
     
-    subprocess.Popen(["python", "%s/build_templates.py" % bin, "%s/*.html" % generated_templates_dir])
+    if not "clay" in settings.PROJECT_PATH:
+        subprocess.Popen(["python", "%s/build_templates.py" % bin, "%s/*.html" % generated_templates_dir])
     subprocess.Popen(["cp", "%s/all.js" % all_dir, "%s/all.js.bkup" % all_dir])
     import os
     os.system("cat %s/*.js > %s/all.js" % (generated_templates_dir, all_dir))
     return json_response([ "SUCCESS" ])
 
 
+def email(request):
+    if not request.POST:
+        return json_response({'result':'failure', 'reason':'must *POST* email address'})
+    
+    email_address = request.POST.get('email_address','')
+    email = Email.add(email_address)
+    
+    #@todo send welcome email
+    
+    return json_response({'result':'success'})
 
 def totals(request):
     """
     handles totals posted from extension
     """
-    print request
-    
     if not request.POST:
         return json_response({'result':'failure', 'reason':'must *POST* data'})
     
     data = simplejson.loads(request.POST.get('data',''))
-    print "THE DATA = ", data
+    print len(data['totals']), "TOTALS from ", data['hash']
     
-    print data['hash']
-    print data['totals']
+    user = User.get_or_create(data['hash'])
+
+    for total in data['totals']:
+        TotalProcessor.process_json(total, user)
     
-    #if not site or not time_spent or not amt or not recipient:
-    #    return json_response({'result':'failure', 'reason':'must POST *site, time, amt and recipient* (time is optional)'})
-    
-    #record_payment(site, time_spent, amt, recipient, time)
+    print "\n\nDONE\n\n"
+
     return json_response({'result':'success'})
 
 def payments(request):

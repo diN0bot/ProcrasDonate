@@ -1,14 +1,31 @@
+<h3 class='RegisterHeader'>Begin categorizing websites.</h3>  
+	<p>
+		Click on the green arrows to move websites to the appropriate column.  
+		You can continue classifying websites later on by clicking the icons that will appear on your firefox browser.
+	</p>
+	
+<img class="Spacer" src="{{ constants.MEDIA_URL }}img/ClearBox.png"/>
+
 <div id='site_classifications'>
 	<div id='procrasdonate_col' class='column'>
-		<div class='title'>Procras Donate</div>
+		<div class='title'>
+			<img src="{{ constants.MEDIA_URL }}img/ToolbarImages/ProcrasDonateIcon.png" class="icon-image">		
+			ProcrasDonate
+		</div>
 		{{ procrasdonate_text }}
 	</div>
 	<div id='unsorted_col' class='column'>
-		<div class='title'><-~-></div>
+		<div class='title'>
+			<img src="{{ constants.MEDIA_URL }}img/ToolbarImages/UnsortedIcon.png" class="icon-image">		
+			Unsorted
+		</div>
 		{{ unsorted_text }}
 	</div>
 	<div id='timewellspent_col' class='column'>
-		<div class='title'>Time Well Spent</div>
+		<div class='title'>
+			<img src="{{ constants.MEDIA_URL }}img/ToolbarImages/TimeWellSpentIcon.png" class="icon-image">		
+			Time Well Spent
+		</div>
 		{{ timewellspent_text }}
 	</div>
 </div>

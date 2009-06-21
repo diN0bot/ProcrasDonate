@@ -56,6 +56,7 @@ _extend(Controller.prototype, {
 	},
 	
 	pd_dispatch_by_url: function(request) {
+		
 		//logger("pd_dispatch_by_url: "+ request.url);
 		
 		this.page.default_inserts(request);
@@ -125,6 +126,9 @@ _extend(Controller.prototype, {
 			this.reset_state_to_defaults();
 			//this.reset_account_to_defaults();
 			break;
+		case constants.ON_INSTALL_URL:
+			this.initialize_state();
+			break;
 		case constants.ADD_RANDOM_VISITS_URL:
 			this.add_random_visits();
 			break;
@@ -179,7 +183,8 @@ _extend(Controller.prototype, {
 	
 	registration_complete: function() {
 		var reg_state = this.prefs.get('register_state', false);
-		return reg_state && reg_state == "done";
+		var tos_accepted = this.prefs.get('tos', false);
+		return reg_state && reg_state == "done" && tos_accepted;
 	},
 	
 	initialize_state_if_necessary: function() {
@@ -229,9 +234,13 @@ _extend(Controller.prototype, {
 		email: constants.DEFAULT_EMAIL,
 		procrasdonate_reason: constants.DEFAULT_PROCRASDONATE_REASON,
 		timewellspent_reason: constants.DEFAULT_TIMEWELLSPENT_REASON,
-		cents_per_hr: constants.DEFAULT_CENTS_PER_HR,
-		hr_per_week_goal: constants.DEFAULT_HR_PER_WEEK_GOAL,
-		hr_per_week_max: constants.DEFAULT_HR_PER_WEEK_MAX,
+		pd_cents_per_hr: constants.PD_DEFAULT_CENTS_PER_HR,
+		pd_hr_per_week_goal: constants.PD_DEFAULT_HR_PER_WEEK_GOAL,
+		pd_hr_per_week_max: constants.PD_DEFAULT_HR_PER_WEEK_MAX,
+		tws_cents_per_hr: constants.TWS_DEFAULT_CENTS_PER_HR,
+		tws_hr_per_week_goal: constants.TWS_DEFAULT_HR_PER_WEEK_GOAL,
+		tws_hr_per_week_max: constants.TWS_DEFAULT_HR_PER_WEEK_MAX,
+		tos: false,
 	},
 	
 	initialize_account_defaults_if_necessary: function() {
@@ -245,7 +254,7 @@ _extend(Controller.prototype, {
 				return self.prefs.set(name, value);
 		});
 		
-		if (!this.prefs.get('hash', false)) {
+		if (this.prefs.get('hash', constants.DEFAULT_HASH) == constants.DEFAULT_HASH) {
 			this.set_user_hash();
 		}
 	},
@@ -318,13 +327,22 @@ _extend(Controller.prototype, {
 		            ];
 		for (var i = 0; i < urls.length; i++) {
 			this.pddb.store_visit(urls[i], _dbify_date(start), duration);
-			start.setMinutes( start.getMinutes + 10 );
+			logger("the gobble start ="+start);
+			start.setMinutes( start.getMinutes() + 10 );
 		}
 	},
 	
 	trigger_daily_cycle: function() {
 		logger("triggering daily cycle...");
+		// save time so will resend all information.
+		var t = this.prefs.get('last_total_time_sent_to_pd', '');
+		var p = this.prefs.get('last_paid_tipjoy_id_sent_to_pd', '');
+		
 		this.pddb.schedule.do_once_daily_tasks();
+		
+		this.prefs.set('last_total_time_sent_to_pd', t);
+		this.prefs.set('last_paid_tipjoy_id_sent_to_pd', p);
+		
 		logger("...daily cycle done");
 	},
 	
@@ -352,7 +370,7 @@ _extend(Schedule.prototype, {
 	
 	is_new_24hr_period: function() {
 		/* @returns: true if it is at least 24 hrs past the last 24hr mark */
-		var two_four_hr = _un_dbify_date(this.prefs.get('last_24hr_mark', ''));
+		var two_four_hr = _un_dbify_date(this.prefs.get('last_24hr_mark', 0));
 		var now = new Date();
 		two_four_hr.setHours(two_four_hr.getHours() + 24);
 		return now > two_four_hr
@@ -385,7 +403,7 @@ _extend(Schedule.prototype, {
 		}
 		
 		// reset last_24hr_mark to now
-		var two_four_hr = _un_dbify_date(this.prefs.get('last_24hr_mark', ''));
+		var two_four_hr = _un_dbify_date(this.prefs.get('last_24hr_mark', 0));
 		var new_two_four_hr = new Date();
 		new_two_four_hr.setHours(two_four_hr.getHours());
 		new_two_four_hr.setMinutes(two_four_hr.getMinutes());
@@ -401,7 +419,7 @@ _extend(Schedule.prototype, {
 	
 	is_new_week_period: function() {
 		/* @returns: true if it is at least 1 week past the last week mark */
-		var week_hr = new Date(this.prefs.get('last_week_mark', '')*1000);
+		var week_hr = new Date(this.prefs.get('last_week_mark', 0)*1000);
 		var now = new Date();
 		week_hr.setDate(week_hr.getDate() + 7);
 		return now > week_hr
@@ -409,7 +427,7 @@ _extend(Schedule.prototype, {
 	
 	do_once_weekly_tasks: function() {
 		// reset last_week_mark to now
-		var week_hr = new Date(this.prefs.get('last_week_mark', '')*1000);
+		var week_hr = new Date(this.prefs.get('last_week_mark', 0)*1000);
 		var now = new Date();
 		now.setHours(week_hr.getHours());
 		now.setMinutes(week_hr.getMinutes());
@@ -418,7 +436,6 @@ _extend(Schedule.prototype, {
 			now.setDate( now.getDate() - 1 );
 		}
 		this.prefs.set('last_week_mark', Math.floor(now.getTime()/1000));
-		
 		//alert("ding! last week "+week_hr+" new week "+now+"  now  "+new Date());
 	},
 });
@@ -559,8 +576,14 @@ _extend(PageController.prototype, {
 		var pd_recipientpercent = this.pddb.RecipientPercent.get_or_null({
 			recipient_id: pd_recipient.id
 		});
+		var pct = parseFloat(pd_recipientpercent.percent) * 100.0;
+		if ( parseInt(pct) == pct ) {
+			pct = parseInt(pct);
+		} else {
+			pct = pct.toFixed(2);
+		}
 		var context = new Context({
-			pct: parseFloat(pd_recipientpercent.percent).toFixed(4) * 100.0,
+			pct: pct,
 			constants: constants,
 		});
 		return Template.get("support_middle").render(context);
@@ -665,6 +688,7 @@ _extend(PageController.prototype, {
 			timewellspent_text: timewellspent_text,
 			procrasdonate_text: procrasdonate_text,
 			unsorted_text: unsorted_text,
+			constants: constants,
 		});
 		return Template.get("site_classifications_middle").render(context);
 	},
@@ -674,6 +698,8 @@ _extend(PageController.prototype, {
 		//if ( this.prefs.get('site_classifications_settings_activated', false) ) {
 			
 			var f = function(elem, tag, db_tag) {
+				elem.unbind("click");
+				
 				var site_name = elem.siblings(".name").text();
 				elem.parent().fadeOut("slow", function() { 
 					request.jQuery(this).remove();
@@ -687,8 +713,14 @@ _extend(PageController.prototype, {
 					.after(new_elem)
 					.next().hide().fadeIn("slow");
 				
-				new_elem.click( function() {
-					f(new_elem, tag, db_tag);
+				new_elem.children(".move_to_timewellspent").click( function() {
+					f(request.jQuery(this), "timewellspent", self.pddb.TimeWellSpent);
+				});
+				new_elem.children(".move_to_unsorted").click( function() {
+					f(request.jQuery(this), "unsorted", self.pddb.Unsorted);
+				});
+				new_elem.children(".move_to_procrasdonate").click( function() {
+					f(request.jQuery(this), "procrasdonate", self.pddb.ProcrasDonate);
 				});
 				
 				// alter data in db
@@ -722,10 +754,16 @@ _extend(PageController.prototype, {
 	},
 	
 	recipient_snippet: function(request, recipient) {
+		var category = this.pddb.Category.get_or_null({ id: recipient.category_id });
+		var category_name = null;
+		if (category) {
+			category_name = category.category;
+		}
 		var context = new Context({
 			id: recipient.id,
 			url: recipient.url,
 			name: recipient.name,
+			category: category_name,
 			mission: recipient.mission,
 			description: recipient.description,
 			constants: constants
@@ -734,10 +772,16 @@ _extend(PageController.prototype, {
 	},
 	
 	recipient_with_percent_snippet: function(request, recipient, percent) {
+		var category = this.pddb.Category.get_or_null({ id: recipient.category_id });
+		var category_name = null;
+		if (category) {
+			category_name = category.category;
+		}
 		var context = new Context({
 			id: recipient.id,
 			url: recipient.url,
 			name: recipient.name,
+			category: category_name,
 			mission: recipient.mission,
 			description: recipient.description,
 			percent: percent,
@@ -752,7 +796,12 @@ _extend(PageController.prototype, {
 		
 		this.pddb.RecipientPercent.select({}, function(row) {
 			var recipient = self.pddb.Recipient.get_or_null({ id: row.recipient_id });
-			var percent = parseFloat(row.percent).toFixed(4) * 100.0;
+			var percent = parseFloat(row.percent) * 100.0;
+			if ( parseInt(percent) == percent ) {
+				percent = parseInt(percent);
+			} else {
+				percent = percent.toFixed(2);
+			}
 			
 			if (recipient && recipient.twitter_name != "ProcrasDonate") {
 				user_recipients += self.recipient_with_percent_snippet(request, recipient, percent);
@@ -782,52 +831,118 @@ _extend(PageController.prototype, {
 			}
 		});
 		
-		var cell_text =
-			"<div id='user_recipients'>" +
-				user_recipients +
-			"</div>" +
-			spacer +
-			"<div id='potential_recipients'>" +
-				potential_recipients +
-			"</div>";
-		return cell_text;
+		var context = new Context({
+			potential_recipients: potential_recipients,
+			user_recipients: user_recipients
+		});
+		return Template.get("recipients_middle").render(context);
+	},
+	
+	activate_a_recipient: function(request, recipient_elem) {
+		var self = this;
+		recipient_elem.children(".recipient_id").hide();
+		
+		var dtoggle = recipient_elem.children(".mission").children(".description_toggle");
+		dtoggle.click( function() {
+			if (dtoggle.text() == "(less)") {
+				dtoggle.text("(more)");
+				dtoggle.parent().siblings(".description").hide();
+			} else {
+				dtoggle.text("(less)");
+				dtoggle.parent().siblings(".description").show();
+			}
+		})
+		if (dtoggle.text() == "(less)") {
+			dtoggle.text("(more)")
+			dtoggle.parent().siblings(".description").hide();
+		}
+		
+		var user_recipients_div = request.jQuery("#user_recipients");
+		var potential_recipients_div = request.jQuery("#potential_recipients");
+		
+		recipient_elem.children(".add_recipient").click(function() {
+			var recipient_id = request.jQuery(this).siblings(".recipient_id").text();
+			var recipient = self.pddb.Recipient.get_or_null({ id: recipient_id });
+			var percent = .20;
+			self.pddb.RecipientPercent.create({
+				recipient_id: recipient_id,
+				percent: percent
+			});
+			request.jQuery(this).parent().fadeOut("slow", function() {
+				request.jQuery(this).remove();
+			});
+			
+			var new_recip = request.jQuery(self.recipient_with_percent_snippet(request, recipient, percent*100));
+			user_recipients_div.append(new_recip);
+			
+			self.activate_a_recipient(request, new_recip);
+		});
+		
+		recipient_elem.children(".remove_recipient").click(function() {
+			var recipient_id = request.jQuery(this).siblings(".recipient_id").text();
+			self.pddb.RecipientPercent.del({
+				recipient_id: recipient_id
+			});
+			var recipient = self.pddb.Recipient.get_or_null({ id: recipient_id });
+			
+			//request.jQuery(this).parent().clone(true).insertAfter(spacer);
+			request.jQuery(this).parent().fadeOut("slow", function() {
+				request.jQuery(this).remove();
+			});
+
+			var new_recip = request.jQuery(self.recipient_snippet(request, recipient));
+			potential_recipients_div.prepend(new_recip);
+			
+			self.activate_a_recipient(request, new_recip);
+		});
 	},
 	
 	activate_recipients_middle: function(request) {
 		var self = this;
-		
+		request.jQuery(".recipient").each( function() {
+			self.activate_a_recipient(request, request.jQuery(this));
+		});
+		/*
 		request.jQuery(".recipient_id").hide();
 		
 		request.jQuery(".description_toggle").click( function() {
-			try {
-				var e = request.jQuery(this);
-				if (e.text() == "(less)") {
-					e.text("(more)");
-					e.next().hide();
-				} else {
-					e.text("(less)");
-					e.next().show();
-				}
-			} catch(e) {
-				logger("ERROR ");
+			var e = request.jQuery(this);
+			if (e.text() == "(less)") {
+				e.text("(more)");
+				e.parent().siblings(".description").hide();
+			} else {
+				e.text("(less)");
+				e.parent().siblings(".description").show();
+			}
+		}).each( function() {
+			var e = request.jQuery(this);
+			if (e.text() == "(less)") {
+				e.text("(more)");
+				e.parent().siblings(".description").hide();
 			}
 		});
-		request.jQuery(".description_toggle").click();
 		
-		
-		var spacer = request.jQuery("#recipient_spacer_row");
+		var user_recipients_div = request.jQuery("#user_recipients");
+		var potential_recipients_div = request.jQuery("#potential_recipients");
 		
 		request.jQuery(".add_recipient").click(function() {
 			var recipient_id = request.jQuery(this).siblings(".recipient_id").text();
 			var recipient = self.pddb.Recipient.get_or_null({ id: recipient_id });
+			var percent = .20;
 			self.pddb.RecipientPercent.create({
 				recipient_id: recipient_id,
-				percent: 0
+				percent: percent
 			});
-			request.jQuery(this).parent().remove();
-			spacer.before(self.recipient_with_percent_snippet(request, recipient, 0));
+			request.jQuery(this).parent().fadeOut("slow", function() {
+				request.jQuery(this).remove();
+			});
 			
-			self.activate_recipients_middle(request);
+			var new_recip = request.jQuery(self.recipient_with_percent_snippet(request, recipient, percent));
+			user_recipients_div.append(new_recip);
+			new_recip.children(".remove_recipient").click(function() {
+				request.jQuery(this).parent().css("background", "red");
+			});
+			request.jQuery(".recipient_id").hide();
 		});
 		
 		request.jQuery(".remove_recipient").click(function() {
@@ -838,11 +953,18 @@ _extend(PageController.prototype, {
 			var recipient = self.pddb.Recipient.get_or_null({ id: recipient_id });
 			
 			//request.jQuery(this).parent().clone(true).insertAfter(spacer);
-			request.jQuery(this).parent().remove();
-			spacer.after(self.recipient_snippet(request, recipient));
-			
-			self.activate_recipients_middle(request);
+			request.jQuery(this).parent().fadeOut("slow", function() {
+				request.jQuery(this).remove();
+			});
+
+			var new_recip = request.jQuery(self.recipient_snippet(request, recipient));
+			potential_recipients_div.append(new_recip);
+			new_recip.children(".add_recipient").click(function() {
+				request.jQuery(this).parent().css("background", "red");
+			});
+			request.jQuery(".recipient_id").hide();
 		});
+		*/
 		
 		/*
 		var slider_elems = [];
@@ -915,9 +1037,12 @@ _extend(PageController.prototype, {
 	
 	donation_amounts_middle: function(request) {
 		var context = new Context({
-			hr_per_week_max: this.prefs.get("hr_per_week_max", ""),
-			hr_per_week_goal: this.prefs.get("hr_per_week_goal", ""),
-			cents_per_hr: this.prefs.get("cents_per_hr", "22"),
+			pd_hr_per_week_max: this.prefs.get("pd_hr_per_week_max", constants.PD_DEFAULT_HR_PER_WEEK_MAX),
+			pd_hr_per_week_goal: this.prefs.get("pd_hr_per_week_goal", constants.PD_DEFAULT_HR_PER_WEEK_GOAL),
+			pd_cents_per_hr: this.prefs.get("pd_cents_per_hr", constants.PD_DEFAULT_CENTS_PER_HR),
+			tws_hr_per_week_max: this.prefs.get("tws_hr_per_week_max", constants.TWS_DEFAULT_HR_PER_WEEK_MAX),
+			tws_hr_per_week_goal: this.prefs.get("tws_hr_per_week_goal", constants.TWS_DEFAULT_HR_PER_WEEK_MAX),
+			tws_cents_per_hr: this.prefs.get("tws_cents_per_hr", constants.TWS_DEFAULT_CENTS_PER_HR),
 			constants: constants,
 		});
 		return Template.get("donation_amounts_middle").render(context);
@@ -958,6 +1083,8 @@ _extend(PageController.prototype, {
 		var context = new Context({
 			twitter_username: this.prefs.get("twitter_username", ""),
 			twitter_password: this.prefs.get("twitter_password", ""),
+			email: this.prefs.get("email", ""),
+			tos: this.prefs.get("tos", ""),
 			constants: constants,
 		});
 		return Template.get("twitter_account_middle").render(context);
@@ -989,7 +1116,8 @@ _extend(PageController.prototype, {
 		/*
 		 * Inserts form so that user may select recipients.
 		 * 
-		 * Slider input's alt must contain "last" value of input, so when do keyboard presses we can compute how to alter the other tabs.
+		 * Slider input's alt must contain "last" value of input, 
+		 * so when do keyboard presses we can compute how to alter the other tabs.
 		 */
 		this.prefs.set('settings_state', 'recipients');
 		
@@ -1044,10 +1172,11 @@ _extend(PageController.prototype, {
 	},
 	
 	process_support: function(request, event) {
-		var support_input = parseFloat(
-			request.jQuery("input[name='support_input']").attr("value"))
-		
-		if ( support_input < 0 || support_input > 100 ) {
+		var support_input = parseFloat( request.jQuery("#support_input").attr("value") );
+			//request.jQuery("input[name='support_input']").attr("value"))
+
+		logger("process_support:: support="+support_input);
+		if ( support_input < 0 || support_input > 10 ) {
 			request.jQuery("#errors").text("<p>Please enter a percent between 0 and 10.</p>");
 		} else {
 			var pd_recipient = this.pddb.Recipient.get_or_null({ name: "ProcrasDonate" });
@@ -1117,23 +1246,38 @@ _extend(PageController.prototype, {
 		 * hr_per_week_goal: pos float < 25
 		 * hr_per_week_max: pos float < 25
 		 */
-		var cents_per_hr = parseInt(
-			request.jQuery("input[name='cents_per_hr']").attr("value"));
-		var hr_per_week_goal = parseFloat(
-			request.jQuery("input[name='hr_per_week_goal']").attr("value"));
-		var hr_per_week_max = parseFloat(
-			request.jQuery("input[name='hr_per_week_max']").attr("value"));
+		var pd_cents_per_hr = parseInt(
+			request.jQuery("input[name='pd_cents_per_hr']").attr("value"));
+		var pd_hr_per_week_goal = parseFloat(
+			request.jQuery("input[name='pd_hr_per_week_goal']").attr("value"));
+		var pd_hr_per_week_max = parseFloat(
+			request.jQuery("input[name='pd_hr_per_week_max']").attr("value"));
+		
+		var tws_cents_per_hr = parseInt(
+			request.jQuery("input[name='tws_cents_per_hr']").attr("value"));
+		var tws_hr_per_week_goal = parseFloat(
+			request.jQuery("input[name='tws_hr_per_week_goal']").attr("value"));
+		var tws_hr_per_week_max = parseFloat(
+			request.jQuery("input[name='tws_hr_per_week_max']").attr("value"));
+
 		request.jQuery("#errors").text("");
-		if ( !this.validate_cents_input(request, cents_per_hr) ) {
+		if ( !this.validate_cents_input(request, pd_cents_per_hr) || 
+				!this.validate_cents_input(request, tws_cents_per_hr) ) {
 			request.jQuery("#errors").append("<p>Please enter a valid dollar amount. For example, to donate $2.34 an hour, please enter 2.34</p>");
-		} else if ( !this.validate_hours_input(request, hr_per_week_goal) ) {
+		} else if ( !this.validate_hours_input(request, pd_hr_per_week_goal) ||
+				!this.validate_hours_input(request, tws_hr_per_week_goal)) {
 			request.jQuery("#errors").append("<p>Please enter number of hours. For example, enter 1 hr and 15 minutes as 1.25</p>");
-		} else if (!this.validate_hours_input(request, hr_per_week_max) ) {
+		} else if ( !this.validate_hours_input(request, pd_hr_per_week_max) ||
+				!this.validate_hours_input(request, tws_hr_per_week_max)) {
 			request.jQuery("#errors").append("<p>Please enter number of hours. For example, enter 30 minutes as .5</p>");
 		} else {
-			this.prefs.set('cents_per_hr', this.clean_cents_input(cents_per_hr));
-			this.prefs.set('hr_per_week_goal', this.clean_hours_input(hr_per_week_goal));
-			this.prefs.set('hr_per_week_max', this.clean_hours_input(hr_per_week_max));
+			this.prefs.set('pd_cents_per_hr', this.clean_cents_input(pd_cents_per_hr));
+			this.prefs.set('pd_hr_per_week_goal', this.clean_hours_input(pd_hr_per_week_goal));
+			this.prefs.set('pd_hr_per_week_max', this.clean_hours_input(pd_hr_per_week_max));
+			
+			this.prefs.set('tws_cents_per_hr', this.clean_cents_input(tws_cents_per_hr));
+			this.prefs.set('tws_hr_per_week_goal', this.clean_hours_input(tws_hr_per_week_goal));
+			this.prefs.set('tws_hr_per_week_max', this.clean_hours_input(tws_hr_per_week_max));
 			return true;
 		}
 		return false;
@@ -1165,6 +1309,7 @@ _extend(PageController.prototype, {
 				ret = false;
 			}
 			var recipient_id = request.jQuery(this).parent().siblings(".recipient_id").text();
+			logger("process_recipients:: rid="+recipient_id+" pct="+percent);
 			self.pddb.RecipientPercent.set({ percent: percent }, { recipient_id: recipient_id });
 		});
 		logger(" process_recipients says okiedokie");
@@ -1188,15 +1333,28 @@ _extend(PageController.prototype, {
 		request.jQuery("#errors").html("");
 		request.jQuery("#success").html("");
 		
-		var twitter_username = request.jQuery("input[name='twitter_username']").attr("value");
-		var twitter_password = request.jQuery("input[name='twitter_password']").attr("value");
+		
+		var email = request.jQuery("input[name='email']").attr("value");
+		if (email) {
+			old_email = this.prefs.get("email", "");
+			if (email != old_email) {
+				this.pd_api.send_welcome_email(email);
+			}
+		}
+		this.prefs.set("email", email);
 		
 		var tos = request.jQuery("input[name='tos']");
 		if (tos && !tos.attr("checked")) {
 			request.jQuery("#errors").append("<p>To continue, please agree to the Terms of Use.</p>");
 			ret = false;
+			this.prefs.set("tos", false);
 			return false;
+		} else {
+			this.prefs.set("tos", true);
 		}
+		
+		var twitter_username = request.jQuery("input[name='twitter_username']").attr("value");
+		var twitter_password = request.jQuery("input[name='twitter_password']").attr("value");
 		
 		if ( !this.validate_twitter_username_and_password(twitter_username, 
 														  twitter_password) ) {
@@ -1300,17 +1458,13 @@ _extend(PageController.prototype, {
 	register_tab_snippet: function(request) {
 		/* Creates register state track. Does not call _tab_snippet! */
 		var ret = this._track_snippet(request, 'register', constants.REGISTER_STATE_ENUM, constants.REGISTER_STATE_TAB_NAMES, true);
-		var next_src = constants.MEDIA_URL +"img/NextArrow.png";
-		if ( this.prefs.get('register_state','') == 'balance' ) {
-			next_src = constants.MEDIA_URL +"img/DoneButton.png";
-		}
-		ret += "" +
-			"<div id='register_prev_next'>" +
-				"<img src='"+ constants.MEDIA_URL +"img/BackArrow.png' id='prev_register_track' class='link register_button'>" +
-				"<img src='"+ next_src +"' id='next_register_track' class='link register_button'>"	+		
-			"</div>";
-			//"<input id='prev_register_track' class='link' type='button' name='save' value='Prev'>" +
-			//"<input id='next_register_track' class='link' type='button' name='save' value='" + next_value + "'>";
+		var is_done = ( this.prefs.get('register_state','') == 'balance' );
+		
+		var context = new Context({
+			constants: constants,
+			is_done: is_done, 
+		});
+		ret += Template.get("next_prev_buttons").render(context);
 		return ret;
 	},
 	
@@ -1489,11 +1643,11 @@ _extend(PageController.prototype, {
 				if ( i > 0 ) {
 					var prev = constants.REGISTER_STATE_INSERTS[i-1];
 					request.jQuery("#prev_register_track").click(
-							this._process_before_proceeding(
-								request, 
-								'register', 
-								constants.REGISTER_STATE_ENUM, 
-								constants.REGISTER_STATE_PROCESSORS, prev) );
+						this._process_before_proceeding(
+							request, 
+							'register', 
+							constants.REGISTER_STATE_ENUM, 
+							constants.REGISTER_STATE_PROCESSORS, prev) );
 				} else { request.jQuery("#prev_register_track").hide(); }
 				
 				if ( i < constants.REGISTER_STATE_ENUM.length ) {

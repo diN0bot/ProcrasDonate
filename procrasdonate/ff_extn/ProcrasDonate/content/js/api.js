@@ -36,7 +36,8 @@ _extend(API.prototype, {
 				var str = ""; for (var prop in r) {	str += prop + " value :" + r[prop]+ + " __ "; }
 				logger("standard_onerror for url="+url+" data="+data+": "+r+"_"+str);
 				// might as well try
-				request.jQuery("#errors").append("Something unexpected occurred.");
+				// wait, what request?
+				//request.jQuery("#errors").append("Something unexpected occurred.");
 			};
 		}
 	

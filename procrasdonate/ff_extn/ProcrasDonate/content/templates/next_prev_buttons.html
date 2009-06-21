@@ -1,0 +1,27 @@
+<table id="register_next_prev">
+<tbody>
+	<tr>
+		<td>
+			<img
+				src="{{ constants.MEDIA_URL }}img/BackArrow.png"
+				id="prev_register_track"
+				class="register_button img_link"
+				/>
+		</td>
+		<td>
+			<span class="NextPrevSpacer"></span>
+		</td>
+		<td>
+			<img
+				{% if is_done %}
+				src="{{ constants.MEDIA_URL }}img/DoneButton.png"
+				{% else %}
+				src="{{ constants.MEDIA_URL }}img/NextArrow.png"
+				{% endif %}
+				id="next_register_track"
+				class="register_button img_link"
+				/>
+			</td>
+		</tr>
+	</tbody>
+</table>				

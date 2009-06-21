@@ -18,11 +18,15 @@ if settings.DJANGO_SERVER:
     
     urlpatterns += patterns('django.views.generic.simple',
         (r'^reset_state/$', 'direct_to_template', {'template': 'procrasdonate/dev_test.html'}),
+        (r'^on_install/$', 'direct_to_template', {'template': 'procrasdonate/dev_test.html'}),
         (r'^add_random_visits/$', 'direct_to_template', {'template': 'procrasdonate/dev_test.html'}),
         (r'^trigger_daily_cycle/$', 'direct_to_template', {'template': 'procrasdonate/dev_test.html'}),
         (r'^trigger_weekly_cycle/$', 'direct_to_template', {'template': 'procrasdonate/dev_test.html'}),
-        
+        )
+    
+    urlpatterns += patterns('',
         # handle data posted to server
+        (r'^post/email/$', main.email),
         (r'^post/totals/$', main.totals),
         (r'^post/payments/$', main.payments),
     )

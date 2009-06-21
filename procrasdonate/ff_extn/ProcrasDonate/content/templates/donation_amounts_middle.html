@@ -1,25 +1,85 @@
-<form name='account_form' onSubmit='return false'>
+<h3 class='RegisterHeader'>Donations and Goals (can be changed later)</h3>
+	
+<form id="donation_form" name="donation_form" onSubmit="return false">
+	<p>How many <b>pennies per hour</b> will you donate?</p>
 	<table>
 		<tbody>
+			<tr><td colspan="2">		
+					<img src="{{ constants.MEDIA_URL }}img/ToolbarImages/ProcrasDonateIcon.png" class="icon-image">		
+					when <i>ProcrasDonating</i>
+				</td></tr>
 			<tr>
-				<td><label class='right'>ProcrasDonation rate</label></td>
-				<td><input class='left' type='text' size='4' name='cents_per_hr' value='{{ cents_per_hr }}'></td>
-				<td><div class='help'>&cent; per hour</div></td>
+				<td><input class='form-right form-value' type='text' size='4' name='pd_cents_per_hr' value='{{ pd_cents_per_hr }}'></td>
+				<td><div class='help form-left form-label'>&cent; per hour</div></td>
 			</tr>
-			
+		</tbody>
+	</table>
+	<table>
+		<tbody>
+			<tr><td colspan="2">
+					<img src="{{ constants.MEDIA_URL }}img/ToolbarImages/TimeWellSpentIcon.png" class="icon-image">		
+					on <i>TimeWellSpent</i>
+				</td></tr>
 			<tr>
-				<td><label class='right'>ProcrasDonation goal</label></td>
-				<td><input class='left' id='hr_per_week_goal' type='text' size='4' name='hr_per_week_goal' value='{{ hr_per_week_goal }}'></td>
+				<td><input class='form-right form-value' type='text' size='4' name='tws_cents_per_hr' value='{{ tws_cents_per_hr }}'></td>
+				<td><div class='help form-left form-label'>&cent; per hour</div></td>
+			</tr>
+		</tbody>
+	</table>
+	<p>What are your online time management <b>goals</b>?</p>
+	<table>
+		<tbody>
+			<tr><td colspan="2">
+				<img src="{{ constants.MEDIA_URL }}img/ToolbarImages/ProcrasDonateIcon.png" class="icon-image">		
+					for <i>ProcrasDonating</i>
+				</td></tr>
+			<tr>
+				<td><input class='form-right form-value' id='pd_hr_per_week_goal' type='text' size='4' 
+						name='pd_hr_per_week_goal' value='{{ pd_hr_per_week_goal }}'></td>
 				<td>
-					<div class='help'>hours per week</div>
+					<div class='help form-left form-label'>hours per week</div>
 					<span id='cents_per_week_goal'></span>
 				</td>
 			</tr>
-			
+		</tbody>
+	</table>
+	<table>
+		<tbody>
+			<tr><td colspan="2">
+					<img src="{{ constants.MEDIA_URL }}img/ToolbarImages/TimeWellSpentIcon.png" class="icon-image">		
+					for <i>TimeWellSpent</i>
+				</td></tr>
 			<tr>
-				<td><label class='right'>ProcrasDonation limit</label></td>
-				<td><input class='press_enter_for_next left' id='hr_per_week_max' type='text' size='4' name='hr_per_week_max' value='{{ hr_per_week_max }}'></td>
-				<td><div class='help'>hours per week</div></td>
+				<td><input class='form-right form-value' id='tws_hr_per_week_goal' type='text' size='4' name='tws_hr_per_week_goal' value='{{ tws_hr_per_week_goal }}'></td>
+				<td>
+					<div class='help form-left form-label'>hours per week</div>
+					<span id='cents_per_week_goal'></span>
+				</td>
+			</tr>
+		</tbody>
+	</table>			
+	<p>What is your weekly <b>limit</b>, beyond which no pledges will be made?</p>
+	<table>
+		<tbody>
+			<tr><td colspan="2">
+					<img src="{{ constants.MEDIA_URL }}img/ToolbarImages/ProcrasDonateIcon.png" class="icon-image">		
+					of <i>ProcrasDonation</i>
+				</td></tr>
+			<tr>
+				<td><input class='press_enter_for_next form-right form-value' id='pd_hr_per_week_max' type='text' size='4' name='pd_hr_per_week_max' value='{{ pd_hr_per_week_max }}'></td>
+				<td><div class='help form-left form-label'>hours per week</div></td>
+			</tr>
+		</tbody>
+	</table>
+	<table>
+		<tbody>
+			<tr><td colspan="2">
+					<img src="{{ constants.MEDIA_URL }}img/ToolbarImages/TimeWellSpentIcon.png" class="icon-image">		
+					of <i>TimeWellSpent</i>
+				</td></tr>
+			<tr>
+				<td><input class='press_enter_for_next form-right form-value' id='tws_hr_per_week_max' type='text' size='4' name='tws_hr_per_week_max' value='{{ tws_hr_per_week_max }}'></td>
+				<td><div class='help form-left form-label'>hours per week</div></td>
 			</tr>
 		</tbody>
 	</table>

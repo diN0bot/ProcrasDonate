@@ -1,35 +1,45 @@
 <form name='account_form' onSubmit='return false'>
 	
-	<h3>Procrasdonate uses your Twitter account.</h3>
-	<p style='text-align: left;'>Click <a href='https://twitter.com/signup'>HERE</a> if you're not on twitter yet.</p>
-	<p style='text-align: left;'><span id='what_is_twitter' class='link'>What is Twitter?</span></p>
-	
-	<h3>Please sign in:</h3>
+	<h3>Please sign in using your Twitter account:</h3>
 	
 	<table>
 		<tbody>
 			<tr>
-				<td><label class='right'>Twitter username </label></td>
-				<td><input class='left' type='text' name='twitter_username' value='{{ twitter_username }}'></td>
+				<td><label class='form-right'>Twitter username </label></td>
+				<td><input class='form-left' type='text' name='twitter_username' value='{{ twitter_username }}'></td>
+				<td class='form-left'>
+						Click <a href='https://twitter.com/signup'>HERE</a> if you're not on twitter yet.
+						<span id='what_is_twitter' class='link'>What is Twitter?</span>
+				</td>
 			</tr>
 			
 			<tr>
-				<td><label class='right'>Twitter password</label></td>
-				<td><input class='press_enter_for_next left' type='password' name='twitter_password' value='{{ twitter_password }}'></td>
-			</tr>
-			
-			<tr class='helprow'>
-				<td></td>
-				<td><div class='help'>Your Twitter password is only revealed to 
-				<a href="http://TipJoy.com">TipJoy</a>, a social micro-payment framework.
-				<a href='{{ constants.PRIVACY_URL }}'>Privacy Guarantee</a></div></td>
+				<td><label class='form-right'>Twitter password</label></td>
+				<td><input class='press_enter_for_next form-left' type='password' name='twitter_password' value='{{ twitter_password }}'></td>
+				<td class='help form-left'>
+						Your Twitter password is only revealed to 
+						<a href="http://TipJoy.com">TipJoy</a> for handling micro-payments:
+						<a href='{{ constants.HOME_URL }}'>Privacy Guarantee</a>
+					</td>
 			</tr>
 			
 			<tr>
-				<td><input class='right' type='checkbox' name='tos' value='agree' /></td>
+				<td><label class='form-right'>Email <small>(optional)</small></label></td>
+				<td><input class='press_enter_for_next form-left' type='text' name='email' value='{{ email }}'></td>
+				<td class='help form-left'>
+						We'll send you weekly summaries of your
+						ProcrasDonation and TimeWellSpent activities.
+					</td>
+			</tr>
+		</tbody>
+	</table>
+	<table>
+		<tbody>
+			<tr>
+				<td><input class='right' type='checkbox' name='tos' value='agree' 
+					{% if tos %}checked {% endif %}/></td>
 				<td><label class='left'>I agree to the Terms of Use</label></td>
-			</tr>
-			
+			</tr>		
 		</tbody>
 	</table>
 	

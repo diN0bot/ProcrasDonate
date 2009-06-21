@@ -347,10 +347,10 @@ _extend(Model.prototype, {
 	},
 	
 	//DELETE from [table name] where [field name] = 'whatever';
-	del: function(query) {
+	del: function(wheres) {
 		var str = "DELETE from "+this.table_name+" where ";
 		is_first = true;
-		for (var col in query) {
+		for (var col in wheres) {
 			if (is_first) { is_first = false; }
 			else { str += " AND "; }
 			str += col+"=";

@@ -52,7 +52,7 @@ _extend(ProcrasDonate_API.prototype, {
 			var total_data = {
 				total_time: row.total_time,
 				total_amount: row.total_amount,
-				time: row.time
+				time: _date_to_http_format( _un_dbify_date( row.time ) )
 			};
 			if (recipient) {
 				var category = "Uncategorized";
@@ -60,6 +60,7 @@ _extend(ProcrasDonate_API.prototype, {
 					category = recipient_category.category;
 				}
 				total_data.recipient = {
+					id: recipient.id,
 					twitter_name: recipient.twitter_name,
 					url: recipient.url,
 					name: recipient.name,
@@ -70,14 +71,16 @@ _extend(ProcrasDonate_API.prototype, {
 			}
 			else if (site) {
 				total_data.site = {
-						url: site.url,
-						url_re: site_sitegroup.url_re,
-						name: site_sitegroup.name,
-						host: site_sitegroup.host,
-						tag: site_tag.tag
-					}
+					id: site.id,
+					url: site.url,
+					url_re: site_sitegroup.url_re,
+					name: site_sitegroup.name,
+					host: site_sitegroup.host,
+					tag: site_tag.tag
+				}
 			} else if (sitegroup) {
 				total_data.sitegroup = {
+					id: sitegroup.id,
 					url_re: sitegroup.url_re,
 					name: sitegroup.name,
 					host: sitegroup.host,
@@ -85,6 +88,7 @@ _extend(ProcrasDonate_API.prototype, {
 				}
 			} else if (tag) {
 				total_data.tag = {
+					id: tag.id,
 					tag: tag.tag
 				}
 			}
@@ -121,7 +125,6 @@ _extend(ProcrasDonate_API.prototype, {
 	_post_data: function(url, data, onload) {
 		// serialize into json
 		var json_data = JSON.stringify(data);
-		
 		// make request
 		this.make_request(
 			url,
@@ -130,5 +133,15 @@ _extend(ProcrasDonate_API.prototype, {
 			onload
 		);
 	},
+	
+	send_welcome_email: function(email_address) {
+		logger("send welcome email: "+email_address)
+		this.make_request(
+			constants.PD_URL + constants.POST_EMAIL_URL,
+			{email_address: email_address},
+			"POST",
+			function() {}
+		);
+	}
 
 });

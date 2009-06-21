@@ -273,6 +273,23 @@ var _un_dbify_date = function(str) {
 	return new Date(parseInt(str) * 1000);
 }
 
+var _date_to_http_format = function(t) {
+	var two_digit = function(x) {
+		if (x < 10) { return "0"+x; }
+		else { return x; }
+	}
+	
+	var year = t.getFullYear();
+	var month = two_digit( t.getMonth() );
+	var day = two_digit( t.getDate() );
+	
+	var hours = two_digit( t.getHours() );
+	var minutes = two_digit( t.getMinutes() );
+	var seconds = two_digit( t.getSeconds() );
+	
+	return year+"-"+month+"-"+day+" "+hours+":"+minutes+":"+seconds;
+}
+
 var host_regexp =  /^[\w]+:\/\/([^\/]+).*/g;
 
 var _host = function(href) {
