@@ -69,6 +69,13 @@ var constants = {};
 		"insert_impact_sites", 
 		"insert_impact_goals"
 	];//, insert_impact_history];
+	constants.IMPACT_SUBSTATE_INSERTS = [
+	                                     "today",
+	                                     "this_week",
+	                                     "all_time",
+	                                     "daily",
+	                                     "weekly"
+	];
 	/*
 	// impact substate: recipients
 	constants.IMPACT_RECIPIENTS_SUBSTATE_ENUM = ['nonprofits', 'contentproviders'];
@@ -126,6 +133,7 @@ var constants = {};
 	constants.DEFAULT_SETTINGS_STATE = "twitter_account";
 	constants.DEFAULT_REGISTER_STATE = "twitter_account";
 	constants.DEFAULT_IMPACT_STATE = "recipients";
+	constants.DEFAULT_IMPACT_SUBSTATE = "this_week";
 	
 	constants.DEFAULT_IMPACT_RECIPIENTS_SUBSTATE = 'nonprofits';
 	constants.DEFAULT_IMPACT_SITES_SUBSTATE = 'procrasdonate';

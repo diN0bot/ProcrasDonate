@@ -110,7 +110,9 @@ _extend(PD_ToolbarManager.prototype, {
     },
 
 	update_progress: function(total, goal, limit, button, label) {
-		var total_in_date = _start_of_week();
+    	logger("toolbar.js::update_progress LABEL="+label);
+
+    	var total_in_date = _start_of_week();
 		total_in_date.setSeconds(total);
 		
 		var start = _start_of_week();
@@ -121,12 +123,11 @@ _extend(PD_ToolbarManager.prototype, {
 		logger("toolbar.js::update_progress:    days, hours, minutes="+days+" hr="+hours+" mi="+minutes);
 		logger("toolbar.js::update_progress: goal="+goal+" limit="+limit);
 
-		// wk * 7d/wk * 24hr/d * 60m/hr * 60s/m
-		var goal_in_s = parseFloat(goal) * 7 * 24 * 60 * 60;
-		var limit_in_s = parseFloat(limit) * 7 * 24 * 60 * 60;
+		var goal_in_s = parseFloat(goal) * 3600;
+		var limit_in_s = parseFloat(limit) * 3600;
 		logger("toolbar.js::update_progress: goal in sec="+goal_in_s+" limit in sec="+limit_in_s);
 		
-		var percentile = total/goal;
+		var percentile = total/goal_in_s;
 		var limit_progress = (total - goal_in_s) / (limit_in_s - goal_in_s) 
 		logger("toolbar.js::update_progress: total/goal="+percentile+" limit_progress="+limit_progress);
 		var icon_number = "0";

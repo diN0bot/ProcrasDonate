@@ -1,15 +1,10 @@
 <div id='ranks'>
 	<h2>{{ context.title }}</h2>
-	{{ context.test }}{{context.test.0}}
-	{% for x in context.test %}
-		x={{ x }}
-	{% endfor %}
 	{% for submenus in context.submenus %}
-		s:{{ submenus }}
 		<div class="submenu_column">
 			<ul>
 				{% for item in submenus %}
-					<li class="link {% if item.selected %}selected{% endif %}">
+					<li class="menuitem link {% if item.selected %}selected{% endif %}" id="{{ item.substate }}">
 						{{ item.name }}
 						{% if item.coming %}<small>(coming soon)</small>{% endif %}
 					</li>
