@@ -85,6 +85,7 @@ _extend(Controller.prototype, {
 			}
 			break;
 		case constants.SETTINGS_URL:
+			request.jQuery("#settings_menu_item").addClass("here_we_are");
 			var state_matched = this.insert_based_on_state(
 				request,
 				'settings', 
@@ -101,6 +102,7 @@ _extend(Controller.prototype, {
 			}
 			break;
 		case constants.IMPACT_URL:
+			request.jQuery("#my_impact_menu_item").addClass("here_we_are");
 			//request.jQuery("#content").html("Impact charts coming soon!");
 			var state_matched = this.insert_based_on_state(
 				request,
@@ -168,18 +170,24 @@ _extend(Controller.prototype, {
 	initialize_state: function() {
 		this.initialize_account_defaults_if_necessary();
 		this.initialize_state_if_necessary();
-		
+		this.initialize_data_flow_state_if_necessary();
+	},
+	
+	initialize_data_flow_state_if_necessary: function() {
 		// This state is necessary for correctly synching data between
 		// this extension, TipJoy and ProcrasDonate.
 		// Synching does not depend on 24hr or weekly cycle settings. woot!!
 		// Synching is triggered by those cycles, but the data to synch
 		// is found using the following state
-		this.prefs.set('last_tipjoy_id_sent_to_tipjoy', false);
-		this.prefs.set('last_paid_tipjoy_id_sent_to_pd', false);
-		this.prefs.set('last_pledge_tipjoy_id', false);
-		this.prefs.set('last_total_time_sent_to_pd', false);
-
-		// Scheduling state
+		var flow_state = ['last_tipjoy_id_sent_to_tipjoy',
+		                  'last_paid_tipjoy_id_sent_to_pd',
+		                  'last_pledge_tipjoy_id',
+		                  'last_total_time_sent_to_pd'];
+		for (var i = 0; i < flow_state.length; i++) {
+			if ( !this.prefs.get(flow_state[i], false) ) {
+				this.prefs.set(flow_state[i], false);
+			}
+		}
 	},
 	
 	registration_complete: function() {
@@ -458,6 +466,7 @@ _extend(PageController.prototype, {
 		request.jQuery("#StartButton").remove();
 
 		// add private menu items
+		var here_we_are = "";
 		var impact_menu_item = ["<div id='my_impact_menu_item'>",
 		                        "<a href='" + constants.IMPACT_URL + "'>My Impact</a>",
 		                        "</div>"];

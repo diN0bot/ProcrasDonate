@@ -18,7 +18,9 @@ var constants = {};
 	constants.LEARN_URL = '/learn_more/';
 	constants.IMPACT_URL = '/my_impact/';
 	constants.SETTINGS_URL = '/settings/';
-	
+
+	constants.FEEDBACK_URL = 'http://feedback.procrasdonate.com/';
+
 	constants.COMMUNITY_URL = '/our_community';
 	constants.PRIVACY_URL = '/privacy_guarantee/';
 	constants.RECIPIENTS_URL = '/recipients';
@@ -33,7 +35,7 @@ var constants = {};
 	constants.ADD_RANDOM_VISITS_URL = '/add_random_visits/';
 	constants.TRIGGER_DAILY_CYCLE_URL = '/trigger_daily_cycle/';
 	constants.TRIGGER_WEEKLY_CYCLE_URL = '/trigger_weekly_cycle/';
-	
+
 	// enumeration of settings page state
 	constants.SETTINGS_STATE_ENUM = [
 		'twitter_account', 

@@ -112,7 +112,7 @@ URLBarListener.prototype = {
 
 var Prefs = Components.classes["@mozilla.org/preferences-service;1"]
                       .getService(Components.interfaces.nsIPrefService);
-Prefs = Prefs.getBranch("extensions.my_extension_name.");
+Prefs = Prefs.getBranch("ProcrasDonate.");
 
 //ProcrasDonate.log
 
@@ -190,6 +190,36 @@ Overlay.prototype = {
 		//window.addEventListener("load", function(){ Overlay.onLoad(); }, false);
 		
 		//logger("Overlay.init() => end");
+		
+		// setup uninstall observer
+		this.observerService = Cc['@mozilla.org/observer-service;1'].
+			getService(Ci.nsIObserverService);
+		var self = this;
+		this.observerService.addObserver({ observe: self.uninstall }, "em-action-requested", false);
+	},
+	
+	uninstall: function(aSubject, aTopic, aData) {
+		try {
+			var item = aSubject.QueryInterface(Ci.nsIUpdateItem);
+			if (item.id != ProcrasDonate__UUID) {
+				return;
+			}
+			if (aData == "item-uninstalled") {
+				// this works
+				gBrowser.selectedTab = gBrowser.addTab(constants.FEEDBACK_URL);
+				
+				// remove toolbar items
+				this.url_bar_listener.toolbar_manager.uninstall_toolbar();
+				
+				Prefs.setBoolPref("firstrun",true);
+				////// this does not work. prefs are still present in about:config
+				// Remove all properties that were installed by our extension
+				Prefs.deleteBranch("ProcrasDonate.");
+				this.pddb.prefs.deleteBranch("ProcrasDonate.");
+				// @TODO delete database? archive as separate file?
+			}
+		} catch (e) {
+		}
 	},
 	
 	uninit: function() {
@@ -370,6 +400,8 @@ Overlay.prototype = {
 	
 	doInstall: function() { // 
 		logger("Overlay.doInstall::");
+		
+		this.url_bar_listener.toolbar_manager.install_toolbar();
 	},
 	onInstall: function() { // execute on first run
 		logger("Overlay.onInstall::");
@@ -391,6 +423,12 @@ Overlay.prototype = {
 	},
 	onUpgrade: function() { // execute after each new version (upgrade)
 		logger("Overlay.onUpgrade::");
+		// initialize new state (initialize_state initializes state if necessary.
+		for (var i = 0; i < this.page_controllers.length; i++) {
+			this.page_controllers[i].initialize_state();
+		}
+		
+		
 		// The example below loads a page by opening a new tab.
 		// Useful for loading a mini tutorial
 		window.setTimeout(function() {
