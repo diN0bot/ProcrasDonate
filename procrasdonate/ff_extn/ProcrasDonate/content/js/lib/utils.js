@@ -215,6 +215,15 @@ function _iterate(o, fn) {
 //	return ret;
 //}
 
+var _change_location = function(request, url) {
+	// change url to settings
+	var unsafeWin = request.get_unsafeContentWin();//event.target.defaultView;
+	if (unsafeWin.wrappedJSObject) {
+		unsafeWin = unsafeWin.wrappedJSObject;
+	}
+	new XPCNativeWrapper(unsafeWin, "location").location = url;
+}
+
 var _start_of_day = function(date) {
 	if (!date) {
 		date = new Date();

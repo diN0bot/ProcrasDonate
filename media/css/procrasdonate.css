@@ -237,8 +237,8 @@ td { padding: .6em 0em .5em 0em; vertical-align: middle; }
 .rank_legend { clear: both; }
 .rank_legend label { float: left; padding-right: .5em; }
 .rank_legend .bar { width: 4em; float: left; margin: 0em 2em 0px 0px; }
-.rank .bar.TimeWellSpent, .rank_legend .bar.timewellspent { background: #FFCCAA; }
-.rank .bar.ProcrasDonate, .rank_legend .bar.procrasdonate { background: #AACCFF; }
+.rank .bar.TimeWellSpent, .rank_legend .bar.TimeWellSpent { background: #FFCCAA; }
+.rank .bar.ProcrasDonate, .rank_legend .bar.ProcrasDonate { background: #AACCFF; }
 .rank .rank_text { padding-left:.5em; position:relative; /*right:-100%;*/ top:0px; text-align: right; }
 
 .Move_Site_Arrow { width: 1.2em; vertical-align: bottom; margin-bottom: -.25em; padding: 0 .5em 0 .5em; }

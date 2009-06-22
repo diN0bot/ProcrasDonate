@@ -161,6 +161,7 @@ _extend(Controller.prototype, {
 	STATE_DEFAULTS: {
 		settings_state: constants.DEFAULT_SETTINGS_STATE,
 		impact_state: constants.DEFAULT_IMPACT_STATE,
+		impact_substate: constants.DEFAULT_IMPACT_SUBSTATE,
 		register_state: constants.DEFAULT_REGISTER_STATE,
 	},
 	
@@ -1683,6 +1684,7 @@ _extend(PageController.prototype, {
 	},
 	
 	activate_impact_middle: function(request, has_tags) {
+		var self = this;
 		request.jQuery(".site_rank .rank_text").hide();
 		request.jQuery(".site_rank .bar").hover(
 			function() {
@@ -1692,11 +1694,42 @@ _extend(PageController.prototype, {
 				request.jQuery(this).children().hide();
 			}
 		);
+		request.jQuery(".menuitem").click( function() {
+			var id = request.jQuery(this).attr("id");
+			self.change_substate(request, id);
+		});
+	},
+	
+	change_substate: function(request, substate) {
+		var self = this;
+		
+		if ( substate == "classify_sites" ) {
+			this.prefs.set("settings_state", "site_classifications");
+			_change_location(request, constants.SETTINGS_URL);
+			
+		} else if ( substate == "select_recipients" ) {
+			this.prefs.set("settings_state", "recipients");
+			_change_location(request, constants.SETTINGS_URL);
+			
+		} else if ( substate == "set_goals" ) {
+			this.prefs.set("settings_state", "donation_amounts");
+			_change_location(request, constants.SETTINGS_URL);
+			
+		} else {
+			this.prefs.set("impact_substate", substate);
+			var impact_state = this.prefs.get("impact_state", constants.DEFAULT_IMPACT_STATE);
+			for (var i = 0; i < constants.IMPACT_STATE_ENUM.length; i++) {
+				if ( constants.IMPACT_STATE_ENUM[i] == impact_state) {
+					self[constants.IMPACT_STATE_INSERTS[i]](request);
+				}
+			}
+		}
 	},
 	
 	impact_middle: function(request, acontext, template) {
 		var context = new Context({
 			context: acontext,
+			colors: ["#AACCFF", "#FFCCAA", "#FFCCAA", "#FFCCAA", "#FFCCAA", "#FFCCAA", "#FFCCAA"],
 			constants: constants,
 		});
 		return Template.get(template).render(context);
@@ -1706,32 +1739,46 @@ _extend(PageController.prototype, {
 		/* insert sites chart */
 		var self = this;
 		this.prefs.set('impact_state', 'sites');
+		var substate = this.prefs.get('impact_substate', constants.DEFAULT_IMPACT_SUBSTATE);
 		
 		var contenttype = this.pddb.ContentType.get_or_null({
 			modelname: "SiteGroup"
 		});
 		
+		var timetype = timetype = self.pddb.Forever;
+		var time = _end_of_forever;
+		if ( substate == "today" ) {
+			timetype = self.pddb.Daily;
+			time = _dbify_date(_end_of_day());
+		} else if ( substate == "this_week" ) {
+			timetype = self.pddb.Weekly;
+			time = _dbify_date(_end_of_week());
+		} else if ( substate == "all_time" ) {
+			timetype = self.pddb.Forever;
+			time = _end_of_forever;
+		}
+		
 		var context = this.impact_data(
 			request,
 			contenttype,
-			self.pddb.Forever,
-			_end_of_forever,
-			true
+			timetype,
+			time,
+			false
 		);
 		context.title = "Most Supported Sites";
 		context.sub_title = "Time spent supporting sites"
 		context.submenus = [
 			[
-				{name: "Today"},
-				{name: "This Week"},
-				{name: "All Time", selected:1}
+				{name: "Today", substate: "today", selected:("today" == substate)},
+				{name: "This Week", substate: "this_week", selected:("this_week" == substate)},
+				{name: "All Time", substate: "all_time", selected:("all_time" == substate)}
 			],
 			[
-				{name: "Daily", coming:1},
-				{name: "Weekly", coming:1}
+				{name: "Daily", substate: "daily", coming:1},
+				{name: "Weekly", substate: "weekly", coming:1}
 			],
 			[
-				{name: "Classify Sites"}
+				{name: "Classify Sites", substate: "classify_sites"}
 			]
 		];
 		
@@ -1750,33 +1797,46 @@ _extend(PageController.prototype, {
 		/* insert sites chart */
 		var self = this;
 		this.prefs.set('impact_state', 'recipients');
+		var substate = this.prefs.get('impact_substate', constants.DEFAULT_IMPACT_SUBSTATE);
 		
 		var contenttype = this.pddb.ContentType.get_or_null({
 			modelname: "Recipient"
 		});
 		
+		var timetype = null;
+		var time = null;
+		if ( substate == "today" ) {
+			timetype = self.pddb.Daily;
+			time = _dbify_date(_end_of_day());
+		} else if ( substate == "this_week" ) {
+			timetype = self.pddb.Weekly;
+			time = _dbify_date(_end_of_week());
+		} else if ( substate == "all_time" ) {
+			timetype = self.pddb.Forever;
+			time = _end_of_forever;
+		}
+		
 		var context = this.impact_data(
 			request,
 			contenttype,
-			self.pddb.Forever,
-			_end_of_forever,
+			timetype,
+			time,
 			false
 		);
 		context.title = "Most Supported Recipients";
 		context.sub_title = "Recipients ranked by your donations (in $)";
-		context.test = ["a", "b", "c"];
 		context.submenus = [
 			[
-				{name: "Today"},
-				{name: "This Week"},
-				{name: "All Time", selected:1}
+				{name: "Today", substate: "today", selected:("today" == substate)},
+				{name: "This Week", substate: "this_week", selected:("this_week" == substate)},
+				{name: "All Time", substate: "all_time", selected:("all_time" == substate)},
 			],
 			[
-				{name: "Daily", coming:1},
-				{name: "Weekly", coming:1}
+				{name: "Daily", substate: "daily", coming:1},
+				{name: "Weekly", substate: "weekly", coming:1}
 			],
 			[
-				{name: "Select Recipients"}
+				{name: "Select Recipients", substate: "select_recipients"}
 			]
 		];
 		
@@ -1809,16 +1869,30 @@ _extend(PageController.prototype, {
 		/* insert sites chart */
 		var self = this;
 		this.prefs.set('impact_state', 'goals');
+		var substate = this.prefs.get('impact_substate', constants.DEFAULT_IMPACT_SUBSTATE);
 		
 		var contenttype = this.pddb.ContentType.get_or_null({
 			modelname: "Tag"
 		});
 		
+		var timetype = null;
+		var time = null;
+		if ( substate == "today" ) {
+			timetype = self.pddb.Daily;
+			time = _dbify_date(_end_of_day());
+		} else if ( substate == "this_week" ) {
+			timetype = self.pddb.Weekly;
+			time = _dbify_date(_end_of_week());
+		} else if ( substate == "all_time" ) {
+			timetype = self.pddb.Forever;
+			time = _end_of_forever;
+		}
+		
 		var context = this.impact_data(
 			request,
 			contenttype,
-			self.pddb.Forever,
-			_end_of_forever,
+			timetype,
+			time,
 			true
 		);
 		context.title = "Goals";
@@ -1827,16 +1901,16 @@ _extend(PageController.prototype, {
 		// "Weekly score-cards"
 		context.submenus = [
 			[
-				{name: "Progress Today"},
-				{name: "Progress This Week"},
-				{name: "All Time", selected:1}
+				{name: "Progress Today", substate: "today", selected:("today" == substate)},
+				{name: "Progress This Week", substate: "this_week", selected:("this_week" == substate)},
+				{name: "All Time", substate: "all_time", selected:("all_time" == substate)},
 			],
 			[
-				{name: "Daily Comparison", coming:1},
-				{name: "Weekly Comparison", coming:1}
+				{name: "Daily Comparison", substate: "daily", coming:1},
+				{name: "Weekly Comparison", substate: "weekly", coming:1},
 			],
 			[
-				{name: "Set Goals"}
+				{name: "Set Goals", substate: "set_goals"}
 			]
 		];
 		
@@ -1852,6 +1926,7 @@ _extend(PageController.prototype, {
 	},
 	
 	impact_data: function(request, contenttype, timetype, time, is_time) {
+		logger("views.js::impact_data contenttype="+contenttype+" timetype="+timetype+" time="+time);
 		var self = this;
 		var data = [];
 		var class_names = {};
@@ -1864,8 +1939,9 @@ _extend(PageController.prototype, {
 		this.pddb.Total.select({
 			timetype_id: timetype.id,
 			contenttype_id: contenttype.id,
-			time: time 
+			time: time
 		}, function(row) {
+			logger("      row="+row);
 			var total = 0;
 			if (is_time) {
 				// keep as dbified date for now
