@@ -208,15 +208,17 @@ Overlay.prototype = {
 				// this works
 				gBrowser.selectedTab = gBrowser.addTab(constants.FEEDBACK_URL);
 				
-				// remove toolbar items
-				this.url_bar_listener.toolbar_manager.uninstall_toolbar();
-				
 				Prefs.setBoolPref("firstrun",true);
 				////// this does not work. prefs are still present in about:config
+				try {
 				// Remove all properties that were installed by our extension
-				Prefs.deleteBranch("ProcrasDonate.");
-				this.pddb.prefs.deleteBranch("ProcrasDonate.");
+				Prefs.deleteBranch("");
+				this.pddb.prefs.deleteBranch("");
 				// @TODO delete database? archive as separate file?
+				} catch (e) {}
+				
+				// remove toolbar items
+				this.url_bar_listener.toolbar_manager.uninstall_toolbar();
 			}
 		} catch (e) {
 		}
