@@ -95,7 +95,7 @@ class SiteGroup(models.Model):
     """
     host = models.CharField(max_length=128)
     # describes valid urls
-    url_re = models.CharField(max_length=128, null=True, blank=True)
+    url_re = models.CharField(max_length=256, null=True, blank=True)
     name = models.CharField(max_length=128, null=True, blank=True)
     
     HOST_RE = re.compile("http://([^/]+)")
@@ -130,8 +130,8 @@ class Recipient(models.Model):
     twitter_name = models.CharField(max_length=32, null=True, blank=True)
     name = models.CharField(max_length=128, null=True, blank=True)
     url = models.URLField(null=True, blank=True)
-    email = models.EmailField()
-    mission = models.CharField(max_length=256, null=True, blank=True)
+    email = models.EmailField(null=True, blank=True)
+    mission = models.CharField(max_length=512, null=True, blank=True)
     description = models.TextField(null=True, blank=True)
     is_visible = models.BooleanField(default=False)
     category = models.ForeignKey('Category', blank=True, null=True)
