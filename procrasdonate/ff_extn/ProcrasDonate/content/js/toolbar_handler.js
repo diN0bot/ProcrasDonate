@@ -33,6 +33,86 @@ _extend(PD_ToolbarManager.prototype, {
 		// Update button images and text
 		this.updateButtons({ url: _href() });
 	},
+	
+	install_toolbar : function() {
+
+		// inserted toolbar button fine, but didn't persist
+		//var navToolbar = document.getElementById("nav-bar")
+		//navToolbar.insertItem("smxtra-button", null, null, false);
+		//document.persist("nav-bar", "currentset");
+		
+		// fvcks up ff address bar etc
+		//var currentset = document.getElementById("nav-bar").currentSet;
+		//currentset=currentset + ",smxtra-button";
+		//document.getElementById("nav-bar").setAttribute("currentset",currentset);   //not needed I suppose
+		//document.getElementById("nav-bar").currentSet = currentset;
+		//document.persist("nav-bar","currentset");
+		
+		// this works, though ff address is kind of messed up. works when restart ff.
+		// classify icon is also unclickable until ff restarts.
+		//var navbar = document.getElementById("nav-bar");
+		//var newset = navbar.currentSet + ",PD-classify-toolbar-button,PD-progress-toolbar-button,TWS-progress-toolbar-button";
+		//navbar.currentSet = newset;
+		//navbar.setAttribute("currentset", newset );
+		//document.persist("nav-bar", "currentset");
+		
+		try {
+			var navbar = document.getElementById("nav-bar");
+			var urlbar = document.getElementById("urlbar-container");
+			var currentset = navbar.currentSet;
+			var b1 = currentset.indexOf("PD-classify-toolbar-button") == -1;
+			var b2 = currentset.indexOf("PD-progress-toolbar-button") == -1;
+			var b3 = currentset.indexOf("TWS-progress-toolbar-button") == -1;
+			if ( b1 && b2 && b3 ) { // @TODO check firstrun
+				var set;
+				// Place the button before the urlbar
+				if (currentset.indexOf("urlbar-container") != -1) {
+					set = currentset.replace(/urlbar-container/, "PD-classify-toolbar-button,PD-progress-toolbar-button,TWS-progress-toolbar-button,urlbar-container");
+				} else { // at the end
+					set = currentset + ",PD-classify-toolbar-button,PD-progress-toolbar-button,TWS-progress-toolbar-button";
+				}
+				navbar.setAttribute("currentset", set);
+				navbar.currentSet = set;
+				document.persist("nav-bar", "currentset");
+				// If you don't do the following call, funny things happen
+				try {
+					BrowserToolboxCustomizeDone(true);
+				} catch (e) { }
+			}
+		} catch (e) { } 
+			
+		//tb.insertItem("PD-classify-toolbar-button", beforeElement); 
+		//tb.insertItem("PD-progress-toolbar-button", beforeElement); 
+		//tb.insertItem("TWS-progress-toolbar-button", beforeElement);
+		//currentset = currentset.replace(/urlbar-container/i,"PD-classify-toolbar-button,PD-progress-toolbar-button,TWS-progress-toolbar-button,urlbar-container");
+		//document.getElementById("nav-bar").setAttribute("currentset",currentset);
+		//document.getElementById("nav-bar").currentSet = currentset;
+		//document.persist("nav-bar","currentset");
+		
+		/*
+		var tb = document.getElementById("nav-bar");
+		var urlbar = document.getElementById("urlbar-container");
+		tb.insertItem("PD-classify-toolbar-button", beforeElement); 
+		tb.insertItem("PD-progress-toolbar-button", beforeElement); 
+		tb.insertItem("TWS-progress-toolbar-button", beforeElement); 
+		document.persist("nav-bar", "currentset"); 
+		*/
+	},
+	
+	uninstall_toolbar : function() {
+		// @TODO explicitly remove toolbar items from nav-bar   ?
+		// removal is automatic when extn is uninstalled,
+		// but if re-installed, old icons will show up.
+		var tb = document.getElementById("nav-bar");
+		var e1 = document.getElementById("PD-classify-toolbar-button");
+		var e2 = document.getElementById("PD-progress-toolbar-button");
+		var e3 = document.getElementById("TWS-progress-toolbar-button");
+		if ( tb ) {
+			if ( e1 ) { tb.removeChild(e1); }
+			if ( e2 ) { tb.removeChild(e2); }
+			if ( e3 ) { tb.removeChild(e3); }
+		}
+	},
 
 	/*
 	 * get site classification for current URL and update button image
