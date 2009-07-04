@@ -77,9 +77,13 @@ _extend(PD_ToolbarManager.prototype, {
 				// If you don't do the following call, funny things happen
 				try {
 					BrowserToolboxCustomizeDone(true);
-				} catch (e) { }
+				} catch (e) {
+					logger(" Tried to call BrowserToolboxCustomizeDone but encountered error: " + e);
+				}
 			}
-		} catch (e) { } 
+		} catch (e) {
+			logger(" Tried to complete Toolbar installation but encountered error: " + e);		
+		} 
 			
 		//tb.insertItem("PD-classify-toolbar-button", beforeElement); 
 		//tb.insertItem("PD-progress-toolbar-button", beforeElement); 
