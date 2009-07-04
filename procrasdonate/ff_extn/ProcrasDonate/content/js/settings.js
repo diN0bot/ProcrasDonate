@@ -8,12 +8,14 @@ var constants = {};
 	 */
 	constants.MEDIA_URL = '/procrasdonate_media/';
 	constants.PD_HOST = 'procrasdonate.com';
-	constants.PD_URL = 'http://' + constants.PD_HOST;
-	//constants.PD_URL = 'http://localhost:8000';
+	//constants.PD_URL = 'http://' + constants.PD_HOST;
+	constants.PD_URL = 'http://localhost:8000';
 	constants.VALID_HOSTS = ['localhost:8000', 'procrasdonate.com'];
 	
 	constants.PROCRASDONATE_URL = '/';
 	constants.REGISTER_URL = '/register/';
+	constants.AFTER_INSTALL_URL = '/after_install/';
+	constants.AFTER_UPGRADE_URL = '/after_upgrade/';
 	constants.HOME_URL = '/home/';
 	constants.LEARN_URL = '/learn_more/';
 	constants.IMPACT_URL = '/my_impact/';

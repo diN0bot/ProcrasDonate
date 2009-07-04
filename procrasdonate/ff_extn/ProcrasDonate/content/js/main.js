@@ -1,4 +1,4 @@
-var STORE_VISIT_LOGGING = true;
+var STORE_VISIT_LOGGING = false;
 
 logger = function(msg) {
 	dump("---------\n" + msg + "\n");
@@ -380,37 +380,37 @@ Overlay.prototype = {
 			//nothing
 		} finally {
 			if (firstrun) {
-				this.doInstall();
+				this.doInstall(ver);
 				
 				Prefs.setBoolPref("firstrun",false);
 				Prefs.setCharPref("version",current);
 				
 				// Insert code for first run here
-				this.onInstall();
+				this.onInstall(ver);
 			}
 			
 			if (ver != current && !firstrun) {
-				this.doUpgrade();
+				this.doUpgrade(ver);
 				// !firstrun ensures that this section does not get loaded if its a first run.
 				Prefs.setCharPref("version",current);
 				
 				// Insert code if version is different here => upgrade
-				this.onUpgrade();
+				this.onUpgrade(ver);
 			}
 		}
 	},
 	
-	doInstall: function() { // 
+	doInstall: function(version) { // 
 		logger("Overlay.doInstall::");
 		
 		this.url_bar_listener.toolbar_manager.install_toolbar();
 	},
-	onInstall: function() { // execute on first run
+	onInstall: function(version) { // execute on first run
 		logger("Overlay.onInstall::");
 		// The example below loads a page by opening a new tab.
 		// Useful for loading a mini tutorial
 		window.setTimeout(function() {
-			gBrowser.selectedTab = gBrowser.addTab(constants.PD_URL + constants.REGISTER_URL);
+			gBrowser.selectedTab = gBrowser.addTab(constants.PD_URL + constants.AFTER_INSTALL_URL + "/" + version + "/");
 		}, 1500); //Firefox 2 fix - or else tab will get closed
 		
 		// initialize state
@@ -420,10 +420,10 @@ Overlay.prototype = {
 
 	},
 	
-	doUpgrade: function() { // make any necessary changes for a new version (upgrade)
+	doUpgrade: function(version) { // make any necessary changes for a new version (upgrade)
 		logger("Overlay.doUpgrade::");
 	},
-	onUpgrade: function() { // execute after each new version (upgrade)
+	onUpgrade: function(version) { // execute after each new version (upgrade)
 		logger("Overlay.onUpgrade::");
 		// initialize new state (initialize_state initializes state if necessary.
 		for (var i = 0; i < this.page_controllers.length; i++) {
@@ -434,7 +434,7 @@ Overlay.prototype = {
 		// The example below loads a page by opening a new tab.
 		// Useful for loading a mini tutorial
 		window.setTimeout(function() {
-			gBrowser.selectedTab = gBrowser.addTab(constants.PD_URL + constants.IMPACT_URL);
+			gBrowser.selectedTab = gBrowser.addTab(constants.PD_URL + constants.AFTER_UPGRADE_URL + "/" + version + "/");
 		}, 1500); //Firefox 2 fix - or else tab will get closed
 		
 	},

@@ -7,7 +7,9 @@ urlpatterns = patterns('',
     url(r'^home/$', main.home, name='home'),
     url(r'^noextn_home_noextn/$', main.home_noextn, name='home_noextn'),
     url(r'^learn_more/$', main.learn_more, name='learn_more'),
-
+    
+    url(r'^after_install/(?P<version>\d+\.\d+\.\d+)/$', main.after_install, name='after_install'),
+    url(r'^after_upgrade/(?P<version>\d+\.\d+\.\d+)/$', main.after_upgrade, name='after_upgrade'),
 )
 
 import settings

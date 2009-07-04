@@ -1,0 +1,37 @@
+
+A release is a bundle of "extension" code changes pushed to the live
+site. This may include an xpi of the Firefox extension and/or the Django
+procrasdonate app. The latter is part of the ProcrasDonate "extension"
+because of the literal extension's interaction with server web pages and
+css.
+
+"Extension" code should never be pushed live without a release.
+
+@TODO : move necessary css from the server to the extension so that the
+website can be updated (mostly) separate from the extension.
+
+Every release should go through the following checklist:
+
+=== ProcrasDonate Firefox extension ===
+
+install.rdf
+ * Incremented version numbers from v to v'.
+
+main.js
+ * Add do_install_<v'> and do_upgrade_<v'> logic
+   * Evolve data base schema if necessary
+
+views.js
+   * add state changes to ACCOUNT and STATE defaults.
+
+=== procrasdonate Django app ===
+
+ new template files
+ * Create after_install_<v'> and after_upgrade_<v'>
+
+ snippets/banner.html
+ * Update link to xpi
+
+ generate xpi
+ cd procrasdonate/ff_extn/ProcrasDonate; zip -r ../../../media/xpi/ProcrasDonate_<v'>.xpi *
+
