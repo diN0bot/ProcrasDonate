@@ -8,9 +8,36 @@
 		</h3>
 	
 	<div id="StartButtonDiv" class="">	
-		<a href="{{ MEDIA_URL }}xpi/ProcrasDonate_0.1.2.xpi">
-			<img src="{{ MEDIA_URL }}img/StartNow14.png" id="StartButton" class="StartButton">
-		</a>
+		<a
+			id="install_anchor"
+			href="{{ MEDIA_URL }}xpi/ProcrasDonate_0.1.2.xpi"
+  			iconURL="{{ MEDIA_URL }}img/ProcrasDonateLogo.png"
+  			onclick="return install('install_anchor');"
+  		>
+  			<span id="hash" style="display:none">
+  				sha1:138c8a87ff440948836b0558d8c3469a02f26703
+  			</span>
+  			<img
+  				src="{{ MEDIA_URL }}img/StartNow14.png"
+  				id="StartButton"
+  				class="StartButton" />
+  		</a>
+		<script language="javascript" type="text/javascript">
+			function install(id) {
+				var item = $("#"+id);
+				var params = {
+					"ProcrasDonate, a charitable incentive for good time management": {
+						URL: item.attr("href"),
+						IconURL: item.attr("iconURL"),
+						Hash: $.trim(item.children("#hash").text()),
+						toString: function() { return this.URL; }
+					}
+				};
+				InstallTrigger.install( params );
+				return false;
+			}
+		</script>
+
 	</div>
 
 </div>

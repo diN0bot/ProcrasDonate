@@ -380,27 +380,27 @@ Overlay.prototype = {
 			//nothing
 		} finally {
 			if (firstrun) {
-				this.doInstall(ver);
+				this.doInstall();
 				
 				Prefs.setBoolPref("firstrun",false);
 				Prefs.setCharPref("version",current);
 				
 				// Insert code for first run here
-				this.onInstall(ver);
+				this.onInstall(current);
 			}
 			
 			if (ver != current && !firstrun) {
-				this.doUpgrade(ver);
+				this.doUpgrade();
 				// !firstrun ensures that this section does not get loaded if its a first run.
 				Prefs.setCharPref("version",current);
 				
 				// Insert code if version is different here => upgrade
-				this.onUpgrade(ver);
+				this.onUpgrade(current);
 			}
 		}
 	},
 	
-	doInstall: function(version) { // 
+	doInstall: function() { // 
 		logger("Overlay.doInstall::");
 		
 		this.url_bar_listener.toolbar_manager.install_toolbar();
@@ -410,7 +410,7 @@ Overlay.prototype = {
 		// The example below loads a page by opening a new tab.
 		// Useful for loading a mini tutorial
 		window.setTimeout(function() {
-			gBrowser.selectedTab = gBrowser.addTab(constants.PD_URL + constants.AFTER_INSTALL_URL + "/" + version + "/");
+			gBrowser.selectedTab = gBrowser.addTab(constants.PD_URL + constants.AFTER_INSTALL_URL + version + "/");
 		}, 1500); //Firefox 2 fix - or else tab will get closed
 		
 		// initialize state
@@ -420,7 +420,7 @@ Overlay.prototype = {
 
 	},
 	
-	doUpgrade: function(version) { // make any necessary changes for a new version (upgrade)
+	doUpgrade: function() { // make any necessary changes for a new version (upgrade)
 		logger("Overlay.doUpgrade::");
 	},
 	onUpgrade: function(version) { // execute after each new version (upgrade)
@@ -434,7 +434,7 @@ Overlay.prototype = {
 		// The example below loads a page by opening a new tab.
 		// Useful for loading a mini tutorial
 		window.setTimeout(function() {
-			gBrowser.selectedTab = gBrowser.addTab(constants.PD_URL + constants.AFTER_UPGRADE_URL + "/" + version + "/");
+			gBrowser.selectedTab = gBrowser.addTab(constants.PD_URL + constants.AFTER_UPGRADE_URL + version + "/");
 		}, 1500); //Firefox 2 fix - or else tab will get closed
 		
 	},
