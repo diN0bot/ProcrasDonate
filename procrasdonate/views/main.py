@@ -36,6 +36,12 @@ def my_impact(request):
 def recipients(request):
     return render_response(request, 'procrasdonate/recipients.html', locals())
 
+def after_install(request, version):
+    return render_response(request, 'procrasdonate/after_install/after_install_%s.html' % version, locals())
+
+def after_upgrade(request, version):
+    return render_response(request, 'procrasdonate/after_upgrade/after_upgrade_%s.html' % version, locals())
+
 def _POST(url, values):
     """
     POSTs values to url. Returns whatever url returns

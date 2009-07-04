@@ -1,4 +1,4 @@
-var STORE_VISIT_LOGGING = true;
+var STORE_VISIT_LOGGING = false;
 
 logger = function(msg) {
 	dump("---------\n" + msg + "\n");
