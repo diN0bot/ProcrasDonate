@@ -29,9 +29,13 @@ views.js
  new template files
  * Create after_install_<v'> and after_upgrade_<v'>
 
+ generate xpi
+   cd procrasdonate/ff_extn/ProcrasDonate; zip -r ../../../media/xpi/ProcrasDonate_<v'>.xpi *
+
+ generate hash
+   sha1sum ../../../media/xpi/ProcrasDonate_0.1.2.xpi 
+
  snippets/banner.html
  * Update link to xpi
-
- generate xpi
- cd procrasdonate/ff_extn/ProcrasDonate; zip -r ../../../media/xpi/ProcrasDonate_<v'>.xpi *
+ * update hash value 
 
