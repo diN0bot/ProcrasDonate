@@ -1,0 +1,11 @@
+
+FEATURES
+ * added friendly dialogue box to xpi download from website
+
+CHANGES
+ * removed TWS meter from automatically being added to toolbar
+ * added release checklist process!
+
+BUGS
+ * fixed bug in associating wrong recipient with visits (was sending recipientpercents)
+   -> haven't verified fix, just noticed code looked odd.

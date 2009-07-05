@@ -1110,25 +1110,20 @@ PDDB.prototype = {
 				});
 
 			} else if (row.modelname == "Recipient") {
-				if (STORE_VISIT_LOGGING) logger("zxcv");
 				if (tag.id != self.Unsorted.id) {
-					if (STORE_VISIT_LOGGING) logger("not unsorted");
 					self.RecipientPercent.select({}, function(r) {
-						if (STORE_VISIT_LOGGING) logger("recipientpercent="+r);
 						if (r.id == pd_recipientpercent.id) {
-							if (STORE_VISIT_LOGGING) logger("pd recip");
 							content_instances.push({
 								contenttype: row,
 								content: pd_recipient,
 								amt: skim_amount,
 							});
 						} else {
-							if (STORE_VISIT_LOGGING) logger("not pd recip");
+							var recip = self.Recipient.get_or_none({ id: r.recipient_id });
 							if (tag.id == self.ProcrasDonate.id) {
-								if (STORE_VISIT_LOGGING) logger("tag is pd");
 								content_instances.push({
 									contenttype: row,
-									content: r,
+									content: recip,
 									amt: rest_amount * parseFloat(r.percent),
 								});
 							}

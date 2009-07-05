@@ -63,13 +63,17 @@ _extend(PD_ToolbarManager.prototype, {
 			var b1 = currentset.indexOf("PD-classify-toolbar-button") == -1;
 			var b2 = currentset.indexOf("PD-progress-toolbar-button") == -1;
 			var b3 = currentset.indexOf("TWS-progress-toolbar-button") == -1;
-			if ( b1 && b2 && b3 ) { // @TODO check firstrun
+			// only called on install, not upgrade. still, let's check that
+			// no icons are present already.
+			if ( b1 && b2 && b3 ) {
 				var set;
+				//var button_text = "PD-classify-toolbar-button,PD-progress-toolbar-button,TWS-progress-toolbar-button,urlbar-container";
+				var button_text = "PD-classify-toolbar-button,PD-progress-toolbar-button,urlbar-container";
 				// Place the button before the urlbar
 				if (currentset.indexOf("urlbar-container") != -1) {
-					set = currentset.replace(/urlbar-container/, "PD-classify-toolbar-button,PD-progress-toolbar-button,TWS-progress-toolbar-button,urlbar-container");
+					set = currentset.replace(/urlbar-container/, button_text);
 				} else { // at the end
-					set = currentset + ",PD-classify-toolbar-button,PD-progress-toolbar-button,TWS-progress-toolbar-button";
+					set = currentset + ","+ button_text;
 				}
 				navbar.setAttribute("currentset", set);
 				navbar.currentSet = set;
