@@ -14,6 +14,8 @@ var constants = {};
 	
 	constants.PROCRASDONATE_URL = '/';
 	constants.REGISTER_URL = '/register/';
+	constants.AFTER_INSTALL_URL = '/after_install/';
+	constants.AFTER_UPGRADE_URL = '/after_upgrade/';
 	constants.HOME_URL = '/home/';
 	constants.LEARN_URL = '/learn_more/';
 	constants.IMPACT_URL = '/my_impact/';
