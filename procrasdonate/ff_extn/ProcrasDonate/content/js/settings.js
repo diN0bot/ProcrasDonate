@@ -31,8 +31,10 @@ var constants = {};
 	constants.POST_TOTALS_URL = '/post/totals/';
 	constants.POST_PAYMENTS_URL = '/post/payments/';
 	
-	// used for development testing
 	constants.ON_INSTALL_URL = '/on_install/';
+	
+	// used for development testing
+	constants.TEST_SUITE_URL = '/test_suite/';
 	constants.RESET_STATE_URL = '/reset_state/';
 	constants.ADD_RANDOM_VISITS_URL = '/add_random_visits/';
 	constants.TRIGGER_DAILY_CYCLE_URL = '/trigger_daily_cycle/';

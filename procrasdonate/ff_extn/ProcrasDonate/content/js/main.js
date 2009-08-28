@@ -1119,7 +1119,7 @@ PDDB.prototype = {
 								amt: skim_amount,
 							});
 						} else {
-							var recip = self.Recipient.get_or_none({ id: r.recipient_id });
+							var recip = self.Recipient.get_or_null({ id: r.recipient_id });
 							if (tag.id == self.ProcrasDonate.id) {
 								content_instances.push({
 									contenttype: row,

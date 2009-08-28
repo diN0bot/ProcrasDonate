@@ -140,6 +140,9 @@ _extend(Controller.prototype, {
 		case constants.TRIGGER_WEEKLY_CYCLE_URL:
 			this.trigger_weekly_cycle();
 			break;
+		case constants.TEST_SUITE_URL:
+			this.test_suite(request);
+			break;
 		default:
 			//return false;
 			logger("Invalid ProcrasDonate URL: " + request.url);
@@ -359,6 +362,39 @@ _extend(Controller.prototype, {
 		logger("triggering weekly cycle...");
 		this.pddb.schedule.do_once_weekly_tasks();
 		logger("...weekly cycle done");
+	},
+	
+	test_suite: function(request) {
+		
+		var testrunner = new TestRunner(request);
+
+		// run some tests
+		testrunner.test("a happy test", function() {
+			testrunner.expect(2);
+			testrunner.ok( true, "this test is fine" );
+			var value = "hello";
+			testrunner.equals( "hello", value, "We expect value to be hello" );
+		});
+		
+		testrunner.test("a second happy test", function() {
+			testrunner.expect(3);
+			testrunner.ok( false, "this test is fine" );
+			var value = "hello";
+			testrunner.equals( "hello", value, "We expect value to be hello" );
+			testrunner.same( "hello", value, "We still expect value to be hello" );
+		});
+		
+		// display results
+		display = new TestRunnerConsoleDisplay()
+		for (var name in testrunner.test_modules) {
+			var test_module = testrunner.test_modules[name];
+			for (var i = 0; i < test_module.test_groups.length; i++) {
+				var testgroup = test_module.test_groups[i];
+				
+				display.display_testgroup_result(testrunner, testgroup);
+			}
+		}
+		display.test_done(testrunner);
 	}
 });
 

@@ -13,13 +13,13 @@
 -->
     <script type='application/x-javascript' 
             src='chrome://ProcrasDonate/content/js/ext/jquery-1.2.6.js'></script>
+
 <!--
     <script type='application/x-javascript' 
             src='chrome://ProcrasDonate/content/js/ext/jquery-ui-1.6.custom.min.js'></script>
 -->
     <script type='application/x-javascript' 
             src='chrome://ProcrasDonate/content/js/ext/json2.js'></script>
-  <!-- -->
 
     <script type='application/x-javascript' 
             src='chrome://ProcrasDonate/content/js/ext/xmlhttprequester.js'></script>
@@ -30,6 +30,21 @@
       -->
     <script type='application/x-javascript'
             src='chrome://ProcrasDonate/content/js/lib/utils.js'></script>
+
+    <script type='application/x-javascript' 
+            src='chrome://ProcrasDonate/content/js/lib/testrunner_display.js'></script>
+    <script type='application/x-javascript' 
+            src='chrome://ProcrasDonate/content/js/lib/testobjects.js'></script>
+    <script type='application/x-javascript' 
+            src='chrome://ProcrasDonate/content/js/lib/testrunner.js'></script>
+
+<!--
+    <script src="chrome://ProcrasDonate/content/js/ext/httpd.js" type="application/x-javascript"/>
+    <script src="chrome://ProcrasDonate/content/js/ext/fireunit.js" type="application/x-javascript"/>
+    <script src="chrome://ProcrasDonate/content/js/ext/jsdiff.js" type="application/x-javascript"/>
+-->
+    
+
     
     <!-- Django templates rendered in JS
       -->

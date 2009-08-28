@@ -31,10 +31,15 @@ _extend(PageRequest.prototype, {
 			return "other";
 	},
 	
-	jQuery: function(selector, context) {
-		//logger("request.jQuery(): " + selector + this.event);
-		return jQuery.fn.init(selector, context || this.get_document());
-	},
+	jQuery: (function() {
+		var jq = function(selector, context) {
+			//logger("request.jQuery(): " + selector + this.event);
+			return jQuery.fn.init(selector, context || this.get_document());
+		};
+		jQuery.extend(jq, jQuery);
+		return jq;
+	})(),
+		
 	do_in_page: function(fn) {
 		new XPCNativeWrapper(this.get_unsafeContentWin(), "setTimeout()").
 			setTimeout(fn, 0);
