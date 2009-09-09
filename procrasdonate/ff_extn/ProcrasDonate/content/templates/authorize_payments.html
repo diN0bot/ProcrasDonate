@@ -1,0 +1,15 @@
+<form action="{{ action_url }}" method="get">
+	<input
+		type="image"
+		src="https://authorize.payments.amazon.com/pba/images/SMSubscribeWithOutLogo.png"
+	/>
+	{% for pair in parameter_pairs %}
+		<input
+			type="hidden"
+			name="{{ pair.name }}"
+			value="{{ pair.value }}"
+		/>
+	{% endfor %}
+	
+	{{ hack_html }}
+</form>

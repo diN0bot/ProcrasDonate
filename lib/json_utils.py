@@ -125,3 +125,17 @@ def json_response(data):
     if not isinstance(data, (str, unicode)):
         data = to_json(data)
     return HttpResponse(data, mimetype="text/javascript")
+
+def json_success(data=None):
+    d = {'result': 'success'}
+    if data:
+        d.update(data)
+    print "json_success", d
+    return json_response(d)
+
+def json_failure(reason=""):
+    d = {'result': 'failure'}
+    if reason:
+        d['reason'] = reason
+    print "json_failure", d
+    return json_response(d)

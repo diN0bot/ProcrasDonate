@@ -1,0 +1,20 @@
+{% extends 'procrasdonate/base.html' %}
+
+{% block content %}
+	Recipient Register Page.
+	
+	<form action="{{ action_url }}" method="get">
+		<input
+			type="image"
+			src="https://authorize.payments.amazon.com/pba/images/SMSubscribeWithOutLogo.png"
+		/>
+		{% for name,value in parameters.items %}
+			<input
+				type="hidden"
+				name="{{ name }}"
+				value="{{ value }}"
+			/>
+		{% endfor %}
+	</form>
+    
+{% endblock %}

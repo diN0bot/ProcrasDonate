@@ -13,7 +13,7 @@ var TAGS = {
 		var sequence = this.render_filter(args[1].slice(1), context, env);
 		var reverse = args[2];
 		var nodelist = args[3];
-		
+
 		if (!(sequence && sequence.length>0)) {
 			return '';
 		}

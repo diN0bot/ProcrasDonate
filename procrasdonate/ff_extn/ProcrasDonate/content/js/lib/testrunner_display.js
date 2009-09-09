@@ -30,13 +30,13 @@ _extend(TestRunnerDisplay.prototype, {
 	
 	/// display results from a TestGroup
 	display_testgroup_result: function(testrunner, testgroup) {
-		console.error("TestRunnerDisplay.display_test_group_result() called, but TestRunnerDisplay should be subclassed.");
+		console.debug("TestRunnerDisplay.display_test_group_result() called, but TestRunnerDisplay should be subclassed.");
 	},
 	
 	/// all tests have run.
 	/// do clean up and summarization, if necessary
 	test_done: function(testrunner) {
-		console.error("TestRunnerDisplay.test_done() called, but TestRunnerDisplay should be subclassed.");
+		console.debug("TestRunnerDisplay.test_done() called, but TestRunnerDisplay should be subclassed.");
 	},
 	
 	///
@@ -79,7 +79,11 @@ _extend(TestRunnerConsoleDisplay.prototype, {
 		Firebug.Console.openGroup([passing+"/"+total+" = "+summary+" for "+testgroup.name], null, "group", null, false);
 		for (var i = 0; i < testgroup.assertions.length; i++) {
 			var assertion = testgroup.assertions[i];
-			Firebug.Console.log(i+". *"+assertion.result+"* "+assertion.msg);
+			if (assertion.result) {
+				Firebug.Console.info(i+". ("+assertion.result+") "+assertion.msg);
+			} else {
+				Firebug.Console.error(i+". *"+assertion.result+"* "+assertion.msg);
+			}
 		}
 		Firebug.Console.closeGroup();
 	},

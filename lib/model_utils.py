@@ -271,7 +271,7 @@ class ModelMixin(object):
 
     @classmethod
     def get_or_none(klass, **kwargs):
-        """
+        """\
         @summary:
         Convenience method: B{get_or_none} simply passes arguments through to
         klass.objects.filter()
@@ -386,3 +386,48 @@ class TextProcessor(object):
             except AlreadyExists:
                 pass
         return
+
+def _make_available_letters(choice_names):
+    alpha = "abcdefghijklmnopqrstuvwxyz"
+    if len(choice_names) < 26:
+        return (1, [x for x in alpha])
+    elif len(choice_names) < 26*26:
+        ret = []
+        for x in alpha:
+            for y in alpha:
+                ret.append(x+y)
+        return (2, ret)
+    raise RuntimeError()
+    
+def convert_to_choices(choice_names, visible_names=None):
+    visible_names = visible_names or choice_names
+    max_length, available_letters = _make_available_letters(choice_names)
+
+    ENUM = {}
+    CHOICES = []
+    choice_idx = 0
+    for name in choice_names:
+        # find choice abbreviation
+        idx = -1
+        num_letters = 1
+        x = ""
+        while not x in available_letters:
+            idx += 1
+            if idx+num_letters < len(name):
+                x = name[idx : idx+num_letters]
+            
+            elif num_letters < max_length:
+                idx = -1
+                num_letters += 1
+            
+            else:
+                x = available_letters[0]
+        available_letters.remove(x)
+        
+        # add to enum and choices
+        ENUM[choice_name] = x
+        CHOICES[x] = visible_names[choice_idx]
+        
+        choice_idx += 1
+            
+    return max_length, ENUM, CHOICES

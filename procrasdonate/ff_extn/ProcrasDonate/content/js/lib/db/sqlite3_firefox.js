@@ -146,6 +146,9 @@ var Model = function(db, name, opts, instance_opts, class_opts) {
 	
 	//this.row_factory = RowFactory(this.columns);
 	this.row_factory = make_row_factory(this.columns, this.instance_opts);
+	
+	// this allows us to call class methods directly on the model
+	_extend(this, this.class_opts);
 };
 
 Model.prototype = {};
@@ -460,6 +463,12 @@ _extend(Model, {
 	},
 });
 
+/*
+ * @param prototype: instance_opts.
+ * This allows us to retrieve a row using select or get_or_null
+ * and then call instance methods or fields (columns) directly
+ * on the row.
+ */
 function make_row_factory(columns, prototype) {
 	var Factory = function(values) {
 		this._values = values;

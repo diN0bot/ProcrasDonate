@@ -124,24 +124,15 @@ _extend(Controller.prototype, {
 			// remove start now button
 			request.jQuery("#StartButtonDiv").remove();
 			break;
-		case constants.RESET_STATE_URL:
-			this.reset_state_to_defaults();
-			//this.reset_account_to_defaults();
+
+		case constants.MANUAL_TEST_SUITE_URL:
+			this.manual_test_suite(request);
 			break;
-		case constants.ON_INSTALL_URL:
-			this.initialize_state();
+		case constants.AUTOMATIC_TEST_SUITE_URL:
+			this.automatic_test_suite(request);
 			break;
-		case constants.ADD_RANDOM_VISITS_URL:
-			this.add_random_visits();
-			break;
-		case constants.TRIGGER_DAILY_CYCLE_URL:
-			this.trigger_daily_cycle();
-			break;
-		case constants.TRIGGER_WEEKLY_CYCLE_URL:
-			this.trigger_weekly_cycle();
-			break;
-		case constants.TEST_SUITE_URL:
-			this.test_suite(request);
+		case constants.AUTHORIZE_PAYMENTS:
+			this.authorize_payments(request);
 			break;
 		default:
 			//return false;
@@ -339,33 +330,102 @@ _extend(Controller.prototype, {
 		            ];
 		for (var i = 0; i < urls.length; i++) {
 			this.pddb.store_visit(urls[i], _dbify_date(start), duration);
-			logger("the gobble start ="+start);
+			logger("add random visits ="+start);
 			start.setMinutes( start.getMinutes() + 10 );
 		}
 	},
-	
+
+	///
+	/// Triggers daily cycle. Does not reset 24hr period state.
+	///
 	trigger_daily_cycle: function() {
 		logger("triggering daily cycle...");
-		// save time so will resend all information.
-		var t = this.prefs.get('last_total_time_sent_to_pd', '');
-		var p = this.prefs.get('last_paid_tipjoy_id_sent_to_pd', '');
-		
 		this.pddb.schedule.do_once_daily_tasks();
-		
-		this.prefs.set('last_total_time_sent_to_pd', t);
-		this.prefs.set('last_paid_tipjoy_id_sent_to_pd', p);
-		
 		logger("...daily cycle done");
 	},
 	
+	///
+	/// Triggers weekly cycle. Does not reset weekly period state.
+	///
 	trigger_weekly_cycle: function() {
 		logger("triggering weekly cycle...");
 		this.pddb.schedule.do_once_weekly_tasks();
 		logger("...weekly cycle done");
 	},
 	
-	test_suite: function(request) {
+	///
+	/// Triggers payment. Does not reset payment period.
+	///
+	trigger_make_payment: function() {
+		this.pddb.schedule.do_make_payment();
+	},
+	
+	///
+	/// Triggers settle debt. Does not reset settle debt period.
+	///
+	trigger_settle_debt: function() {
+		this.pddb.schedule.do_settle_debt();
+	},
+	
+	_caldddl_: function(request, event) {
+		var self = this;
+		return function() {
+			self[event](request);
+		}
+	},
+	
+	manual_test_suite: function(request) {
+		this.pddb.orthogonals.info("test", "testing...1...2...3...");
 		
+		this.pddb.orthogonals.warn("test", "testing...1...2...3...");
+		
+		this.pddb.orthogonals.UserStudy("test", "testing...1...2...3...", 22);
+		
+		var actions = ["trigger_daily_cycle",
+		               "trigger_weekly_cycle",
+		               "trigger_make_payment",
+		               "trigger_settle_debt",
+		               "reset_state_to_defaults",
+		               "reset_account_to_defaults",
+		               "initialize_state",
+		               "add_random_visits"];
+		var html = Template.get("manual_test_suite").render(new Context({
+			actions: actions
+		}));
+		request.jQuery("#content").append( html );
+
+		var self = this;
+		for (var i = 0; i < actions.length; i++) {
+			var action = actions[i];
+			request.jQuery("#"+action).click(
+				// closure to call self[action].
+				// extra function needed to provide appropriate 'this'
+				(function(a) { return function() {
+					self[a]();
+				}})(action)
+				//// the above code is complicated to remember, anyway.
+				//self._self_fn(action);
+			);
+		}
+	},
+	
+	///
+	/// wanted to use this instead of above, but kept getting errors on
+	///     self._self_fn(action)
+	/// said missing closing ")" ?!
+	/// wanted to use apply so could be used for _proceed as well
+	///
+	_self_fn: function(fnname) {
+		var self = this;
+		return function() {
+			//self[fnname].apply(self, args);
+			//self[fname](request);
+			//self[event](request);
+			logger("inside _self_fn for "+fnname);
+		};
+	},
+	
+	automatic_test_suite: function(request) {
 		var testrunner = new TestRunner(request);
 
 		// run some tests
@@ -395,6 +455,56 @@ _extend(Controller.prototype, {
 			}
 		}
 		display.test_done(testrunner);
+		
+		//window.fireunit.ok(true, "it worked!");
+		//window.fireunit.testDone();
+	},
+	
+	authorize_payments: function(request) {
+		// tokenID for paying recipient: 25TKV9S9NP3C6CKDLSA257BQIZNFUDUHH8JN3MJU4FT961GPVB727QQNXXYJYVR6
+		
+		var access_key = "AKIAJJLNG522TJTSX7KQ";
+		var secret_key = "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";
+		var url = "https://authorize.payments-sandbox.amazon.com/cobranded-ui/actions/start";
+		
+		var query = {
+			pipelineName: "SetupPostpaid", 
+		    returnURL: "http://google.com",
+		    callerKey: access_key,
+		    callerReferenceSettlement: "234098e097",
+		    callerReferenceSender: "SenderName_uniquestring", 
+		    globalAmountLimit: "100.00",
+		    creditLimit: "100.00",
+		    version: "2009-01-09",
+		    //Timestamp: getNowTimeStamp(),
+		};
+		query = signaturize_query(query, secret_key);
+		
+		// turn into pairs for template
+		var pairs = [];
+		var hack_html = "";
+		for ( var name in query ) {
+			pairs.push( { name: name, value: query[name] } );
+			hack_html += "<input type=\"hidden\" name=\""+name+"\" value=\"" + query[name]+"\"/>\n";
+		}
+		var html = Template.get("authorize_payments").render(new Context({
+			action_url: url,
+			parameter_pairs: pairs,
+			hack_html: hack_html,
+			constants: constants,
+		}));
+		
+		request.jQuery("#content").append( html );
+		
+		/*
+		 * returns
+		 * signature: aoQlKSFSTT37LZr5CImx2ef2tJA%3D
+		 * expiry: 02%2F2015
+		 * settlementTokenID: I29F87GM39883XSHVB9T7AZEPXMKL2OJ6PZKGESUAABTB9J4H7XDGV9BFIK6GPW5
+		 * status: SC
+		 * creditSenderTokenID: I49FM7EM3U863XCH7B9P7FZE7XPKLNON6P4K2ESZA5BTF9H4H5XRGVNB8IKTGLWE
+		 * creditInstrumentID: I39F27JM3A8N3XIHMB9L7SZELXMKL4OC6PZKGESJAVBT49C4HGX4GVXBEIKLGEWV
+		 */
 	}
 });
 
@@ -407,9 +517,19 @@ _extend(Schedule.prototype, {
 	run: function() {
 		if ( this.is_new_24hr_period() ) {
 			this.do_once_daily_tasks();
+			this.reset_24hr_period();
 		}
 		if ( this.is_new_week_period() ) {
 			this.do_once_weekly_tasks();
+			this.reset_week_period();
+		}
+		if ( this.is_time_to_make_payment() ) {
+			this.do_make_payment();
+			this.reset_make_payment_period();
+		}
+		if ( this.is_time_to_settle_debt() ) {
+			this.do_settle_debt();
+			this.reset_settle_debt_period();
 		}
 	},
 	
@@ -424,29 +544,16 @@ _extend(Schedule.prototype, {
 	do_once_daily_tasks: function() {
 		var self = this;
 		
-		// 1. Send all new Payments to TJ: no tipjoy id
-		// 2. Send all new Totals to PD: more recent time than 'last_total_time_sent_to_pd'
-		// 3. Ask TJ for newly paid transactions: ask for xactions since 'last_paid_tipjoy_id', iterate until pledges. set 'last_paid_tipjoy_id'
-		// 4. Send newly paid transactions to PD: iterate 'last_paid_tipjoy_id_sent_to_pd' until pledges
-
-		// 1.
-		if (this.pddb.controller.registration_complete()) {
-			this.pddb.page.tipjoy.send_new_payments(this.pddb);
-		}
-			
-		// 2.
-		this.pddb.page.pd_api.send_new_totals(this.pddb);
-			
-		// 3.
-		if (this.pddb.controller.registration_complete()) {
-			this.pddb.page.tipjoy.update_pledges(this.pddb);
-		}
-			
-		// 4.
-		if (this.pddb.controller.registration_complete()) {
-			this.pddb.page.pd_api.send_new_paid_pledges(this.pddb);
-		}
-		
+		// Send data to server:
+		//    Log, UserStudy, Payment, Total
+		//    (more recent than time_last_sent_KlassName)
+		this.pddb.page.pd_api.send_totals();
+		//this.pddb.page.pd_api.send_logs();
+		//this.pddb.page.pd_api.send_payments();
+		//this.pddb.page.pd_api.send_user_studies();
+	},
+	
+	reset_24hr_period: function() {
 		// reset last_24hr_mark to now
 		var two_four_hr = _un_dbify_date(this.prefs.get('last_24hr_mark', 0));
 		var new_two_four_hr = new Date();
@@ -459,7 +566,7 @@ _extend(Schedule.prototype, {
 			new_two_four_hr.setDate( now.getDate() - 1 );
 		}
 		this.prefs.set('last_24hr_mark', _dbify_date( new_two_four_hr ));
-		//alert("ding! last 24hr "+two_four_hr+" new 24hr "+now+"  now  "+new Date());
+		//alert("ding! last 24hr "+two_four_hr+" new 24hr "+now+"  now  "+new Date());	
 	},
 	
 	is_new_week_period: function() {
@@ -471,6 +578,11 @@ _extend(Schedule.prototype, {
 	},
 	
 	do_once_weekly_tasks: function() {
+		// send regular email
+		this.pddb.page.pd_api.send_regular_email();
+	},
+	
+	reset_week_period: function() {
 		// reset last_week_mark to now
 		var week_hr = new Date(this.prefs.get('last_week_mark', 0)*1000);
 		var now = new Date();
@@ -482,6 +594,38 @@ _extend(Schedule.prototype, {
 		}
 		this.prefs.set('last_week_mark', Math.floor(now.getTime()/1000));
 		//alert("ding! last week "+week_hr+" new week "+now+"  now  "+new Date());
+	},
+	
+	is_time_to_make_payment: function() {
+		return false;
+	},
+	
+	do_make_payment: function() {
+		this.pddb.page.pd_api.make_payment(function(r) {
+			// onload
+		}, function(r) {
+			// onerror
+		});
+	},
+	
+	reset_make_payment_period: function() {
+		
+	},
+		
+	is_time_to_settle_debt: function() {
+		return false;
+	},
+
+	do_settle_debt: function() {
+		this.pddb.page.pd_api.settle_debt(function(r) {
+			// onload
+		}, function(r) {
+			// onerror
+		});
+	},
+	
+	reset_settle_debt_period: function() {
+		
 	},
 });
 
@@ -591,6 +735,9 @@ _extend(PageController.prototype, {
 			request.jQuery("#content").html( this.settings_wrapper_snippet(request, middle) );
 		}
 		
+		//@TODO see idea from "process_twitter_account"
+		return true;
+		
 		this.tipjoy.check_balance(
 			this.prefs.get("twitter_username", false),
 			this.prefs.get("twitter_password", false),
@@ -684,9 +831,15 @@ _extend(PageController.prototype, {
 		this.prefs.set('register_state', 'done');
 		var unsafeWin = request.get_unsafeContentWin();//event.target.defaultView;
 		if (unsafeWin.wrappedJSObject) {
+			// raises: [Exception... "Illegal value" nsresult: "0x80070057
+			// (NS_ERROR_ILLEGAL_VALUE)" location: "JS frame :: 
+			// chrome://procrasdonate/content/js/views.js :: anonymous :: line 828" data: no]
 			unsafeWin = unsafeWin.wrappedJSObject;
 		}
 		
+		// raises [Exception... "Illegal value" nsresult: "0x80070057 
+		// (NS_ERROR_ILLEGAL_VALUE)" location: "JS frame :: 
+		// chrome://procrasdonate/content/js/views.js :: anonymous :: line 834" data: no]
 		new XPCNativeWrapper(unsafeWin, "location").location = constants.IMPACT_URL;
 	},
 	
@@ -1384,6 +1537,7 @@ _extend(PageController.prototype, {
 		if (email) {
 			old_email = this.prefs.get("email", "");
 			if (email != old_email) {
+				// @TODO: use onload to know if email succeeded. if wrong email address, alert user.
 				this.pd_api.send_welcome_email(email);
 			}
 		}
@@ -1398,6 +1552,12 @@ _extend(PageController.prototype, {
 		} else {
 			this.prefs.set("tos", true);
 		}
+
+		/**** no more twitter tipjoy stuff ****/
+		// @TODO no longer using tipjoy. needs to be redesigned.
+		// idea: "Twitter" tab holds only TOS and optional email.
+		//       "Balance" holds 'authorize payments' amazon FPS links
+		return true;
 		
 		var twitter_username = request.jQuery("input[name='twitter_username']").attr("value");
 		var twitter_password = request.jQuery("input[name='twitter_password']").attr("value");
@@ -1606,7 +1766,7 @@ _extend(PageController.prototype, {
 				var tab_state = state_enums[i];
 				if ( self.prefs.get(state_name+"_state", "") == tab_state ) {
 					var processor = processors[i];
-					logger(processor);
+					logger("PROCESS_BEFORE_PROCEEDING: "+processor);
 					//logger(self[processor]);
 					var ret = self[processor](request, event);
 					logger(" actual ret="+ret+" typeof="+typeof(ret));
@@ -1620,11 +1780,18 @@ _extend(PageController.prototype, {
 		}
 	},
 	
-	_proceed: function(request, event) {
+	/// necessary because when did direct closure
+	/* .click(
+	 *     (function(event) { return event; })(self[event])
+	 * )
+	 * called functions had incorrect this
+	 */
+	_proceed: function(event, request) {
 		var self = this;
 		return function() {
-			self[event](request);
-		}
+			//self[fnname].apply(self, args);
+			//self[event](request);
+		};
 	},
 	
 	activate_settings_tab_events: function(request) {
@@ -1661,7 +1828,7 @@ _extend(PageController.prototype, {
 			// closure
 			request.jQuery("#"+tab_state+"_track, #"+tab_state+"_text").click(
 				//(function(event) { return event; })(self[event])
-				this._proceed(request, event)
+				this._proceed(event, request)
 			);
 		}
 		// cursor pointer to tracks
@@ -1716,7 +1883,6 @@ _extend(PageController.prototype, {
 		});
 	},
 	
-	/************************** IMPACT INSERTIONS ***********************/
 	
 	insert_register_twitter_account: function(request) {
 		/* Inserts user's twitter account form into page */
@@ -1727,6 +1893,8 @@ _extend(PageController.prototype, {
 		this.activate_register_tab_events(request);
 		this.activate_twitter_account_middle(request);
 	},
+	
+	/************************** IMPACT INSERTIONS ***********************/
 	
 	activate_impact_middle: function(request, has_tags) {
 		var self = this;
@@ -1984,7 +2152,7 @@ _extend(PageController.prototype, {
 		this.pddb.Total.select({
 			timetype_id: timetype.id,
 			contenttype_id: contenttype.id,
-			time: time
+			datetime: time
 		}, function(row) {
 			logger("      row="+row);
 			var total = 0;

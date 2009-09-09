@@ -1,14 +1,5 @@
 var STORE_VISIT_LOGGING = false;
 
-logger = function(msg) {
-	dump("---------\n" + msg + "\n");
-	try {
-		//logger.FAIL();
-	} catch (e) {
-		dump(e.stack);
-	}
-};
-
 var ProcrasDonate__UUID="extension@procrasdonate.com";
 
 
@@ -477,15 +468,16 @@ var PDDB = function PDDB() {
 	this.controller = new Controller(this.prefs, this);
 	this.page = new PageController(this.prefs, this);
 	this.schedule = new Schedule(this.prefs, this);
+	this.orthogonals = new Orthogonals(this.prefs, this);
 };
 
 PDDB.prototype = {
 	init_db: function() {
 		//logger("PDDB.init_db()");
 		var db = new Backend__Firefox();
-		db.connect("test011.sqlite");
+		db.connect("test012.sqlite");
 		this.db = db;
-		this.models = load_models(db);
+		this.models = load_models(db, this);
 		
 		var self = this;
 		_iterate(this.models, function(name, model) {
@@ -990,7 +982,11 @@ PDDB.prototype = {
 			var host = _host(url);
 			var sitegroup = this.SiteGroup.get_or_null({ host: host });
 			if (!sitegroup) {
-				sitegroup = this.SiteGroup.create({ name: host, host: host });
+				sitegroup = this.SiteGroup.create({
+					name: host,
+					host: host,
+					tag_id: this.Unsorted.id
+				});
 			}
 			site = this.Site.create({ url: url, sitegroup_id: sitegroup.id });
 			if (STORE_VISIT_LOGGING) logger("store created "+site);
@@ -1007,15 +1003,11 @@ PDDB.prototype = {
 		this.update_totals(site, visit);
 	},
 		
-	update_totals: function(site, visit, tag) {
+	update_totals: function(site, visit) {
 		var self = this;
 		
-		var sitegroup = this.SiteGroup.get_or_null({ id: site.sitegroup_id });
-		var tag = this.Tag.get_or_null({ id: sitegroup.tag_id });
-		if (!tag) {
-			tag = this.Unsorted;
-			this.SiteGroup.set({ tag_id: tag.id }, { id: sitegroup.id });
-		}
+		var sitegroup = site.sitegroup();
+		var tag = site.tag();
 		
 		var pd_recipient = this.Recipient.get_or_null({ twitter_name: "ProcrasDonate" });
 		var pd_recipientpercent = this.RecipientPercent.get_or_null({ recipient_id: pd_recipient.id });
@@ -1034,7 +1026,7 @@ PDDB.prototype = {
 		
 		var time_delta = parseInt(visit.duration);
 		var limited_time_delta = time_delta;
-		/// A total's total_time is always accurage on how much time a user spent
+		/// A total's total_time is always aggregated on how much time a user spent
 		/// on a site. However, the total_amount maxes out when the user's limit
 		/// is reached.
 		if ( tag.id != this.Unsorted.id ) {
@@ -1156,7 +1148,7 @@ PDDB.prototype = {
 				var total = this.Total.get_or_create({
 					contenttype_id: contenttype.id,
 					content_id: content.id,
-					time: times[i],
+					datetime: times[i],
 					timetype_id: timetypes[i].id
 				}, {
 					total_time: 0,
@@ -1176,14 +1168,13 @@ PDDB.prototype = {
 				if (STORE_VISIT_LOGGING) total = this.Total.get_or_null({ id: total.id });
 				if (STORE_VISIT_LOGGING) logger("poiu..updated total="+total);
 				
-				if ( contenttype.modelname == "Tag" &&
-					 timetypes[i].id == self.Daily.id &&
-					 tag.id != self.Unsorted.id ) {
-					
-					this.Payment.get_or_create({
+				if ( contenttype.modelname == "Recipient" &&
+					 timetypes[i].id == self.Daily.id ) {
+
+					this.RequiresPayment.get_or_create({
 						total_id: total.id
 					}, {
-						tipjoy_transaction_id: 0,
+						partially_paid: _dbify_bool(true)
 					});
 				}
 			}
@@ -1212,7 +1203,7 @@ PDDB.prototype = {
 		var total = this.Total.get_or_null({
 			contenttype_id: contenttype.id,
 			content_id: tag.id,
-			time: end_of_week,
+			datetime: end_of_week,
 			timetype_id: self.Weekly.id
 		});
 		if ( total ) {
@@ -1243,5 +1234,61 @@ PDDB.prototype = {
 		return time_delta;
 	}
 };
+
+var Orthogonals = function Orthogonals(prefs, pddb) {
+	this.prefs = prefs;
+	this.pddb = pddb;
+};
+Orthogonals.prototype = {
+	_record: function(type, detail_type, msg) {
+		this.pddb.Log.create({
+			datetime: _dbify_date(new Date()),
+			type: type,
+			detail_type: detail_type,
+			message: msg
+		});
+		logger("Orthogonal."+type+" ("+detail_type+"): "+msg);
+	},
+	
+	info: function(detail_type, msg) {
+		this._record("INFO", detail_type, msg);
+	},
+	
+	debug: function(detail_type, msg) {
+		this._record("DEBUG", detail_type, msg);
+	},
+	
+	log: function(detail_type, msg) {
+		this._record("LOG", detail_type, msg);
+	},
+	
+	warn: function(detail_type, msg) {
+		this._record("WARN", detail_type, msg);
+	},
+	
+	error: function(detail_type, msg) {
+		this._record("ERROR", detail_type, msg);
+		try {
+			this.FAIL(); // we expect this to fail because we haven't defined a FAIL property!
+		} catch (e) {
+			logger("Orthogonals ERROR: "+detail_type+": "+msg+"\n"+e.stack);
+		}
+		throw "Orthogonals ERROR: "+detail_type+": "+msg
+	},
+	
+	UserStudy: function(type, msg, quant) {
+		/*
+		 * @param quant: some quantity (float)
+		 */
+		this.pddb.UserStudy.create({
+			datetime: _dbify_date(new Date()),
+			type: type,
+			message: msg,
+			quant: quant
+		});
+		logger("Orthogonal.UserStudy"+type+": "+msg+" ("+quant+")");
+	}
+	
+}
 
 var myOverlay = new Overlay();

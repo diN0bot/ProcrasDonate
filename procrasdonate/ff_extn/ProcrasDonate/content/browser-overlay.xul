@@ -25,11 +25,18 @@
             src='chrome://ProcrasDonate/content/js/ext/xmlhttprequester.js'></script>
     <script type='application/x-javascript'
             src='chrome://ProcrasDonate/content/js/ext/prefman.js'></script>
+    <script type='application/x-javascript'
+            src='chrome://ProcrasDonate/content/js/ext/jssha2/sha2.js'></script>
+    <script type='application/x-javascript'
+            src='chrome://ProcrasDonate/content/js/ext/jssha2/sha256.js'></script>
     
     <!-- Basic utils
       -->
     <script type='application/x-javascript'
             src='chrome://ProcrasDonate/content/js/lib/utils.js'></script>
+    
+    <!--<script type='application/x-javascript'
+            src='chrome://ProcrasDonate/content/js/lib/fps.js'></script>-->
 
     <script type='application/x-javascript' 
             src='chrome://ProcrasDonate/content/js/lib/testrunner_display.js'></script>

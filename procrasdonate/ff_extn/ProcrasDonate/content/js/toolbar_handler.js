@@ -167,13 +167,13 @@ _extend(PD_ToolbarManager.prototype, {
 			var pd_total = this.pddb.Total.get_or_null({
 				contenttype_id: tag_content_type.id,
 				content_id: this.pddb.ProcrasDonate.id,
-				time: _dbify_date(_end_of_week()),
+				datetime: _dbify_date(_end_of_week()),
 				timetype_id: this.pddb.Weekly.id
 			});
 			var tws_total = this.pddb.Total.get_or_null({
 				contenttype_id: tag_content_type.id,
 				content_id: this.pddb.TimeWellSpent.id,
-				time: _dbify_date(_end_of_week()),
+				datetime: _dbify_date(_end_of_week()),
 				timetype_id: this.pddb.Weekly.id
 			});
 			logger("yyyyy "+this.pddb.TimeWellSpent+"     "+tws_total);

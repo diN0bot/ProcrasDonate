@@ -14,8 +14,6 @@ var constants = {};
 	
 	constants.PROCRASDONATE_URL = '/';
 	constants.REGISTER_URL = '/register/';
-	constants.AFTER_INSTALL_URL = '/after_install/';
-	constants.AFTER_UPGRADE_URL = '/after_upgrade/';
 	constants.HOME_URL = '/home/';
 	constants.LEARN_URL = '/learn_more/';
 	constants.IMPACT_URL = '/my_impact/';
@@ -27,18 +25,19 @@ var constants = {};
 	constants.PRIVACY_URL = '/privacy_guarantee/';
 	constants.RECIPIENTS_URL = '/recipients';
 	
-	constants.POST_EMAIL_URL = '/post/email/';
-	constants.POST_TOTALS_URL = '/post/totals/';
-	constants.POST_PAYMENTS_URL = '/post/payments/';
+	constants.AUTHORIZE_PAYMENTS = '/fps/authorize_payments/';
+	
+	constants.SEND_WELCOME_EMAIL_URL = '/post/welcome_email/';
+	constants.SEND_REGULAR_EMAIL_URL = '/post/regular_email/';
+	constants.SEND_DATA_URL = '/post/data/';
 	
 	constants.ON_INSTALL_URL = '/on_install/';
+	constants.AFTER_INSTALL_URL = '/after_install/';
+	constants.AFTER_UPGRADE_URL = '/after_upgrade/';
 	
-	// used for development testing
-	constants.TEST_SUITE_URL = '/test_suite/';
-	constants.RESET_STATE_URL = '/reset_state/';
-	constants.ADD_RANDOM_VISITS_URL = '/add_random_visits/';
-	constants.TRIGGER_DAILY_CYCLE_URL = '/trigger_daily_cycle/';
-	constants.TRIGGER_WEEKLY_CYCLE_URL = '/trigger_weekly_cycle/';
+	// used for development and testing
+	constants.MANUAL_TEST_SUITE_URL = '/dev/manual_test_suite/';
+	constants.AUTOMATIC_TEST_SUITE_URL = '/dev/automatic_test_suite/';
 
 	// enumeration of settings page state
 	constants.SETTINGS_STATE_ENUM = [
