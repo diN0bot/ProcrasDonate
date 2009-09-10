@@ -125,7 +125,7 @@ _extend(Field.prototype, {
 
 var Model = function(db, name, opts, instance_opts, class_opts) {
 	// Usage:
-	// var Site = new Model({
+	// var Site = new Model(db, "Site", {
 	//     columns: {
 	//         id: "INTEGER",
 	//         site_id: "INTEGER",
@@ -481,7 +481,49 @@ function make_row_factory(columns, prototype) {
 				ret.push(name + "=" + self[name]);
 			});
 			return ret.join(", ");
-		}
+		},
+		
+		/**
+		 * Dumb default deep dict.
+		 * Problems:
+		 *    1. Isn't deep at all. <foo>_id aren't retrieved
+		 *       (even if they were, contenttype ones would have to be smarter
+		 *    2. Doesn't use _un_dbify anything
+		 *       (options are _un_dbify_bool() and _un_dbify_date() on values
+		 */
+		deep_dict: function() {
+			var self = this;
+			var ret = {};
+			_iterate(columns, function(name, value, i) {
+				/*
+				 * could automatically make <foo>_id deep but,
+				 * meh.
+				var l = name.length;
+				if (name.substr(l-3,3) == "_id") {
+					// fetch the item from its table
+					var noid_name = name.substr(0,l-3);
+					ret[] = 
+					do a reverse lookup in ContentTypes table (have to lower case)
+				} else {
+					ret[name] = self[name];
+				}
+				*/
+				var v = self[name];
+				/*
+				 * hmmm but how do we do date?'
+				 * #@TODO also, we want to do this for all row.foo calls
+				if (value == "INTEGER" || value == "INTEGER PRIMARY KEY") {
+					v = parseInt(v);
+				} else if (value == "REAL") {
+					v = parseFloat(v);
+				} else if (value == "BOOL") {
+					v = _un_dbify_bool(v);
+				}
+				*/
+				ret[name] = v;
+			});
+			return ret;
+		},
 	};
 	
 	_iterate(columns, function(name, type, i) {

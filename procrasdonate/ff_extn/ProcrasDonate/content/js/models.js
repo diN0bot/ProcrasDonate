@@ -1,4 +1,13 @@
-
+/*
+ * deep_dict: returns dictionary of fields 
+ *   fetches <foo>_id fields via deep_dict()
+ *   flattens some fields, eg <foo>.tag() returns tag.tag string
+ *   calls _un_dbify_bool, _un_dbify_date, parseInt and parseFloat as appropriate
+ *     (#@TODO would be nice to make the getting and setting of fields automatic.
+ *         tricky part is handling dates v INTEGER correctly)
+ *   
+ * deep field instance methods never flatten. thus, <foo>() always returns a row factory
+ */
 
 function load_models(db, pddb) {
 	
@@ -14,23 +23,16 @@ function load_models(db, pddb) {
 		indexes: []
 	}, {
 		// Instance methods
-		tag: function(notrequired) {
+		tag: function() {
 			// we expect a site to always have a tag (via its sitegroup)
 			var sitegroup = this.sitegroup();
-			var tag = Tag.get_or_null({ id: sitegroup.tag_id })
-			if (!tag) {
-				if (notrequired) {
-					return null;
-				} else {
-					pddb.orthogonals.error("no Tag found for site = "+this);
-				}
-			}
-			return tag
+			return sitegroup.tag();
 		},
 		
 		sitegroup: function(notrequired) {
 			// we expect a site to always have a sitegroup
-			var sitegroup = SiteGroup.get_or_null({ 'id': this.sitegroup_id });
+			var self = this;
+			var sitegroup = SiteGroup.get_or_null({ 'id': self.sitegroup_id });
 			if (!sitegroup) {
 				if (notrequired) {
 					return null;
@@ -39,13 +41,18 @@ function load_models(db, pddb) {
 				}
 			}
 			return sitegroup;
+		},
+		
+		deep_dict: function() {
+			return {
+				sitegroup: this.sitegroup().deep_dict(),
+				url: this.url,
+				tag: this.tag().tag
+			}
 		}
 		
 	}, {
 		// Model-class methods
-		stest: function() {
-			alert("stest success!");
-		}
 	});
 	
 	var SiteGroup = new Model(db, "SiteGroup", {
@@ -59,6 +66,28 @@ function load_models(db, pddb) {
 			tag_id: "INTEGER"
 		},
 		indexes: []
+	}, {
+		// instance methods
+		tag: function() {
+			// we expect a site to always have a tag (via its sitegroup)
+			var self = this;
+			var tag = Tag.get_or_null({ id: self.tag_id })
+			if (!tag) {
+				pddb.orthogonals.error("no Tag found for sitegroup = "+this);
+			}
+			return tag
+		},
+		
+		deep_dict: function() {
+			return {
+				name: this.name,
+				host: this.host,
+				url_re: this.url_re,
+				tag: this.tag().tag
+			}
+		}
+	}, {
+		// class methods
 	});
 	
 	var Recipient = new Model(db, "Recipient", {
@@ -76,6 +105,32 @@ function load_models(db, pddb) {
 			is_visible: "INTEGER" // boolean 0=false
 		},
 		indexes: []
+	}, {
+		// instance methods
+		category: function() {
+			// we expect a site to always have a tag (via its sitegroup)
+			var self = this;
+			var category = Category.get_or_null({ id: self.category_id })
+			if (!category) {
+				pddb.orthogonals.error("no Category found for recipient = "+this);
+			}
+			return category
+		},
+		
+		deep_dict: function() {
+			return {
+				name: this.name,
+				twitter_name: this.twitter_name,
+				mission: this.mission,
+				description: this.description,
+				url: this.url,
+				email: this.email,
+				category: this.category().category,
+				is_visible: _un_dbify_bool(this.is_visible)
+			}
+		}
+	}, {
+		// class methods
 	});
 	
 	// recipient has 1 category
@@ -87,6 +142,10 @@ function load_models(db, pddb) {
 			category: "VARCHAR"
 		},
 		indexes: []
+	}, {
+		// instance methods
+	}, {
+		// class methods
 	});
 	
 	var RecipientPercent = new Model(db, "RecipientPercent", {
@@ -98,6 +157,26 @@ function load_models(db, pddb) {
 			percent: "REAL"
 		},
 		indexes: []
+	}, {
+		// instance methods
+		recipient: function() {
+			// we expect a RecipientPercent to always have a recipient
+			var self = this;
+			var recipient = RecipientPercent.get_or_null({ id: self.recipient_id })
+			if (!recipient) {
+				pddb.orthogonals.error("no Recipient found for recipientpercent = "+this);
+			}
+			return recipient
+		},
+		
+		deep_dict: function() {
+			return {
+				recipient: this.recipient().deep_dict(),
+				percent: parseFloat(this.percent),
+			}
+		}
+	}, {
+		// class methods
 	});
 	
 	// sitegroup has 1 tag
@@ -109,6 +188,10 @@ function load_models(db, pddb) {
 			tag: "VARCHAR"
 		},
 		indexes: []
+	}, {
+		// instance methods
+	}, {
+		// class methods
 	});
 	
 	/*
@@ -134,6 +217,26 @@ function load_models(db, pddb) {
 			duration: "INTEGER", //seconds
 		},
 		indexes: []
+	}, {
+		site: function() {
+			// we expect a Visit to always have a site
+			var self = this;
+			var site = Site.get_or_null({ id: self.site_id })
+			if (!site) {
+				pddb.orthogonals.error("no Site found for visit = "+this);
+			}
+			return site
+		},
+		
+		deep_dict: function() {
+			return {
+				site: this.site().deep_dict(),
+				enter_at: _un_dbify_date(this.enter_at),
+				duration: parseInt(this.duration)
+			}
+		}
+	}, {
+		// class methods
 	});
 	
 	// Aggregates visits in different ways
@@ -160,24 +263,88 @@ function load_models(db, pddb) {
 	}, {
 		// instance methods
 		contenttype: function() {
+			// all Totals have a contenttype
+			var self = this;
+			var contenttype = pddb.ContentType.get_or_null({ id: self.contenttype_id });
+			if (!contenttype) {
+				pddb.orthogonals.error("no contenttype found for total = "+this);
+			}
+			return contenttype
+		},
+		
+		content: function() {
+			// all Totals have a content
+			var self = this;
+			var content = pddb[this.contenttype().modelname].get_or_null({ id: self.content_id });
+			if (!content) {
+				pddb.orthogonals.error("no content found for total = "+this);
+			}
+			return content
 		},
 		
 		recipient: function() {
+			// @returns Recipient row factory or null if not Recipient contenttype
+			if (this.contenttype() == "Recipient") {
+				return this.content();
+			}
+			return null;
 		},
 		
 		site: function() {
+			// @returns Site row factory or null if not Site contenttype
+			if (this.contenttype() == "Site") {
+				return this.content();
+			}
+			return null;
 		},
 		
 		sitegroup: function() {
+			// @returns SiteGroup row factory or null if not SiteGroup contenttype
+			if (this.contenttype() == "SiteGroup") {
+				return this.content();
+			}
+			return null;
 		}, 
 		
 		tag: function() {
+			// @returns Tag row factory or null if not Tag contenttype
+			if (this.contenttype() == "Tag") {
+				return this.content();
+			}
+			return null;
 		},
 		
 		timetype: function() {
+			// all Totals have a timetype
+			var self = this;
+			var timetype = pddb.TimeType.get_or_null({ id: self.timetype_id });
+			if (!timetype) {
+				pddb.orthogonals.error("no timetype found for total = "+this);
+			}
+			return timetype
+		},
+		
+		_payments: function(deep_dictify) {
+			// Totals may have Payments
+			// @returns list of Payment row factories
+			var self = this;
+			var payments = [];
+			pddb.PaymentTotalTagging.select({ total_id: self.id }, function(row) {
+				if (deep_dictify) {
+					payments.push(row.payment().deep_dict());
+				} else {
+					payments.push(row.payment());
+				}
+			});
+			return payments
 		},
 		
 		payments: function() {
+			return this._payments(false);
+		},
+		
+		payment_dicts: function() {
+			return this._payments(true);
 		},
 		
 		deep_row: function() {
@@ -188,77 +355,15 @@ function load_models(db, pddb) {
 			 * Extracts foreign keys.
 			 * @return dictionary, not a row factory
 			 */
-			var contenttype = self.pddb.ContentType.get_or_null({ id: row.contenttype_id });
-			var recipient = null;
-			var recipient_category = null;
-			var site = null;
-			var site_sitegroup = null;
-			var site_tag = null;
-			var sitegroup = null;
-			var sitegroup_tag = null;
-			var tag = null;
-			if (contenttype.modelname == "Site") {
-				site = self.pddb.Site.get_or_null({ id: row.content_id });
-				site_sitegroup = self.pddb.SiteGroup.get_or_null({ id: site.sitegroup_id });
-				site_tag = self.pddb.Tag.get_or_null({ id: site_sitegroup.tag_id });
-			} else if (contenttype.modelname == "Recipient") {
-				recipient = self.pddb.Recipient.get_or_null({ id: row.content_id });
-				recipient_category = self.pddb.Category.get_or_null({ id: recipient.category_id });
-			} else if (contenttype.modelname == "SiteGroup") {
-				sitegroup = self.pddb.SiteGroup.get_or_null({ id: row.content_id });
-				sitegroup_tag = self.pddb.Tag.get_or_null({ id: sitegroup.tag_id });
-			} else if (contenttype.modelname == "Tag") {
-				tag = self.pddb.Tag.get_or_null({ id: row.content_id });
-				if (tag.tag == "ProcrasDonate") {
-					pd_tag_total = row;
-				} else if (tag.tag == "TimeWellSpent") {
-					tws_tag_total = row;
-				}
+			return {
+				contenttype: this.contenttype().modelname,
+				content: this.content().deep_dict(),
+				total_time: parseInt(this.total_time),
+				total_amount: parseFloat(this.total_amount),
+				datetime: parseInt(this.datetime),
+				timetype: this.timetype(),
+				payments: this.payment_dicts()
 			}
-			var total_data = {
-				total_time: row.total_time,
-				total_amount: row.total_amount,
-				datetime: _date_to_http_format( _un_dbify_date( row.datetime ) )
-			};
-			if (recipient) {
-				var category = "Uncategorized";
-				if (recipient_category) {
-					category = recipient_category.category;
-				}
-				total_data.recipient = {
-					id: recipient.id,
-					twitter_name: recipient.twitter_name,
-					url: recipient.url,
-					name: recipient.name,
-					mission: recipient.mission,
-					description: recipient.description,
-					category: category
-				}
-			}
-			else if (site) {
-				total_data.site = {
-					id: site.id,
-					url: site.url,
-					url_re: site_sitegroup.url_re,
-					name: site_sitegroup.name,
-					host: site_sitegroup.host,
-					tag: site_tag.tag
-				}
-			} else if (sitegroup) {
-				total_data.sitegroup = {
-					id: sitegroup.id,
-					url_re: sitegroup.url_re,
-					name: sitegroup.name,
-					host: sitegroup.host,
-					tag: sitegroup_tag.tag
-				}
-			} else if (tag) {
-				total_data.tag = {
-					id: tag.id,
-					tag: tag.tag
-				}
-			}
-			return total_data;
 		}
 	}, {
 		// class methods
@@ -273,6 +378,10 @@ function load_models(db, pddb) {
 			name: "VARCHAR",
 			user_url: "VARCHAR"
 		}
+	}, {
+		// instance methods
+	}, {
+		// class methods
 	});
 	
 	// if balance can only partially cover payment, 
@@ -281,14 +390,14 @@ function load_models(db, pddb) {
 	var Payment = new Model(db, "Payment", {
 		table_name: "payments",
 		columns: {
-			_order: ["id", "payment_service_id", "payment_id",
+			_order: ["id", "payment_service_id", "transaction_id",
 			         "sent_to_service", "settled",
 			         "total_amount_paid", "amount_paid",
 			         "amount_paid_in_fees", "amount_paid_tax_deductibly",
 			         "datetime"],
 			id: "INTEGER PRIMARY KEY",
 			payment_service_id: "INTEGER",
-			payment_id: "INTEGER",
+			transaction_id: "INTEGER",
 			sent_to_service: "INTEGER", // boolean 0=false
 			settled: "INTEGER", // boolean 0=false
 			total_amount_paid: "REAL",
@@ -297,6 +406,36 @@ function load_models(db, pddb) {
 			amount_paid_tax_deductibly: "REAL",
 			datetime: "INTEGER" //"DATETIME"
 		}
+	}, {
+		// instance methods
+		payment_service: function() {
+			// all Payment have a payment_service
+			var self = this;
+			var payment_service = pddb.PaymentService.get_or_null({ id: self.payment_service_id });
+			if (!payment_service) {
+				pddb.orthogonals.error("no payment_service found for payment = "+this);
+			}
+			return payment_service
+		},
+		
+		deep_dict: function() {
+			// #@TODO do this instead of listing all fields??
+			//var ret = this.prototype.deep_dict()
+			// return _extend(ret, {})
+			return {
+				payment_service: this.payment_service(),
+				transaction_id: parseInt(this.transaction_id),
+				sent_to_service: _un_dbify_bool(this.sent_to_service),
+				settled: _un_dbify_bool(this.settled),
+				total_amount_paid: parseFloat(this.total_amount_paid),
+				amount_paid: parseFloat(this.amount_paid),
+				amount_paid_in_fees: parseFloat(this.amount_paid_in_fees),
+				amount_paid_tax_deductibly: parseFloatt(this.amount_paid_tax_deductibly),
+				datetime: _un_dbify_date(this.datetime)
+			}
+		}
+	}, {
+		// class methods
 	});
 	
 	/*
@@ -324,7 +463,22 @@ function load_models(db, pddb) {
 		}
 	}, {
 		// instance methods
-			
+		total: function() {
+			// all RequiresPayment have a total
+			var self = this;
+			var total = pddb.Total.get_or_null({ id: self.total_id });
+			if (!total) {
+				pddb.orthogonals.error("no total found for RequiresPayment = "+this);
+			}
+			return total
+		},
+	
+		deep_dict: function() {
+			return {
+				total: this.total().deep_dict(),
+				partially_paid: this.partiall_paid
+			}
+		}
 	}, {
 		// class methods
 		partially_paid: function(fn) {
@@ -360,6 +514,29 @@ function load_models(db, pddb) {
 			total_id: "INTEGER"
 		},
 		indexes: []
+	}, {
+		// instance methods
+		total: function() {
+			// we expect a PaymentTotalTagging to always have a total
+			var self = this;
+			var total = Total.get_or_null({ id: self.total_id })
+			if (!total) {
+				pddb.orthogonals.error("no Total found for PaymentTotalTagging = "+this);
+			}
+			return total
+		},
+		
+		payment: function() {
+			// we expect a PaymentTotalTagging to always have a payment
+			var self = this;
+			var payment = Payment.get_or_null({ id: self.payment_id })
+			if (!payment) {
+				pddb.orthogonals.error("no payment found for PaymentTotalTagging = "+this);
+			}
+			return payment
+		}
+	}, {
+		// class methods
 	});
 	
 	
@@ -372,6 +549,10 @@ function load_models(db, pddb) {
 			timetype: "VARCHAR"
 		},
 		indexes: []
+	}, {
+		// instance methods
+	}, {
+		// class methods
 	});
 	
 	var ContentType = new Model(db, "ContentType", {
@@ -381,6 +562,10 @@ function load_models(db, pddb) {
 			id: "INTEGER PRIMARY KEY",
 			modelname: "VARCHAR"
 		}
+	}, {
+		// instance methods
+	}, {
+		// class methods
 	});
 
 	var Log = new Model(db, "Log", {
@@ -393,6 +578,10 @@ function load_models(db, pddb) {
 			detail_type: "VARCHAR",
 			message: "VARCHAR"
 		}
+	}, {
+		// instance methods
+	}, {
+		// class methods
 	});
 
 	var UserStudy = new Model(db, "UserStudy", {
@@ -405,6 +594,10 @@ function load_models(db, pddb) {
 			message: "VARCHAR",
 			quant: "REAL"
 		}
+	}, {
+		// instance methods
+	}, {
+		// class methods
 	});
 	
 	return {

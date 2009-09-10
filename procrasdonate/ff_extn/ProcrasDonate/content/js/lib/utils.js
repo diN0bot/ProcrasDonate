@@ -80,8 +80,8 @@ var _print = function(msg) {
 	logger(msg);
 };
 
-var _pprint = function(object) {
-	var str = "";
+var _pprint = function(object, msg) {
+	var str = msg || "";
 	for (var prop in object) {
 		str += prop+"="+object[prop]+", ";
 	}

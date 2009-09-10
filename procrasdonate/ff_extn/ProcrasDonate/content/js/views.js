@@ -544,13 +544,15 @@ _extend(Schedule.prototype, {
 	do_once_daily_tasks: function() {
 		var self = this;
 		
-		// Send data to server:
-		//    Log, UserStudy, Payment, Total
-		//    (more recent than time_last_sent_KlassName)
+		// Send data to server (more recent than time_last_sent_KlassName)
+		this.pddb.page.pd_api.send_data();
+		/*
 		this.pddb.page.pd_api.send_totals();
-		//this.pddb.page.pd_api.send_logs();
-		//this.pddb.page.pd_api.send_payments();
-		//this.pddb.page.pd_api.send_user_studies();
+		this.pddb.page.pd_api.send_logs();
+		this.pddb.page.pd_api.send_payments();
+		this.pddb.page.pd_api.send_requires_payments();
+		this.pddb.page.pd_api.send_user_studies();
+		*/
 	},
 	
 	reset_24hr_period: function() {

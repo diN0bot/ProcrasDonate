@@ -71,27 +71,27 @@ def receive_data(request):
         return result
 
     hash = result["hash"]
-    data_type = result["data_type"]
-    data = result["data"]
-    
-    return_messages = []
-
     print "----HASH----------"
     print json.dumps(hash, indent=2)
-    print "----DATA----------"
-    print json.dumps(data[0], indent=2)
-    print "----DATA TYPE----------"
-    print json.dumps(data_type, indent=2)
     
     user = User.get_or_create(hash)
     print "----  USER ----"
     print user
-
+    
+    print
+    print request.POST
+    print
+    
     processed_count = 0
-    if data_type == "Total":
-        for total in data:
-            #success = TotalProcessor.process_json(total, user)
-            processed_count += success and 1 or 0
+    for datatype in ["totals", "logs", "userstudies", "payments", "requirespayments"]:
+        print " datatype ", datatype
+        if datatype in result:
+            items = result[datatype]
+            print "---- %s %s -------" % (len(items), datatype)
+            print json.dumps(items[:1], indent=2)
+            for item in items:
+                #success = TotalProcessor.process_json(total, user)
+                processed_count += success and 1 or 0
     
     ret = json_success({"process_success_count": processed_count})
     print "response = ", ret
