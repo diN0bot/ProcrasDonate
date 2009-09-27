@@ -529,6 +529,7 @@ PDDB.prototype = {
 			this.Recipient.create({
                 twitter_name: "ProcrasDonate",
                 name: "ProcrasDonate",
+                slug: "procrasdonate",
                 mission: "mission",
                 description: "description",
                 url: "http://procrasdonate.com",
@@ -539,13 +540,14 @@ PDDB.prototype = {
 	        this.Recipient.create({
                 twitter_name: "bilumi",
                 name: "Buy It Like You Mean It",
+                slug: "bilumi",
                 mission: "To provide access to collaborative tools for educational discovery and communication about the real world impact of product supply chains.",
                 description: "Without knowing the socially responsible impact of purchasing a product, we're all still shopping in the dark.<br>Buy It Like You Mean It helps students and volunteers cooperate to review and rate the real world effects of industry supply chains. We provide these ratings, free of charge, to help shoppers decide which products support their own unique values.<br>Together we are modeling how specific companies perform on a variety of socially responsible interests.",
                 url: "http://bilumi.org",
                 is_visible: True,
                 email: "",
                 category_id: 13
-	        });
+	        });/*
             this.Recipient.create({
                 twitter_name: "",
                 name: "Pathfinder International",
@@ -895,7 +897,7 @@ PDDB.prototype = {
 	                is_visible: True,
 	                email: "donations@bbbs.org",
 	                category_id: 36
-	        });
+	        });*/
 		}
 		////// RECIPIENTPERCENTS ////////
 		if (this.RecipientPercent.count() == 0) {

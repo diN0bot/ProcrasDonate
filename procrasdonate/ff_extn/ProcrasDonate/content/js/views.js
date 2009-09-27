@@ -119,6 +119,9 @@ _extend(Controller.prototype, {
 					constants.IMPACT_STATE_INSERTS);
 			}
 			break;
+		case constants.AUTHORIZE_PAYMENTS_CALLBACK_URL:
+			this.authorize_payments_callback(request);
+			break;
 		case constants.HOME_URL:
 		case constants.LEARN_URL:
 			// remove start now button
@@ -244,6 +247,12 @@ _extend(Controller.prototype, {
 		tws_hr_per_week_goal: constants.TWS_DEFAULT_HR_PER_WEEK_GOAL,
 		tws_hr_per_week_max: constants.TWS_DEFAULT_HR_PER_WEEK_MAX,
 		tos: false,
+		
+		global_amount_limit: constants.DEFAULT_GLOBAL_AMOUNT_LIMIT,
+		credit_limit: constants.DEFAULT_CREDIT_LIMIT,
+		fps_version: constants.DEFAULT_FPS_VERSION,
+		payment_reason: constants.DEFAULT_PAYMENT_REASON,
+	
 	},
 	
 	initialize_account_defaults_if_necessary: function() {
@@ -356,8 +365,11 @@ _extend(Controller.prototype, {
 	///
 	/// Triggers payment. Does not reset payment period.
 	///
-	trigger_make_payment: function() {
-		this.pddb.schedule.do_make_payment();
+	trigger_payment: function() {
+		var recipient = this.pddb.Recipient.get_or_null({
+			slug: 'bilumi'
+		});
+		this.pddb.page.pd_api.pay_multiuse(10.00, recipient);
 	},
 	
 	///
@@ -375,16 +387,11 @@ _extend(Controller.prototype, {
 	},
 	
 	manual_test_suite: function(request) {
-		this.pddb.orthogonals.info("test", "testing...1...2...3...");
-		
-		this.pddb.orthogonals.warn("test", "testing...1...2...3...");
-		
-		this.pddb.orthogonals.UserStudy("test", "testing...1...2...3...", 22);
-		
 		var actions = ["trigger_daily_cycle",
 		               "trigger_weekly_cycle",
-		               "trigger_make_payment",
-		               "trigger_settle_debt",
+		               "",
+		               "trigger_payment",
+		               "",
 		               "reset_state_to_defaults",
 		               "reset_account_to_defaults",
 		               "initialize_state",
@@ -460,51 +467,19 @@ _extend(Controller.prototype, {
 		//window.fireunit.testDone();
 	},
 	
-	authorize_payments: function(request) {
-		// tokenID for paying recipient: 25TKV9S9NP3C6CKDLSA257BQIZNFUDUHH8JN3MJU4FT961GPVB727QQNXXYJYVR6
-		
-		var access_key = "AKIAJJLNG522TJTSX7KQ";
-		var secret_key = "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";
-		var url = "https://authorize.payments-sandbox.amazon.com/cobranded-ui/actions/start";
-		
-		var query = {
-			pipelineName: "SetupPostpaid", 
-		    returnURL: "http://google.com",
-		    callerKey: access_key,
-		    callerReferenceSettlement: "234098e097",
-		    callerReferenceSender: "SenderName_uniquestring", 
-		    globalAmountLimit: "100.00",
-		    creditLimit: "100.00",
-		    version: "2009-01-09",
-		    //Timestamp: getNowTimeStamp(),
-		};
-		query = signaturize_query(query, secret_key);
-		
-		// turn into pairs for template
-		var pairs = [];
-		var hack_html = "";
-		for ( var name in query ) {
-			pairs.push( { name: name, value: query[name] } );
-			hack_html += "<input type=\"hidden\" name=\""+name+"\" value=\"" + query[name]+"\"/>\n";
-		}
-		var html = Template.get("authorize_payments").render(new Context({
-			action_url: url,
-			parameter_pairs: pairs,
-			hack_html: hack_html,
-			constants: constants,
-		}));
-		
-		request.jQuery("#content").append( html );
-		
-		/*
-		 * returns
-		 * signature: aoQlKSFSTT37LZr5CImx2ef2tJA%3D
-		 * expiry: 02%2F2015
-		 * settlementTokenID: I29F87GM39883XSHVB9T7AZEPXMKL2OJ6PZKGESUAABTB9J4H7XDGV9BFIK6GPW5
-		 * status: SC
-		 * creditSenderTokenID: I49FM7EM3U863XCH7B9P7FZE7XPKLNON6P4K2ESZA5BTF9H4H5XRGVNB8IKTGLWE
-		 * creditInstrumentID: I39F27JM3A8N3XIHMB9L7SZELXMKL4OC6PZKGESJAVBT49C4HGX4GVXBEIKLGEWV
-		 */
+	authorize_payments_callback: function(request) {
+		var self = this;
+		var result = {};
+		//var status = "";
+		//var refundTokenID = "";
+		//var tokenID = "";
+		//var callerReference = "";
+		request.jQuery("#parameters .parameter").each(function() {
+			var key = request.jQuery(this).children(".key").text();
+			var value = request.jQuery(this).children(".value").text();
+			result[key] = value;
+		});
+		this.prefs.set('authorize_payments_status', status);
 	}
 });
 
@@ -637,7 +612,7 @@ _extend(Schedule.prototype, {
 function PageController(prefs, pddb) {
 	this.prefs = prefs;
 	this.pddb = pddb;
-	this.tipjoy = new TipJoy_API(this.prefs, this.pddb);
+	//this.tipjoy = new TipJoy_API(this.prefs, this.pddb);
 	this.pd_api = new ProcrasDonate_API(this.prefs, this.pddb);
 }
 PageController.prototype = {};
@@ -737,23 +712,213 @@ _extend(PageController.prototype, {
 			request.jQuery("#content").html( this.settings_wrapper_snippet(request, middle) );
 		}
 		
-		//@TODO see idea from "process_twitter_account"
-		return true;
-		
-		this.tipjoy.check_balance(
-			this.prefs.get("twitter_username", false),
-			this.prefs.get("twitter_password", false),
-			function(r) {
-				var response = eval("("+r.responseText+")");
-				if ( response.result == "success" ) {
-					request.jQuery("#balance_here").text(response.balance);
-				} else {
-					request.jQuery("#balance").append("Problem retrieving balance from TipJoy: "+response.reason);
-				}
+		this.insert_multiuse_auth(request);
+	},
+	
+	retrieve_and_display_multi_auth_link: function(request, caller_reference, new_auth_link_text, link_div_id) {
+		logger("create_and_display_new_multi_auth");
+		this.pd_api.authorize_multiuse(
+			caller_reference,
+			function(r) { // onsuccess
+				request.jQuery(link_div_id).html("<a href=\""+r.full_url+"\">"+new_auth_link_text+"</a>");
+			}, function(r) { // onfailure
+				request.jQuery(link_div_id).html("<span class=\"error\">Failed to create authorization link: "+r.reason+"</span>");
 			}
 		);
 	},
 	
+	display_message: function(request, multi_auth, message, message_div_id, is_error) {
+		logger("display_message: "+message);
+		request.jQuery(message_div_id).html(message);
+		if (is_error) {
+			request.jQuery(message_div_id).addClass("error");
+		} else {
+			request.jQuery(message_div_id).removeClass("error");
+		}
+	},
+	
+	lookup_balance: function(request, multi_auth, balance_div_id) {
+		logger("lookup balance");
+	},
+	
+	show_cancel_and_edit: function(request, cancel_div_id, edit_div_id) {
+		var self = this;
+		logger("lookup show_cancel_and_edit");
+		request.jQuery(cancel_div_id).html("<span id=\"cancel_link\"></span>");
+		request.jQuery(edit_div_id).html("<span id=\"edit_link\"></span>");
+		
+		request.jQuery("#cancel_link")
+			.addClass("link")
+			.text("Cancel donation authorization")
+			.click(function() {
+				self.pd_api.cancel_multiuse_token("User clicked cancel",
+				function() {
+					// onsuccess
+					request.jQuery("#message_here")
+					.removeClass("error")
+					.addClass("message")
+					.text("Successfully cancelled donation authorization.");
+				}, function(r) {
+					// onfailure
+					request.jQuery("#message_here")
+						.addClass("error")
+						.removeClass("message")
+						.text("Failed to cancel donation authorization: "+r.reason);
+				});
+			});
+		
+		request.jQuery("#edit_link")
+		 	.addClass("link")
+		 	.text("Edit donation authorization")
+			.click(function() {
+				alert("coming soon");
+			});
+	},
+
+	insert_multiuse_auth: function(request) {
+		/* 
+		 * 
+		 * INVARIANT: we don't need to know which token is current,
+		 * we just need to know there is a successful token out there.
+		 * 
+		 * if has success:
+		 *     display happy message
+		 * else:
+		 *     get updates from server
+		 *     if has success:
+		 *         display happy message
+		 *     else:
+		 *         get latest
+		 *         if error:
+		 *             display error
+		 *         elif waiting:
+		 *             display waiting
+		 *         elif cancel:
+		 *             display cancel message
+		 *             create new link
+		 *         elif expired:
+		 *             display expired message
+		 *             create new link
+		 *         else no latest:
+		 *             create new link
+		 * 
+		 * if has no rows:
+		 *     create new multi_auth
+		 *     display link
+		 * else if has success:
+		 *     display happy message
+		 *     lookup balance
+		 * else (has unsuccessfuls or cancels):
+		 *     retrieve updates from server
+		 *     if has success:
+		 *         display happy message
+		 *         lookup balance
+		 *     else 
+		 *     	   get most recent auth
+		 *     	   if waiting:
+		 *             display waiting message
+		 *         else if error:
+		 *             display error message based on error type
+		 *         display link for most recent row
+		 */
+		var self = this;
+		
+		var happy_message = "<b>Donations successfully authorized!</b> Click Done to continue.";
+		var waiting_message = "Authorization initiated... did you complete the pipeline on Amazon?";
+		var error_message = "Something went wrong with authorization: ";
+		var cancelled_message = "Previous authorization cancelled";
+		var error_message = "Previous authorization excpired";
+		
+		var message_div_id = "#message_here";
+		var cancel_div_id = "#cancel_here";
+		var edit_div_id = "#edit_here";
+		var balance_div_id = "#balance_here";
+		var link_div_id = "#auth_a_here";
+		var new_auth_link_text = "Allow future pledges to automatically get turned into donations.";
+		var retry_auth_link_text = "Allow future pledges to automatically get turned into donations (try again).";
+		
+		logger("insert_multiuse_auth");
+		
+		/*if has success:
+			 *     display happy message
+			 * else:
+			 *     get updates from server
+			 *     if has success:
+			 *         display happy message
+			 *     else:
+			 *         get latest
+			 *         if error:
+			 *             display error
+			 *         elif waiting:
+			 *             display waiting
+			 *         elif cancel:
+			 *             display cancel message
+			 *             create new link
+			 *         elif expired:
+			 *             display expired message
+			 *             create new link
+			 *         else no latest:
+			 *             create new link*/
+		
+		if (this.pddb.FPSMultiuseAuthorization.has_success()) {
+			logger("has_success");
+			// successfully authorized multi use token
+			var multi_auth = this.pddb.FPSMultiuseAuthorization.get_latest_success();
+			this.display_message(request, multi_auth, happy_message, message_div_id);
+			this.show_cancel_and_edit(request, cancel_div_id, edit_div_id);
+			this.lookup_balance(request, multi_auth, balance_div_id);
+		
+		} else {
+			logger("!has_success");
+			// do updates and handle successful, waiting and error possibilities
+			this.pd_api.request_data_updates(function(recipients, multi_auths) {
+				logger("updates after success");
+				// after successful update
+				if (self.pddb.FPSMultiuseAuthorization.has_success()) {
+					logger("has_success");
+					// successfully authorized multi use token
+					var multi_auth = self.pddb.FPSMultiuseAuthorization.get_latest_success();
+					self.display_message(request, multi_auth, happy_message, message_div_id);
+					self.show_cancel_and_edit(request, cancel_div_id, edit_div_id);
+					self.lookup_balance(request, multi_auth, balance_div_id);
+				} else {
+					logger("!has_success");
+					// get most recent
+					var multi_auth = self.pddb.FPSMultiuseAuthorization.most_recent();
+					
+					if (!multi_auth) {
+						// there are no rows
+						self.retrieve_and_display_multi_auth_link(request, create_caller_reference(), new_auth_link_text, link_div_id);
+						
+					} else if (multi_auth.error()) {
+						// error
+						self.display_message(request, multi_auth, error_message, message_div_id);
+						self.retrieve_and_display_multi_auth_link(request, create_caller_reference(), new_auth_link_text, link_div_id);
+						
+					} else if (multi_auth.response_not_received()) {
+						// waiting for response
+						//self.display_message(request, multi_auth, waiting_message, message_div_id);
+						self.retrieve_and_display_multi_auth_link(request, multi_auth.caller_reference, new_auth_link_text, link_div_id);
+						
+					} else if (multi_auth.cancelled()) {
+						// cancelled
+						self.display_message(request, multi_auth, cancelled_message, message_div_id);
+						self.retrieve_and_display_multi_auth_link(request, create_caller_reference(), new_auth_link_text, link_div_id);
+						
+					} else if (multi_auth.expired()) {
+						// expired (expiry reached, eg credit card needs editing)
+						self.display_message(request, multi_auth, expired_message, message_div_id);
+						self.retrieve_and_display_multi_auth_link(request, create_caller_reference(), new_auth_link_text, link_div_id);
+					} 
+				}
+					
+			}, function() {
+				// after failure
+				logger("after failure in updates");
+			});
+		}
+	},
+
 	insert_register_balance: function(request) {
 		/* Inserts balance/TipJoy info. */
 		var self = this;
@@ -842,7 +1007,7 @@ _extend(PageController.prototype, {
 		// raises [Exception... "Illegal value" nsresult: "0x80070057 
 		// (NS_ERROR_ILLEGAL_VALUE)" location: "JS frame :: 
 		// chrome://procrasdonate/content/js/views.js :: anonymous :: line 834" data: no]
-		new XPCNativeWrapper(unsafeWin, "location").location = constants.IMPACT_URL;
+		//new XPCNativeWrapper(unsafeWin, "location").location = constants.IMPACT_URL;
 	},
 	
 	site_classifications_middle: function(request) {
@@ -1761,19 +1926,19 @@ _extend(PageController.prototype, {
 	},
 	
 	_process_before_proceeding: function(request, state_name, state_enums, processors, event) {
-		logger("_process_before_proceeding event="+event);
+		//logger("_process_before_proceeding event="+event);
 		var self = this;
 		return function() {
 			for (var i = 0; i < state_enums.length; i += 1) {
 				var tab_state = state_enums[i];
 				if ( self.prefs.get(state_name+"_state", "") == tab_state ) {
 					var processor = processors[i];
-					logger("PROCESS_BEFORE_PROCEEDING: "+processor);
+					//logger("PROCESS_BEFORE_PROCEEDING: "+processor);
 					//logger(self[processor]);
 					var ret = self[processor](request, event);
-					logger(" actual ret="+ret+" typeof="+typeof(ret));
+					//logger(" actual ret="+ret+" typeof="+typeof(ret));
 					if ( ret ) {
-						logger("process returned true!"+event);
+						//logger("process returned true!"+event);
 						self[event](request);
 					}
 					break;

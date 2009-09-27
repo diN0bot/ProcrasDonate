@@ -94,3 +94,37 @@ def private(fn):
                 pass 
         raise Exception("Private decorator in main.py must decorate views with user_id argument.")
     return inner
+
+
+def extract_parameters(request, method_type, expected_parameters, optional_parameters=None):
+    ret = {}
+    
+    if not getattr(request, method_type):
+        return {'success': False,
+                'reason': "Expected %s parameters" % method_type}
+    
+    for p in expected_parameters:
+        try:
+            v = getattr(request, method_type).get(p, None)
+            print p, v
+            if v == None:
+                return {'success': False,
+                        'reason': "Missing expected parameter: %s" % p}
+            ret[p] = v
+        except:
+            return {'success': False,
+                    'reason': "Something unexpected happened while extracting parameters"}
+    
+    optional_parameters = optional_parameters or {}
+    for p in optional_parameters:
+        try:
+            v = getattr(request, method_type).get(p, None)
+            if v:
+                ret[p] = v
+        except:
+            return {'success': False,
+                    'reason': "Something unexpected happened while extracting optional parameters"}
+     
+    
+    return {'success': True,
+            'parameters': ret}

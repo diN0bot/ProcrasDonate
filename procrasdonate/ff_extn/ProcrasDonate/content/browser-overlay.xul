@@ -35,8 +35,8 @@
     <script type='application/x-javascript'
             src='chrome://ProcrasDonate/content/js/lib/utils.js'></script>
     
-    <!--<script type='application/x-javascript'
-            src='chrome://ProcrasDonate/content/js/lib/fps.js'></script>-->
+    <script type='application/x-javascript'
+            src='chrome://ProcrasDonate/content/js/lib/fps.js'></script>
 
     <script type='application/x-javascript' 
             src='chrome://ProcrasDonate/content/js/lib/testrunner_display.js'></script>

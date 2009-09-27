@@ -176,7 +176,7 @@ _extend(PD_ToolbarManager.prototype, {
 				datetime: _dbify_date(_end_of_week()),
 				timetype_id: this.pddb.Weekly.id
 			});
-			logger("yyyyy "+this.pddb.TimeWellSpent+"     "+tws_total);
+			//logger("yyyyy "+this.pddb.TimeWellSpent+"     "+tws_total);
 			
 			var pd_goal = parseFloat(this.pddb.prefs.get('pd_hr_per_week_goal', 1));
 			var pd_limit = parseFloat(this.pddb.prefs.get('pd_hr_per_week_max', 1));
@@ -198,7 +198,7 @@ _extend(PD_ToolbarManager.prototype, {
     },
 
 	update_progress: function(total, goal, limit, button, label) {
-    	logger("toolbar.js::update_progress LABEL="+label);
+    	//logger("toolbar.js::update_progress LABEL="+label);
 
     	var total_in_date = _start_of_week();
 		total_in_date.setSeconds(total);
@@ -207,17 +207,17 @@ _extend(PD_ToolbarManager.prototype, {
 		var days = total_in_date.getDate() - start.getDate();
 		var hours = total_in_date.getHours() - start.getHours();
 		var minutes = total_in_date.getMinutes() - start.getMinutes();
-		logger("toolbar.js::update_progress: total for the week is: " + total);
-		logger("toolbar.js::update_progress:    days, hours, minutes="+days+" hr="+hours+" mi="+minutes);
-		logger("toolbar.js::update_progress: goal="+goal+" limit="+limit);
+		//logger("toolbar.js::update_progress: total for the week is: " + total);
+		//logger("toolbar.js::update_progress:    days, hours, minutes="+days+" hr="+hours+" mi="+minutes);
+		//logger("toolbar.js::update_progress: goal="+goal+" limit="+limit);
 
 		var goal_in_s = parseFloat(goal) * 3600;
 		var limit_in_s = parseFloat(limit) * 3600;
-		logger("toolbar.js::update_progress: goal in sec="+goal_in_s+" limit in sec="+limit_in_s);
+		//logger("toolbar.js::update_progress: goal in sec="+goal_in_s+" limit in sec="+limit_in_s);
 		
 		var percentile = total/goal_in_s;
 		var limit_progress = (total - goal_in_s) / (limit_in_s - goal_in_s) 
-		logger("toolbar.js::update_progress: total/goal="+percentile+" limit_progress="+limit_progress);
+		//logger("toolbar.js::update_progress: total/goal="+percentile+" limit_progress="+limit_progress);
 		var icon_number = "0";
 		
 		if (percentile < (0.125 * 1)) {

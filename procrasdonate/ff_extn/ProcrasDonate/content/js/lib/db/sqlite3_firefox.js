@@ -44,7 +44,7 @@ var Cursor__Firefox = function Cursor__Firefox(db) {
 Cursor__Firefox.prototype = new Cursor;
 _extend(Cursor__Firefox.prototype, {
 	execute: function(sql, params) {
-		//_print(sql);
+		if (SQLITE3_FIREFOX_LOGGING) _print(sql);
 		if (!this.stmt) {
 			try {
 				//this.stmt = this.db.statement(sql, params);
@@ -323,13 +323,19 @@ _extend(Model.prototype, {
 	 * @param query: OBJECT of column name, value
 	 */
 	set: function(updates, wheres) {
+		if (SQLITE3_FIREFOX_LOGGING) _pprint(this.columns);
+		
 		var str = "UPDATE "+this.table_name+" SET ";
 		var is_first = true;
 		for (var col in updates) {
 			if (is_first) { is_first = false; }
 			else { str += ", "; }
-			str += col+"="+updates[col];
-
+			str += col+"=";
+			if (this.columns[col] == "VARCHAR") {
+				str += "\""+updates[col]+"\"";
+			} else {
+				str += updates[col];
+			}
 		}
 		str += " WHERE ";
 		is_first = true;

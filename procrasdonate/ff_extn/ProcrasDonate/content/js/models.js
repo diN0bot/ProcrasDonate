@@ -93,9 +93,10 @@ function load_models(db, pddb) {
 	var Recipient = new Model(db, "Recipient", {
 		table_name: "recipients",
 		columns: {
-			_order: ["id", "name", "mission", "description", "twitter_name", "url", "email", "category_id", "is_visible"],
+			_order: ["id", "name", "slug", "mission", "description", "twitter_name", "url", "email", "category_id", "is_visible"],
 			id: "INTEGER PRIMARY KEY",
 			name: "VARCHAR",
+			slug: "VARCHAR",
 			twitter_name: "VARCHAR",
 			mission: "VARCHAR",
 			description: "VARCHAR",
@@ -120,6 +121,7 @@ function load_models(db, pddb) {
 		deep_dict: function() {
 			return {
 				name: this.name,
+				slug: this.slug,
 				twitter_name: this.twitter_name,
 				mission: this.mission,
 				description: this.description,
@@ -131,6 +133,27 @@ function load_models(db, pddb) {
 		}
 	}, {
 		// class methods
+		process_object: function(r) {
+			// @param r: object from server. json already loaded
+			// @return: recipient row
+			var category = pddb.Category.get_or_create({
+				category: r.category
+			});
+			var recipient = pddb.Recipient.get_or_create({
+				slug: r.slug
+			}, {
+				name: r.name,
+				email: r.email,
+                url: r.url,
+                twitter_name: r.twitter_name,
+                mission: r.mission,
+                description: r.description,
+                is_visible: r.is_visible,
+                category_id: category.id
+			});
+			
+			return recipient
+		}
 	});
 	
 	// recipient has 1 category
@@ -600,13 +623,302 @@ function load_models(db, pddb) {
 		// class methods
 	});
 	
+	var FPSMultiuseAuthorization = new Model(db, "FPSMultiuseAuthorization", {
+		table_name: "fpsmultiuseauthorizations",
+		columns: {
+			_order: ["id", "timestamp", "caller_reference", "global_amount_limit",
+			         "is_recipient_cobranding", "payment_method", "payment_reason",
+			         "recipient_slug_list",
+			         "status", "token_id", "error_message"],
+			id: "INTEGER PRIMARY KEY",
+			timestamp: "INTEGER", //"DATETIME"
+			caller_reference: "VARCHAR",
+			global_amount_limit: "VARCHAR",
+			is_recipient_cobranding: "INTEGER", //BOOLEAN 0=false
+			payment_method: "VARCHAR",
+			payment_reason: "VARCHAR",
+			recipient_slug_list: "VARCHAR",
+			
+			status: "VARCHAR", // 
+			token_id: "VARCHAR",
+			error_message: "VARCHAR"
+		}
+	}, {
+		// instance methods
+		success_abt: function() { return this.status == FPSMultiuseAuthorization.SUCCESS_ABT },
+		success_ach: function() { return this.status == FPSMultiuseAuthorization.SUCCESS_ACH },
+		success_cc: function() { return this.status == FPSMultiuseAuthorization.SUCCESS_CC },
+		system_error: function() { return this.status == FPSMultiuseAuthorization.SYSTEM_ERROR },
+		aborted: function() { return this.status == FPSMultiuseAuthorization.ABORTED },
+		caller_error: function() { return this.status == FPSMultiuseAuthorization.CALLER_ERROR },
+		payment_method_error: function() { return this.status == FPSMultiuseAuthorization.PAYMENT_METHOD_ERROR },
+		payment_error: function() { return this.status == FPSMultiuseAuthorization.PAYMENT_ERROR },
+		developer_error: function() { return this.status == FPSMultiuseAuthorization.DEVELOPER_ERROR },
+		response_not_received: function() { return this.status == FPSMultiuseAuthorization.RESPONSE_NOT_RECEIVED },
+		response_error: function() { return this.status == FPSMultiuseAuthorization.RESPONSE_ERROR },
+		cancelled: function() { return this.status == FPSMultiuseAuthorization.CANCELLED },
+		expired: function() { return this.status == FPSMultiuseAuthorization.EXPIRED },
+		
+		good_to_go: function() {
+			return this.success_abt() || this.success_ach() || this.success_cc()
+		},
+		
+		error: function() {
+			return this.system_error() || this.aborted() || this.caller_error() || this.response_error() ||
+				this.payment_error() || this.developer_error() || this.payment_method_error()
+		},
+		
+		deep_dict: function() {
+			return {
+				timestamp: _un_dbify_date(this.timestamp),
+				caller_reference: this.caller_reference,
+				global_amount_limit: this.global_amount_limit,
+				is_recipient_cobranding: _un_dbify_bool(this.is_recipient_cobranding),
+				payment_method: this.payment_method,
+				payment_reason: this.payment_reason,
+				recipient_slug_list: this.recipient_slug_list,
+				status: this.status,
+				token_id: this.token_id,
+				error_message: this.error_message,
+			}
+		},
+		
+	}, {
+		// class methods
+		SUCCESS_ABT: 'SA', // success for Amazon account payment method
+		SUCCESS_ACH: 'SB', // success for bank account payment method
+        SUCCESS_CC: 'SC', // success for credit card payment method
+        SYSTEM_ERROR: 'SE',
+        ABORTED: 'A', // buyer aborted pipeline
+        CALLER_ERROR: 'CE',
+        PAYMENT_METHOD_ERROR: 'PE', // buyer does not have payment method requested
+        PAYMENT_ERROR: 'NP',
+        DEVELOPER_ERROR: 'NM',
+        RESPONSE_NOT_RECEIVED: '0',
+        RESPONSE_ERROR: '1',
+        CANCELLED: 'C',
+        EXPIRED: 'EX',
+        
+        most_recent: function() {
+			// iterate over rows in timestamp order and return the most recent one
+			// return null if no rows
+			var ret = [];
+			FPSMultiuseAuthorization.select({}, function(row) {
+				ret.push(row);
+			}, "-timestamp");
+			
+			if (ret.length > 0) {
+				return ret[0];
+			} else {
+				return null;
+			}
+		},
+		
+		get_latest_success: function() {
+			var success = null;
+			FPSMultiuseAuthorization.select({}, function(row) {
+				if (row.good_to_go() && !success) {
+					success = row;
+				}
+			}, "-timestamp");
+			return success;
+		},
+		
+		has_success: function() {
+			// iterate over tokens and return true if found successful one
+			var ret = false;
+			FPSMultiuseAuthorization.select({}, function(row) {
+				if (row.good_to_go()) {
+					ret = true
+				}
+			});
+			return ret;
+		},
+		
+		process_object: function(ma) {
+			// @param ma: object from server. json already loaded
+			// @return: {diff: true or false if status changed,
+			//           multi_auth: multi auth row}
+			// incoming timestampe are from self.timestamp.ctime():
+			//              Sat Sep 19 14:42:25 2009
+			// the above string can transformed to dates with new Date(ctimestr)
+			//
+			// not this, which is "%s" % self.timestamp -->2009-09-19 14:38:03.799905
+			
+			logger("multiauth process object: ");
+			_pprint(ma);
+			var multi_auth = pddb.FPSMultiuseAuthorization.get_or_null({
+				caller_reference: ma.caller_reference
+			});
+			if (!multi_auth) {
+				logger(" NO MULTI AUTH IN CLIENT TO MATCH SERVER ");
+				// we shouldn't have to create an auth.
+				// #@TODO maybe we should check for database destruction elsewhere...
+				// or backup data?
+				return null;
+			    /* shouldn't have to create ma
+	                'timestamp': self.timestamp,
+	                'payment_reason': self.payment_reason,
+	                'global_amount_limit': self.global_amount_limit,
+	                'recipient_slug_list': self.recipient_slug_list,
+	                'token_id': self.token_id,
+	                'expiry': self.expiry,
+	                'status': self.status}
+	              */
+			}
+
+			var testsc = "SC";
+			logger(" about to set status "+testsc+", "+ma.status+", for id="+multi_auth.id);
+			pddb.FPSMultiuseAuthorization.set({
+				status: ma.status,
+				token_id: ma.token_id,
+				error_message: ma.error_message
+			}, {
+				id: multi_auth.id
+			});
+			
+			multi_auth = pddb.FPSMultiuseAuthorization.get_or_null({
+				id: multi_auth.id
+			});
+			
+			return multi_auth
+		}
+	});
+	
+	var FPSMultiusePay = new Model(db, "FPSMultiusePay", {
+		table_name: "fpsmultiusepays",
+		columns: {
+			_order: ["id", "timestamp", "caller_reference", "marketplace_fixed_fee",
+			         "marketplace_variable_fee", "transaction_amount", "recipient_slug",
+			         "sender_token_id",
+			         "caller_description", "charge_fee_to", "descriptor_policy", "sender_description",
+			         "request_id", "transaction_id",
+			         "transaction_status", "error_message", "error_code"],
+			id: "INTEGER PRIMARY KEY",
+			timestamp: "INTEGER", //"DATETIME"
+			caller_reference: "VARCHAR", // (128 char)
+			marketplace_fixed_fee: "VARCHAR", // (Amount)
+			marketplace_variable_fee: "VARCHAR", // (Decimal)
+			transaction_amount: "VARCHAR", // (amount)
+			recipient_slug: "VARCHAR", 
+			sender_token_id: "VARCHAR",  // (multiuse tokenID)
+			
+			/////// these get populated by server
+			caller_description: "VARCHAR",  // (160 chars)
+			charge_fee_to: "VARCHAR", // "Recipient" or "Caller"
+			descriptor_policy: "VARCHAR",
+			//recipient_token_id: "VARCHAR",
+			//refund_token_id: "VARCHAR",
+			sender_description: "VARCHAR", // (160 chars)
+			
+			request_id: "VARCHAR",
+			transaction_id: "VARCHAR",
+			transaction_status: "VARCHAR",
+			error_message: "VARCHAR",
+			error_code: "VARCHAR"				
+		}
+	}, {
+		// instance methods
+		success: function() { return this.transaction_status == FPSMultiuseAuthorization.SUCCESS },
+		waiting: function() { return this.transaction_status == FPSMultiuseAuthorization.WAITING},
+		refunded: function() { return this.transaction_status == FPSMultiuseAuthorization.REFUNDED },
+		cancelled: function() { return this.transaction_status == FPSMultiuseAuthorization.CANCELLED },
+		error: function() { return this.transaction_status == FPSMultiuseAuthorization.ERROR },
+
+		deep_dict: function() {
+			return {
+				timestamp: _un_dbify_date(this.timestamp),
+				caller_reference: this.caller_reference,
+				marketplace_fixed_fee: this.marketplace_fixed_fee,
+				marketplace_variable_fee: this.marketplace_variable_fee,
+				transaction_amount: this.transaction_amount,
+				recipient_slug: this.recipient_slug,
+				sender_token_id: this.sender_token_id,
+				
+				caller_description: this.caller_description,
+				charge_fee_to: this.charge_fee_to,
+				descriptor_policy: this.descriptor_policy,
+				sender_description: this.sender_description,
+				
+				request_id: this.request_id,
+				transaction_id: this.transaction_id,
+				transaction_status: this.transaction_status,
+				error_message: this.error_message, 
+				error_code: this.error_code
+			}
+		},
+		
+	}, {
+		// class methods
+		SUCCESS: 'S',
+		WAITING: 'W', // waiting for response from amazon
+		REFUNDED: 'R', // the transaction was refunded.... maybe this should be a refund transaction.
+		CANCELLED: 'C',
+		PENDING: 'P', // reserve request succeed
+		RESERVED: 'V',
+		FAILURE: 'F', // success
+		
+		process_object: function(p) {
+			// @param p: object from server. json already loaded
+			// @return: nothing
+		
+			// incoming timestampe are from self.timestamp.ctime():
+			//              Sat Sep 19 14:42:25 2009
+			// the above string can transformed to dates with new Date(ctimestr)
+			logger("pay process object: ");
+			_pprint(pay);
+			
+			var pay = pddb.FPSMultiusePay.get_or_null({
+				caller_reference: p.caller_reference
+				//#@ TODO: use timestamp as id
+			});
+			if (pay) {
+				logger("pay already exists");
+				// currently this should not occur
+				pddb.FPSMultiusePay.set({
+					request_id: p.request_id,
+					transaction_status: p.transaction_status,
+					error_message: p.error_message,
+					error_code: p.error_code,
+				}, {
+					caller_reference: pay.caller_reference,
+				});
+				
+			} else {
+				logger("pay does not exist");
+				// currently this should not occur
+				return null;
+				pddb.FPSMultiusePay.create({
+					timestamp: p.timestamp,
+					caller_description: p.caller_description,
+					caller_reference: p.caller_reference,
+					charge_fee_to: p.charge_fee_to,
+					descriptor_policy: p.descriptor_policy,
+					marketplace_fixed_fee: p.marketplace_fixed_fee,
+					marketplace_variable_fee: p.marketplace_variable_fee,
+					recipient_token_id: p.recipient_token_id,
+					refund_token_id: p.refund_token_id,
+					sender_description: p.sender_description,
+					sender_token_id: p.sender_token_id,
+					transaction_amount: p.transaction_amount,
+					
+					request_id: p.request_id,
+					transaction_status: p.transaction_status,
+					error_message: p.error_message,
+					error_code: p.error_code,
+				});
+			}
+		}
+	});
+	
 	return {
         _order: ["Site", "SiteGroup",
                  "Recipient", "Category", "RecipientPercent",
                  "Tag", "Visit", "Total", 
                  "PaymentService", "Payment", "RequiresPayment", "PaymentTotalTagging",
 				 "TimeType", "ContentType",
-				 "Log", "UserStudy"],
+				 "Log", "UserStudy",
+				 "FPSMultiuseAuthorization", "FPSMultiusePay"],
         
         Site                : Site,
 		SiteGroup           : SiteGroup,
@@ -623,7 +935,9 @@ function load_models(db, pddb) {
 		TimeType            : TimeType,
 		ContentType         : ContentType,
 		Log                 : Log,
-		UserStudy           : UserStudy
+		UserStudy           : UserStudy,
+		FPSMultiuseAuthorization : FPSMultiuseAuthorization,
+		FPSMultiusePay      : FPSMultiusePay
 	};
 }
 

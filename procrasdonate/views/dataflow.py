@@ -1,4 +1,4 @@
-from lib.view_utils import render_response, HttpResponseRedirect
+from lib.view_utils import render_response, HttpResponseRedirect, extract_parameters
 from lib.json_utils import json_success, json_failure
 from procrasdonate.models import *
 
@@ -17,18 +17,6 @@ def _POST(url, values):
     req = urllib2.Request(url, data)
     response = urllib2.urlopen(req).read()
     return json.loads(response)
-
-    #text = u"p 5\u00A2 @diN0bot from python"
-    #text = urllib.quote(text.encode('utf8'), safe='~') 
-    #values = {'twitter_username': 'diN0bot',
-    #          'twitter_password': 'pea15nut',
-    #          'text': text }
-    #url = "http://tipjoy.com/api/tweetpayment/"
-    #print _POST(url, values)
-    
-
-def rebuild_extension_templates(request):
-    return json_failure([ "Please execute the following on the command line: python /Users/lucy/sandbox/CalmProcrasDonate/procrasdonate/ff_extn/ProcrasDonate/content/bin/build_templates.py procrasdonate/ff_extn/ProcrasDonate/content/templates/*.html; cat /Users/lucy/sandbox/CalmProcrasDonate/procrasdonate/ff_extn/ProcrasDonate/content/templates/*.js > /Users/lucy/sandbox/CalmProcrasDonate/procrasdonate/ff_extn/ProcrasDonate/content/js/templates/all.js" ])
 
 def send_welcome_email(request):
     if not request.POST:
@@ -60,7 +48,7 @@ def _require_json_parameter(request, method, parameter_name):
 
 def receive_data(request):
     """
-    handles totals posted from extension
+    handles totals, logs, userstudies, payments, requirepayments posted from extension
     """
     #try:
     if not request.POST:
@@ -99,3 +87,54 @@ def receive_data(request):
         
     #except:
     #    return json_failure("Something unexpected happened")
+
+
+
+def decode_time(str):
+    #@TODO for real
+    return datetime.datetime(1, 1, 1)
+
+def return_data(request):
+    """
+    sends back data for particular user
+    """
+    errors = []
+    expected_parameters = ["hash", "since"]
+
+    response = extract_parameters(request, "GET", expected_parameters)
+    if not response['success']:
+        return json_failure("Something went wrong extracting parameters: %s" % response['reason'])
+
+    since = response["parameters"]["since"]
+    print "----SINCE----------"
+    print json.dumps(since, indent=2)
+    since = decode_time(since)
+    print since
+
+    hash = response["parameters"]["hash"]
+    print "----HASH----------"
+    print json.dumps(hash, indent=2)
+    
+    user = User.get_or_create(hash)
+    print "----  USER ----"
+    print user
+    
+    recipients = []
+    for recipient in Recipient.objects.filter(fpsrecipient__timestamp__gte=since):
+        recipients.append(recipient.deep_dict())
+        
+    multiuse_auths = []
+    has_success = False
+    for multiuse_auth in FPSMultiuseAuth.objects.filter(user=user):
+        multiuse_auths.append(multiuse_auth.deep_dict())
+        if multiuse_auth.good_to_go():
+            has_success = True
+    
+    #@TODO if not has_success, then ask Amazon for token in case pipeline completed by didn't make it back to server yet.
+    
+    print "RETURN DATA RETURNED"
+    print json.dumps({'recipients': recipients,
+                         'multiuse_auths': multiuse_auths}, indent=2)
+    
+    return json_success({'recipients': recipients,
+                         'multiuse_auths': multiuse_auths})

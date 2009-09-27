@@ -1,5 +1,7 @@
 
 function signaturize_query(query, secret_key) {
+	// NOTE: THIS HAS A BUG.
+	
 	// turn into pairs
 	var ordered = [];
 	var lowercased = {};
@@ -98,4 +100,14 @@ function getNowTimeStamp() {
 	var time = new Date();
 	var gmtTime = new Date(time.getTime() + (time.getTimezoneOffset() * 60000));
 	return gmtTime.toISODate();
+}
+
+function create_caller_reference() {
+	var ret = "";
+	var alphabet = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+	for (var i = 0; i < 12; i++) {
+		var idx = Math.floor(Math.random()*alphabet.length);
+		ret += alphabet[idx];
+	}
+	return ret;
 }

@@ -1,0 +1,100 @@
+http://www.websequencediagrams.com/
+
+http://tinyurl.com/qthoxf
+
+participant Extension as E
+participant "PD Server" as S
+participant Amazon as A
+
+opt Recipient Authorization
+S->A: Recipient Authorization Request
+activate A
+note over S: carries on
+note over A:
+    user interacts with CBUI
+    on Amazon's site
+end note
+A->S: Recipient Authorization Callback
+deactivate A
+note over S:
+    saves recipient token id
+    sends email to Recipient?
+end note
+end
+
+opt MultiUse Token Auth
+E->S: MultiUse Authorization Request
+note over E: carries on
+S->A: MultiUse Authorization Request
+activate A
+note over S: carries on
+note over A:
+    user interacts with CBUI
+    on Amazon's site
+end note
+A->S: MultiUse Authorization Callback
+deactivate A
+note over S:
+    saves multiuse token id
+    emails user
+end note
+end
+
+opt Pay
+E->S: Pay
+activate S
+activate E
+S->A: Pay
+activate A
+note right of A:
+    Amazon account transfer is immediate
+end note
+A->S: transaction id
+note over A: carries on
+deactivate A
+S->E: immediate failure v processing
+note over E:
+    saves result,
+    carries on
+end note
+deactivate E
+deactivate S
+note over S:
+    saves transaction id, carries on
+end note
+
+note right of A:
+    ...someone else is
+    processing bank account, cc...
+end note
+note right of A:
+    bank account, cc
+    processing done
+end note
+A->S: Pay success, failure callback
+note over S:
+    saves result,
+    emails user,
+    carries on
+end note
+end
+
+opt Update Request (once a day?)
+E->S: Updates Request
+activate S
+S->E: new Recipients,\nPay results,\nMultiUse Auth token
+deactivate S
+note over S:
+    delete Pay and MultiUse Auth info
+    so that it persists only on clients?
+end note
+end
+
+loop all waiting transactions
+S->A: GetTransactionStatus(transactionID)
+A->S: status
+end
+
+loop all waiting CBUI Auth
+S->A: GetTokenByCaller(callerReference)
+A->S: token, status

@@ -132,10 +132,11 @@ class Recipient(models.Model):
     """
     Recipient of donations
     """
-    twitter_name = models.CharField(max_length=32, null=True, blank=True)
-    name = models.CharField(max_length=128, null=True, blank=True)
-    url = models.URLField(null=True, blank=True)
+    name = models.CharField(max_length=128)
+    slug = models.CharField(max_length=128)
     email = models.EmailField()
+    url = models.URLField(null=True, blank=True)
+    twitter_name = models.CharField(max_length=32, null=True, blank=True)
     mission = models.CharField(max_length=256, null=True, blank=True)
     description = models.TextField(null=True, blank=True)
     is_visible = models.BooleanField(default=False)
@@ -143,24 +144,38 @@ class Recipient(models.Model):
     
     @classmethod
     def make(klass,
-             twitter_name=None,
-             name=None,
-             url=None,
+             name,
+             slug,
              email=None,
+             url=None,
+             twitter_name=None,
              mission=None,
              description=None,
              is_visible=True,
              category=None):
         if category:
             category = Category.get_or_create(category)
-        return Recipient(twitter_name=twitter_name,
-                         name=name,
+        return Recipient(name=name,
+                         slug=model_utils.slugify(name),
+                         twitter_name=twitter_name,
                          url=url,
                          email=email,
                          mission=mission,
                          description=description,
                          is_visible=is_visible, 
                          category=category)
+        
+        
+    def deep_dict(self):
+        return {'name': self.name,
+                'slug': self.slug,
+                'email': self.email,
+                'url': self.url,
+                'twitter_name': self.twitter_name,
+                'mission': self.mission,
+                'description': self.description,
+                'is_visible': self.is_visible,
+                'category': self.category.category}
         
     def __unicode__(self):
         return u"%s - %s - %s - %s" % (self.twitter_name,
@@ -357,7 +372,7 @@ class PaymentService(models.Model):
 class Payment(models.Model):
     datetime = models.DateTimeField(db_index=True)
     payment_service = models.ForeignKey(PaymentService)
-    payment_id = models.CharField(max_length=32, db_index=True)
+    transaction_id = models.CharField(max_length=32, db_index=True)
     settled = models.BooleanField(default=False)
     total_amount_paid = models.FloatField(default=0.0)
     amount_paid_in_fees = models.FloatField(default=0.0)
@@ -372,7 +387,7 @@ class Payment(models.Model):
     def make(klass,
              datetime,
              payment_service,
-             payment_id,
+             transaction_id,
              settled,
              total_amount_paid,
              amount_paid_in_fees,
@@ -391,7 +406,7 @@ class Payment(models.Model):
         """
         the_inst = the_klass(datetime=datetime,
                              payment_service=payment_service,
-                             payment_id=payment_id,
+                             transaction_id=transaction_id,
                              settled=settled,
                              total_amount_paid=total_amount_paid,
                              amount_paid_in_fees=amount_paid_in_fees,
@@ -412,7 +427,7 @@ class RecipientPayment(Payment):
              recipient,
              datetime,
              payment_service,
-             payment_id,
+             transaction_id,
              settled,
              total_amount_paid,
              amount_paid_in_fees,
@@ -425,7 +440,7 @@ class RecipientPayment(Payment):
 
         return Payment.make(datetime,
                             payment_service,
-                            payment_id,
+                            transaction_id,
                             settled,
                             total_amount_paid,
                             amount_paid_in_fees,
@@ -444,7 +459,7 @@ class SitePayment(Payment):
              site,
              datetime,
              payment_service,
-             payment_id,
+             transaction_id,
              settled,
              total_amount_paid,
              amount_paid_in_fees,
@@ -457,7 +472,7 @@ class SitePayment(Payment):
 
         return Payment.make(datetime,
                             payment_service,
-                            payment_id,
+                            transaction_id,
                             settled,
                             total_amount_paid,
                             amount_paid_in_fees,

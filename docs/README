@@ -1,0 +1,10 @@
+
+
+
+run web server publicly for amazon callbacks:
+
+1. activate port 80:
+   System Preferences -> Sharing -> Web site
+
+2. sudo ./manage.py runserver <ip>:80
+

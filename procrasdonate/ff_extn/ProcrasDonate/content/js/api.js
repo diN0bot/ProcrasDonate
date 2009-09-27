@@ -16,7 +16,7 @@ _extend(API.prototype, {
 		if ( remove_last ) {
 			encoded_data = encoded_data.substring(0, encoded_data.length-1);
 		}
-		logger("api.js::make_request: data="+data);
+		//logger("api.js::make_request: data="+data);
 
 		if ( method == "GET" ) {
 			url += "?" + encoded_data;

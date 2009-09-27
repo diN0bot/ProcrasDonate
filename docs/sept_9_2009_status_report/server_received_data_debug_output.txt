@@ -1,0 +1,81 @@
+---- 10 totals -------
+[
+  {
+    "total_time": 6333, 
+    "contenttype": "SiteGroup", 
+    "total_amount": 24.994236111110901, 
+    "datetime": 1252555200, 
+    "content": {
+      "host": "localhost:8000", 
+      "url_re": null, 
+      "tag": "TimeWellSpent", 
+      "name": "localhost:8000"
+    }, 
+    "timetype": {
+      "_values": [
+        "1", 
+        "Daily"
+      ]
+    }, 
+    "payments": []
+  }
+]
+
+---- 30 logs -------
+[
+  {
+    "detail_type": "test", 
+    "message": "testing...1...2...3...", 
+    "type": "INFO", 
+    "id": "1", 
+    "datetime": "1252539581"
+  }
+]
+
+---- 15 userstudies -------
+[
+  {
+    "quant": "22.0", 
+    "message": "testing...1...2...3...", 
+    "type": "test", 
+    "id": "1", 
+    "datetime": "1252539581"
+  }
+]
+
+---- 0 payments -------
+[]
+
+
+---- 2 requirespayments -------
+[
+  {
+    "total": {
+      "total_time": 1074, 
+      "contenttype": "Recipient", 
+      "total_amount": 1.4170833333333199, 
+      "datetime": 1252555200, 
+      "content": {
+        "category": "Family Planning", 
+        "is_visible": false, 
+        "description": "description", 
+        "url": "http://procrasdonate.com", 
+        "mission": "mission", 
+        "twitter_name": "ProcrasDonate", 
+        "email": "info@procrasdonate.com", 
+        "name": "ProcrasDonate"
+      }, 
+      "timetype": {
+        "_values": [
+          "1", 
+          "Daily"
+        ]
+      }, 
+      "payments": []
+    }
+  }
+]
+json_success {'result': 'success', 'process_success_count': 57}
+response =  Content-Type: text/javascript
+
+{"result": "success", "process_success_count": 57}
