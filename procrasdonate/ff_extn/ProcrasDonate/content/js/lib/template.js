@@ -205,7 +205,7 @@ _extend(Template, {
 		var t = Template.Cache[name];
 		if (t)
 			return t;
-		//logger("poop " + name);
+		//logger("pop " + name);
 		if (this.DEBUG_TEMPLATES)
 			Error("Template.get: Failed to retrieve template '"+name+"'.");
 	},

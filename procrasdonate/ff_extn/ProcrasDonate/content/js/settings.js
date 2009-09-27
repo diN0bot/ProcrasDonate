@@ -8,14 +8,12 @@ var constants = {};
 	 */
 	constants.MEDIA_URL = '/procrasdonate_media/';
 	constants.PD_HOST = 'procrasdonate.com';
-	constants.PD_URL = 'http://' + constants.PD_HOST;
-	//constants.PD_URL = 'http://localhost:8000';
+	//constants.PD_URL = 'http://' + constants.PD_HOST;
+	constants.PD_URL = 'http://localhost:8000';
 	constants.VALID_HOSTS = ['localhost:8000', 'procrasdonate.com'];
 	
 	constants.PROCRASDONATE_URL = '/';
 	constants.REGISTER_URL = '/register/';
-	constants.AFTER_INSTALL_URL = '/after_install/';
-	constants.AFTER_UPGRADE_URL = '/after_upgrade/';
 	constants.HOME_URL = '/home/';
 	constants.LEARN_URL = '/learn_more/';
 	constants.IMPACT_URL = '/my_impact/';
@@ -27,16 +25,31 @@ var constants = {};
 	constants.PRIVACY_URL = '/privacy_guarantee/';
 	constants.RECIPIENTS_URL = '/recipients';
 	
-	constants.POST_EMAIL_URL = '/post/email/';
-	constants.POST_TOTALS_URL = '/post/totals/';
-	constants.POST_PAYMENTS_URL = '/post/payments/';
+	constants.AUTHORIZE_PAYMENTS_URL = '/fps/user/payment/authorize/';
+	constants.AUTHORIZE_PAYMENTS_CALLBACK_URL = '/fps/user/payment/authorize_callback/';
 	
-	// used for development testing
+	constants.SEND_WELCOME_EMAIL_URL = '/post/welcome_email/';
+	constants.SEND_REGULAR_EMAIL_URL = '/post/regular_email/';
+	constants.SEND_DATA_URL = '/post/data/';
+	constants.RECEIVE_DATA_URL = '/get/data/';
+	
+	// FPS
+	constants.AUTHORIZE_PAYMENTS_URL = '/fps/user/payment/authorize/';
+	constants.AUTHORIZE_PAYMENTS_CALLBACK_URL = '/fps/user/payment/authorize_callback/';
+	constants.MAKE_PAYMENT_URL = '/fps/user/payment/pay/';
+	constants.SETTLE_DEBT_URL = '/fps/user/payment/settle_debt/';
+	
+	constants.AUTHORIZE_MULTIUSE_URL = '/fps/user/multiuse/authorize/';
+	constants.PAY_MULTIUSE_URL = '/fps/user/multiuse/pay/';
+	constants.CANCEL_MULTIUSE_TOKEN_URL = '/fps/user/multiuse/cancel_token/';
+	
 	constants.ON_INSTALL_URL = '/on_install/';
-	constants.RESET_STATE_URL = '/reset_state/';
-	constants.ADD_RANDOM_VISITS_URL = '/add_random_visits/';
-	constants.TRIGGER_DAILY_CYCLE_URL = '/trigger_daily_cycle/';
-	constants.TRIGGER_WEEKLY_CYCLE_URL = '/trigger_weekly_cycle/';
+	constants.AFTER_INSTALL_URL = '/after_install/';
+	constants.AFTER_UPGRADE_URL = '/after_upgrade/';
+	
+	// used for development and testing
+	constants.MANUAL_TEST_SUITE_URL = '/dev/manual_test_suite/';
+	constants.AUTOMATIC_TEST_SUITE_URL = '/dev/automatic_test_suite/';
 
 	// enumeration of settings page state
 	constants.SETTINGS_STATE_ENUM = [
@@ -141,6 +154,13 @@ var constants = {};
 	
 	constants.DEFAULT_IMPACT_RECIPIENTS_SUBSTATE = 'nonprofits';
 	constants.DEFAULT_IMPACT_SITES_SUBSTATE = 'procrasdonate';
+	
+	// FPS DEFAULTS
+	constants.DEFAULT_GLOBAL_AMOUNT_LIMIT = 100.00;
+    constants.DEFAULT_CREDIT_LIMIT = 20.00;
+    constants.DEFAULT_FPS_CBUI_VERSION = "2009-01-09";
+    constants.DEFAULT_FPS_API_VERSION = "2008-09-17";
+    constants.DEFAULT_PAYMENT_REASON = "Proudly ProcrasDonating for a good cause!";
 	
 	// then we can call CONSTANTS() whenever and it's not going to overwrite stuff 	
 	CONSTANTS = function() { return constants; }

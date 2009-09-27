@@ -119,26 +119,23 @@ _extend(Controller.prototype, {
 					constants.IMPACT_STATE_INSERTS);
 			}
 			break;
+		case constants.AUTHORIZE_PAYMENTS_CALLBACK_URL:
+			this.authorize_payments_callback(request);
+			break;
 		case constants.HOME_URL:
 		case constants.LEARN_URL:
 			// remove start now button
 			request.jQuery("#StartButtonDiv").remove();
 			break;
-		case constants.RESET_STATE_URL:
-			this.reset_state_to_defaults();
-			//this.reset_account_to_defaults();
+
+		case constants.MANUAL_TEST_SUITE_URL:
+			this.manual_test_suite(request);
 			break;
-		case constants.ON_INSTALL_URL:
-			this.initialize_state();
+		case constants.AUTOMATIC_TEST_SUITE_URL:
+			this.automatic_test_suite(request);
 			break;
-		case constants.ADD_RANDOM_VISITS_URL:
-			this.add_random_visits();
-			break;
-		case constants.TRIGGER_DAILY_CYCLE_URL:
-			this.trigger_daily_cycle();
-			break;
-		case constants.TRIGGER_WEEKLY_CYCLE_URL:
-			this.trigger_weekly_cycle();
+		case constants.AUTHORIZE_PAYMENTS:
+			this.authorize_payments(request);
 			break;
 		default:
 			//return false;
@@ -250,6 +247,12 @@ _extend(Controller.prototype, {
 		tws_hr_per_week_goal: constants.TWS_DEFAULT_HR_PER_WEEK_GOAL,
 		tws_hr_per_week_max: constants.TWS_DEFAULT_HR_PER_WEEK_MAX,
 		tos: false,
+		
+		global_amount_limit: constants.DEFAULT_GLOBAL_AMOUNT_LIMIT,
+		credit_limit: constants.DEFAULT_CREDIT_LIMIT,
+		fps_version: constants.DEFAULT_FPS_VERSION,
+		payment_reason: constants.DEFAULT_PAYMENT_REASON,
+	
 	},
 	
 	initialize_account_defaults_if_necessary: function() {
@@ -336,29 +339,147 @@ _extend(Controller.prototype, {
 		            ];
 		for (var i = 0; i < urls.length; i++) {
 			this.pddb.store_visit(urls[i], _dbify_date(start), duration);
-			logger("the gobble start ="+start);
+			logger("add random visits ="+start);
 			start.setMinutes( start.getMinutes() + 10 );
 		}
 	},
-	
+
+	///
+	/// Triggers daily cycle. Does not reset 24hr period state.
+	///
 	trigger_daily_cycle: function() {
 		logger("triggering daily cycle...");
-		// save time so will resend all information.
-		var t = this.prefs.get('last_total_time_sent_to_pd', '');
-		var p = this.prefs.get('last_paid_tipjoy_id_sent_to_pd', '');
-		
 		this.pddb.schedule.do_once_daily_tasks();
-		
-		this.prefs.set('last_total_time_sent_to_pd', t);
-		this.prefs.set('last_paid_tipjoy_id_sent_to_pd', p);
-		
 		logger("...daily cycle done");
 	},
 	
+	///
+	/// Triggers weekly cycle. Does not reset weekly period state.
+	///
 	trigger_weekly_cycle: function() {
 		logger("triggering weekly cycle...");
 		this.pddb.schedule.do_once_weekly_tasks();
 		logger("...weekly cycle done");
+	},
+	
+	///
+	/// Triggers payment. Does not reset payment period.
+	///
+	trigger_payment: function() {
+		var recipient = this.pddb.Recipient.get_or_null({
+			slug: 'bilumi'
+		});
+		this.pddb.page.pd_api.pay_multiuse(10.00, recipient);
+	},
+	
+	///
+	/// Triggers settle debt. Does not reset settle debt period.
+	///
+	trigger_settle_debt: function() {
+		this.pddb.schedule.do_settle_debt();
+	},
+	
+	_caldddl_: function(request, event) {
+		var self = this;
+		return function() {
+			self[event](request);
+		}
+	},
+	
+	manual_test_suite: function(request) {
+		var actions = ["trigger_daily_cycle",
+		               "trigger_weekly_cycle",
+		               "",
+		               "trigger_payment",
+		               "",
+		               "reset_state_to_defaults",
+		               "reset_account_to_defaults",
+		               "initialize_state",
+		               "add_random_visits"];
+		var html = Template.get("manual_test_suite").render(new Context({
+			actions: actions
+		}));
+		request.jQuery("#content").append( html );
+
+		var self = this;
+		for (var i = 0; i < actions.length; i++) {
+			var action = actions[i];
+			request.jQuery("#"+action).click(
+				// closure to call self[action].
+				// extra function needed to provide appropriate 'this'
+				(function(a) { return function() {
+					self[a]();
+				}})(action)
+				//// the above code is complicated to remember, anyway.
+				//self._self_fn(action);
+			);
+		}
+	},
+	
+	///
+	/// wanted to use this instead of above, but kept getting errors on
+	///     self._self_fn(action)
+	/// said missing closing ")" ?!
+	/// wanted to use apply so could be used for _proceed as well
+	///
+	_self_fn: function(fnname) {
+		var self = this;
+		return function() {
+			//self[fnname].apply(self, args);
+			//self[fname](request);
+			//self[event](request);
+			logger("inside _self_fn for "+fnname);
+		};
+	},
+	
+	automatic_test_suite: function(request) {
+		var testrunner = new TestRunner(request);
+
+		// run some tests
+		testrunner.test("a happy test", function() {
+			testrunner.expect(2);
+			testrunner.ok( true, "this test is fine" );
+			var value = "hello";
+			testrunner.equals( "hello", value, "We expect value to be hello" );
+		});
+		
+		testrunner.test("a second happy test", function() {
+			testrunner.expect(3);
+			testrunner.ok( false, "this test is fine" );
+			var value = "hello";
+			testrunner.equals( "hello", value, "We expect value to be hello" );
+			testrunner.same( "hello", value, "We still expect value to be hello" );
+		});
+		
+		// display results
+		display = new TestRunnerConsoleDisplay()
+		for (var name in testrunner.test_modules) {
+			var test_module = testrunner.test_modules[name];
+			for (var i = 0; i < test_module.test_groups.length; i++) {
+				var testgroup = test_module.test_groups[i];
+				
+				display.display_testgroup_result(testrunner, testgroup);
+			}
+		}
+		display.test_done(testrunner);
+		
+		//window.fireunit.ok(true, "it worked!");
+		//window.fireunit.testDone();
+	},
+	
+	authorize_payments_callback: function(request) {
+		var self = this;
+		var result = {};
+		//var status = "";
+		//var refundTokenID = "";
+		//var tokenID = "";
+		//var callerReference = "";
+		request.jQuery("#parameters .parameter").each(function() {
+			var key = request.jQuery(this).children(".key").text();
+			var value = request.jQuery(this).children(".value").text();
+			result[key] = value;
+		});
+		this.prefs.set('authorize_payments_status', status);
 	}
 });
 
@@ -371,9 +492,19 @@ _extend(Schedule.prototype, {
 	run: function() {
 		if ( this.is_new_24hr_period() ) {
 			this.do_once_daily_tasks();
+			this.reset_24hr_period();
 		}
 		if ( this.is_new_week_period() ) {
 			this.do_once_weekly_tasks();
+			this.reset_week_period();
+		}
+		if ( this.is_time_to_make_payment() ) {
+			this.do_make_payment();
+			this.reset_make_payment_period();
+		}
+		if ( this.is_time_to_settle_debt() ) {
+			this.do_settle_debt();
+			this.reset_settle_debt_period();
 		}
 	},
 	
@@ -388,29 +519,18 @@ _extend(Schedule.prototype, {
 	do_once_daily_tasks: function() {
 		var self = this;
 		
-		// 1. Send all new Payments to TJ: no tipjoy id
-		// 2. Send all new Totals to PD: more recent time than 'last_total_time_sent_to_pd'
-		// 3. Ask TJ for newly paid transactions: ask for xactions since 'last_paid_tipjoy_id', iterate until pledges. set 'last_paid_tipjoy_id'
-		// 4. Send newly paid transactions to PD: iterate 'last_paid_tipjoy_id_sent_to_pd' until pledges
-
-		// 1.
-		if (this.pddb.controller.registration_complete()) {
-			this.pddb.page.tipjoy.send_new_payments(this.pddb);
-		}
-			
-		// 2.
-		this.pddb.page.pd_api.send_new_totals(this.pddb);
-			
-		// 3.
-		if (this.pddb.controller.registration_complete()) {
-			this.pddb.page.tipjoy.update_pledges(this.pddb);
-		}
-			
-		// 4.
-		if (this.pddb.controller.registration_complete()) {
-			this.pddb.page.pd_api.send_new_paid_pledges(this.pddb);
-		}
-		
+		// Send data to server (more recent than time_last_sent_KlassName)
+		this.pddb.page.pd_api.send_data();
+		/*
+		this.pddb.page.pd_api.send_totals();
+		this.pddb.page.pd_api.send_logs();
+		this.pddb.page.pd_api.send_payments();
+		this.pddb.page.pd_api.send_requires_payments();
+		this.pddb.page.pd_api.send_user_studies();
+		*/
+	},
+	
+	reset_24hr_period: function() {
 		// reset last_24hr_mark to now
 		var two_four_hr = _un_dbify_date(this.prefs.get('last_24hr_mark', 0));
 		var new_two_four_hr = new Date();
@@ -423,7 +543,7 @@ _extend(Schedule.prototype, {
 			new_two_four_hr.setDate( now.getDate() - 1 );
 		}
 		this.prefs.set('last_24hr_mark', _dbify_date( new_two_four_hr ));
-		//alert("ding! last 24hr "+two_four_hr+" new 24hr "+now+"  now  "+new Date());
+		//alert("ding! last 24hr "+two_four_hr+" new 24hr "+now+"  now  "+new Date());	
 	},
 	
 	is_new_week_period: function() {
@@ -435,6 +555,11 @@ _extend(Schedule.prototype, {
 	},
 	
 	do_once_weekly_tasks: function() {
+		// send regular email
+		this.pddb.page.pd_api.send_regular_email();
+	},
+	
+	reset_week_period: function() {
 		// reset last_week_mark to now
 		var week_hr = new Date(this.prefs.get('last_week_mark', 0)*1000);
 		var now = new Date();
@@ -447,6 +572,38 @@ _extend(Schedule.prototype, {
 		this.prefs.set('last_week_mark', Math.floor(now.getTime()/1000));
 		//alert("ding! last week "+week_hr+" new week "+now+"  now  "+new Date());
 	},
+	
+	is_time_to_make_payment: function() {
+		return false;
+	},
+	
+	do_make_payment: function() {
+		this.pddb.page.pd_api.make_payment(function(r) {
+			// onload
+		}, function(r) {
+			// onerror
+		});
+	},
+	
+	reset_make_payment_period: function() {
+		
+	},
+		
+	is_time_to_settle_debt: function() {
+		return false;
+	},
+
+	do_settle_debt: function() {
+		this.pddb.page.pd_api.settle_debt(function(r) {
+			// onload
+		}, function(r) {
+			// onerror
+		});
+	},
+	
+	reset_settle_debt_period: function() {
+		
+	},
 });
 
 
@@ -455,7 +612,7 @@ _extend(Schedule.prototype, {
 function PageController(prefs, pddb) {
 	this.prefs = prefs;
 	this.pddb = pddb;
-	this.tipjoy = new TipJoy_API(this.prefs, this.pddb);
+	//this.tipjoy = new TipJoy_API(this.prefs, this.pddb);
 	this.pd_api = new ProcrasDonate_API(this.prefs, this.pddb);
 }
 PageController.prototype = {};
@@ -555,20 +712,213 @@ _extend(PageController.prototype, {
 			request.jQuery("#content").html( this.settings_wrapper_snippet(request, middle) );
 		}
 		
-		this.tipjoy.check_balance(
-			this.prefs.get("twitter_username", false),
-			this.prefs.get("twitter_password", false),
-			function(r) {
-				var response = eval("("+r.responseText+")");
-				if ( response.result == "success" ) {
-					request.jQuery("#balance_here").text(response.balance);
-				} else {
-					request.jQuery("#balance").append("Problem retrieving balance from TipJoy: "+response.reason);
-				}
+		this.insert_multiuse_auth(request);
+	},
+	
+	retrieve_and_display_multi_auth_link: function(request, caller_reference, new_auth_link_text, link_div_id) {
+		logger("create_and_display_new_multi_auth");
+		this.pd_api.authorize_multiuse(
+			caller_reference,
+			function(r) { // onsuccess
+				request.jQuery(link_div_id).html("<a href=\""+r.full_url+"\">"+new_auth_link_text+"</a>");
+			}, function(r) { // onfailure
+				request.jQuery(link_div_id).html("<span class=\"error\">Failed to create authorization link: "+r.reason+"</span>");
 			}
 		);
 	},
 	
+	display_message: function(request, multi_auth, message, message_div_id, is_error) {
+		logger("display_message: "+message);
+		request.jQuery(message_div_id).html(message);
+		if (is_error) {
+			request.jQuery(message_div_id).addClass("error");
+		} else {
+			request.jQuery(message_div_id).removeClass("error");
+		}
+	},
+	
+	lookup_balance: function(request, multi_auth, balance_div_id) {
+		logger("lookup balance");
+	},
+	
+	show_cancel_and_edit: function(request, cancel_div_id, edit_div_id) {
+		var self = this;
+		logger("lookup show_cancel_and_edit");
+		request.jQuery(cancel_div_id).html("<span id=\"cancel_link\"></span>");
+		request.jQuery(edit_div_id).html("<span id=\"edit_link\"></span>");
+		
+		request.jQuery("#cancel_link")
+			.addClass("link")
+			.text("Cancel donation authorization")
+			.click(function() {
+				self.pd_api.cancel_multiuse_token("User clicked cancel",
+				function() {
+					// onsuccess
+					request.jQuery("#message_here")
+					.removeClass("error")
+					.addClass("message")
+					.text("Successfully cancelled donation authorization.");
+				}, function(r) {
+					// onfailure
+					request.jQuery("#message_here")
+						.addClass("error")
+						.removeClass("message")
+						.text("Failed to cancel donation authorization: "+r.reason);
+				});
+			});
+		
+		request.jQuery("#edit_link")
+		 	.addClass("link")
+		 	.text("Edit donation authorization")
+			.click(function() {
+				alert("coming soon");
+			});
+	},
+
+	insert_multiuse_auth: function(request) {
+		/* 
+		 * 
+		 * INVARIANT: we don't need to know which token is current,
+		 * we just need to know there is a successful token out there.
+		 * 
+		 * if has success:
+		 *     display happy message
+		 * else:
+		 *     get updates from server
+		 *     if has success:
+		 *         display happy message
+		 *     else:
+		 *         get latest
+		 *         if error:
+		 *             display error
+		 *         elif waiting:
+		 *             display waiting
+		 *         elif cancel:
+		 *             display cancel message
+		 *             create new link
+		 *         elif expired:
+		 *             display expired message
+		 *             create new link
+		 *         else no latest:
+		 *             create new link
+		 * 
+		 * if has no rows:
+		 *     create new multi_auth
+		 *     display link
+		 * else if has success:
+		 *     display happy message
+		 *     lookup balance
+		 * else (has unsuccessfuls or cancels):
+		 *     retrieve updates from server
+		 *     if has success:
+		 *         display happy message
+		 *         lookup balance
+		 *     else 
+		 *     	   get most recent auth
+		 *     	   if waiting:
+		 *             display waiting message
+		 *         else if error:
+		 *             display error message based on error type
+		 *         display link for most recent row
+		 */
+		var self = this;
+		
+		var happy_message = "<b>Donations successfully authorized!</b> Click Done to continue.";
+		var waiting_message = "Authorization initiated... did you complete the pipeline on Amazon?";
+		var error_message = "Something went wrong with authorization: ";
+		var cancelled_message = "Previous authorization cancelled";
+		var error_message = "Previous authorization excpired";
+		
+		var message_div_id = "#message_here";
+		var cancel_div_id = "#cancel_here";
+		var edit_div_id = "#edit_here";
+		var balance_div_id = "#balance_here";
+		var link_div_id = "#auth_a_here";
+		var new_auth_link_text = "Allow future pledges to automatically get turned into donations.";
+		var retry_auth_link_text = "Allow future pledges to automatically get turned into donations (try again).";
+		
+		logger("insert_multiuse_auth");
+		
+		/*if has success:
+			 *     display happy message
+			 * else:
+			 *     get updates from server
+			 *     if has success:
+			 *         display happy message
+			 *     else:
+			 *         get latest
+			 *         if error:
+			 *             display error
+			 *         elif waiting:
+			 *             display waiting
+			 *         elif cancel:
+			 *             display cancel message
+			 *             create new link
+			 *         elif expired:
+			 *             display expired message
+			 *             create new link
+			 *         else no latest:
+			 *             create new link*/
+		
+		if (this.pddb.FPSMultiuseAuthorization.has_success()) {
+			logger("has_success");
+			// successfully authorized multi use token
+			var multi_auth = this.pddb.FPSMultiuseAuthorization.get_latest_success();
+			this.display_message(request, multi_auth, happy_message, message_div_id);
+			this.show_cancel_and_edit(request, cancel_div_id, edit_div_id);
+			this.lookup_balance(request, multi_auth, balance_div_id);
+		
+		} else {
+			logger("!has_success");
+			// do updates and handle successful, waiting and error possibilities
+			this.pd_api.request_data_updates(function(recipients, multi_auths) {
+				logger("updates after success");
+				// after successful update
+				if (self.pddb.FPSMultiuseAuthorization.has_success()) {
+					logger("has_success");
+					// successfully authorized multi use token
+					var multi_auth = self.pddb.FPSMultiuseAuthorization.get_latest_success();
+					self.display_message(request, multi_auth, happy_message, message_div_id);
+					self.show_cancel_and_edit(request, cancel_div_id, edit_div_id);
+					self.lookup_balance(request, multi_auth, balance_div_id);
+				} else {
+					logger("!has_success");
+					// get most recent
+					var multi_auth = self.pddb.FPSMultiuseAuthorization.most_recent();
+					
+					if (!multi_auth) {
+						// there are no rows
+						self.retrieve_and_display_multi_auth_link(request, create_caller_reference(), new_auth_link_text, link_div_id);
+						
+					} else if (multi_auth.error()) {
+						// error
+						self.display_message(request, multi_auth, error_message, message_div_id);
+						self.retrieve_and_display_multi_auth_link(request, create_caller_reference(), new_auth_link_text, link_div_id);
+						
+					} else if (multi_auth.response_not_received()) {
+						// waiting for response
+						//self.display_message(request, multi_auth, waiting_message, message_div_id);
+						self.retrieve_and_display_multi_auth_link(request, multi_auth.caller_reference, new_auth_link_text, link_div_id);
+						
+					} else if (multi_auth.cancelled()) {
+						// cancelled
+						self.display_message(request, multi_auth, cancelled_message, message_div_id);
+						self.retrieve_and_display_multi_auth_link(request, create_caller_reference(), new_auth_link_text, link_div_id);
+						
+					} else if (multi_auth.expired()) {
+						// expired (expiry reached, eg credit card needs editing)
+						self.display_message(request, multi_auth, expired_message, message_div_id);
+						self.retrieve_and_display_multi_auth_link(request, create_caller_reference(), new_auth_link_text, link_div_id);
+					} 
+				}
+					
+			}, function() {
+				// after failure
+				logger("after failure in updates");
+			});
+		}
+	},
+
 	insert_register_balance: function(request) {
 		/* Inserts balance/TipJoy info. */
 		var self = this;
@@ -648,10 +998,16 @@ _extend(PageController.prototype, {
 		this.prefs.set('register_state', 'done');
 		var unsafeWin = request.get_unsafeContentWin();//event.target.defaultView;
 		if (unsafeWin.wrappedJSObject) {
+			// raises: [Exception... "Illegal value" nsresult: "0x80070057
+			// (NS_ERROR_ILLEGAL_VALUE)" location: "JS frame :: 
+			// chrome://procrasdonate/content/js/views.js :: anonymous :: line 828" data: no]
 			unsafeWin = unsafeWin.wrappedJSObject;
 		}
 		
-		new XPCNativeWrapper(unsafeWin, "location").location = constants.IMPACT_URL;
+		// raises [Exception... "Illegal value" nsresult: "0x80070057 
+		// (NS_ERROR_ILLEGAL_VALUE)" location: "JS frame :: 
+		// chrome://procrasdonate/content/js/views.js :: anonymous :: line 834" data: no]
+		//new XPCNativeWrapper(unsafeWin, "location").location = constants.IMPACT_URL;
 	},
 	
 	site_classifications_middle: function(request) {
@@ -1348,6 +1704,7 @@ _extend(PageController.prototype, {
 		if (email) {
 			old_email = this.prefs.get("email", "");
 			if (email != old_email) {
+				// @TODO: use onload to know if email succeeded. if wrong email address, alert user.
 				this.pd_api.send_welcome_email(email);
 			}
 		}
@@ -1362,6 +1719,12 @@ _extend(PageController.prototype, {
 		} else {
 			this.prefs.set("tos", true);
 		}
+
+		/**** no more twitter tipjoy stuff ****/
+		// @TODO no longer using tipjoy. needs to be redesigned.
+		// idea: "Twitter" tab holds only TOS and optional email.
+		//       "Balance" holds 'authorize payments' amazon FPS links
+		return true;
 		
 		var twitter_username = request.jQuery("input[name='twitter_username']").attr("value");
 		var twitter_password = request.jQuery("input[name='twitter_password']").attr("value");
@@ -1563,19 +1926,19 @@ _extend(PageController.prototype, {
 	},
 	
 	_process_before_proceeding: function(request, state_name, state_enums, processors, event) {
-		logger("_process_before_proceeding event="+event);
+		//logger("_process_before_proceeding event="+event);
 		var self = this;
 		return function() {
 			for (var i = 0; i < state_enums.length; i += 1) {
 				var tab_state = state_enums[i];
 				if ( self.prefs.get(state_name+"_state", "") == tab_state ) {
 					var processor = processors[i];
-					logger(processor);
+					//logger("PROCESS_BEFORE_PROCEEDING: "+processor);
 					//logger(self[processor]);
 					var ret = self[processor](request, event);
-					logger(" actual ret="+ret+" typeof="+typeof(ret));
+					//logger(" actual ret="+ret+" typeof="+typeof(ret));
 					if ( ret ) {
-						logger("process returned true!"+event);
+						//logger("process returned true!"+event);
 						self[event](request);
 					}
 					break;
@@ -1584,11 +1947,18 @@ _extend(PageController.prototype, {
 		}
 	},
 	
-	_proceed: function(request, event) {
+	/// necessary because when did direct closure
+	/* .click(
+	 *     (function(event) { return event; })(self[event])
+	 * )
+	 * called functions had incorrect this
+	 */
+	_proceed: function(event, request) {
 		var self = this;
 		return function() {
-			self[event](request);
-		}
+			//self[fnname].apply(self, args);
+			//self[event](request);
+		};
 	},
 	
 	activate_settings_tab_events: function(request) {
@@ -1625,7 +1995,7 @@ _extend(PageController.prototype, {
 			// closure
 			request.jQuery("#"+tab_state+"_track, #"+tab_state+"_text").click(
 				//(function(event) { return event; })(self[event])
-				this._proceed(request, event)
+				this._proceed(event, request)
 			);
 		}
 		// cursor pointer to tracks
@@ -1680,7 +2050,6 @@ _extend(PageController.prototype, {
 		});
 	},
 	
-	/************************** IMPACT INSERTIONS ***********************/
 	
 	insert_register_twitter_account: function(request) {
 		/* Inserts user's twitter account form into page */
@@ -1691,6 +2060,8 @@ _extend(PageController.prototype, {
 		this.activate_register_tab_events(request);
 		this.activate_twitter_account_middle(request);
 	},
+	
+	/************************** IMPACT INSERTIONS ***********************/
 	
 	activate_impact_middle: function(request, has_tags) {
 		var self = this;
@@ -1948,7 +2319,7 @@ _extend(PageController.prototype, {
 		this.pddb.Total.select({
 			timetype_id: timetype.id,
 			contenttype_id: contenttype.id,
-			time: time
+			datetime: time
 		}, function(row) {
 			logger("      row="+row);
 			var total = 0;

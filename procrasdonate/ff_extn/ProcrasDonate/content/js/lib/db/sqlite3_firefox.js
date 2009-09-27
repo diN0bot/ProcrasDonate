@@ -44,7 +44,7 @@ var Cursor__Firefox = function Cursor__Firefox(db) {
 Cursor__Firefox.prototype = new Cursor;
 _extend(Cursor__Firefox.prototype, {
 	execute: function(sql, params) {
-		//_print(sql);
+		if (SQLITE3_FIREFOX_LOGGING) _print(sql);
 		if (!this.stmt) {
 			try {
 				//this.stmt = this.db.statement(sql, params);
@@ -125,7 +125,7 @@ _extend(Field.prototype, {
 
 var Model = function(db, name, opts, instance_opts, class_opts) {
 	// Usage:
-	// var Site = new Model({
+	// var Site = new Model(db, "Site", {
 	//     columns: {
 	//         id: "INTEGER",
 	//         site_id: "INTEGER",
@@ -146,6 +146,9 @@ var Model = function(db, name, opts, instance_opts, class_opts) {
 	
 	//this.row_factory = RowFactory(this.columns);
 	this.row_factory = make_row_factory(this.columns, this.instance_opts);
+	
+	// this allows us to call class methods directly on the model
+	_extend(this, this.class_opts);
 };
 
 Model.prototype = {};
@@ -320,13 +323,19 @@ _extend(Model.prototype, {
 	 * @param query: OBJECT of column name, value
 	 */
 	set: function(updates, wheres) {
+		if (SQLITE3_FIREFOX_LOGGING) _pprint(this.columns);
+		
 		var str = "UPDATE "+this.table_name+" SET ";
 		var is_first = true;
 		for (var col in updates) {
 			if (is_first) { is_first = false; }
 			else { str += ", "; }
-			str += col+"="+updates[col];
-
+			str += col+"=";
+			if (this.columns[col] == "VARCHAR") {
+				str += "\""+updates[col]+"\"";
+			} else {
+				str += updates[col];
+			}
 		}
 		str += " WHERE ";
 		is_first = true;
@@ -460,6 +469,12 @@ _extend(Model, {
 	},
 });
 
+/*
+ * @param prototype: instance_opts.
+ * This allows us to retrieve a row using select or get_or_null
+ * and then call instance methods or fields (columns) directly
+ * on the row.
+ */
 function make_row_factory(columns, prototype) {
 	var Factory = function(values) {
 		this._values = values;
@@ -472,7 +487,49 @@ function make_row_factory(columns, prototype) {
 				ret.push(name + "=" + self[name]);
 			});
 			return ret.join(", ");
-		}
+		},
+		
+		/**
+		 * Dumb default deep dict.
+		 * Problems:
+		 *    1. Isn't deep at all. <foo>_id aren't retrieved
+		 *       (even if they were, contenttype ones would have to be smarter
+		 *    2. Doesn't use _un_dbify anything
+		 *       (options are _un_dbify_bool() and _un_dbify_date() on values
+		 */
+		deep_dict: function() {
+			var self = this;
+			var ret = {};
+			_iterate(columns, function(name, value, i) {
+				/*
+				 * could automatically make <foo>_id deep but,
+				 * meh.
+				var l = name.length;
+				if (name.substr(l-3,3) == "_id") {
+					// fetch the item from its table
+					var noid_name = name.substr(0,l-3);
+					ret[] = 
+					do a reverse lookup in ContentTypes table (have to lower case)
+				} else {
+					ret[name] = self[name];
+				}
+				*/
+				var v = self[name];
+				/*
+				 * hmmm but how do we do date?'
+				 * #@TODO also, we want to do this for all row.foo calls
+				if (value == "INTEGER" || value == "INTEGER PRIMARY KEY") {
+					v = parseInt(v);
+				} else if (value == "REAL") {
+					v = parseFloat(v);
+				} else if (value == "BOOL") {
+					v = _un_dbify_bool(v);
+				}
+				*/
+				ret[name] = v;
+			});
+			return ret;
+		},
 	};
 	
 	_iterate(columns, function(name, type, i) {

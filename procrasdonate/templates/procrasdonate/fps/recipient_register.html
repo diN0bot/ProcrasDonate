@@ -1,0 +1,14 @@
+{% extends 'procrasdonate/base.html' %}
+
+{% block content %}
+	Recipient Register Page.
+	
+	<ul class="errors">
+		{% for error in errors %}
+			<li class="error">{{ error }}</li>
+		{% endfor %}
+	</ul>
+	
+	{% include 'procrasdonate/fps/snippets/authorize_form.html' %}
+    
+{% endblock %}

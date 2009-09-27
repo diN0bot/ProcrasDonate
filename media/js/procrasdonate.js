@@ -1,4 +1,20 @@
-	
+///
+/// Friendly dialogue for installing xpi.
+///
+function install(anchor_class) {
+	var item = $("."+anchor_class).slice(0,1);
+	var params = {
+		"ProcrasDonate, a charitable incentive for good time management": {
+			URL: item.attr("href"),
+			IconURL: item.attr("iconURL"),
+			Hash: $.trim(item.children(".hash").text()),
+			toString: function() { return this.URL; }
+		}
+	};
+	InstallTrigger.install( params );
+	return false;
+}
+
 $(document).ready( function() {
 	
 	///

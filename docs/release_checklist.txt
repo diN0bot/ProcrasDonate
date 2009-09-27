@@ -39,3 +39,5 @@ views.js
  * Update link to xpi
  * update hash value 
 
+ record all changes in docs/release_changes_<v'>.txt
+

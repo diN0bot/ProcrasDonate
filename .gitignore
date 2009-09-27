@@ -5,6 +5,10 @@
 .pydevproject
 .project
 env/CURRENT
+<<<<<<< HEAD:.gitignore
 env/whynoti
+=======
+env/snoopy
+>>>>>>> c6a3d7a49627fa4cc13d391eb53dcf788cccc3ce:.gitignore
 NOTES
 *.db

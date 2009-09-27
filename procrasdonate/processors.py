@@ -37,7 +37,7 @@ class TotalProcessor(Processor):
         print "process: ", json
         total_amount = float( json['total_amount'] )
         total_time   = float( json['total_time'] )
-        time         = Processor.parse_json_time(json['time'])
+        dtime         = Processor.parse_json_time(json['datetime'])
             
         if 'recipient' in json:
             category     = json['recipient']['category']
@@ -57,7 +57,7 @@ class TotalProcessor(Processor):
             DailyRecipient.add(recipient=recipient,
                                total_amount=total_amount,
                                total_time=total_time,
-                               time=time,
+                               datetime=dtime,
                                extn_id=extn_id,
                                user=user)
             
