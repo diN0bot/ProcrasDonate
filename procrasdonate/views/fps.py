@@ -605,5 +605,10 @@ def ipn(request):
     print
     print "INSTANT PAYMENT NOTIFICATION"
     print json.dumps(request.POST, indent=2)
-    print 
+    print
+    f = open("/var/sites/ProcrasDonate/log.log", 'a')
+    f.write("\n\nINSTANT PAYMENT NOTE\n")
+    f.write(json.dumps(request.POST, indent=2))
+    f.write("\n=============================================\n")
+    f.close()
     return json_success()
