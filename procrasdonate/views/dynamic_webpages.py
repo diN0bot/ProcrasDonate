@@ -59,7 +59,7 @@ def edit_information(request):
         if form.is_valid():
             form.save()
             request.user.message_set.create(message='Changes saved')
-            return HttpResponseRedirect(reverse('edit_information'))
+            return HttpResponseRedirect(reverse('recipient', args=(recipient.slug,)))
     else:
         form = FormKlass(instance=recipient)
 
@@ -150,8 +150,9 @@ def confirm(request, username, confirmation_code):
     error = None
     if not tagging:
         error = "Unknown username"
-    elif tagging.is_confirmed:
-        error = "Registration is already complete."
+    #todo
+    #elif tagging.is_confirmed:
+    #    error = "Registration is already complete."
     elif not tagging.confirm(confirmation_code):
         error = "Error confirming confirmation_code %s" % confirmation_code
     else:
@@ -244,3 +245,8 @@ def confirm_reset_password(request, username, confirmation_code):
     instructions = """Enter a new password. It can be whatever you want, but it will
     be more secure if you use numbers and uppercase letters in addition to lowercase letters."""
     return render_response(request, 'procrasdonate/account/confirm.html', locals())
+
+@user_passes_test(lambda u: u.is_superuser)
+def recipient_votes(request):
+    recipient_votes = RecipientVote.objects.all()
+    return render_response(request, 'procrasdonate/recipientvotes.html', locals())

@@ -9,7 +9,7 @@ import os
 #        base_path,
 #        os.path.join(base_path, "ext/lib"),
 #        ]
-sys.path[0:0] = "procrasdonate/ff_extn/ProcrasDonate/content/js/ext/lib"
+sys.path[0:0] = "procrasdonate/ProcrasDonateFFExtn/content/js/ext/lib"
 #os.chdir(base_path)
 
 from django.conf import settings

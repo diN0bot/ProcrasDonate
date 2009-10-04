@@ -4,6 +4,8 @@ from lib import model_utils
 from django.contrib.auth.models import User as RecipientUser
 from django.db.models.signals import post_save
 
+from django.template.defaultfilters import slugify
+
 import re
 import random
 
@@ -136,20 +138,28 @@ class Recipient(models.Model):
     """
     Recipient of donations
     """
+    slug = models.SlugField(db_index=True)
     twitter_name = models.CharField(max_length=32, null=True, blank=True)
     name = models.CharField(max_length=128, null=True, blank=True)
-    slug = models.CharField(max_length=128)
     email = models.EmailField(null=True, blank=True)
     url = models.URLField(null=True, blank=True)
     mission = models.CharField(max_length=256, null=True, blank=True)
     description = models.TextField(null=True, blank=True)
-    is_visible = models.BooleanField(default=False)
+    is_visible = models.BooleanField(default=True)
     category = models.ForeignKey('Category', blank=True, null=True)
+    pd_registered = models.BooleanField(default=False)
+    employers_identification_number = models.CharField(max_length=32, blank=True, null=True)
+    tax_exempt_status = models.BooleanField(default=True)
+    
+    admin_options = {'prepopulated_fields': {"slug": ("name",)} }
+    
+    class Meta:
+        ordering = ('name',)
     
     @classmethod
     def make(klass,
              name,
-             slug,
+             slug=None,
              email=None,
              url=None,
              twitter_name=None,
@@ -160,7 +170,7 @@ class Recipient(models.Model):
         if category:
             category = Category.get_or_create(category)
         return Recipient(name=name,
-                         slug=model_utils.slugify(name),
+                         slug=slug or model_utils.slugify(name),
                          twitter_name=twitter_name,
                          url=url,
                          email=email,
@@ -182,10 +192,9 @@ class Recipient(models.Model):
                 'category': self.category.category}
         
     def __unicode__(self):
-        return u"%s - %s - %s - %s" % (self.twitter_name,
-                                       self.name,
-                                       self.category,
-                                       self.is_visible)
+        return u"%s - %s - %s" % (self.name,
+                                  self.category,
+                                  self.pd_registered)
 
 class RecipientUserTagging(models.Model):
     user = models.ForeignKey(RecipientUser, unique=True)
@@ -229,7 +238,8 @@ class RecipientUserTagging(models.Model):
         return "".join(["0123456789ABCDEF"[random.randint(0,15)] for i in range(1,32)])
     
     def reset_password(self):
-        # we decided not to disable everything... #@TODO
+        # we decided not to disable everything... 
+        #@TODO brainstorm security across entire registration and password reset processes
         #user.is_active = False
         #user.save()
         #self.is_confirmed = False
@@ -591,7 +601,27 @@ class SitePayment(Payment):
                             "site",
                             SitePayment)
         
-
+class RecipientVote(models.Model):
+    recipient = models.ForeignKey(Recipient, blank=True, null=True)
+    user = models.ForeignKey(User)
+    name = models.CharField(max_length=200)
+    url = models.URLField(blank=True, null=True)
+    
+    class Meta:
+        ordering = ('url', 'name')
+    
+    @classmethod
+    def make(klass, name, url, user, recipient=None):
+        return RecipientVote(name=name,
+                             url=url,
+                             user=user,
+                             recipient=recipient)
+        
+    def __unicode__(self):
+        return "%s (%s) from %s --> %s" % (self.name,
+                                           self.url,
+                                           self.user.hash,
+                                           self.recipient)
 
 ALL_MODELS = [Email,
               User,
@@ -608,5 +638,6 @@ ALL_MODELS = [Email,
               SitePayment,
               RecipientPayment,
               SiteGroupTagging,
-              RecipientUserTagging]
+              RecipientUserTagging,
+              RecipientVote]
 

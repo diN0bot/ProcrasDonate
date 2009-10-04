@@ -4,10 +4,12 @@ from django.utils import simplejson as json
 from lib.view_utils import render_string, render_response, HttpResponseRedirect, extract_parameters
 from lib.json_utils import json_success, json_failure
 
+from django.contrib.auth.decorators import login_required
+
 from procrasdonate.models import *
 from procrasdonate.processors import *
 
-from lib.fps import *
+from procrasdonate.applib.fps import *
 from lib.xml_utils import ConvertXmlToDict
 
 import settings
@@ -100,11 +102,11 @@ def _get(url):
 
 ################################################################################
 
-
-def recipient_register(request, slug):
+@login_required
+def recipient_register(request):
     errors = []
     template = 'procrasdonate/fps/recipient_register.html'
-    recipient = Recipient.get_or_none(slug=slug)
+    recipient = Recipient.get_or_none(slug=request.user.get_profile().recipient.slug)
     if not recipient:
         errors.append("No FPS Recipient found for %s. Check url." % slug)
         return render_response(request, template, locals())   
@@ -124,18 +126,19 @@ def recipient_register(request, slug):
                   'websiteDescription': settings.FPS['websiteDescription'],
                   'pipelineName'      : "Recipient",
                   'recipientPaysFee'  : "True",
-                  'maxFixedFee'       : 5.00,
+                  #'maxFixedFee'       : 5.00,
                   'maxVariableFee'    : 20,
                   'returnUrl': "%s%s" % (settings.DOMAIN,
-                                         reverse('recipient_register_callback', args=(slug, ))),
+                                         reverse('recipient_register_callback')),
                   'version': settings.FPS['version']
                   }
     # add timestampe and signature
     finalize_parameters(parameters, type=CBUI_TYPE)
 
     return render_response(request, 'procrasdonate/fps/recipient_register.html', locals())    
-        
-def recipient_register_callback(request, slug):
+    
+@login_required
+def recipient_register_callback(request):
     """
     inserts callback response parameters into HTML for procrasdonate extension to handle
     
@@ -155,7 +158,7 @@ def recipient_register_callback(request, slug):
     """
     errors = []
     template = 'procrasdonate/fps/recipient_register_callback.html'
-    recipient = Recipient.get_or_none(slug=slug)
+    recipient = Recipient.get_or_none(slug=request.user.get_profile().recipient.slug)
     if not recipient:
         errors.append("Error. No FPS Recipient found for %s. Check url." % slug)
         return render_response(request, template, locals())

@@ -94,7 +94,7 @@ MIDDLEWARE_CLASSES = (
     'django.middleware.common.CommonMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
-    'lib.pagination.middleware.PaginationMiddleware',
+    'ext.pagination.middleware.PaginationMiddleware',
     #'django.contrib.csrf.middleware.CsrfMiddleware',
 )
 for app in APPS:
@@ -121,7 +121,7 @@ INSTALLED_APPS = (
     'django.contrib.sessions',
     'django.contrib.sites',
     'django.contrib.humanize',
-    'lib.pagination',
+    'ext.pagination',
     'django.contrib.auth',
     'django.contrib.admindocs',
     'django.contrib.admin',
@@ -136,14 +136,14 @@ for app in APPS:
         app,
     )
 
-USE_MARKUP = True # TODO text ful app should set this?
+USE_MARKUP = False
 if USE_MARKUP:
     INSTALLED_APPS += ('django.contrib.markup',)
 
 if DEBUG_TOOLBAR:
     INSTALLED_APPS += ('debug_toolbar',)
 
-PAGINATE_TEMPLATE = 'browse/pagination.html'
+PAGINATE_TEMPLATE = 'procrasdonate/pagination.html'
 
 TEMPLATE_CONTEXT_PROCESSORS = (
     'lib.context.defaults',
@@ -159,6 +159,11 @@ for app in APPS:
         TEMPLATE_CONTEXT_PROCESSORS += (
             '%s.context.defaults' % app,
         )
+
+# read extension version number from version.conf
+pdv_f = open('version.conf', 'r')
+PDVERSION = pdv_f.readline().strip()
+pdv_f.close()
 
 
 """

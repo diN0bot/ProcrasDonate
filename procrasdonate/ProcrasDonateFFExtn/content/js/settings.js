@@ -147,8 +147,8 @@ var constants = {};
 	constants.TWS_DEFAULT_HR_PER_WEEK_MAX = 30;
 	constants.DEFAULT_SUPPORT_PCT = _prefify_float(10);
 	
-	constants.DEFAULT_SETTINGS_STATE = "twitter_account";
-	constants.DEFAULT_REGISTER_STATE = "twitter_account";
+	constants.DEFAULT_SETTINGS_STATE = "account";
+	constants.DEFAULT_REGISTER_STATE = "account";
 	constants.DEFAULT_IMPACT_STATE = "recipients";
 	constants.DEFAULT_IMPACT_SUBSTATE = "this_week";
 	

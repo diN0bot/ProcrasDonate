@@ -71,8 +71,7 @@ class Processor(object):
             
             recipient = Recipient.get_or_none(slug=slug)
             if not recipient:
-                #raise Exception("Paid unknown recipient! ")
-                #@TODO
+                RecipientVote.get_or_none()
                 obj = None
             else:
                 obj = RecipientVisit.add(recipient,

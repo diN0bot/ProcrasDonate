@@ -1,6 +1,6 @@
 from django.db import models
 from lib import model_utils
-from lib import fps
+from procrasdonate.applib import fps
 from data import *
 
 import datetime
@@ -37,7 +37,6 @@ class FPSRecipient(models.Model):
     # auth callback parameters
     refund_token_id = models.CharField(max_length=64, blank=True, null=True)
     token_id = models.CharField(max_length=64, blank=True, null=True)
-    #@TODO choice field
     status = models.CharField(max_length=2,
                               choices=STATUS_CHOICES,
                               default=STATUSES['RESPONSE_NOT_RECEIVED'])
@@ -56,11 +55,6 @@ class FPSRecipient(models.Model):
             return FPSRecipient(recipient=recipient,
                                 caller_reference=fps.create_id(12),
                                 timestamp=datetime.datetime.now())
-    
-    def reset_caller_reference(self):
-        self.caller_reference = fps.create_id(12),
-        self.timestamp = datetime.datetime.now()
-        self.save()
     
     def good_to_go(self):
         return self.status == FPSRecipient.STATUSES['SUCCESS']
@@ -169,12 +163,6 @@ class FPSMultiuseAuth(models.Model):
                                global_amount_limit=parameters['global_amount_limit'],
                                recipient_slug_list=parameters['recipient_slug_list'])
                     
-    def reset_caller_reference(self):
-        #@todo do we need this? i mean, shouldn't we get rid of this??!
-        self.caller_reference = fps.create_id(12),
-        self.timestamp = datetime.datetime.now()
-        self.save()
-    
     def good_to_go(self):
         return self.success(self.status)
     

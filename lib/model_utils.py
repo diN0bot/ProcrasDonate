@@ -353,39 +353,6 @@ class TextProcessor(object):
         d = TextProcessor.tags.sub('', d).strip()
         setattr(instance, instance.textprocessor_fieldname(), d)
         return 
-    
-    @classmethod
-    def discover_citations(klass, signal, sender, instance, created, **kwargs):
-        """
-        @summary: 
-        POST SAVE
-        This method is called every time a Behavior (aka review) has been saved.
-        Does reverse wiki processing (html->markup), discovers citations
-        """
-        #if created:
-        #    pass
-        d = instance.description
-        
-        # turn links into citations
-        for link in DescriptionProcessor.links.findall(d):
-            domain = DescriptionProcessor.domain_re.search(d).group()
-            # check if domain name is already a source
-            http_domain = "http://%s"%domain
-            s = Node.get_or_none(label=domain)
-            if not s:
-                s = Node.add(label=domain, url=http_domain).publish()
-            if not s.types:
-                s.add_type(NodeType.SOURCE())
-            a = s.behaviors.filter(url=link)
-            if not a:
-                a = Behavior.add(link, Dimension.SOURCE_EVAL(), url=link, node=s).publish()
-            else:
-                a = a[0] # TODO just one right??
-            try:
-                Citation.add(a, instance).publish()
-            except AlreadyExists:
-                pass
-        return
 
 def _make_available_letters(choice_names):
     alpha = "abcdefghijklmnopqrstuvwxyz"

@@ -12,7 +12,7 @@ class Log(models.Model):
     LOG_TYPES_LIST = ["DEBUG", "INFO", "LOG", "WARN", "ERROR"]
     log_max_len, LOG_TYPES, LOG_TYPE_CHOICES = model_utils.convert_to_choices(LOG_TYPES_LIST)
         
-    DETAIL_ERROR_LIST = ["a", "b"]
+    DETAIL_ERROR_LIST = ["", "b"]
     derror_ml, DETAIL_ERRORS, DETAIL_ERRORS_CHOICES = model_utils.convert_to_choices(DETAIL_ERROR_LIST)
     
     DETAIL_INFO_LIST = ["b", "c"]

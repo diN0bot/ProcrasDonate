@@ -20,6 +20,10 @@
 			<li>url: {{ recipient.url }}</li>
 		</ul>
 		
-		
+		{% if user.is_authenticated %}
+			{% ifequal user.get_profile.recipient.slug recipient.slug %}
+				<a href="{% url edit_information %}">EDIT</a>
+			{% endifequal %}
+		{% endif %}
 	</div>
 {% endblock %}

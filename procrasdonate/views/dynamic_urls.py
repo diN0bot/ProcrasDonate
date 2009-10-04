@@ -33,6 +33,9 @@ urlpatterns = patterns('',
     url(r'^recipient/reset_password/$', dynamic_webpages.reset_password, name="reset_password"),
     # link for organizer to set password
     url(r'^recipient/confirm_reset_password/(?P<username>%s)/(?P<confirmation_code>%s)/$' % (slug_re, code_re), dynamic_webpages.confirm_reset_password, name="confirm_reset_password"),
+    
+    # RecipientVote dashboard
+    url(r'^recipientvotes/$', dynamic_webpages.recipient_votes, name="recipient_votes"),
 )
 """
     
