@@ -406,15 +406,15 @@ def convert_to_choices(choice_names, visible_names=None):
     ENUM = {}
     CHOICES = []
     choice_idx = 0
-    for name in choice_names:
+    for choice_name in choice_names:
         # find choice abbreviation
         idx = -1
         num_letters = 1
         x = ""
-        while not x in available_letters:
+        while not x.lower() in available_letters:
             idx += 1
-            if idx+num_letters < len(name):
-                x = name[idx : idx+num_letters]
+            if idx+num_letters <= len(choice_name):
+                x = choice_name[idx : idx+num_letters]
             
             elif num_letters < max_length:
                 idx = -1
@@ -422,11 +422,11 @@ def convert_to_choices(choice_names, visible_names=None):
             
             else:
                 x = available_letters[0]
-        available_letters.remove(x)
+        available_letters.remove(x.lower())
         
         # add to enum and choices
         ENUM[choice_name] = x
-        CHOICES[x] = visible_names[choice_idx]
+        CHOICES.append( (x, visible_names[choice_idx]) )
         
         choice_idx += 1
             

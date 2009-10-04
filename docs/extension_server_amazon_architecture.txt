@@ -1,6 +1,6 @@
 http://www.websequencediagrams.com/
 
-http://tinyurl.com/qthoxf
+http://tinyurl.com/yh7al44
 
 participant Extension as E
 participant "PD Server" as S
@@ -24,10 +24,10 @@ end
 
 opt MultiUse Token Auth
 E->S: MultiUse Authorization Request
-note over E: carries on
-S->A: MultiUse Authorization Request
+S->E: CBUI URL
+note over E: user clicks on URL
+E->A: MultiUse Authorization Request
 activate A
-note over S: carries on
 note over A:
     user interacts with CBUI
     on Amazon's site
@@ -71,7 +71,7 @@ note right of A:
     bank account, cc
     processing done
 end note
-A->S: Pay success, failure callback
+A->S: IPN: Pay success, failure callback
 note over S:
     saves result,
     emails user,

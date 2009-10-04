@@ -28,8 +28,7 @@ var constants = {};
 	constants.AUTHORIZE_PAYMENTS_URL = '/fps/user/payment/authorize/';
 	constants.AUTHORIZE_PAYMENTS_CALLBACK_URL = '/fps/user/payment/authorize_callback/';
 	
-	constants.SEND_WELCOME_EMAIL_URL = '/post/welcome_email/';
-	constants.SEND_REGULAR_EMAIL_URL = '/post/regular_email/';
+	constants.SEND_EMAIL_URL = '/post/email/';
 	constants.SEND_DATA_URL = '/post/data/';
 	constants.RECEIVE_DATA_URL = '/get/data/';
 	
@@ -53,30 +52,30 @@ var constants = {};
 
 	// enumeration of settings page state
 	constants.SETTINGS_STATE_ENUM = [
-		'twitter_account', 
+		'account', 
 		'recipients', 
 		'donation_amounts', 
 		'support', 
-		'site_classifications', 
-		'balance'
+		/*'site_classifications',*/
+		'payment_system'
 	];
 	constants.SETTINGS_STATE_TAB_NAMES = [
-		'Twitter', 'Recipients', 'Donations', 'Support', 'Sites', 'Balance'];
+		'Email', 'Recipients', 'Donations', 'Support', /*'Sites',*/ 'Amazon'];
 	constants.SETTINGS_STATE_INSERTS = [
-		"insert_settings_twitter_account", 
+		"insert_settings_account", 
 		"insert_settings_recipients", 
 		"insert_settings_donation_amounts", 
 		"insert_settings_support", 
-		"insert_settings_site_classifications", 
-		"insert_settings_balance"
+		/*"insert_settings_site_classifications",*/ 
+		"insert_settings_payment_system"
 	];
 	constants.SETTINGS_STATE_PROCESSORS = [
-		"process_twitter_account", 
+		"process_account", 
 		"process_recipients", 
 		"process_donation", 
 		"process_support", 
-		"process_site_classifications", 
-		"process_balance"
+		/*"process_site_classifications",*/ 
+		"process_payment_system"
 	];
 	//enumeration of impact page state
 	constants.IMPACT_STATE_ENUM = ['recipients', 'sites', 'goals'];//, 'history'];
@@ -105,32 +104,32 @@ var constants = {};
 	*/
 	// enumeration of register track state
 	constants.REGISTER_STATE_ENUM = [
-		'twitter_account', 
+		'account', 
 		'recipients', 
 		'donation_amounts', 
 		'support', 
-		'site_classifications', 
-		'balance', 
+		/*'site_classifications',*/ 
+		'payment_system', 
 		'done'
 	];
 	constants.REGISTER_STATE_TAB_NAMES = [
-		'Twitter', 'Recipients', 'Donation', 'Support', 'Sites', 'Balance', 'XXX'];
+		'Email', 'Recipients', 'Donation', 'Support', /*'Sites', */'Amazon', 'XXX'];
 	constants.REGISTER_STATE_INSERTS = [
-		"insert_register_twitter_account", 
+		"insert_register_account", 
 		"insert_register_recipients", 
 		"insert_register_donation_amounts", 
 		"insert_register_support", 
-		"insert_register_site_classifications", 
-		"insert_register_balance", 
+		/*"insert_register_site_classifications",*/ 
+		"insert_register_payment_system", 
 		"insert_register_done"
 	];
 	constants.REGISTER_STATE_PROCESSORS = [
-		"process_twitter_account", 
+		"process_account", 
 		"process_recipients", 
 		"process_donation", 
 		"process_support", 
-		"process_site_classifications", 
-		"process_balance", 
+		/*"process_site_classifications",*/
+		"process_payment_system", 
 		"process_done"
 	];
 	
@@ -146,6 +145,7 @@ var constants = {};
 	constants.TWS_DEFAULT_CENTS_PER_HR = 95;
 	constants.TWS_DEFAULT_HR_PER_WEEK_GOAL = 20;
 	constants.TWS_DEFAULT_HR_PER_WEEK_MAX = 30;
+	constants.DEFAULT_SUPPORT_PCT = _prefify_float(10);
 	
 	constants.DEFAULT_SETTINGS_STATE = "twitter_account";
 	constants.DEFAULT_REGISTER_STATE = "twitter_account";

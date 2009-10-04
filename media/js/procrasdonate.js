@@ -15,6 +15,14 @@ function install(anchor_class) {
 	return false;
 }
 
+function not_ready_to_install() {
+	alert("Payments through our service have been temporarily suspended because " +
+			"the third party payment service we've been using has gone out of " +
+			"business.\n\nWe are hard at work integrating with a new payment system.\n\n" +
+			"We will release this shortly.");
+	return false;
+}
+
 $(document).ready( function() {
 	
 	///

@@ -54,6 +54,7 @@ def _calculateRFC210HMAC(string):
     return base64.encodestring(hmac.new(FPS['secretKey'], string, sha).digest()).strip()
 
 def _getStringToSign(parameters, type):
+    #print "_getStringToSign", type
     keys = parameters.keys()
     # sort must be case insensitive (even though parameters are case sensitive for amazon)
     keys.sort(upcase_compare)
@@ -63,6 +64,7 @@ def _getStringToSign(parameters, type):
         for key in keys:
             #ret += "%s=%s&" % (key, parameters[key])
             #print "KEY=", key, "VALUE=", parameters[key]
+            #print "KEY=", urllib.quote(key), "VALUE=", urllib.quote("%s" % parameters[key]).replace("/", "%2F")
             ret += "%s=%s&" % (urllib.quote(key), urllib.quote("%s" % parameters[key]).replace("/", "%2F"))
         ret = ret[:-1]
     
@@ -71,6 +73,7 @@ def _getStringToSign(parameters, type):
         for key in keys:
             ret += "%s%s" % (key, parameters[key])
 
+    #print "SIG = ", ret
     return ret
 
 def get_signature(parameters, type):

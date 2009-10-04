@@ -45,6 +45,7 @@ function load_models(db, pddb) {
 		
 		deep_dict: function() {
 			return {
+				id: this.id,
 				sitegroup: this.sitegroup().deep_dict(),
 				url: this.url,
 				tag: this.tag().tag
@@ -80,6 +81,7 @@ function load_models(db, pddb) {
 		
 		deep_dict: function() {
 			return {
+				id: this.id,
 				name: this.name,
 				host: this.host,
 				url_re: this.url_re,
@@ -120,6 +122,7 @@ function load_models(db, pddb) {
 		
 		deep_dict: function() {
 			return {
+				id: this.id,
 				name: this.name,
 				slug: this.slug,
 				twitter_name: this.twitter_name,
@@ -194,6 +197,7 @@ function load_models(db, pddb) {
 		
 		deep_dict: function() {
 			return {
+				id: this.id,
 				recipient: this.recipient().deep_dict(),
 				percent: parseFloat(this.percent),
 			}
@@ -253,6 +257,7 @@ function load_models(db, pddb) {
 		
 		deep_dict: function() {
 			return {
+				id: this.id,
 				site: this.site().deep_dict(),
 				enter_at: _un_dbify_date(this.enter_at),
 				duration: parseInt(this.duration)
@@ -295,14 +300,19 @@ function load_models(db, pddb) {
 			return contenttype
 		},
 		
+		cached_content: null,
 		content: function() {
 			// all Totals have a content
-			var self = this;
-			var content = pddb[this.contenttype().modelname].get_or_null({ id: self.content_id });
-			if (!content) {
-				pddb.orthogonals.error("no content found for total = "+this);
+			if (!this.cached_content) {
+				var self = this;
+				var content = pddb[this.contenttype().modelname].get_or_null({ id: self.content_id });
+				if (!content) {
+					pddb.orthogonals.error("no content found for total = "+this);
+				} else {
+					this.cached_content = content;
+				}
 			}
-			return content
+			return this.cached_content;
 		},
 		
 		recipient: function() {
@@ -379,12 +389,13 @@ function load_models(db, pddb) {
 			 * @return dictionary, not a row factory
 			 */
 			return {
+				id: this.id,
 				contenttype: this.contenttype().modelname,
 				content: this.content().deep_dict(),
 				total_time: parseInt(this.total_time),
 				total_amount: parseFloat(this.total_amount),
 				datetime: parseInt(this.datetime),
-				timetype: this.timetype(),
+				timetype: this.timetype().timetype,
 				payments: this.payment_dicts()
 			}
 		}
@@ -446,6 +457,7 @@ function load_models(db, pddb) {
 			//var ret = this.prototype.deep_dict()
 			// return _extend(ret, {})
 			return {
+				id: this.id,
 				payment_service: this.payment_service(),
 				transaction_id: parseInt(this.transaction_id),
 				sent_to_service: _un_dbify_bool(this.sent_to_service),
@@ -498,6 +510,7 @@ function load_models(db, pddb) {
 	
 		deep_dict: function() {
 			return {
+				id: this.id,
 				total: this.total().deep_dict(),
 				partially_paid: this.partiall_paid
 			}
@@ -670,6 +683,7 @@ function load_models(db, pddb) {
 		
 		deep_dict: function() {
 			return {
+				id: this.id,
 				timestamp: _un_dbify_date(this.timestamp),
 				caller_reference: this.caller_reference,
 				global_amount_limit: this.global_amount_limit,
@@ -827,6 +841,7 @@ function load_models(db, pddb) {
 
 		deep_dict: function() {
 			return {
+				id: this.id,
 				timestamp: _un_dbify_date(this.timestamp),
 				caller_reference: this.caller_reference,
 				marketplace_fixed_fee: this.marketplace_fixed_fee,

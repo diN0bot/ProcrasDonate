@@ -1,0 +1,20 @@
+{% extends 'procrasdonate/base.html' %}
+
+{% block head %}
+	{{ block.super }}
+{% endblock %}
+
+{% block content %}
+	<div id="thin_column">
+		{% if error %}<p class="error">{{ error }}</p>{% endif %}
+		
+		<p>{{ instructions }}</p>
+		
+		<form method="post">
+			<table><tbody>
+				{{ form }}
+			</tbody></table>
+			<input type="submit" value="Complete registration!" />
+		</form>
+	</div>
+{% endblock %}

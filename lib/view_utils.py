@@ -106,7 +106,6 @@ def extract_parameters(request, method_type, expected_parameters, optional_param
     for p in expected_parameters:
         try:
             v = getattr(request, method_type).get(p, None)
-            print p, v
             if v == None:
                 return {'success': False,
                         'reason': "Missing expected parameter: %s" % p}

@@ -7,13 +7,13 @@ from lib.json_utils import json_success, json_failure
 from procrasdonate.models import *
 from procrasdonate.processors import *
 
-from lib import FPyS
 from lib.fps import *
+from lib.xml_utils import ConvertXmlToDict
 
 import settings
 import datetime, time
 import urllib, urllib2
-
+import re
 
 SANDBOX_AMAZON_CBUI_URL = "https://authorize.payments-sandbox.amazon.com/cobranded-ui/actions/start"
 SANDBOX_AMAZON_FPS_API_URL = "https://fps.sandbox.amazonaws.com"
@@ -502,16 +502,50 @@ TransactionAmount=0.22
 
 
     error response:
-    <?xml version="1.0"?>
-<Response><Errors><Error><Code>IncompatibleTokens</Code><Message>Maximum values of marketplace fees not defined in Recipient token or are unreadable.</Message></Error></Errors><RequestID>27d73b73-d6fc-4f83-81ee-f7c7534e9225</RequestID></Response>
+<?xml version="1.0"?>
+<Response>
+    <Errors>
+        <Error>
+            <Code>IncompatibleTokens</Code>
+            <Message>Maximum values of marketplace fees not defined in Recipient token or are unreadable.</Message>
+        </Error>
+    </Errors>
+    <RequestID>27d73b73-d6fc-4f83-81ee-f7c7534e9225</RequestID>
+</Response>
 
 <?xml version="1.0"?>
-<Response><Errors><Error><Code>InvalidParams</Code><Message>Transaction amount must be greater than Recipient Fee liability.</Message></Error></Errors><RequestID>0b80acb2-2105-4e44-acbe-6520a1cdafe6</RequestID></Response>
+<Response>
+    <Errors>
+        <Error>
+            <Code>InvalidParams</Code>
+            <Message>Transaction amount must be greater than Recipient Fee liability.</Message>
+        </Error>
+    </Errors>
+    <RequestID>0b80acb2-2105-4e44-acbe-6520a1cdafe6</RequestID>
+</Response>
 
 success!!!
 <?xml version="1.0"?>
-<PayResponse xmlns="http://fps.amazonaws.com/doc/2008-09-17/"><PayResult><TransactionId>14FUAIBTQ5ECRD1CVD8HIH1E445NK43FIQ6</TransactionId><TransactionStatus>Pending</TransactionStatus></PayResult><ResponseMetadata><RequestId>8292cb68-d09d-4bec-a5bf-df5c2923cfc1:0</RequestId></ResponseMetadata></PayResponse>
+<PayResponse xmlns="http://fps.amazonaws.com/doc/2008-09-17/">
+    <PayResult>
+        <TransactionId>14FUAIBTQ5ECRD1CVD8HIH1E445NK43FIQ6</TransactionId>
+        <TransactionStatus>Pending</TransactionStatus>
+    </PayResult>
+    <ResponseMetadata>
+        <RequestId>8292cb68-d09d-4bec-a5bf-df5c2923cfc1:0</RequestId>
+    </ResponseMetadata>
+</PayResponse>
 
+<?xml version="1.0"?>
+<PayResponse xmlns="http://fps.amazonaws.com/doc/2008-09-17/">
+    <PayResult>
+        <TransactionId>14FUV9H5S5COG9TU5VU3GVBKRP3PJ955TTH</TransactionId>
+        <TransactionStatus>Pending</TransactionStatus>
+    </PayResult>
+    <ResponseMetadata>
+        <RequestId>137cb61d-b28c-4491-a1b3-ad7233ff6a84:0</RequestId>
+    </ResponseMetadata>
+</PayResponse>
     """
     print
     print "CANCEL MULTIUSE"
@@ -558,7 +592,6 @@ success!!!
     #lower_parameters['refund_token_id'] = fpsr.refund_token_id
     lower_parameters['marketplace_fixed_fee'] = 0.00
     
-    
     #lower_parameters['RecipientTokenId'] = fpsr.token_id
     #lower_parameters['RefundTokenId'] = fpsr.refund_token_id
     #lower_parameters['SenderTokenId'] = lower_parameters['sender_token_id']
@@ -588,9 +621,6 @@ success!!!
     full_url = "%s?%s" % (AMAZON_FPS_API_URL,
                           urllib.urlencode(camel_parameters))
 
-    #FPSMultiusePay.add(user,
-    #                   timestamp=lower_parameters['timestamp'])
-    
     print
     print "FULL URL"
     print full_url
@@ -599,11 +629,219 @@ success!!!
     print "CONTENT"
     print content
     
-    return json_success()
+    xmlns_re = re.compile(' xmlns="http://fps.amazonaws.com/doc/[\d-]+/"')
+    version_re = re.compile(' xmlns="http://fps.amazonaws.com/doc/([\d-]+)/"')
+    
+    has_match = version_re.search(content)
+    if has_match:
+        if has_match.group(1) != lower_parameters['version']:
+            # versions are out of synch!
+            pass
+        # we need to use a compiled re that doesn't extract the version, otherwise split
+        # will include the version
+        content = ''.join(xmlns_re.split(content))
+    
+    response_dict = ConvertXmlToDict(content)
+    # p23 of Advanced Quick Start Dev Guide says that only the first error is ever reported
+    # so errors is expected to always contain at most one error.
+    errors = []
+    error_code = None
+    error_message = None
+    request_id = None
+    for key in response_dict:
+        if key == 'Response':
+            # error response
+            """
+            {'Response': {'Errors': {'Error': [{'Code': 'InvalidParams',
+                                    'Message': 'Transaction amount must be greater than Recipient Fee liability.'},
+                                   {'Code': 'Error2',
+                                    'Message': 'Another error'}]},
+              'RequestID': '0b80acb2-2105-4e44-acbe-6520a1cdafe6'}}
+            """
+            for error in respose_dict['Response']['Errors']['Error']:
+                errors.append(error)
+                error_code = error['Code']
+                error_message = error['Message']
+            request_id = respose_dict['Response']['RequestID']
+        elif key == 'PayResponse':
+            # success
+            transaction_id = response_dict['PayResponse']['PayResult']['TransactionId']
+            transaction_status = response_dict['PayResponse']['PayResult']['TransactionStatus']
+            request_id = response_dict['PayResponse']['ResponseMetadata']['RequestId']
+        else:
+            #@TODO
+            pass
+    
+    pay = FPSMultiusePay.add(user,
+                             lower_parameters['caller_reference'],
+                             lower_parameters['timestamp'],
+                             lower_parameters['marketplace_fixed_fee'],
+                             lower_parameters['marketplace_variable_fee'],
+                             lower_parameters['recipient_token_id'],
+                             lower_parameters['refund_token_id'],
+                             lower_parameters['sender_token_id'],
+                             lower_parameters['transaction_amount'],
+                             lower_parameters['request_id'],
+                             transaction_id,
+                             status,
+                             error_message,
+                             error_code)
+    if errors:    
+        return json_failure("%s: %s" % (error_code, error_message))
+    else:
+        return json_success({'pay': pay.deep_dict()})
 
 def ipn(request):
+    """
+    PAY::::::
+    
+    INSTANT PAYMENT NOTE
+    {
+      "operation": "PAY", 
+      "transactionDate": "1254096159", 
+      "notificationType": "TransactionStatus", 
+      "recipientEmail": "pd_recip_bilumi@bilumi.org", 
+      "callerReference": "Y52tMVgbr1aX", 
+      "buyerName": "User for ProcrasDonate Sandbox Testing", 
+      "signature": "/prSnliI43P+zYhIqn/gJjqvX0c=", 
+      "recipientName": "Test Business", 
+      "transactionId": "14FUV9H5S5COG9TU5VU3GVBKRP3PJ955TTH", 
+      "statusCode": "PendingNetworkResponse", 
+      "paymentMethod": "CC", 
+      "transactionAmount": "USD 2.22", 
+      "statusMessage": "The transaction is awaiting a response from the backend payment processor.", 
+      "transactionStatus": "PENDING"
+    }
+    =============================================
+    INSTANT PAYMENT NOTE
+    {
+      "operation": "PAY", 
+      "transactionDate": "1254096159", 
+      "notificationType": "TransactionStatus", 
+      "recipientEmail": "pd_recip_bilumi@bilumi.org", 
+      "callerReference": "Y52tMVgbr1aX", 
+      "buyerName": "User for ProcrasDonate Sandbox Testing", 
+      "signature": "8vmsIPZtIW9pbVuaZEPVBvrzCmM=", 
+      "recipientName": "Test Business", 
+      "transactionId": "14FUV9H5S5COG9TU5VU3GVBKRP3PJ955TTH", 
+      "statusCode": "Success", 
+      "paymentMethod": "CC", 
+      "transactionAmount": "USD 2.22", 
+      "statusMessage": "The transaction was successful and the payment instrument was charged.", 
+      "transactionStatus": "SUCCESS"
+    }
+    
+    CANCEL MULTIUSE AUTH:::::::
+    {
+      "paymentReason": "Proudly ProcrasDonating for a good cause!", 
+      "customerName": "User for ProcrasDonate Sandbox Testing", 
+      "tokenType": "MultiUse", 
+      "tokenId": "I29FZ7HM3Z8I3XJH7B9V7GZEPXDKLVOF6P5KUESEAFBTG9R4H5XGGV7B6IKEGIWH", 
+      "dateInstalled": "Sep 27, 2009", 
+      "customerEmail": "pd_user@bilumi.org", 
+      "notificationType": "TokenCancellation", 
+      "callerReference": "s2BZ7h5EH3kx"
+    }
+
+
+    Recipient initiates refund:
+    {
+      "status": "INITIATED", 
+      "paymentReason": "A: i just wanted to test out what would happen", 
+      "parentTransactionId": "14FUAIBTQ5ECRD1CVD8HIH1E445NK43FIQ6", 
+      "operation": "REFUND", 
+      "transactionDate": "1254160785", 
+      "notificationType": "TransactionStatus", 
+      "recipientEmail": "pd_recip_bilumi@bilumi.org", 
+      "callerReference": "txnDtls27f8ab95-0aa0-4623-868c-bc6fc8140975", 
+      "buyerName": "User for ProcrasDonate Sandbox Testing", 
+      "signature": "n5ikYu///MoR+fdCUZe7UcKiNSI=", 
+      "recipientName": "Test Business", 
+      "transactionId": "14GZSTOCN6MRD4H6LBK39NN59KOCR8HM9MB", 
+      "paymentMethod": "CC", 
+      "transactionAmount": "USD 10.00"
+    }
+    =============================================
+    {
+      "status": "SUCCESS", 
+      "paymentReason": "A: i just wanted to test out what would happen", 
+      "parentTransactionId": "14FUAIBTQ5ECRD1CVD8HIH1E445NK43FIQ6", 
+      "operation": "REFUND", 
+      "transactionDate": "1254160785", 
+      "notificationType": "TransactionStatus", 
+      "recipientEmail": "pd_recip_bilumi@bilumi.org", 
+      "callerReference": "txnDtls27f8ab95-0aa0-4623-868c-bc6fc8140975", 
+      "buyerName": "User for ProcrasDonate Sandbox Testing", 
+      "signature": "8IUtGKTpRrcaTZUTstAVHTZEkGA=", 
+      "recipientName": "Test Business", 
+      "transactionId": "14GZSTOCN6MRD4H6LBK39NN59KOCR8HM9MB", 
+      "paymentMethod": "CC", 
+      "transactionAmount": "USD 10.00"
+    }
+
+    """
     print
     print "INSTANT PAYMENT NOTIFICATION"
     print json.dumps(request.POST, indent=2)
     print 
+    
+    notification_type = request.POST('notificationType', None)
+    if not notification_type:
+        #something went very wrong #@todo: 
+        pass
+    
+    if notification_type == "TokenCancellation":
+        pass
+    
+    elif notification_type == "TransactionStatus":
+        expected_parameters = ["operation",
+                               "transactionDate",
+                               "notificationType",
+                               "recipientEmail",
+                               "callerReference",
+                               "buyerName",
+                               "signature",
+                               "recipientName",
+                               "transactionId",
+                               "statusCode",
+                               "paymentMethod",
+                               "transactionAmount",
+                               "statusMessage",
+                               "transactionStatus"]
+        optional_parameters = ["parentTransactionId", # refund
+                               "status", # refund
+                               "paymentReason", # refund
+                               "statusMessage", # payment
+                               "statusCode", # payment
+                               "transactionStatus"] # payment
+        response = extract_parameters(request, "POST", expected_parameters, optional_parameters)
+        if not response['success']:
+            #@todo what?
+            print "FAIL to extract parameters"
+        parameters = response['parameters']
+        #@TODO check signature
+        
+        if parameters['notificationType'] == 'TransactionStatus':
+        
+            if parameters['operation'] == 'REFUND':
+                pay = FPSMultiusePay.get_or_none(transaction_id=parameters['parentTransactionId'])
+                if parameters['status'] == 'INITIATED':
+                    pay.status = FPSMultiusePay.STATUSES['REFUND_INITIATED']
+                elif parameters['status'] == 'SUCCESS':
+                    pay.status = FPSMultiusePay.STATUSES['SUCCESS']
+                pay.save()
+                
+            elif parameters['operation'] == 'PAY':
+                pay = FPSMultiusePay.get_or_none(transaction_id=parameters['transactionId'])
+                if pay.status == FPSMultiusePay.STATUSES['PENDING']:
+                    pay.status = FPSMultiusePay.STATUSES[ parameters['transactionStatus'] ]
+                pay.save()
+
+        elif parameters['notificationType'] == 'TokenCancellation':
+            multiuse = FPSMultiuseAuth.get_or_none(token_id=parameters['tokenId'])
+            if multiuse.status != FPSMultiuseAuth.STATUSES['CANCELLED']:
+                multiuse.status = FPSMultiuseAuth.STATUSES['CANCELLED']
+                multiuse.save()
+            
+    parameters = response['parameters']
     return json_success()

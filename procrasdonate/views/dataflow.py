@@ -18,33 +18,50 @@ def _POST(url, values):
     response = urllib2.urlopen(req).read()
     return json.loads(response)
 
-def send_welcome_email(request):
+def send_email(request):
+    """
+    Sends email to user. Triggered by extension.
+    Possible types:
+      -~={ USERS }=~-
+        * WELCOME: triggered as soon as a user installs the extension
+        * UPDATE: triggered as soon as a user updates the extension
+        * TIME TO UPDATE EXTENSION: triggered when current extension version 
+                            differs from latest version received from server
+        * THANK YOU BLURBS (opt-in) -- 3 donation amount steps + blurb.
+         
+      -~={ CRON JOBS }=~-
+      #@todo: 
+        * END OF YEAR EMAIL FOR TAXES
+        * END OF YEAR CHARITY NOTIFICATION (opt-in)
+        * WEEKLY (EVERY SUNDAY NIGHT):
+            their performance
+            alerts (register? reauthorize? pre-selected recipient officially signed up)
+            blog posts
+            company updates
+            tech updates
+            recipient blurb
+            * UPDATES FROM THEIR CHARITIES
+        
+      -~={ RECIPIENTS }=~-
+        * WEEKLY TO RECIPIENT: their performance, company updates, tech updates
+    """
+    #try:
     if not request.POST:
-        return json_failure("must *POST* email address")
+        return json_failure("must *POST* data")
     
-    email_address = request.POST.get('email_address','')
-    email = Email.add(email_address)
-    
-    #@todo send welcome email
+    expected_parameters = ["hash",
+                           "opt_in_status",
+                           "email_type"]
+    response = extract_parameters(request, "POST", expected_parameters)
+    if not response['success']:
+        #@todo what?
+        print "FAIL to extract parameters"
+    parameters = response['parameters']
+
+    #email_address = parameters['email_address']
+    #email = Email.add(email_address)
     
     return json_success()
-
-def send_regular_email(request):
-    pass
-
-def _require_json_parameter(request, method, parameter_name):
-    """
-    @return (True, json value for parameter) or (False, json_failure() response)
-    """
-    SUCCESS = True
-    FAILURE = False
-    json_value = getattr(request, method).get(parameter_name, None)
-    if not json_value:
-        return (FAILURE, json_failure("must %s *%s* parameter" % (method, parameter_name)))
-    try:
-        return (SUCCESS, json.loads(json_value))
-    except ValueError, e:
-        return (FAILURE, json_failure(repr(e)))
 
 def receive_data(request):
     """
@@ -54,11 +71,20 @@ def receive_data(request):
     if not request.POST:
         return json_failure("must *POST* data")
     
-    (success, result) = _require_json_parameter(request, "POST", "json_data")
-    if not success:
-        return result
+    datatypes = ["totals", "logs", "userstudies", "payments", "requirespayments"]
+    processor_fnc = {'totals'          : Processor.process_total,
+                     'logs'            : Processor.process_log,
+                     'userstudies'     : Processor.process_userstudy,
+                     'payments'        : Processor.process_payment,
+                     'requirespayments': Processor.process_requirespayment}
+    
+    response = extract_parameters(request, "POST", ["hash"], datatypes)
+    if not response['success']:
+        #@todo what?
+        print "FAIL to extract parameters"
+    parameters = response['parameters']
 
-    hash = result["hash"]
+    hash = parameters["hash"]
     print "----HASH----------"
     print json.dumps(hash, indent=2)
     
@@ -66,20 +92,16 @@ def receive_data(request):
     print "----  USER ----"
     print user
     
-    print
-    print request.POST
-    print
-    
     processed_count = 0
-    for datatype in ["totals", "logs", "userstudies", "payments", "requirespayments"]:
+    for datatype in datatypes:
         print " datatype ", datatype
-        if datatype in result:
-            items = result[datatype]
+        if datatype in parameters:
+            items = json.loads(parameters[datatype])
             print "---- %s %s -------" % (len(items), datatype)
             print json.dumps(items[:1], indent=2)
             for item in items:
-                #success = TotalProcessor.process_json(total, user)
-                processed_count += success and 1 or 0
+                obj = processor_fnc[datatype](item, user)
+                #processed_count += success and 1 or 0
     
     ret = json_success({"process_success_count": processed_count})
     print "response = ", ret
@@ -97,6 +119,7 @@ def decode_time(str):
 def return_data(request):
     """
     sends back data for particular user
+    #@TODO send latest version, too
     """
     errors = []
     expected_parameters = ["hash", "since"]
@@ -120,7 +143,8 @@ def return_data(request):
     print user
     
     recipients = []
-    for recipient in Recipient.objects.filter(fpsrecipient__timestamp__gte=since):
+    #for recipient in Recipient.objects.filter(fpsrecipient__timestamp__gte=since):
+    for recipient in Recipient.objects.all():
         recipients.append(recipient.deep_dict())
         
     multiuse_auths = []

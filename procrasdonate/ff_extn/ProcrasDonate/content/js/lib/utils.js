@@ -326,6 +326,22 @@ var _date_to_http_format = function(t) {
 	return year+"-"+month+"-"+day+" "+hours+":"+minutes+":"+seconds;
 }
 
+// x is a string
+// if x can be parsed as an int, return that
+// otherwise, we return x parsed as a float to 2 decimal places
+var _un_prefify_float = function(x) {
+	if ( parseInt(x) == x ) {
+		return parseInt(x);
+	} else {
+		return parseFloat(x).toFixed(2);
+	}
+}
+
+// can't store floats in prefs, so convert to string
+var _prefify_float = function(x) {
+	return x.toString();
+}
+
 var host_regexp =  /^[\w]+:\/\/([^\/]+).*/g;
 
 var _host = function(href) {

@@ -1,10 +1,13 @@
 
 
+##### USEFUL BASH ALIASES:
 
-run web server publicly for amazon callbacks:
+export REPO="/Users/lucy/sandbox/CalmProcrasDonate/"
 
-1. activate port 80:
-   System Preferences -> Sharing -> Web site
+alias rebuild='python ${REPO}procrasdonate/ff_extn/ProcrasDonate/content/bin/build_templates.py ${REPO}procrasdonate/ff_extn/ProcrasDonate/content/templates/*.html; cat ${REPO}p\
+rocrasdonate/ff_extn/ProcrasDonate/content/templates/*.js > ${REPO}procrasdonate/ff_extn/ProcrasDonate/content/js/templates/all.js'
 
-2. sudo ./manage.py runserver <ip>:80
+export PDV='0.1.3'
+alias xpi_it='pushd ${REPO}procrasdonate/ff_extn/ProcrasDonate; zip -r ${REPO}media/xpi/ProcrasDonate_${PDV}.xpi *; popd'
 
+#@TODO server contains version number

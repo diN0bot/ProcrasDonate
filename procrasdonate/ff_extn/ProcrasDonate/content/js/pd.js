@@ -30,10 +30,13 @@ _extend(ProcrasDonate_API.prototype, {
 		
 		_iterate(models_to_methods, function(key, value, index) {
 			var items = self[value]();
-			data[self.pddb[key].table_name] = items;
+			data[self.pddb[key].table_name] = JSON.stringify(items);
 		});
 		
 		var url = constants.PD_URL + constants.SEND_DATA_URL;
+		logger("pd.js:: send_data: ");
+		_pprint(data.totals[0]);
+		_pprint(data.totals[0].content);
 		this._hello_operator_give_me_procrasdonate(
 			url,
 			data,
@@ -222,24 +225,21 @@ _extend(ProcrasDonate_API.prototype, {
 		constants.SETTLE_DEBT_URL = '/fps/user/payment/settle_debt/';
 	},
 	
-	send_welcome_email: function(email_address) {
-		logger("send welcome email: "+email_address)
+	send_welcome_email: function() {
+		logger("send welcome email: "+this.prefs.get('email', constants.DEFAULT_EMAIL))
 		this.make_request(
 			constants.PD_URL + constants.SEND_WELCOME_EMAIL_URL,
-			{email_address: email_address},
+			{
+				email_address: this.prefs.get('email', constants.DEFAULT_EMAIL),
+				hash: this.prefs.get('hash', constants.DEFAULT_HASH),
+			},
 			"POST",
 			function() {}
 		);
 	},
 	
-	send_regular_email: function(email_address) {
-		logger("send welcome email: "+email_address)
-		this.make_request(
-			constants.PD_URL + constants.SEND_REGULAR_EMAIL_URL,
-			{email_address: email_address},
-			"POST",
-			function() {}
-		);
+	send_regular_email: function() {
+		
 	},
 	
     authorize_multiuse: function(caller_reference, onsuccess, onfailure) {
@@ -371,7 +371,7 @@ _extend(ProcrasDonate_API.prototype, {
 		this._hello_operator_give_me_procrasdonate(
 			constants.PD_URL + constants.RECEIVE_DATA_URL,
 			{
-				since: 0,
+				since: 0, // self.prefs.get('since_received_data', 0);
 				hash: this.prefs.get('hash', constants.DEFAULT_HASH),
 			}, //#@TODO store time in prefs
 			"GET",
@@ -386,7 +386,9 @@ _extend(ProcrasDonate_API.prototype, {
 					self.pddb.FPSMultiuseAuthorization.process_object(value);
 				});
 				_iterate(r.recipients, function(key, value, index) {
-					self.pddb.Recipient.process_object(value);
+					logger("NEW RECIPIENT FROM SERVER "+key+" "+value);
+					var r = self.pddb.Recipient.process_object(value);
+					logger("recip: "+r);
 				});
 				self.prefs.set('since_received_data', _dbify_date(new_since));
 				self.pddb.orthogonals.log("dataflow", "Done: "+_dbify_date(new_since));
@@ -403,7 +405,7 @@ _extend(ProcrasDonate_API.prototype, {
 	/*
 	 * Posts data to ProcrasDonate server
 	 * @param url: url to post to 
-	 * @param data: data structure will by JSON.stringify-ied
+	 * @param data: data structure. will not be JSON.stringify-ied
 	 * @param onload: function to execute on success
 	 * @param onerror: function to execute on error
 	 */

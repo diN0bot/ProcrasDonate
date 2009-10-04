@@ -38,6 +38,7 @@ if settings.DJANGO_SERVER:
     urlpatterns += patterns('django.views.generic.simple',
         (r'^dev/manual_test_suite/$', 'direct_to_template', {'template': 'procrasdonate/dev_test.html'}),
         (r'^dev/automatic_test_suite/$', 'direct_to_template', {'template': 'procrasdonate/test_suite.html'}),
+        (r'^dev/server/$', 'direct_to_template', {'template': 'procrasdonate/test_suite.html'}),
         #(r'^reset_state/$', 'direct_to_template', {'template': 'procrasdonate/dev_test.html'}),
         #(r'^on_install/$', 'direct_to_template', {'template': 'procrasdonate/dev_test.html'}),
         #(r'^add_random_visits/$', 'direct_to_template', {'template': 'procrasdonate/dev_test.html'}),

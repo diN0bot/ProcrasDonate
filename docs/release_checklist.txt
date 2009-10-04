@@ -1,14 +1,17 @@
 
-A release is a bundle of "extension" code changes pushed to the live
-site. This may include an xpi of the Firefox extension and/or the Django
-procrasdonate app. The latter is part of the ProcrasDonate "extension"
-because of the literal extension's interaction with server web pages and
-css.
+An *extension* release is an XPI zip of the extension code base:
+    <repo root>/procrasdonate/ff_extn/ProcrasDonate
 
-"Extension" code should never be pushed live without a release.
+A *server* release is a particular commit of everything else:
+    the enclosing Django project and procrasdonate app.
+    
+Although some server releases may occur independent of an extension release, much
+of this sysytem works together. Backwards compatibility must be considered in that
+users will update their extensions asynchronously.
 
 @TODO : move necessary css from the server to the extension so that the
 website can be updated (mostly) separate from the extension.
+#@TODO: make procrasdonate django app and ProcrasDonate ff extn more separated and stand-alone.
 
 Every release should go through the following checklist:
 
@@ -23,6 +26,7 @@ main.js
 
 views.js
    * add state changes to ACCOUNT and STATE defaults.
+     -- or should every call to a variable just use the settings.DEFAULT for default?
 
 === procrasdonate Django app ===
 

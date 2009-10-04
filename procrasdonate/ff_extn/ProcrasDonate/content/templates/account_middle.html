@@ -25,12 +25,16 @@
 			</tr>
 			-->
 			<tr>
-				<td><label class='form-right'>Email <small>(optional)</small></label></td>
+				<td><label class='form-right'>Email</label></td>
 				<td><input class='press_enter_for_next form-left' type='text' name='email' value='{{ email }}'></td>
 				<td class='help form-left'>
 						We'll send you weekly summaries of your
 						ProcrasDonation and TimeWellSpent activities.
-					</td>
+				</td>
+				<td><input class='right' type='checkbox' name='recip_newsletters' value='agree' 
+					{% if recip_newsletters %}checked {% endif %}/></td>
+				<td><label class='left'>I want to receive occaisional
+					thank you emails and a year-end summary email from charities I donate to.</label></td>
 			</tr>
 		</tbody>
 	</table>

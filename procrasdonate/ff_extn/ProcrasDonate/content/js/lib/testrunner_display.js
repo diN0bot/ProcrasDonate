@@ -80,9 +80,9 @@ _extend(TestRunnerConsoleDisplay.prototype, {
 		for (var i = 0; i < testgroup.assertions.length; i++) {
 			var assertion = testgroup.assertions[i];
 			if (assertion.result) {
-				Firebug.Console.info(i+". ("+assertion.result+") "+assertion.msg);
+				Firebug.Console.log(i+". ("+assertion.result+") "+assertion.msg);
 			} else {
-				Firebug.Console.error(i+". *"+assertion.result+"* "+assertion.msg);
+				Firebug.Console.log(i+". *"+assertion.result+"* "+assertion.msg);
 			}
 		}
 		Firebug.Console.closeGroup();

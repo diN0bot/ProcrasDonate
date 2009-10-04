@@ -389,6 +389,3 @@ class FlexiblePaymentClient(object):
             params['TransactionDate'] = date
 
         return self.execute(params)
-
-                  
-

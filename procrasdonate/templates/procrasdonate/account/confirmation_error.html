@@ -1,4 +1,4 @@
-{% extends 'procrasdonate/after_install/after_install.html' %}
+{% extends 'procrasdonate/base.html' %}
 
 {% block head %}
 	{{ block.super }}
@@ -6,6 +6,7 @@
 
 {% block content %}
 	<div id="thin_column">
-		Thanks for installing ProcrasDonate 0.1.1 !!
+		{% if error %}<p class="error">{{ error }}</p>{% endif %}
+		
 	</div>
 {% endblock %}

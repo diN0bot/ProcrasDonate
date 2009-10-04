@@ -208,32 +208,24 @@ class FPSMultiusePay(models.Model):
     """
     """
     # Valid statuses                                                                                                                                                                
-    STATUSES = {'SUCCESS_ABT':'SA', # success for Amazon account payment method
-                'SUCCESS_ACH':'SB', # success for bank account payment method
-                'SUCCESS_CC':'SC', # success for credit card payment method
-                'SYSTEM_ERROR':'SE',
-                'ABORTED':'A', # buyer aborted pipeline
-                'CALLER_ERROR':'CE',
-                'PAYMENT_METHOD_ERROR':'PE', # buyer does not have payment method requested
-                'PAYMENT_ERROR':'NP',
-                'DEVELOPER_ERROR': 'NM',
-                'RESPONSE_NOT_RECEIVED': '0',
-                'RESPONSE_ERROR': '1',
-                }
+    STATUSES = {'SUCCESS':'S',
+                'PENDING': 'P',
+                'CANCELLED': 'C', # was pending, now cancelled
+                'RESERVED': 'R',
+                'FAILURE': 'F',
+                'ERROR': 'E', # something messed up before we could even get a transaction status
+                'REFUND_INITIATED': 'I',
+                'REFUNDED': 'D'}
+    
     # for database (data, friendly_name)                                                                                                                                          
-    STATUS_CHOICES = (
-                      (STATUSES['SUCCESS_ABT'], 'Success for Amazon account payment method',),
-                      (STATUSES['SUCCESS_ACH'], 'Success for bank account payment method',),
-                      (STATUSES['SUCCESS_CC'], 'Success for credit card payment method',),
-                      (STATUSES['SYSTEM_ERROR'], 'System error',),
-                      (STATUSES['ABORTED'], 'Aborted by user',),
-                      (STATUSES['CALLER_ERROR'], 'Caller exception',),
-                      (STATUSES['PAYMENT_METHOD_ERROR'], 'User does not have requested payment method',),
-                      (STATUSES['PAYMENT_ERROR'], 'Account type does not support specified payment method',),
-                      (STATUSES['DEVELOPER_ERROR'], 'Developer is not registered as a third party caller to make this transaction',),
-                      (STATUSES['RESPONSE_NOT_RECEIVED'], 'Request to CBUI has either not been sent or not received',),
-                      (STATUSES['RESPONSE_ERROR'], 'Callback is called, but something unexpected prevents us from parsing a status',),
-                     )
+    STATUS_CHOICES = ((STATUSES['SUCCESS'], 'Success',),
+                      (STATUSES['PENDING'], 'Pending',),
+                      (STATUSES['CANCELLED'], 'Cancelled',),
+                      (STATUSES['RESERVED'], 'Reserved',),
+                      (STATUSES['FAILURE'], 'Failure',),
+                      (STATUSES['ERROR'], 'Error',),
+                      (STATUSES['REFUND_INITIATED'], 'Refund_Initiated',),
+                      (STATUSES['REFUNDED'], 'Refunded',))
 
     user = models.ForeignKey(User)
     # for auth request. good for 7 days
@@ -249,29 +241,50 @@ class FPSMultiusePay(models.Model):
     transaction_amount = models.CharField(max_length=32)
     
     # pay callback parameters
-    transaction_id = models.CharField(max_length=64, blank=True, null=True)
-    response_metadata = models.CharField(max_length=64, blank=True, null=True)
     request_id = models.CharField(max_length=64, blank=True, null=True)
-
-    status = models.CharField(max_length=2,
-                              choices=STATUS_CHOICES,
-                              default=STATUSES['RESPONSE_NOT_RECEIVED'])
-    error_message = models.CharField(max_length=128, blank=True, null=True)
+    transaction_id = models.CharField(max_length=64, blank=True, null=True)
+    status = models.CharField(max_length=2, choices=STATUS_CHOICES)
+    error_message = models.CharField(max_length=200, blank=True, null=True)
+    error_code = models.CharField(max_length=128, blank=True, null=True)
     
     @classmethod
     def Initialize(klass):
         model_utils.mixin(FPSMultiusePayMixin, User)
 
     @classmethod
-    def make(klass, user, caller_reference=None):
-        if caller_reference:
-            r = FPSMultiusePay.get_or_none(caller_reference=caller_reference)
-            if r:
-                raise "FPSMultiusePay already exists for %s" % caller_reference
-        caller_reference = caller_reference or fps.create_id(12)
+    def make(klass, user,
+             caller_reference,
+             timestamp,
+             marketplace_fixed_fee,
+             marketplace_variable_fee,
+             recipient_token_id,
+             refund_token_id,
+             sender_token_id,
+             transaction_amount,
+             request_id,
+             transaction_id,
+             status,
+             error_message,
+             error_code):
+        if status == 'PENDING':
+            status = klass.STATUSES['PENDING']
+        elif error_code == 'FOO':
+            #status = klass.STATUSES['FOO']
+            pass
         return FPSMultiusePay(user=user,
-                                caller_reference=caller_reference,
-                                timestamp=datetime.datetime.now())
+                              caller_reference=caller_reference,
+                              timestamp=datetime.datetime.now(),
+                              marketplace_fixed_fee=marketplace_fixed_fee,
+                              marketplace_variable_fee=marketplace_variable_fee,
+                              recipient_token_id=recipient_token_id,
+                              refund_token_id=refund_token_id,
+                              sender_token_id=sender_token_id,
+                              transaction_amount=transaction_amount,
+                              request_id=request_id,
+                              transaction_id=transaction_id,
+                              status=status,
+                              error_message=error_message,
+                              error_code=error_code)
     
     def reset_caller_reference(self):
         self.caller_reference = fps.create_id(12),

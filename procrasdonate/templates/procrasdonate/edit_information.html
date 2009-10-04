@@ -1,0 +1,16 @@
+{% extends 'procrasdonate/base.html' %}
+
+{% block head %}
+	{{ block.super }}
+{% endblock %}
+
+{% block content %}
+	<div id="thin_column">
+		<form method="post">
+			<table><tbody>
+				{{ form }}
+			</tbody></table>
+			<input type="submit" value="save" />
+		</form>
+	</div>
+{% endblock %}

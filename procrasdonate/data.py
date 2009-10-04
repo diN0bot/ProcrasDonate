@@ -1,7 +1,11 @@
 from django.db import models
 from lib import model_utils
 
+from django.contrib.auth.models import User as RecipientUser
+from django.db.models.signals import post_save
+
 import re
+import random
 
 class Email(models.Model):
     """
@@ -183,6 +187,81 @@ class Recipient(models.Model):
                                        self.category,
                                        self.is_visible)
 
+class RecipientUserTagging(models.Model):
+    user = models.ForeignKey(RecipientUser, unique=True)
+    recipient = models.ForeignKey(Recipient)
+    
+    is_confirmed = models.BooleanField(default=False)
+    confirmation_code = models.CharField(max_length=255, null=True, blank=True)
+    
+    def set_recipient(self, recipient):
+        self.recipient = recipient
+        self.save()
+    
+    def confirm(self, confirmation_code):
+        if self.is_confirmed or self.confirmation_code == confirmation_code:
+            self.is_confirmed = True
+            self.confirmation_code = None
+            self.user.is_active = True
+            self.save()
+            return True
+        else:
+            return False
+    
+    def send_email(self, subject, message, from_email=None):
+        """
+        Sends an e-mail to this User.
+        If DJANGO_SERVER is true, then prints email to console
+        """
+        import settings
+        if settings.DJANGO_SERVER:
+            print "="*60
+            print "FROM:", from_email
+            print "TO:", self.user.email
+            print "SUBJECT:", subject
+            print "MESSAGE:", message
+        else:
+            from django.core.mail import send_mail
+            send_mail(subject, message, from_email, [self.user.email])
+    
+    @classmethod
+    def create_confirmation_code(klass):
+        return "".join(["0123456789ABCDEF"[random.randint(0,15)] for i in range(1,32)])
+    
+    def reset_password(self):
+        # we decided not to disable everything... #@TODO
+        #user.is_active = False
+        #user.save()
+        #self.is_confirmed = False
+        self.confirmation_code = RecipientUserTagging.create_confirmation_code()
+        self.save()
+    
+    @classmethod
+    def make(klass, user, recipient, require_confirmation=True):
+        if require_confirmation:
+            confirmation_code = klass.create_confirmation_code()
+            is_confirmed = False
+            user.is_active = False
+            user.save()
+        else:
+            confirmation_code = None
+            is_confirmed = True
+            user.is_active = True
+            user.save()
+        return RecipientUserTagging(user=user,
+                                    recipient=recipient,
+                                    confirmation_code=confirmation_code,
+                                    is_confirmed=is_confirmed)
+        
+    def __unicode__(self):
+        return "%s --> %s" % (self.user, self.recipient)
+
+def user_save_callback(sender, instance, created, **kwargs):
+    if created:
+        RecipientUserTagging(user=instance)
+
+post_save.connect(user_save_callback, sender=RecipientUser)
+
 class Tag(models.Model):
     """
     """
@@ -202,6 +281,24 @@ class Tag(models.Model):
     
     def __unicode__(self):
         return u"%s" % self.tag
+
+
+class SiteGroupTagging(models.Model):
+    tag = models.ForeignKey(Tag)
+    sitegroup = models.ForeignKey(SiteGroup)
+    user = models.ForeignKey(User)
+    dtime = models.DateTimeField(auto_now_add=True, db_index=True)
+    
+    @classmethod
+    def make(klass, tag, sitegroup, user):
+        """
+        @param tag: if type str or unicode, retrieves Tag
+        """
+        if isinstance(tag, (str, unicode)):
+            tag = Tag.get_or_create(tag)
+        return SiteGroupTagging(tag=tag,
+                                sitegroup=sitegroup,
+                                user=user)
 
 class Category(models.Model):
     """
@@ -237,8 +334,10 @@ class Visit(models.Model):
     The time_spent and amount [donated] across all sites and recipients
     with the same incoming_tipjoy_transaction_id should cancel out.
     """
-    # datetime of tipjoy payment
-    datetime = models.DateField()
+    # datetime visit occured (recorded in extension)
+    dtime = models.DateField()
+    # datetime server received visit from extension
+    received_time = models.DateField(auto_now_add=True)
     # time spent procrastinating in seconds. likely max is 24 (hr) * 60 (min) * 60 (s)
     total_time = models.FloatField()
     # amount donated in cents
@@ -254,17 +353,23 @@ class Visit(models.Model):
     # id of item in extension database
     extn_id = models.IntegerField()
     
+    def hours(self):
+        return self.total_time / (60*60)
+    
+    def dollars(self):
+        return self.total_amount / 100
+    
     class Meta:
         abstract = True
-        ordering = ('datetime',)
+        ordering = ('dtime',)
     
     def __unicode__(self):
-        return u"%s :%s: - %s - %s cents" % (self.datetime,
+        return u"%s :%s: - %s - %s cents" % (self.dtime,
                                              self.user.hash,
                                              self.total_time,
                                              self.total_amount)
     @classmethod
-    def make(klass, datetime, total_time, total_amount, user, extn_id, extn_inst, extn_inst_name, the_klass):
+    def make(klass, dtime, total_time, total_amount, user, extn_id, extn_inst, extn_inst_name, the_klass):
         """
         @param extn_id: 
         @param extn_inst: 
@@ -272,8 +377,11 @@ class Visit(models.Model):
         @param the_klass: 
         """
         # total_amount / total_time
-        rate = (total_amount * 3600) / total_time;
-        the_inst = the_klass(datetime=datetime,
+        if total_time:
+            rate = (total_amount * 3600) / total_time;
+        else:
+            rate = 0
+        the_inst = the_klass(dtime=dtime,
                              total_time=total_time,
                              total_amount=total_amount,
                              rate=rate,
@@ -288,8 +396,8 @@ class SiteGroupVisit(Visit):
     sitegroup = models.ForeignKey(SiteGroup)
     
     @classmethod
-    def make(klass, sitegroup, datetime, total_time, total_amount, user, extn_id):
-       return Visit.make(datetime,
+    def make(klass, sitegroup, dtime, total_time, total_amount, user, extn_id):
+       return Visit.make(dtime,
                          total_time,
                          total_amount,
                          user,
@@ -307,8 +415,8 @@ class SiteVisit(Visit):
     site = models.ForeignKey(Site)
     
     @classmethod
-    def make(klass, site, datetime, total_time, total_amount, user, extn_id):
-       return Visit.make(datetime,
+    def make(klass, site, dtime, total_time, total_amount, user, extn_id):
+       return Visit.make(dtime,
                          total_time,
                          total_amount,
                          user,
@@ -326,8 +434,8 @@ class RecipientVisit(Visit):
     recipient = models.ForeignKey(Recipient)
     
     @classmethod
-    def make(klass, recipient, datetime, total_time, total_amount, user, extn_id):
-       return Visit.make(datetime,
+    def make(klass, recipient, dtime, total_time, total_amount, user, extn_id):
+       return Visit.make(dtime,
                          total_time,
                          total_amount,
                          user,
@@ -345,8 +453,8 @@ class TagVisit(Visit):
     tag = models.ForeignKey(Tag)
     
     @classmethod
-    def make(klass, tag, datetime, total_time, total_amount, user, extn_id):
-       return Visit.make(datetime,
+    def make(klass, tag, dtime, total_time, total_amount, user, extn_id):
+       return Visit.make(dtime,
                          total_time,
                          total_amount,
                          user,
@@ -370,7 +478,7 @@ class PaymentService(models.Model):
         return self.name
 
 class Payment(models.Model):
-    datetime = models.DateTimeField(db_index=True)
+    dtime = models.DateTimeField(db_index=True)
     payment_service = models.ForeignKey(PaymentService)
     transaction_id = models.CharField(max_length=32, db_index=True)
     settled = models.BooleanField(default=False)
@@ -385,7 +493,7 @@ class Payment(models.Model):
 
     @classmethod
     def make(klass,
-             datetime,
+             dtime,
              payment_service,
              transaction_id,
              settled,
@@ -404,7 +512,7 @@ class Payment(models.Model):
         @param extn_inst_name: 
         @param the_klass:
         """
-        the_inst = the_klass(datetime=datetime,
+        the_inst = the_klass(dtime=dtime,
                              payment_service=payment_service,
                              transaction_id=transaction_id,
                              settled=settled,
@@ -425,7 +533,7 @@ class RecipientPayment(Payment):
     @classmethod
     def make(klass,
              recipient,
-             datetime,
+             dtime,
              payment_service,
              transaction_id,
              settled,
@@ -438,7 +546,7 @@ class RecipientPayment(Payment):
              extn_inst_name,
              the_klass):
 
-        return Payment.make(datetime,
+        return Payment.make(dtime,
                             payment_service,
                             transaction_id,
                             settled,
@@ -457,7 +565,7 @@ class SitePayment(Payment):
     @classmethod
     def make(klass,
              site,
-             datetime,
+             dtime,
              payment_service,
              transaction_id,
              settled,
@@ -470,7 +578,7 @@ class SitePayment(Payment):
              extn_inst_name,
              the_klass):
 
-        return Payment.make(datetime,
+        return Payment.make(dtime,
                             payment_service,
                             transaction_id,
                             settled,
@@ -482,6 +590,8 @@ class SitePayment(Payment):
                             site,
                             "site",
                             SitePayment)
+        
+
 
 ALL_MODELS = [Email,
               User,
@@ -496,5 +606,7 @@ ALL_MODELS = [Email,
               TagVisit,
               PaymentService,
               SitePayment,
-              RecipientPayment
-              ]
+              RecipientPayment,
+              SiteGroupTagging,
+              RecipientUserTagging]
+

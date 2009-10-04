@@ -24,7 +24,7 @@ _extend(Controller.prototype, {
 				//request.do_in_page(_bind(this.page, this.page.insert_settings_recipients, request));
 				//request.do_in_page(
 				//	_bind(this.page, this.page.insert_settings_donation_amounts, request));
-				//request.do_in_page(_bind(this.page, this.page.insert_settings_twitter_account, request));
+				//request.do_in_page(_bind(this.page, this.page.insert_settings_account, request));
 				//request.do_in_page(_bind(this, this.pd_dispatch_by_url, request));
 				return this.pd_dispatch_by_url(request);
 			}
@@ -46,8 +46,6 @@ _extend(Controller.prototype, {
 		for (var i = 0; i < state_enums.length; i += 1) {
 			var state = state_enums[i];
 			if ( this.prefs.get(state_name + '_state', '') == state ) {
-				//logger(event_inserts[i]);
-				//return false;
 				this.page[event_inserts[i]](request);
 				return true;
 			}
@@ -167,7 +165,7 @@ _extend(Controller.prototype, {
 	initialize_state: function() {
 		this.initialize_account_defaults_if_necessary();
 		this.initialize_state_if_necessary();
-		this.initialize_data_flow_state_if_necessary();
+		//this.initialize_data_flow_state_if_necessary();
 	},
 	
 	initialize_data_flow_state_if_necessary: function() {
@@ -200,6 +198,7 @@ _extend(Controller.prototype, {
 		 */
 		var self = this;
 		_iterate(this.STATE_DEFAULTS, function(name, value) {
+			logger("state defaults: "+name+" "+value);
 			if (!self.prefs.get(name, ''))
 				return self.prefs.set(name, value);
 		});
@@ -246,11 +245,13 @@ _extend(Controller.prototype, {
 		tws_cents_per_hr: constants.TWS_DEFAULT_CENTS_PER_HR,
 		tws_hr_per_week_goal: constants.TWS_DEFAULT_HR_PER_WEEK_GOAL,
 		tws_hr_per_week_max: constants.TWS_DEFAULT_HR_PER_WEEK_MAX,
+		support_pct: constants.DEFAULT_SUPPORT_PCT,
 		tos: false,
 		
 		global_amount_limit: constants.DEFAULT_GLOBAL_AMOUNT_LIMIT,
 		credit_limit: constants.DEFAULT_CREDIT_LIMIT,
-		fps_version: constants.DEFAULT_FPS_VERSION,
+		fps_cbui_version: constants.DEFAULT_FPS_CBUI_VERSION,
+		fps_api_version: constants.DEFAULT_FPS_API_VERSION,
 		payment_reason: constants.DEFAULT_PAYMENT_REASON,
 	
 	},
@@ -262,6 +263,7 @@ _extend(Controller.prototype, {
 		 */
 		var self = this;
 		_iterate(this.ACCOUNT_DEFAULTS, function init(name, value) {
+			logger("account defaults: "+name+" "+value);
 			if (!self.prefs.get(name, ''))
 				return self.prefs.set(name, value);
 		});
@@ -369,21 +371,11 @@ _extend(Controller.prototype, {
 		var recipient = this.pddb.Recipient.get_or_null({
 			slug: 'bilumi'
 		});
-		this.pddb.page.pd_api.pay_multiuse(10.00, recipient);
+		this.pddb.page.pd_api.pay_multiuse(2.22, recipient);
 	},
 	
-	///
-	/// Triggers settle debt. Does not reset settle debt period.
-	///
-	trigger_settle_debt: function() {
-		this.pddb.schedule.do_settle_debt();
-	},
-	
-	_caldddl_: function(request, event) {
-		var self = this;
-		return function() {
-			self[event](request);
-		}
+	trigger_on_install: function() {
+		myOverlay.onInstall("0.0.0");
 	},
 	
 	manual_test_suite: function(request) {
@@ -391,6 +383,8 @@ _extend(Controller.prototype, {
 		               "trigger_weekly_cycle",
 		               "",
 		               "trigger_payment",
+		               "",
+		               "trigger_on_install",
 		               "",
 		               "reset_state_to_defaults",
 		               "reset_account_to_defaults",
@@ -434,13 +428,46 @@ _extend(Controller.prototype, {
 	
 	automatic_test_suite: function(request) {
 		var testrunner = new TestRunner(request);
-
+		var self = this;
 		// run some tests
-		testrunner.test("a happy test", function() {
-			testrunner.expect(2);
-			testrunner.ok( true, "this test is fine" );
-			var value = "hello";
-			testrunner.equals( "hello", value, "We expect value to be hello" );
+		
+		/*
+		 * some tests run in user's extension daily
+		 * some tests are for development regression testing.
+		 *  --> checklist or manual tests
+		 * 
+		 * **methods to test:
+		 *   start_recording(url);
+		 *   stop_record();
+		 *   store_visit(url, start_time, duration);
+		 *   update_totals(site, visit);
+		 * crossed with visiting unsorted, pd and tws sites
+		 * test all data is correct: times, amounts, requirespayments
+		 * 
+		 * other tests:
+		 *   makes correct payments (extension, server, amazon)
+		 *       send server "test" flag to not make real transaction?
+		 *       refund?
+		 *       
+		 *       
+		 *       check duplicates
+		 *       verify in logs that schedule is on track ---> assert this in scheduled things
+		 *   payments to pd match expected skim
+		 *   time active tab correctly
+		 *   ??check self-imposed limits, eg large payments, visits?
+		 *   duplicate payments ok? or since time correct before and after?
+		 *   receives updates correctly, esp. with since times, duplicates
+		 *   "view logic" with multiauth, payments, state
+		 * run tests once a day and record failures in logs?
+		 */
+		testrunner.test("visit unsorted page", function() {
+			var original_pddb = self.pddb;
+			self.pddb = new PDDB("test.0.sqlite");
+			self.pddb.init_db();
+			
+			self.pddb.store_visit("http://test.com/a.html", _dbify_date(new Date()), 60);
+			
+			self.pddb = original_pddb;
 		});
 		
 		testrunner.test("a second happy test", function() {
@@ -502,10 +529,6 @@ _extend(Schedule.prototype, {
 			this.do_make_payment();
 			this.reset_make_payment_period();
 		}
-		if ( this.is_time_to_settle_debt() ) {
-			this.do_settle_debt();
-			this.reset_settle_debt_period();
-		}
 	},
 	
 	is_new_24hr_period: function() {
@@ -514,6 +537,10 @@ _extend(Schedule.prototype, {
 		var now = new Date();
 		two_four_hr.setHours(two_four_hr.getHours() + 24);
 		return now > two_four_hr
+	},
+	
+	do_first_daily_tasks: function() {
+		// first time daily ta
 	},
 	
 	do_once_daily_tasks: function() {
@@ -528,6 +555,14 @@ _extend(Schedule.prototype, {
 		this.pddb.page.pd_api.send_requires_payments();
 		this.pddb.page.pd_api.send_user_studies();
 		*/
+		
+		// Receive updates from server
+		this.pddb.page.pd_api.request_data_updates(
+			function() {
+				// after success
+			}, function() {
+				// after failure
+			});
 	},
 	
 	reset_24hr_period: function() {
@@ -555,12 +590,12 @@ _extend(Schedule.prototype, {
 	},
 	
 	do_once_weekly_tasks: function() {
-		// send regular email
-		this.pddb.page.pd_api.send_regular_email();
+
 	},
 	
 	reset_week_period: function() {
 		// reset last_week_mark to now
+		//#@TODO make this a Sunday night?
 		var week_hr = new Date(this.prefs.get('last_week_mark', 0)*1000);
 		var now = new Date();
 		now.setHours(week_hr.getHours());
@@ -574,7 +609,8 @@ _extend(Schedule.prototype, {
 	},
 	
 	is_time_to_make_payment: function() {
-		return false;
+		return false
+		//return this.do_once_weekly_tasks();
 	},
 	
 	do_make_payment: function() {
@@ -588,22 +624,7 @@ _extend(Schedule.prototype, {
 	reset_make_payment_period: function() {
 		
 	},
-		
-	is_time_to_settle_debt: function() {
-		return false;
-	},
 
-	do_settle_debt: function() {
-		this.pddb.page.pd_api.settle_debt(function(r) {
-			// onload
-		}, function(r) {
-			// onerror
-		});
-	},
-	
-	reset_settle_debt_period: function() {
-		
-	},
 });
 
 
@@ -627,7 +648,7 @@ _extend(PageController.prototype, {
 		var impact_menu_item = ["<div id='my_impact_menu_item'>",
 		                        "<a href='" + constants.IMPACT_URL + "'>My Impact</a>",
 		                        "</div>"];
-		request.jQuery("#community_menu_item").after(impact_menu_item.join("\n"));
+		request.jQuery("#MainMenu").append(impact_menu_item.join("\n"));
 	},
 
 	registration_complete_inserts: function(request) {
@@ -635,15 +656,16 @@ _extend(PageController.prototype, {
 		var settings_menu_item = ["<div id='settings_menu_item'>",
 		                          "<a href='" + constants.SETTINGS_URL + "'>My Settings</a>",
 		                          "</div>"];
-		request.jQuery("#community_menu_item").after(settings_menu_item.join("\n"));
+		request.jQuery("#MainMenu").append(settings_menu_item.join("\n"));
 	},
 	
 	registration_incomplete_inserts: function(request) {
 		// add private menu items
+		logger("pd_dispatch_by_url: "+ request.url);
 		var register_menu_item = ["<div id='register_menu_item'>",
 		                          "<a href='" + constants.REGISTER_URL + "'>Not Done Registering !</a>",
 		                          "</div>"];
-		request.jQuery("#community_menu_item").after(register_menu_item.join("\n"));
+		request.jQuery("#MainMenu").append(register_menu_item.join("\n"));
 	},
 	
 	make_site_box: function(request, /*sitegroup_id,*/ name, url, tag) {
@@ -704,8 +726,8 @@ _extend(PageController.prototype, {
 		}
 	},
 	
-	balance_middle: function(request, is_register) {
-		var middle = Template.get("balance_middle").render(new Context({}));
+	payment_system_middle: function(request, is_register) {
+		var middle = Template.get("payment_system_middle").render(new Context({}));
 		if (is_register) {
 			request.jQuery("#content").html( this.register_wrapper_snippet(request, middle) );
 		} else {
@@ -919,12 +941,11 @@ _extend(PageController.prototype, {
 		}
 	},
 
-	insert_register_balance: function(request) {
-		/* Inserts balance/TipJoy info. */
+	insert_register_payment_system: function(request) {
 		var self = this;
-		this.prefs.set('register_state', 'balance');
+		this.prefs.set('register_state', 'payment_system');
 
-		this.balance_middle(request, true);
+		this.payment_system_middle(request, true);
 	
 		this.activate_register_tab_events(request);
 	},
@@ -933,15 +954,7 @@ _extend(PageController.prototype, {
 		var pd_recipient = this.pddb.Recipient.get_or_null({
 			name: "ProcrasDonate"
 		});
-		var pd_recipientpercent = this.pddb.RecipientPercent.get_or_null({
-			recipient_id: pd_recipient.id
-		});
-		var pct = parseFloat(pd_recipientpercent.percent) * 100.0;
-		if ( parseInt(pct) == pct ) {
-			pct = parseInt(pct);
-		} else {
-			pct = pct.toFixed(2);
-		}
+		var pct = _un_prefify_float(this.prefs.get('support_pct', constants.DEFAULT_SUPPORT_PCT));
 		var context = new Context({
 			pct: pct,
 			constants: constants,
@@ -950,7 +963,7 @@ _extend(PageController.prototype, {
 	},
 	
 	activate_support_middle: function(request) {
-		var pct = .22;//this.prefs.get('support_pct', constants.DEFAULT_SUPPORT_PCT);
+		var pct = _un_prefify_float(this.prefs.get('support_pct', constants.DEFAULT_SUPPORT_PCT));
 		//request.jQuery("#support_slider").slider({
 		//	//animate: true,
 		//	min: 0,
@@ -980,7 +993,7 @@ _extend(PageController.prototype, {
 			var diff = oldv - newv;
 			input.attr("value", newv).attr("alt", newv);
 			//slider.slider('option', 'value', newv);
-			self.prefs.set('support_pct', newv);
+			self.prefs.set('support_pct', _prefify_float(newv));
 			return true;
 		}
 	},
@@ -1160,7 +1173,9 @@ _extend(PageController.prototype, {
 		var self = this;
 		var user_recipients = "";
 		
+		logger("recipients_middle");
 		this.pddb.RecipientPercent.select({}, function(row) {
+			logger("recipient is this one: "+row);
 			var recipient = self.pddb.Recipient.get_or_null({ id: row.recipient_id });
 			var percent = parseFloat(row.percent) * 100.0;
 			if ( parseInt(percent) == percent ) {
@@ -1171,25 +1186,13 @@ _extend(PageController.prototype, {
 			
 			if (recipient && recipient.twitter_name != "ProcrasDonate") {
 				user_recipients += self.recipient_with_percent_snippet(request, recipient, percent);
-				/*
-				"<div class='recipient_row'>" +
-					//self.recipient_snippet(recipient.name, recipient.url, recipient.description) +
-					//"<div id='slider" + i + "' class='slider' alt='" + percent + "'></div>" +
-					//"<input id='input"+ i + "' class='input' alt='" + percent + "' value='" + percent + "' size='1'/>" +
-				this.recipient_snippet(request, name, url, description) +
-					"<div id='slider" + i + "' class='slider' alt='" + pct + "'></div>" +
-					"<input id='input"+ i + "' class='input' alt='" + pct + "' value='" + pct + "' size='1'/>" +
-					"<div class='remove'>X</div>" +
-				"</div>";
-				*/
 			}
 		});
 		
-		//var spacer = "<div id='recipient_spacer_row'>&nbsp;----------------------thespacer------------</div>";
 		var spacer = "<div id='recipient_spacer_row'><hr></div>";
 		
 		var potential_recipients = "";
-		this.pddb.Recipient.select({ is_visible: True }, function(row) {
+		this.pddb.Recipient.select({ is_visible: true }, function(row) {
 			if (self.pddb.RecipientPercent.get_or_null({ recipient_id: row.id })) {
 
 			} else {
@@ -1445,7 +1448,7 @@ _extend(PageController.prototype, {
 	},
 	
 	
-	twitter_account_middle: function(request) {
+	account_middle: function(request) {
 		var context = new Context({
 			twitter_username: this.prefs.get("twitter_username", ""),
 			twitter_password: this.prefs.get("twitter_password", ""),
@@ -1453,10 +1456,10 @@ _extend(PageController.prototype, {
 			tos: this.prefs.get("tos", ""),
 			constants: constants,
 		});
-		return Template.get("twitter_account_middle").render(context);
+		return Template.get("account_middle").render(context);
 	},
 	
-	activate_twitter_account_middle: function(request) {
+	activate_account_middle: function(request) {
 		request.jQuery("#what_is_twitter").click( function() {
 			request.jQuery(this).text("\"A service to communicate and stay connected through the exchange of quick," +
 						 "frequent answers to one simple question: What are you doing?\"")
@@ -1466,15 +1469,15 @@ _extend(PageController.prototype, {
 		});	
 	},
 	
-	insert_settings_twitter_account: function(request) {
+	insert_settings_account: function(request) {
 		/* Inserts user's twitter account form into page */
-		this.prefs.set('settings_state', 'twitter_account');
+		this.prefs.set('settings_state', 'account');
 		
 		request.jQuery("#content").html( 
 			this.settings_wrapper_snippet(
-				request, this.twitter_account_middle(request)) );
+				request, this.account_middle(request)) );
 		this.activate_settings_tab_events(request);
-		this.activate_twitter_account_middle(request);
+		this.activate_account_middle(request);
 	},
 	
 	
@@ -1527,12 +1530,11 @@ _extend(PageController.prototype, {
 		this.activate_support_middle(request);
 	},
 	
-	insert_settings_balance: function(request) {
-		/* Inserts balance/TipJoy info. */
+	insert_settings_payment_system: function(request) {
 		var self = this;
-		this.prefs.set('settings_state', 'balance');
+		this.prefs.set('settings_state', 'payment_system');
 
-		this.balance_middle(request, false);
+		this.payment_system_middle(request, false);
 	
 		this.activate_settings_tab_events(request);
 	},
@@ -1542,18 +1544,14 @@ _extend(PageController.prototype, {
 			//request.jQuery("input[name='support_input']").attr("value"))
 
 		logger("process_support:: support="+support_input);
-		if ( support_input < 0 || support_input > 10 ) {
-			request.jQuery("#errors").text("<p>Please enter a percent between 0 and 10.</p>");
+		if ( support_input < 0 || support_input > 15 ) {
+			request.jQuery("#errors").text("Please enter a percent between 0 and 15.");
+			return false;
+
 		} else {
-			var pd_recipient = this.pddb.Recipient.get_or_null({ name: "ProcrasDonate" });
-			this.pddb.RecipientPercent.set({
-				percent: support_input / 100.0
-			}, {
-				recipient_id: pd_recipient.id
-			});
+			this.prefs.set('support_pct', _prefify_float(support_input));
 			return true;
 		}
-		return false;
 	},
 	
 	validate_cents_input: function(request, v) {
@@ -1649,7 +1647,7 @@ _extend(PageController.prototype, {
 		return false;
 	},
 	
-	process_balance: function(request, event) {
+	process_payment_system: function(request, event) {
 		return true;
 	},
 	
@@ -1686,7 +1684,7 @@ _extend(PageController.prototype, {
 		return true;
 	},
 	
-	process_twitter_account: function(request, event) {
+	process_account: function(request, event) {
 		/*
 		 * Validate account form and save.
 		 * @TODO twitter credentials and recipient twitter name should be verified.
@@ -1698,17 +1696,19 @@ _extend(PageController.prototype, {
 		request.jQuery("#messages").html("");
 		request.jQuery("#errors").html("");
 		request.jQuery("#success").html("");
-		
-		
+
 		var email = request.jQuery("input[name='email']").attr("value");
 		if (email) {
-			old_email = this.prefs.get("email", "");
+			old_email = this.prefs.get("email", constants.DEFAULT_EMAIL);
 			if (email != old_email) {
 				// @TODO: use onload to know if email succeeded. if wrong email address, alert user.
-				this.pd_api.send_welcome_email(email);
+				this.pd_api.send_welcome_email();
 			}
+			this.prefs.set("email", email);
+		} else {
+			request.jQuery("#errors").append("<p>To continue, please enter a valid email address.</p>");
+			return false
 		}
-		this.prefs.set("email", email);
 		
 		var tos = request.jQuery("input[name='tos']");
 		if (tos && !tos.attr("checked")) {
@@ -1831,7 +1831,7 @@ _extend(PageController.prototype, {
 	register_tab_snippet: function(request) {
 		/* Creates register state track. Does not call _tab_snippet! */
 		var ret = this._track_snippet(request, 'register', constants.REGISTER_STATE_ENUM, constants.REGISTER_STATE_TAB_NAMES, true);
-		var is_done = ( this.prefs.get('register_state','') == 'balance' );
+		var is_done = ( this.prefs.get('register_state','') == 'payment_system' );
 		
 		var context = new Context({
 			constants: constants,
@@ -1852,7 +1852,11 @@ _extend(PageController.prototype, {
 		var current_state = this.prefs.get(state_name+'_state', '');
 		var current_state_index = state_enum.length;
 		
-		for (i = 0; i < state_enum.length && i < 6; i += 1) {
+		//#@TODO dont' show register track done thingy...
+		// without using hardcoded number...or maybe ok?
+		var max_enums = constants.REGISTER_STATE_TAB_NAMES.length - 1;
+		
+		for (i = 0; i < state_enum.length && i < max_enums; i += 1) {
 			var track_state = state_enum[i];
 			var track_name = tab_names[i];
 			var image_number = i+1;
@@ -1896,7 +1900,7 @@ _extend(PageController.prototype, {
 		}
 		tracks_text += "</tr><tr>";
 		
-		for (i = 0; i < state_enum.length && i < 6; i += 1) {
+		for (i = 0; i < state_enum.length && i < max_enums; i += 1) {
 			var track_state = state_enum[i];
 			var track_name = tab_names[i];
 			
@@ -1957,7 +1961,7 @@ _extend(PageController.prototype, {
 		var self = this;
 		return function() {
 			//self[fnname].apply(self, args);
-			//self[event](request);
+			self[event](request);
 		};
 	},
 	
@@ -2051,14 +2055,14 @@ _extend(PageController.prototype, {
 	},
 	
 	
-	insert_register_twitter_account: function(request) {
+	insert_register_account: function(request) {
 		/* Inserts user's twitter account form into page */
-		this.prefs.set('register_state', 'twitter_account');
-		var html1 = this.twitter_account_middle(request);
+		this.prefs.set('register_state', 'account');
+		var html1 = this.account_middle(request);
 		var html = this.register_wrapper_snippet(request, html1);
 		request.jQuery("#content").html(html);
 		this.activate_register_tab_events(request);
-		this.activate_twitter_account_middle(request);
+		this.activate_account_middle(request);
 	},
 	
 	/************************** IMPACT INSERTIONS ***********************/
@@ -2306,7 +2310,6 @@ _extend(PageController.prototype, {
 	},
 	
 	impact_data: function(request, contenttype, timetype, time, is_time) {
-		logger("views.js::impact_data contenttype="+contenttype+" timetype="+timetype+" time="+time);
 		var self = this;
 		var data = [];
 		var class_names = {};
@@ -2321,7 +2324,6 @@ _extend(PageController.prototype, {
 			contenttype_id: contenttype.id,
 			datetime: time
 		}, function(row) {
-			logger("      row="+row);
 			var total = 0;
 			if (is_time) {
 				// keep as dbified date for now
@@ -2331,38 +2333,26 @@ _extend(PageController.prototype, {
 				total = (parseFloat(row.total_amount) / 100.0).toFixed(2);
 			}
 			if (total > max) { max = total; }
+			// this is the Recipient, Tag, Site or SiteGroup
+			var content = row.content();
+			// we want to populate these based on specified contenttype
 			var name;
 			var class_name;
 			if (contenttype.modelname == "Recipient") {
-				var recipient = self.pddb.Recipient.get_or_null({
-					id: row.content_id
-				});
-				var category = self.pddb.Category.get_or_null({
-					id: recipient.category_id
-				});
-				name = recipient.name;
-				class_name = category.category;
+				name = content.name;
+				class_name = content.category().category;
+				
 			} else if (contenttype.modelname == "SiteGroup") {
-				var sitegroup = self.pddb.SiteGroup.get_or_null({
-					id: row.content_id
-				});
-				var tag = self.pddb.Tag.get_or_null({
-					id: sitegroup.tag_id
-				});
-				name = sitegroup.host;
-				class_name = tag.tag;
+				name = content.host;
+				class_name = content.tag().tag;
+				
 			} else if (contenttype.modelname == "Site") {
-				var site = self.pddb.Site.get_or_null({
-					id: row.content_id
-				});
-				name = site.url;
-				class_name = site.sitegroup_id;
+				name = content.url;
+				class_name = content.sitegroup_id;
+
 			} else if (contenttype.modelname == "Tag") {
-				var tag = self.pddb.Tag.get_or_null({
-					id: row.content_id
-				});
-				name = tag.tag;
-				class_name = tag.tag;
+				name = content.tag;
+				class_name = content.tag;
 			}
 			data.push({
 				name: name,
