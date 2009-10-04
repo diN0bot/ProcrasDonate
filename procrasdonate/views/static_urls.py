@@ -1,12 +1,10 @@
 from django.conf.urls.defaults import *
 from procrasdonate.views import static_webpages
 
-import foo
-
 urlpatterns = patterns('',
     # currently redirects to learn_more
-    #(r'^$', static_webpages.main),
-    (r'^hello/', foo.main),
+    (r'^$', static_webpages.main),
+    #(r'^hello/', foo.main),
 
     # display visit and procras donation info
     # plugin alters page 

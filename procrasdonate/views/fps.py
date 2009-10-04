@@ -780,10 +780,14 @@ def ipn(request):
     }
 
     """
-    print
-    print "INSTANT PAYMENT NOTIFICATION"
-    print json.dumps(request.POST, indent=2)
-    print 
+    try:
+        f = open("/var/sites/ProcrasDonate/log.log", 'a')
+        f.write("\n\nINSTANT PAYMENT NOTE\n")
+        f.write(json.dumps(request.POST, indent=2))
+        f.write("\n=============================================\n")
+        f.close()
+    except:
+        pass
     
     notification_type = request.POST('notificationType', None)
     if not notification_type:
