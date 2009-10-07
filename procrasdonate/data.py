@@ -139,15 +139,14 @@ class Recipient(models.Model):
     Recipient of donations
     """
     slug = models.SlugField(db_index=True)
-    twitter_name = models.CharField(max_length=32, null=True, blank=True)
     name = models.CharField(max_length=128, null=True, blank=True)
     email = models.EmailField(null=True, blank=True)
     url = models.URLField(null=True, blank=True)
+    twitter_name = models.CharField(max_length=32, null=True, blank=True)
     mission = models.CharField(max_length=256, null=True, blank=True)
     description = models.TextField(null=True, blank=True)
     is_visible = models.BooleanField(default=True)
     category = models.ForeignKey('Category', blank=True, null=True)
-    pd_registered = models.BooleanField(default=False)
     employers_identification_number = models.CharField(max_length=32, blank=True, null=True)
     tax_exempt_status = models.BooleanField(default=True)
     
@@ -189,12 +188,18 @@ class Recipient(models.Model):
                 'mission': self.mission,
                 'description': self.description,
                 'is_visible': self.is_visible,
-                'category': self.category.category}
-        
+                'category': self.category.category,
+                'pd_registered': self.pd_registered(),
+                'employers_identification_number': self.employers_identification_number,
+                'tax_exempt_status': self.tax_exempt_status}
+    
+    def pd_registered(self):
+        return self.fps_data and self.fps_data.good_to_go()
+    
     def __unicode__(self):
         return u"%s - %s - %s" % (self.name,
                                   self.category,
-                                  self.pd_registered)
+                                  self.pd_registered())
 
 class RecipientUserTagging(models.Model):
     user = models.ForeignKey(RecipientUser, unique=True)
@@ -207,12 +212,16 @@ class RecipientUserTagging(models.Model):
         self.recipient = recipient
         self.save()
     
+    def confirmable(self, confirmation_code):
+        return self.is_confirmed or self.confirmation_code == confirmation_code
+            
     def confirm(self, confirmation_code):
-        if self.is_confirmed or self.confirmation_code == confirmation_code:
+        if self.confirmable(confirmation_code):
             self.is_confirmed = True
             self.confirmation_code = None
-            self.user.is_active = True
             self.save()
+            self.user.is_active = True
+            self.user.save()
             return True
         else:
             return False

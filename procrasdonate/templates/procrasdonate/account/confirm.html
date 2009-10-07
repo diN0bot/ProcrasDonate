@@ -6,15 +6,17 @@
 
 {% block content %}
 	<div id="thin_column">
-		{% if error %}<p class="error">{{ error }}</p>{% endif %}
-		
-		<p>{{ instructions }}</p>
-		
-		<form method="post">
-			<table><tbody>
-				{{ form }}
-			</tbody></table>
-			<input type="submit" value="Complete registration!" />
-		</form>
+		{% if error %}
+			<p class="error">{{ error }}</p>
+		{% else %}
+			<p>{{ instructions|safe }}</p>
+			
+			<form method="post">
+				<table><tbody>
+					{{ form }}
+				</tbody></table>
+				<input type="submit" value="Complete registration!" />
+			</form>		
+		{% endif %}
 	</div>
 {% endblock %}

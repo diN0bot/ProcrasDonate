@@ -1,0 +1,77 @@
+
+== WHEN< WHO< WHAT OF EMAILS ==
+
+  -~={ USERS - triggered by extension }=~-
+
+    * WELCOME: triggered as soon as a user installs the extension
+    * UPDATE: triggered as soon as a user updates the extension
+      
+  -~={ USERS - triggered when server receives daily extension update }=~-
+  
+    * TIME TO UPDATE EXTENSION: once a week (intentionally separated from weekly email)
+    * THANK YOU BLURBS (opt-in): total donation amount to a recipient surpasses 
+            some threshhold, then recipient's thank you blurb is sent to user.
+         
+  -~={ USERS - cron jobs }=~-
+  
+    * END OF YEAR EMAIL: summary for taxes
+    * END OF YEAR CHARITY NEWSLETTERS (opt-in): one per charity donated to
+    * WEEKLY (EVERY MONDAY MORNING):
+          their performance
+          alerts (register? reauthorize? pre-selected recipient officially signed up)
+          blog posts
+          company updates
+          tech updates
+          recipient update blurbs
+        
+  -~={ RECIPIENTS - cron jobs }=~-
+  
+    * WEEKLY TO RECIPIENT: their performance, company updates, tech updates
+
+== DEV: RELEVANT THIRD PARTIES ==
+
+  -~={ sendmail }=~- server can send one-off emails (large recipient lists get tagged as spam)
+                     dev machines should prolly print to console instead:
+
+       if settings.DJANGO_SERVER:
+            print "="*60
+            print "FROM:", from_email
+            print "TO:", to_email
+            print "SUBJECT:", subject
+            print "MESSAGE:", message
+        else:
+            from django.core.mail import send_mail
+            send_mail(subject, message, from_email, [to_email])
+
+  -~={ vertical response }=~- ensures emails get delivered and are not received as spam
+    https://api.verticalresponse.com/partner-wsdl/1.0/documentation.html#login
+    https://api.verticalresponse.com/partner-wsdl/1.0/documentation_types.html#loginArgs
+    
+    == API overview ==
+    LIST - essentially a table whose columns are things like 'email_address' and 'first_name.'
+        we can create custom columns, called Merge Fields.
+        we can create lots of lists if need be.
+    CAMPAIGN - an email template that can make use of variables in a LIST.
+        must be approved before email is sent.
+        max of 23 campaigns per week.
+
+  -~={ suds }=~- recommended python soap library
+    https://fedorahosted.org/suds/wiki/Documentation
+    http://jortel.fedorapeople.org/suds/doc/
+
+    from suds.client import Client
+    url = 'https://api.verticalresponse.com/partner-wsdl/1.0/VRAPI.wsdl'
+    client = Client(url, cache=None)
+    credentials = client.factory.create('ns0:loginArgs')
+    credentials.username='clay@bilumi.org'
+    credentials.password='ravenraven'
+    credentials.session_duration_minutes=30
+    client.service.login(credentials)
+    
+    # the above line fails:
+    #    WebFault: Server raised fault: 'The username or 
+    #              password supplied was incorrect.'
+    
+    # if get Mismatched tag SAXParseException, then delete cache file it specifies
+    # eg, 
+	#     rm /var/folders/dJ/dJZpw70JGKmqDc8l+EKImE+++TI/-Tmp-/suds/*                                                       

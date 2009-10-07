@@ -356,8 +356,9 @@ def authorize_multiuse_callback(request, caller_reference):
         multi_auth.token_id = parameters['tokenID']
         multi_auth.expiry = parameters['expiry']
         if parameters['callerReference'] != caller_reference:
-            #@TODO WTF~!!!
-            pass
+            Log.Error("fps.authorize_multiuse_callback returned non-matching caller reference %s v %s. %s" % (parameters['callerReference'],
+                                                                                                              caller_reference,
+                                                                                                              request.GET))
     elif parameters['status'] ==  FPSMultiuseAuth.STATUSES['PAYMENT_ERROR']: # NP
         # payment error. eg user doesn't have a payment method
         # or user already has an authorized token
@@ -373,9 +374,6 @@ def authorize_multiuse_callback(request, caller_reference):
 
     return HttpResponseRedirect(reverse('register'))
 
-
-#@TODO add decorator that automatically returns fail if timestamp is 
-#too old (to prevent replay attacks...trouble with timezones?
 def cancel_multiuse(request):
     """
     request:
@@ -423,8 +421,6 @@ def cancel_multiuse(request):
     if not response['success']:
         return json_failure("Something went wrong extracting parameters: %s" % response['reason'])
     
-    #@TODO time hack
-    #timestamp is date in seconds
     print
     print "TIMESTAMP before"
     print  response['parameters']['timestamp'] 
@@ -672,8 +668,9 @@ success!!!
             transaction_status = response_dict['PayResponse']['PayResult']['TransactionStatus']
             request_id = response_dict['PayResponse']['ResponseMetadata']['RequestId']
         else:
-            #@TODO
-            pass
+            error_code = '?'
+            error_message = "unknown fps.multiusepay response %s for %s" % (response_dict, full_url)
+            Log.Error(error_message)
     
     pay = FPSMultiusePay.add(user,
                              lower_parameters['caller_reference'],
@@ -794,8 +791,8 @@ def ipn(request):
     
     notification_type = request.POST('notificationType', None)
     if not notification_type:
-        #something went very wrong #@todo: 
-        pass
+        message = "fps.ipn does not contain notificationType: %s" % (request.POST)
+        Log.Warn(message)
     
     if notification_type == "TokenCancellation":
         pass
@@ -823,10 +820,11 @@ def ipn(request):
                                "transactionStatus"] # payment
         response = extract_parameters(request, "POST", expected_parameters, optional_parameters)
         if not response['success']:
-            #@todo what?
-            print "FAIL to extract parameters"
+            message = "fps.ipn Failed to extract expected parameters %s from %s" % (expected_parameters,
+                                                                                    request.POST)
+            Log.Error(message, "AMAZON_RESPONSE")
+            return json_failure(message)
         parameters = response['parameters']
-        #@TODO check signature
         
         if parameters['notificationType'] == 'TransactionStatus':
         

@@ -18,6 +18,7 @@
 			<li>twitter_name: {{ recipient.twitter_name }}</li>
 			<li>email: {{ recipient.email }}</li>
 			<li>url: {{ recipient.url }}</li>
+			<li>tax deductible donation: {{ recipient.tax_exempt_status }}</li>
 		</ul>
 		
 		{% if user.is_authenticated %}

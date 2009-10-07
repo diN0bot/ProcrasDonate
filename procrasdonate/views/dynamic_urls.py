@@ -25,7 +25,7 @@ urlpatterns = patterns('',
     url(r'^recipient/logout/$', dynamic_webpages.logout_view, name='logout'),
     
     # register (superuser creates User and RecipientUser, sends email to organizer)
-    url(r'^recipient/register/$', dynamic_webpages.register, name="register"),
+    url(r'^recipient/register_organizer/$', dynamic_webpages.register_organizer, name="register_organizer"),
     # link for organizer to set password
     url(r'^recipient/confirm/(?P<username>%s)/(?P<confirmation_code>%s)/$' % (slug_re, code_re), dynamic_webpages.confirm, name="confirm"),
     

@@ -20,6 +20,11 @@ from django.db.models import Avg
 
 def login_view(request):
     print "LOGIN"
+    next = request.GET.get('next', None)
+    # Light security check -- make sure redirect_to isn't garbage.                                                                                                                
+    if not next or '//' in next or ' ' in next:
+        next = reverse('edit_information')
+
     username = request.POST.get('username', None)
     password = request.POST.get('password', None)
     user = authenticate(username=username, password=password)
@@ -28,9 +33,9 @@ def login_view(request):
         if user.is_active:
             login(request, user)
             if not user.get_profile():
-                #@log error message. this should never happen
+                Log.Error("dynamic_webpages.login_view: django user (RecipientUser) has no get_profile (RecipientUserTagging): %s" % user)
                 return HttpResponseRedirect(reverse('home'))
-            return HttpResponseRedirect(reverse('edit_information'))
+            return HttpResponseRedirect(next)
         else:
             error = "Your account has been disabled"
     else:
@@ -79,8 +84,6 @@ def edit_yearly_newsletter(request):
 
 
 def community(request):
-    #@TODO latest raises exception if no item. 
-    # check week
     try:
         most_recent = RecipientVisit.objects.latest('dtime')
     except: # DoesNotExist
@@ -99,7 +102,7 @@ def community_type(request, type):
 
 
 @user_passes_test(lambda u: u.is_superuser)
-def register(request):
+def register_organizer(request):
     RecipientUserTaggingForm = get_form(RecipientUserTagging, EDIT_TYPE, excludes=('user',
                                                                                    'is_confirmed',
                                                                                    'confirmation_code'))
@@ -121,6 +124,7 @@ def register(request):
             
             fake_tagging = recipient_user_tagging_form.save(commit=False)
             tagging = RecipientUserTagging.add(user, fake_tagging.recipient, require_confirmation=True) 
+            del fake_tagging
 
             # send email for recipient user to login
             c = Context({'user': user,
@@ -146,15 +150,20 @@ def register(request):
 
 def confirm(request, username, confirmation_code):
     logout(request)
-    tagging = RecipientUserTagging.get_or_none(user__username=username)
+    tagging = RecipientUserTagging.get_or_none(confirmation_code=confirmation_code)
     error = None
     if not tagging:
-        error = "Unknown username"
-    #todo
-    #elif tagging.is_confirmed:
-    #    error = "Registration is already complete."
-    elif not tagging.confirm(confirmation_code):
-        error = "Error confirming confirmation_code %s" % confirmation_code
+        error = "Unknown confirmation code"
+        Log.Log(error)
+    elif tagging.user.username != username:
+        error = "Something unexpected happened while confirming your registration as an organizer for %s. Please send us an email with this message" % tagging.recipient.name
+        Log.Error(error)
+    elif tagging.is_confirmed:
+        error = "Registration is already complete."
+        Log.Log(error)
+    elif not tagging.confirmable(confirmation_code):
+        error = "Error confirming confirmation code %s" % confirmation_code
+        Log.Log(error)
     else:
         if request.POST:
             form = SetPasswordForm(tagging.user, request.POST)
@@ -173,9 +182,10 @@ def confirm(request, username, confirmation_code):
                 else:
                     return HttpResponseRedirect(reverse('login'))
         
-    form = SetPasswordForm(tagging.user)
-    instructions = """Enter a password. It can be whatever you want, but it will
-    be more secure if you use numbers and uppercase letters in addition to lowercase letters."""
+    form = tagging and SetPasswordForm(tagging.user) or None
+    instructions = """<p>Welcome, %s.</p><p>Please enter a password. You can enter whatever 
+    you want; for security, consider using at least 8 characters and mixing numbers with 
+    lower and uppercase letters.</p>""" % username
     return render_response(request, 'procrasdonate/account/confirm.html', locals())
 
 def reset_password(request):
