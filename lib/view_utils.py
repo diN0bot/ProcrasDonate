@@ -29,13 +29,6 @@ def staff(user):
 def logged_in(user):
     return user and user.is_authenticated()
 
-def author(user):
-    """ this should take a model object as a parameter and check that the user 
-        is the author. ok for now because template never permits this option unless 
-        already true... still... @TODO !!
-    """
-    return True
-
 def session(session_key):
     return request.session.get(session_key, False)
 
@@ -72,25 +65,34 @@ def ajax(crit_fun1, crit_fun2=None):
         return inner
     return decorator
 
-def private(fn):
-    """
-    Checks the current user against the user_id argument given to a view. 
-    If they match, the view is called; otherwise, redirect to current user's page.
-    """
-    def inner(*args, **kwargs):
-        #print args
-        user = current_user()
-        if not user or not user.is_authenticated():
-            return HttpResponseRedirect(reverse('login'))
-        if 'user_id' in kwargs:
-            try:
-                i = int(kwargs['user_id'])
-                if i == user.id:
-                    # user passes all user criteria
-                    return fn(*args, **kwargs)
-                else:
-                    return HttpResponseRedirect(reverse('login')) # TODO: return user's page.
-            except ValueError:
-                pass 
-        raise Exception("Private decorator in main.py must decorate views with user_id argument.")
-    return inner
+def extract_parameters(request, method_type, expected_parameters, optional_parameters=None):
+    ret = {}
+    
+    if not getattr(request, method_type):
+        return {'success': False,
+                'reason': "Expected %s parameters" % method_type}
+    
+    for p in expected_parameters:
+        try:
+            v = getattr(request, method_type).get(p, None)
+            if v == None:
+                return {'success': False,
+                        'reason': "Missing expected parameter: %s" % p}
+            ret[p] = v
+        except:
+            return {'success': False,
+                    'reason': "Something unexpected happened while extracting parameters"}
+    
+    optional_parameters = optional_parameters or {}
+    for p in optional_parameters:
+        try:
+            v = getattr(request, method_type).get(p, None)
+            if v:
+                ret[p] = v
+        except:
+            return {'success': False,
+                    'reason': "Something unexpected happened while extracting optional parameters"}
+     
+    
+    return {'success': True,
+            'parameters': ret}

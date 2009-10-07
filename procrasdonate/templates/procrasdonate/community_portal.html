@@ -1,0 +1,101 @@
+{% extends 'procrasdonate/base.html' %}
+
+{% block head %}
+	{{ block.super }}
+{% endblock %}
+
+{% block content %}
+	<div id="thin_column">
+		<h2>community portal</h2>
+		
+		<h3>Most recently donated to this week</h3>
+			<p>{{ most_recent }} is a RecipientVisit. 
+			RecipientVisits contain information about a single user's total daily visit to a recipient
+			This visit has the most recent "start" time.
+			Its fields are:</p> 
+			<ul>
+				<li>{{ most_recent.dtime }} - start of user's visit</li>
+				<li>{{ most_recent.received_time }} - time server recieved visit</li>
+				<li>{{ most_recent.hours }} - total time spent donating to recipient on this day</li>
+				<li>{{ most_recent.dollars }} - total amount donated to recipient on this day</li>
+				<li>{{ most_recent.rate }} - rate computed from time and amount</li>
+				<li>{{ most_recent.user }} - user object who made this visit</li>
+				<li>{{ most_recent.recipient }} - recipient object. eg {{ most_recent.recipient.name }}</li>
+			</ul>
+		
+		<h3>Most donators this week</h3>
+			<p>{{ most_donators }} is an AggregateRecipient.
+			AggregateRecipients contain information about all RecipientVisits for a particular period of time, in this case a week.
+			This aggregate has the most unique donators this week.
+			Its fields are:</p>
+			<ul>
+				<li>{{ most_donators.time }} - 11:59pm Sunday of this week</li>
+				<li>{{ most_donators.time_type }} - "Weekly"</li>
+				<li>{{ most_donators.last_updated }} - time last updated</li>
+				<li>{{ most_donators.total_time }} - total time (hours) spent procrasdonating to recipient this week across all users</li>
+				<li>{{ most_donators.total_amount }} - total amount (dollars) spent procrasdonating to recipient this week across all users</li>
+				<li>{{ most_donators.total_donors }} - total donors (unique individuals) spent procrasdonating to recipient this week across all users</li>
+				<li>{{ most_donators.recipient }} - recipient object. eg {{ most_donators.recipient.name }}</li>
+			</ul>
+		
+		<h3>Most money this week</h3>
+			<p>{{ most_money }} is an AggregateRecipient.
+			AggregateRecipients contain information about all RecipientVisits for a particular period of time, in this case a week.
+			This aggregate has the largest donation amount this week.
+			Its fields are:</p>
+			<ul>
+				<li>{{ most_money.time }} - 11:59pm Sunday of this week</li>
+				<li>{{ most_money.time_type }} - "Weekly"</li>
+				<li>{{ most_money.last_updated }} - time last updated</li>
+				<li>{{ most_money.total_time }} - total time (hours) spent procrasdonating to recipient this week across all users</li>
+				<li>{{ most_money.total_amount }} - total amount (dollars) spent procrasdonating to recipient this week across all users</li>
+				<li>{{ most_money.total_donors }} - total donors (unique individuals) spent procrasdonating to recipient this week across all users</li>
+				<li>{{ most_money.recipient }} - recipient object. eg {{ most_money.recipient.name }}</li>
+			</ul>
+		
+		<h3>Most time this week</h3>
+			<p>{{ most_time }} is an AggregateRecipient.
+			AggregateRecipients contain information about all RecipientVisits for a particular period of time, in this case a week.
+			This aggregate has the largest time amount this week.
+			Its fields are:</p>
+			<ul>
+				<li>{{ most_time.time }} - 11:59pm Sunday of this week</li>
+				<li>{{ most_time.time_type }} - "Weekly"</li>
+				<li>{{ most_time.last_updated }} - time last updated</li>
+				<li>{{ most_time.total_time }} - total time (hours) spent procrasdonating to recipient this week across all users</li>
+				<li>{{ most_time.total_amount }} - total amount (dollars) spent procrasdonating to recipient this week across all users</li>
+				<li>{{ most_time.total_donors }} - total donors (unique individuals) spent procrasdonating to recipient this week across all users</li>
+				<li>{{ most_time.recipient }} - recipient object. eg {{ most_time.recipient.name }}</li>
+			</ul>
+		
+		<h3>Staff pick</h3>
+			<p>{{ staff_pick }} is a StaffPick.
+			StaffPicks associate a recipient with a start and end date.
+			The dates represent the period of time for which the staff pick is active.
+			This staff pick is a randomly chosen active staff pick.
+			Its fields are:</p>
+			<ul>
+				<li>{{ staff_pick.start }} - 00:00 am, Monday of this week...probably. technically any time earlier than now</li>
+				<li>{{ staff_pick.end }} - 11:59 pm, Sunday of this week...probably. technically any time later than now</li>
+				<li>{{ staff_pick.recipient }} - recipient object. eg {{ staff_pick.recipient.name }}</li>
+			</ul>
+		
+		<h3>Total ProcrasDonations and TimeWellSpents ever</h3>
+			<p>{{ tags }} is a list of AggregateTag objects.
+			An AggregateTag is like an AggregateRecipient, but with a tag field in place of a recipient field.
+			The list contains all AggregateTags that refer to the forever period of time.
+			We expect there to be two aggregates, one for the ProcrasDonate tag and one for the TimeWellSpent tag.</p>
+			{% for agg_tag in tags %}
+				<ul>
+					<li>{{ agg_tag.time }} - 11:59pm Feb 2, 2222</li>
+					<li>{{ agg_tag.time_type }} - "Forever"</li>
+					<li>{{ agg_tag.last_updated }} - time last updated</li>
+					<li>{{ agg_tag.total_time }} - total time (hours) spent pd-ing or tws-ing this week across all users</li>
+					<li>{{ agg_tag.total_amount }} - total amount (dollars) spent pd-ing or tws-ing this week across all users</li>
+					<li>{{ agg_tag.total_donors }} - total donors (unique individuals) spent pd-ing or tws-ing this week across all users</li>
+					<li>{{ agg_tag.tag }} - tag object. eg {{ agg_tag.tag.tag }}</li>
+				</ul>
+			{% endfor %}
+
+	</div>
+{% endblock %}

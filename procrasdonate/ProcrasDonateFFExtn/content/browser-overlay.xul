@@ -1,0 +1,147 @@
+<?xml version="1.0"?>
+<?xml-stylesheet href="chrome://ProcrasDonate/skin/toolbar_handler.css" type="text/css"?>
+<overlay xmlns='http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul'>
+
+  <!-- jQuery-1.3.2.js has naming conflicts or something with firefox extensions! -->
+<!--
+    <script type='application/x-javascript' 
+            src='chrome://ProcrasDonate/content/js/ext/jQuery-1.3.2.js'></script>
+    <script type='application/x-javascript' 
+            src='chrome://ProcrasDonate/content/js/ext/ui.slider.js'></script>
+    <script type='application/x-javascript' 
+            src='chrome://ProcrasDonate/content/js/ext/ui.core.js'></script>
+-->
+    <script type='application/x-javascript' 
+            src='chrome://ProcrasDonate/content/js/ext/jquery-1.2.6.js'></script>
+
+<!--
+    <script type='application/x-javascript' 
+            src='chrome://ProcrasDonate/content/js/ext/jquery-ui-1.6.custom.min.js'></script>
+-->
+    <script type='application/x-javascript' 
+            src='chrome://ProcrasDonate/content/js/ext/json2.js'></script>
+
+    <script type='application/x-javascript' 
+            src='chrome://ProcrasDonate/content/js/ext/xmlhttprequester.js'></script>
+    <script type='application/x-javascript'
+            src='chrome://ProcrasDonate/content/js/ext/prefman.js'></script>
+    <script type='application/x-javascript'
+            src='chrome://ProcrasDonate/content/js/ext/jssha2/sha2.js'></script>
+    <script type='application/x-javascript'
+            src='chrome://ProcrasDonate/content/js/ext/jssha2/sha256.js'></script>
+    
+    <!-- Basic utils
+      -->
+    <script type='application/x-javascript'
+            src='chrome://ProcrasDonate/content/js/lib/utils.js'></script>
+    
+    <script type='application/x-javascript'
+            src='chrome://ProcrasDonate/content/js/lib/fps.js'></script>
+
+    <script type='application/x-javascript' 
+            src='chrome://ProcrasDonate/content/js/lib/testrunner_display.js'></script>
+    <script type='application/x-javascript' 
+            src='chrome://ProcrasDonate/content/js/lib/testobjects.js'></script>
+    <script type='application/x-javascript' 
+            src='chrome://ProcrasDonate/content/js/lib/testrunner.js'></script>
+
+<!--
+    <script src="chrome://ProcrasDonate/content/js/ext/httpd.js" type="application/x-javascript"/>
+    <script src="chrome://ProcrasDonate/content/js/ext/fireunit.js" type="application/x-javascript"/>
+    <script src="chrome://ProcrasDonate/content/js/ext/jsdiff.js" type="application/x-javascript"/>
+-->
+    
+
+    
+    <!-- Django templates rendered in JS
+      -->
+    <script type='application/x-javascript'
+            src='chrome://ProcrasDonate/content/js/lib/template/filters/base.js'></script>
+    <script type='application/x-javascript'
+            src='chrome://ProcrasDonate/content/js/lib/template/tags/base.js'></script>
+    <script type='application/x-javascript'
+            src='chrome://ProcrasDonate/content/js/lib/template.js'></script>
+    <script type='application/x-javascript'
+            src='chrome://ProcrasDonate/content/js/lib/template/django.js'></script>
+    
+    
+    <!-- ProcrasDonate-specific templates, bundled.
+      -->
+    <script type='application/x-javascript'
+            src='chrome://ProcrasDonate/content/js/templates/all.js'></script>
+    
+    
+    <!-- Database and preferences
+      -->
+    <script type='application/x-javascript'
+            src='chrome://ProcrasDonate/content/js/lib/db/base.js'></script>
+    <script type='application/x-javascript'
+            src='chrome://ProcrasDonate/content/js/lib/db/sqlite3_firefox.js'></script>
+    <script type='application/x-javascript'
+            src='chrome://ProcrasDonate/content/js/lib/preferences.js'></script>
+    
+    <!-- 
+      -->
+    <script type='application/x-javascript'
+            src='chrome://ProcrasDonate/content/js/lib/http_request.js'></script>
+    <script type='application/x-javascript'
+            src='chrome://ProcrasDonate/content/js/lib/request.js'></script>
+    
+    <!-- (Mostly) ProcrasDonate-specific stuff.
+      -->
+    <script type='application/x-javascript'
+            src='chrome://ProcrasDonate/content/js/settings.js'></script>
+    <script type='application/x-javascript'
+            src='chrome://ProcrasDonate/content/js/api.js'></script>
+    <script type='application/x-javascript'
+            src='chrome://ProcrasDonate/content/js/pd.js'></script>
+    <script type='application/x-javascript'
+            src='chrome://ProcrasDonate/content/js/tipjoy.js'></script>
+    <script type='application/x-javascript'
+            src='chrome://ProcrasDonate/content/js/models.js'></script>
+    <script type='application/x-javascript'
+            src='chrome://ProcrasDonate/content/js/views.js'></script>
+    
+    
+    <script type='application/x-javascript' 
+            src='chrome://ProcrasDonate/content/js/toolbar_handler.js'></script>
+    
+    <script type='application/x-javascript' 
+            src='chrome://ProcrasDonate/content/js/main.js'></script>
+    
+    <toolbarpalette id="BrowserToolbarPalette">
+        <toolbarbutton id="PD-classify-toolbar-button"
+                       autoCheck="true"
+                       label="ProcrasDonating"
+                       tooltiptext="Current activity: Unsorted. To re-classify this site click this icon."
+                       oncommand="myOverlay.url_bar_listener.toolbar_manager.onClassifyButtonCommand();"
+                       image="chrome://ProcrasDonate/skin/UnsortedIcon.png"
+                       class="toolbarbutton-1 chromeclass-toolbar-additional"/>
+        
+        <toolbarbutton id="PD-progress-toolbar-button"
+                       autoCheck="true"
+                       label="PD: 0"
+                       tooltiptext="Progress towards weekly ProcrasDonate goal"
+                       oncommand="myOverlay.url_bar_listener.toolbar_manager.onProgressButtonPDCommand();"
+                       image="chrome://ProcrasDonate/skin/IconBar0.png"
+                       class="toolbarbutton-1 chromeclass-toolbar-additional"/>
+
+	<toolbarbutton id="TWS-progress-toolbar-button"
+                       autoCheck="true"
+                       label="TWS: 0"
+                       tooltiptext="Progress towards weekly TimeWellSpent goal"
+                       oncommand="myOverlay.url_bar_listener.toolbar_manager.onProgressButtonTWSCommand();"
+                       image="chrome://ProcrasDonate/skin/IconBar0.png"
+                       class="toolbarbutton-1 chromeclass-toolbar-additional"/>
+    </toolbarpalette>
+    
+    <menupopup id="menu_ToolsPopup">
+        <menuitem label="ProcrasDonate" accesskey="a" oncommand="Overlay.doMenuSelect()"/>
+    </menupopup>
+    
+    <!--
+    <statusbar id="status-bar">
+        <statusbarpanel id="my-panel" label="Hello, World"  />
+    </statusbar>
+    -->
+</overlay>

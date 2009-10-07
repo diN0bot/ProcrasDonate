@@ -1,0 +1,19 @@
+{% extends 'procrasdonate/base.html' %}
+
+{% block content %}
+	Recipient Register Callback Page.
+	
+	{% if not errors %}
+		<p>Thanks for registering.</p>
+	{% else %}
+		<p>There was a problem registering.</p>
+		<ul class="errors">
+			{% for error in errors %}
+				<li class="error">{{ error }}</li>
+			{% endfor %}
+		</ul>
+	{% endif %}
+	
+	{% include 'procrasdonate/fps/snippets/insert_parameters.html' %}
+
+{% endblock %}

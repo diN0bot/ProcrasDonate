@@ -1,0 +1,17 @@
+{% extends 'procrasdonate/base.html' %}
+
+{% block head %}
+	{{ block.super }}
+{% endblock %}
+
+{% block content %}
+	<div id="thin_column">
+		<form method="post">
+			<table><tbody>
+				{{ recipient_user_form }}
+				{{ recipient_user_tagging_form }}
+			</tbody></table>
+			<input type="submit" value="Send registration email!" />
+		</form>
+	</div>
+{% endblock %}

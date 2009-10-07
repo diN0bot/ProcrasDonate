@@ -1,0 +1,12 @@
+{% extends 'procrasdonate/base.html' %}
+
+{% block head %}
+	{{ block.super }}
+{% endblock %}
+
+{% block content %}
+	<div id="thin_column">
+		{% if error %}<p class="error">{{ error }}</p>{% endif %}
+		
+	</div>
+{% endblock %}

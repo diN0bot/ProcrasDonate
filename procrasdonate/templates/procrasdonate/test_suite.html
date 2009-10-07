@@ -1,0 +1,35 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" 
+                    "http://www.w3.org/TR/html4/loose.dtd">
+<html>
+<head>
+	<link rel="stylesheet" href="http://dev.jquery.com/view/trunk/qunit/testsuite.css" type="text/css" media="screen"></link>
+</head>
+<body>
+
+	<h1><a href="http://procrasdonate.com">ProcrasDonate</a>: QUnit Test Suite</h1>
+	<h2 id="banner"></h2>
+	<h2 id="userAgent"></h2>
+
+	<ol id="tests"></ol>
+
+	<div id="main"></div>
+	
+	<div>
+		<script type="text/javascript" charset="utf-8" src="{{ MEDIA_URL }}js/jquery-1.2.6.min.js"></script>
+		<script type="text/javascript" charset="utf-8" src="{{ MEDIA_URL }}js/procrasdonate.js"></script>
+		<a
+			class="install_anchor"
+			href="{{ MEDIA_URL }}xpi/ProcrasDonate_0.1.3.xpi"
+  			iconURL="{{ MEDIA_URL }}img/ProcrasDonateLogo.png"
+  			onclick="return install('install_anchor');"
+  		>
+  			<span class="hash" style="display:none">
+  				sha1:25ac92e1f316ef0f6b3713a763052b6162cb7864
+  			</span>
+  			start now
+  		</a>
+	
+	</div>
+
+</body>
+</html>

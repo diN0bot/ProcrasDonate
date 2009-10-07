@@ -29,6 +29,11 @@
 	</head>
 
 	<body>
+	  <p style="padding: .5em; border: 1px solid #AAAAAA; margin: .5em; -moz-border-radius: .5em;">Payments through our service have been temporarily suspended because
+the third party payment service we've been using has gone out of
+business.  You are still welcome to continue using ProcrasDonate to
+classify websites and set weekly goals while we look into another
+payment option.</p>
 		
 		<div id="static_menu">
 			<img id="logo" alt="" src="{{ MEDIA_URL }}img/ProcrasDonateLogoText.png">
@@ -37,7 +42,7 @@
 			<div id="MainMenu">
 				<div {% ifequal selected "home" %}class="here_we_are"{% endifequal %} id='home_menu_item'><a href="{% url home %}">Home</a></div>
 				<div {% ifequal selected "learn_more" %}class="here_we_are"{% endifequal %} id='learn_more_menu_item'><a href="{% url learn_more %}">Learn More</a></div>
-				<div {% ifequal selected "community" %}class="here_we_are"{% endifequal %} id='community_menu_item'><a href="{% url community %}">Community</a></div>
+				<div id='blog_menu_item'><a href="http://procrasdonate.wordpress.com">Blog</a></div>
 			</div>
 			<img src="{{ MEDIA_URL }}img/ClearBox.png" class="SmallSpacer">			
 			
@@ -49,6 +54,15 @@
 		</div>
 	
 		<div id="content">
+		
+			{% if messages %}
+			<ul>
+			    {% for message in messages %}
+			    <li class="message">{{ message }}</li>
+			    {% endfor %}
+			</ul>
+			{% endif %}
+			
 			{% block content %}
 			{% endblock %}
 		</div>

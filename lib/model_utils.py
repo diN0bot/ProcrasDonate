@@ -271,7 +271,7 @@ class ModelMixin(object):
 
     @classmethod
     def get_or_none(klass, **kwargs):
-        """
+        """\
         @summary:
         Convenience method: B{get_or_none} simply passes arguments through to
         klass.objects.filter()
@@ -353,36 +353,48 @@ class TextProcessor(object):
         d = TextProcessor.tags.sub('', d).strip()
         setattr(instance, instance.textprocessor_fieldname(), d)
         return 
+
+def _make_available_letters(choice_names):
+    alpha = "abcdefghijklmnopqrstuvwxyz"
+    if len(choice_names) < 26:
+        return (1, [x for x in alpha])
+    elif len(choice_names) < 26*26:
+        ret = []
+        for x in alpha:
+            for y in alpha:
+                ret.append(x+y)
+        return (2, ret)
+    raise RuntimeError()
     
-    @classmethod
-    def discover_citations(klass, signal, sender, instance, created, **kwargs):
-        """
-        @summary: 
-        POST SAVE
-        This method is called every time a Behavior (aka review) has been saved.
-        Does reverse wiki processing (html->markup), discovers citations
-        """
-        #if created:
-        #    pass
-        d = instance.description
-        
-        # turn links into citations
-        for link in DescriptionProcessor.links.findall(d):
-            domain = DescriptionProcessor.domain_re.search(d).group()
-            # check if domain name is already a source
-            http_domain = "http://%s"%domain
-            s = Node.get_or_none(label=domain)
-            if not s:
-                s = Node.add(label=domain, url=http_domain).publish()
-            if not s.types:
-                s.add_type(NodeType.SOURCE())
-            a = s.behaviors.filter(url=link)
-            if not a:
-                a = Behavior.add(link, Dimension.SOURCE_EVAL(), url=link, node=s).publish()
+def convert_to_choices(choice_names, visible_names=None):
+    visible_names = visible_names or choice_names
+    max_length, available_letters = _make_available_letters(choice_names)
+
+    ENUM = {}
+    CHOICES = []
+    choice_idx = 0
+    for choice_name in choice_names:
+        # find choice abbreviation
+        idx = -1
+        num_letters = 1
+        x = ""
+        while not x.lower() in available_letters:
+            idx += 1
+            if idx+num_letters <= len(choice_name):
+                x = choice_name[idx : idx+num_letters]
+            
+            elif num_letters < max_length:
+                idx = -1
+                num_letters += 1
+            
             else:
-                a = a[0] # TODO just one right??
-            try:
-                Citation.add(a, instance).publish()
-            except AlreadyExists:
-                pass
-        return
+                x = available_letters[0]
+        available_letters.remove(x.lower())
+        
+        # add to enum and choices
+        ENUM[choice_name] = x
+        CHOICES.append( (x, visible_names[choice_idx]) )
+        
+        choice_idx += 1
+            
+    return max_length, ENUM, CHOICES

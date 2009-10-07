@@ -5,5 +5,7 @@
 .pydevproject
 .project
 env/CURRENT
+env/whynoti
+env/snoopy
 NOTES
 *.db
