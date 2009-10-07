@@ -3,7 +3,7 @@ url = 'https://api.verticalresponse.com/partner-wsdl/1.0/VRAPI.wsdl'
 client = Client(url, cache=None)
 credentials = client.factory.create('ns0:loginArgs')
 credentials.username='clay@bilumi.org'
-credentials.password='ravenraven'
+credentials.password='XXX'
 credentials.session_duration_minutes=30
 client.service.login(credentials)
 
