@@ -409,6 +409,7 @@ _extend(Model.prototype, {
 			return null;
 		} else {
 			if (ary.length > 1) {
+				//#@Todo db.Log a warning??
 				logger("get_or_null found "+ary.length+" rows for "+query);
 			}
 			return ary[0];

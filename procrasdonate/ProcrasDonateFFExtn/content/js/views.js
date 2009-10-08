@@ -460,16 +460,204 @@ _extend(Controller.prototype, {
 		 *   "view logic" with multiauth, payments, state
 		 * run tests once a day and record failures in logs?
 		 */
-		testrunner.test("visit unsorted page", function() {
-			var original_pddb = self.pddb;
-			self.pddb = new PDDB("test.0.sqlite");
-			self.pddb.init_db();
+		var original_pddb = self.pddb;
+		self.pddb = new PDDB("test.0.sqlite");
+		self.pddb.init_db();
+		
+		function init_data() {
+			var category = self.pddb.Category.get_or_create({
+				category: "test"
+			});
+			var recipient = self.pddb.Recipient.get_or_create({
+				slug: "test"
+			}, {
+				name: "Test",
+				mission: "provide data for tests",
+				url: "http://testrecip.xx",
+				category_id: category.id,
+				is_visible: false
+			});
+			self.pddb.RecipientPercent.get_or_create({
+				recipient_id: recipient.id,
+			}, {
+				percent: 1,
+			})
+		}
+		
+		//
+		// calls store_visit for new site
+		// creates site and sitegroup with specified tag first if
+		// specified tag is not Unosrted
+		// @param tag: tag instance
+		//
+		function visit_new_site(tag, seconds) {
+			var newdomain = create_caller_reference()+".com";
+			var newpage = create_caller_reference()+".html";
+			var url = "http://"+newdomain+"/"+newpage;
+			if (tag.id != self.pddb.Unsorted.id) {
+				var host = _host(url);
+				sitegroup = self.pddb.SiteGroup.create({
+						name: newdomain,
+						host: newdomain,
+						tag_id: tag.id
+				});
+				site = self.pddb.Site.create({ url: url, sitegroup_id: sitegroup.id });
+			}
+			self.pddb.store_visit(url, _dbify_date(new Date()), seconds);
+			return url
+		}
+		
+		function retrieve_totals(url, tag) {
+			var totals = {}
 			
-			self.pddb.store_visit("http://test.com/a.html", _dbify_date(new Date()), 60);
+			var site = self.pddb.Site.get_or_null({ url: url })
+			var host = _host(url);
+			var sitegroup = self.pddb.SiteGroup.get_or_null({ host: host });
+			var timetypes = [self.pddb.Daily, self.pddb.Weekly, self.pddb.Forever];
+			var times = [_dbify_date(_end_of_day()), _dbify_date(_end_of_week()), _dbify_date(_end_of_forever())];
 			
-			self.pddb = original_pddb;
+			for (var idx = 0; idx < timetypes.length; idx++) {
+				self.pddb.ContentType.select({}, function(row) {
+					// for each timetype-time x content, retrieve the total
+					// remember, new sites and sitegroups will not exist yet.
+					var content_ids = [];
+					if (row.modelname == "Site") {
+						if (site) content_ids.push(site.id);
+					} else if (row.modelname == "SiteGroup") {
+						if (sitegroup) content_ids.push(sitegroup.id);
+					} else if (row.modelname == "Tag") {
+						content_ids.push(tag.id);
+					} else if (row.modelname == "Recipient") {
+						self.pddb.RecipientPercent.select({}, function(r) {
+							var recip = self.pddb.Recipient.get_or_null({ id: r.recipient_id });
+							content_ids.push(recip.id);
+						});
+					} else {
+						testrunner.ok(false, "unknown content type");
+					}
+					
+					_iterate(content_ids, function(key, value, index) {
+						var total = self.pddb.Total.get_or_null({
+							contenttype_id: row.id,
+							content_id: value,
+							timetype_id: timetypes[idx].id,
+							datetime: times[idx]
+						});
+						if (total) {
+							totals[total.id] = total;
+							//testrunner.ok(false, "~~~~~~~~~~~ before total: "+total);
+						} else {
+							testrunner.ok(false, "While retrieving before totals, expected total but found none: "+
+									row.modelname+" id: "+value+" "+timetypes[idx].timetype+" "+datetime);							
+						}
+					});
+				});
+			}
+			return totals
+		}
+	
+		///
+		///
+		///
+		function check_totals(url, seconds, before_totals) {
+			var site = self.pddb.Site.get_or_null({ url: url })
+			var timetypes = [self.pddb.Daily, self.pddb.Weekly, self.pddb.Forever];
+			var times = [_dbify_date(_end_of_day()), _dbify_date(_end_of_week()), _dbify_date(_end_of_forever())];
+			
+			for (var idx = 0; idx < timetypes.length; idx++) {
+				self.pddb.ContentType.select({}, function(row) {
+					// for each timetype-time x content, retrieve the total
+					var content_ids = [];
+					if (row.modelname == "Site") {
+						content_ids.push(site.id);
+					} else if (row.modelname == "SiteGroup") {
+						content_ids.push(site.sitegroup().id);
+					} else if (row.modelname == "Tag") {
+						content_ids.push(site.tag().id);
+					} else if (row.modelname == "Recipient") {
+						if (site.tag() == self.pddb.ProcrasDonate.id) {
+							self.pddb.RecipientPercent.select({}, function(r) {
+								var recip = self.pddb.Recipient.get_or_null({ id: r.recipient_id });
+								content_ids.push(recip.id);
+							});
+						}
+					} else {
+						testrunner.ok(false, "unknown content type");
+					}
+					
+					_iterate(content_ids, function(key, value, index) {
+						var total = self.pddb.Total.get_or_null({
+							contenttype_id: row.id,
+							content_id: value,
+							timetype_id: timetypes[idx].id,
+							datetime: times[idx]
+						});
+						/***** verify total times and amounts ************************************/
+						if (!total) {
+							testrunner.ok(false, "No total found for contenttype: "+row.id+
+									", content: "+value+", timetype: "+timetypes[idx].id+
+									", datetime: "+times[idx]);
+						} else {
+							var expected_time = null;
+							var before_total = before_totals[total.id];
+							if (!before_total) {
+								expected_time = seconds;
+							} else {
+								expected_time = parseFloat(before_total.total_time) + seconds;
+							}
+							
+							testrunner.equals(expected_time, total.total_time,
+								"Total (id="+total.id+") has incorrrect total_time");
+							/*if (before_total) {//total.total_time != expected_time) {
+								testrunner.ok(false, "BEFORE TOTAL="+before_total+
+										"   TOTAL="+total);
+							}*/							
+							if (site.tag().id == self.pddb.Unsorted) {
+								//testrunner.equals(total.total_amount, 0, "Expected 0 seconds for");
+							}
+						}
+						/**********************************************************************/
+					});
+				});
+			}
+		}
+		
+		/* after "store_visit" is called on a new site,
+		 * we expect to have created the following pieces of data:
+		   totals:
+		     -> site, sitegroup, tag(, recipient if PD tagged)  x  
+		     -> daily, weekly, forever
+		   requirespayment:
+		     -> weekly sitegroup if TWS tagged
+		     -> weekly recipient if PD tagged
+		   site: newdomain/newpage
+		   sitegroup: newdomain
+		   visit: to site for 60 seconds
+		   recipient: if
+		 */ 
+		testrunner.test("visit new page", function() {
+			init_data();
+			var duration = 60;
+			
+			testrunner.ok( true, "---------------- new Unsorted url ----");
+			var before_totals = retrieve_totals(url, self.pddb.Unsorted);
+			var url = visit_new_site(self.pddb.Unsorted, duration);
+			check_totals(url, duration, before_totals);
+			
+			testrunner.ok( true, "---------------- new ProcrasDonate url ----");
+			before_totals = retrieve_totals(url, self.pddb.ProcrasDonate);
+			url = visit_new_site(self.pddb.ProcrasDonate, duration);
+			check_totals(url, duration, before_totals);
+			
+			testrunner.ok( true, "---------------- new TimeWellSpent url ----");
+			before_totals = retrieve_totals(url, self.pddb.TimeWellSpent);
+			url = visit_new_site(self.pddb.TimeWellSpent, duration);
+			check_totals(url, duration, before_totals);
 		});
 		
+		self.pddb = original_pddb;
+		
+		/*
 		testrunner.test("a second happy test", function() {
 			testrunner.expect(3);
 			testrunner.ok( false, "this test is fine" );
@@ -477,6 +665,7 @@ _extend(Controller.prototype, {
 			testrunner.equals( "hello", value, "We expect value to be hello" );
 			testrunner.same( "hello", value, "We still expect value to be hello" );
 		});
+		*/
 		
 		// display results
 		display = new TestRunnerConsoleDisplay()
@@ -952,7 +1141,7 @@ _extend(PageController.prototype, {
 	
 	support_middle: function(request) {
 		var pd_recipient = this.pddb.Recipient.get_or_null({
-			name: "ProcrasDonate"
+			slug: "pd"
 		});
 		var pct = _un_prefify_float(this.prefs.get('support_pct', constants.DEFAULT_SUPPORT_PCT));
 		var context = new Context({
@@ -1184,7 +1373,7 @@ _extend(PageController.prototype, {
 				percent = percent.toFixed(2);
 			}
 			
-			if (recipient && recipient.twitter_name != "ProcrasDonate") {
+			if (recipient && recipient.slug != "pd") {
 				user_recipients += self.recipient_with_percent_snippet(request, recipient, percent);
 			}
 		});
@@ -2130,7 +2319,7 @@ _extend(PageController.prototype, {
 		});
 		
 		var timetype = timetype = self.pddb.Forever;
-		var time = _end_of_forever;
+		var time = _end_of_forever();
 		if ( substate == "today" ) {
 			timetype = self.pddb.Daily;
 			time = _dbify_date(_end_of_day());
@@ -2139,7 +2328,7 @@ _extend(PageController.prototype, {
 			time = _dbify_date(_end_of_week());
 		} else if ( substate == "all_time" ) {
 			timetype = self.pddb.Forever;
-			time = _end_of_forever;
+			time = _end_of_forever();
 		}
 		
 		var context = this.impact_data(
@@ -2197,7 +2386,7 @@ _extend(PageController.prototype, {
 			time = _dbify_date(_end_of_week());
 		} else if ( substate == "all_time" ) {
 			timetype = self.pddb.Forever;
-			time = _end_of_forever;
+			time = _end_of_forever();
 		}
 		
 		var context = this.impact_data(
@@ -2269,7 +2458,7 @@ _extend(PageController.prototype, {
 			time = _dbify_date(_end_of_week());
 		} else if ( substate == "all_time" ) {
 			timetype = self.pddb.Forever;
-			time = _end_of_forever;
+			time = _end_of_forever();
 		}
 		
 		var context = this.impact_data(

@@ -180,7 +180,7 @@ function load_models(db, pddb) {
 			_order: ["id", "recipient_id", "percent"],
 			id: "INTEGER PRIMARY KEY",
 			recipient_id: "INTEGER",
-			percent: "REAL"
+			percent: "REAL" // 100% = 1
 		},
 		indexes: []
 	}, {

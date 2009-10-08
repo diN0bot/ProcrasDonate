@@ -76,11 +76,18 @@ _extend(TestRunnerConsoleDisplay.prototype, {
 		if (passing == total) {
 			summary = "PASS";
 		}
-		Firebug.Console.openGroup([passing+"/"+total+" = "+summary+" for "+testgroup.name], null, "group", null, false);
+		// see firebug@software.joehewitt.com/content/firebug/console.js log and logRow...
+		// and firebug@software.joehewitt.com/skin/classic/console.css 
+		// should be able to set class name so that entry has different color than red !
+		//Firebug.Console.log("INFO", null, "logRow-info");
+		//Firebug.Console.log("WARN", null, "logRow-warningMessage");
+		
+		Firebug.Console.openGroup([passing+"/"+total+" pass. "+summary+" for "+testgroup.name], null, "group", null, false);
 		for (var i = 0; i < testgroup.assertions.length; i++) {
 			var assertion = testgroup.assertions[i];
 			if (assertion.result) {
-				Firebug.Console.log(i+". ("+assertion.result+") "+assertion.msg);
+				// don't display passing tests
+				// Firebug.Console.log(i+". ("+assertion.result+") "+assertion.msg);
 			} else {
 				Firebug.Console.log(i+". *"+assertion.result+"* "+assertion.msg);
 			}

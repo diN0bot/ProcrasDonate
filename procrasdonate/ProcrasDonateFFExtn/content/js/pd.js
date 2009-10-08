@@ -416,17 +416,20 @@ _extend(ProcrasDonate_API.prototype, {
 			data,
 			method,
 			function(r) {
-				//logger("pd.js::RETURNED: "+r);
-				var response = eval("("+r.responseText+")");
-				
-				if (response.result == "success") {
-					if (onsuccess) {
-						onsuccess(response);
+				try {
+					var response = eval("("+r.responseText+")");
+					
+					if (response.result == "success") {
+						if (onsuccess) {
+							onsuccess(response);
+						}
+					} else {
+						if (onfailure) {
+							onfailure(response);
+						}
 					}
-				} else {
-					if (onfailure) {
-						onfailure(response);
-					}
+				} catch (e) {
+					logger("EXCEPTION: pd.js::RETURNED: "+r+"  "+e.stack);
 				}
 			},
 			onerror
