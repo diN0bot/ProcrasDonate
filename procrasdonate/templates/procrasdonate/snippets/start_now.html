@@ -1,19 +1,12 @@
-		<a
-			class="install_anchor"
-			href="{{ MEDIA_URL }}xpi/ProcrasDonate_0.1.2.xpi"
-  			iconURL="{{ MEDIA_URL }}img/ProcrasDonateLogo.png"
-  			{# onclick="return install('install_anchor');" #}
-  			onclick="return not_ready_to_install();"
-  		>
-  			<span class="hash" style="display:none">
-  				sha1:50c122ab6a9638674f837989a6597751127fd8b1
-  			</span>
-  			{% if show_start_now %}
-  			<img
-  				src="{{ MEDIA_URL }}img/StartNow14.png"
-  				id="StartButton"
-  				class="StartButton" />
-  			{% else %}
-  				Start Now
-  			{% endif %}
-  		</a>
+<a
+	class="install_anchor"
+	href="{{ MEDIA_URL }}xpi/ProcrasDonate_0.1.2.xpi"
+	iconURL="{{ MEDIA_URL }}img/ProcrasDonateLogo.png"
+	{# onclick="return install('install_anchor');" #}
+	onclick="return not_ready_to_install();"
+><span class="hash" style="display:none">sha1:50c122ab6a9638674f837989a6597751127fd8b1</span>{% if show_start_now %}
+	<img
+		src="{{ MEDIA_URL }}img/StartNow14.png"
+		id="StartButton"
+		class="StartButton" />
+{% else %}Start Now{% endif %}</a>
