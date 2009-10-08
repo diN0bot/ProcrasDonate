@@ -30,7 +30,6 @@ def send_email(request):
         * THANK YOU BLURBS (opt-in) -- 3 donation amount steps + blurb.
          
       -~={ CRON JOBS }=~-
-      #@todo: 
         * END OF YEAR EMAIL FOR TAXES
         * END OF YEAR CHARITY NOTIFICATION (opt-in)
         * WEEKLY (EVERY SUNDAY NIGHT):
@@ -54,8 +53,10 @@ def send_email(request):
                            "email_type"]
     response = extract_parameters(request, "POST", expected_parameters)
     if not response['success']:
-        #@todo what?
-        print "FAIL to extract parameters"
+        message = "dataflow.send_email Failed to extract expected parameters %s from %s" % (expected_parameters,
+                                                                                            request.POST)
+        Log.Error(message, "DATA_FROM_EXTN")
+        return json_failure(message)
     parameters = response['parameters']
 
     #email_address = parameters['email_address']
@@ -80,8 +81,10 @@ def receive_data(request):
     
     response = extract_parameters(request, "POST", ["hash"], datatypes)
     if not response['success']:
-        #@todo what?
-        print "FAIL to extract parameters"
+        message = "dataflow.receive_data Failed to extract expected parameters %s from %s" % (expected_parameters,
+                                                                                              request.POST)
+        Log.Error(message, "DATA_FROM_EXTN")
+        return json_failure(message)
     parameters = response['parameters']
 
     hash = parameters["hash"]
@@ -118,8 +121,9 @@ def decode_time(str):
 
 def return_data(request):
     """
-    sends back data for particular user
-    #@TODO send latest version, too
+    sends back:
+        * data for particular user
+        * latest extension version
     """
     errors = []
     expected_parameters = ["hash", "since"]
@@ -154,11 +158,14 @@ def return_data(request):
         if multiuse_auth.good_to_go():
             has_success = True
     
-    #@TODO if not has_success, then ask Amazon for token in case pipeline completed by didn't make it back to server yet.
+    if not has_success:
+        pass
+        #@TODO if not has_success, then ask Amazon for token in case pipeline completed by didn't make it back to server yet.
     
     print "RETURN DATA RETURNED"
     print json.dumps({'recipients': recipients,
                          'multiuse_auths': multiuse_auths}, indent=2)
     
     return json_success({'recipients': recipients,
-                         'multiuse_auths': multiuse_auths})
+                         'multiuse_auths': multiuse_auths,
+                         'latest_version': settings.PDVERSION})
