@@ -545,10 +545,9 @@ _extend(Controller.prototype, {
 						});
 						if (total) {
 							totals[total.id] = total;
-							//testrunner.ok(false, "~~~~~~~~~~~ before total: "+total);
 						} else {
-							testrunner.ok(false, "While retrieving before totals, expected total but found none: "+
-									row.modelname+" id: "+value+" "+timetypes[idx].timetype+" "+datetime);							
+							testrunner.ok(false, "While retrieving before totals, maybe expected total but found none? "+
+									row.modelname+" id: "+value+" "+timetypes[idx].timetype+" "+times[idx]);							
 						}
 					});
 				});
@@ -557,7 +556,7 @@ _extend(Controller.prototype, {
 		}
 	
 		///
-		///
+		/// also checks RequiresPayment
 		///
 		function check_totals(url, seconds, before_totals) {
 			var site = self.pddb.Site.get_or_null({ url: url })
@@ -568,10 +567,14 @@ _extend(Controller.prototype, {
 				self.pddb.ContentType.select({}, function(row) {
 					// for each timetype-time x content, retrieve the total
 					var content_ids = [];
+					var requires_payments_ids = {};
 					if (row.modelname == "Site") {
 						content_ids.push(site.id);
 					} else if (row.modelname == "SiteGroup") {
 						content_ids.push(site.sitegroup().id);
+						requires_payments_ids[site.sitegroup().id] = 
+							(timetypes[idx].id == self.pddb.Weekly.id &&
+							site.tag().id == self.pddb.TimeWellSpent.id);
 					} else if (row.modelname == "Tag") {
 						content_ids.push(site.tag().id);
 					} else if (row.modelname == "Recipient") {
@@ -579,6 +582,9 @@ _extend(Controller.prototype, {
 							self.pddb.RecipientPercent.select({}, function(r) {
 								var recip = self.pddb.Recipient.get_or_null({ id: r.recipient_id });
 								content_ids.push(recip.id);
+								requires_payments_ids[recip.id] = 
+									(timetypes[idx].id == self.pddb.Weekly.id &&
+									site.tag().id == self.pddb.ProcrasDonate.id);
 							});
 						}
 					} else {
@@ -598,6 +604,7 @@ _extend(Controller.prototype, {
 									", content: "+value+", timetype: "+timetypes[idx].id+
 									", datetime: "+times[idx]);
 						} else {
+							//// CHECK TOTAL TIME ///////
 							var expected_time = null;
 							var before_total = before_totals[total.id];
 							if (!before_total) {
@@ -605,15 +612,28 @@ _extend(Controller.prototype, {
 							} else {
 								expected_time = parseFloat(before_total.total_time) + seconds;
 							}
-							
 							testrunner.equals(expected_time, total.total_time,
 								"Total (id="+total.id+") has incorrrect total_time");
 							/*if (before_total) {//total.total_time != expected_time) {
 								testrunner.ok(false, "BEFORE TOTAL="+before_total+
 										"   TOTAL="+total);
-							}*/							
+							}*/	
+							
+							////// CHECK TOTAL AMOUNTS ///////
 							if (site.tag().id == self.pddb.Unsorted) {
 								//testrunner.equals(total.total_amount, 0, "Expected 0 seconds for");
+							}
+							
+							////// CHECK REQUIRES PAYMENTS ///////
+							var requires_payment = self.pddb.RequiresPayment.get_or_null({
+								total_id: total.id
+							});
+							if (requires_payments_ids[value]) {
+								testrunner.ok(requires_payment,
+										"Expected requires_payment for total--"+total+"--but found none");
+							} else {
+								testrunner.ok(!requires_payment,
+										"Did not expect requires_payment for total--"+total+"--but found one--"+requires_payment);
 							}
 						}
 						/**********************************************************************/

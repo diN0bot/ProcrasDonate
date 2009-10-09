@@ -777,7 +777,7 @@ PDDB.prototype = {
 				var contenttype = tuple.contenttype;
 				var content = tuple.content;
 				var amt = tuple.amt;
-				var requires_payment = tuple.requires_payment;
+				var requires_payment = tuple.requires_payment && timetypes[i].id == this.Weekly.id;
 				if (STORE_VISIT_LOGGING) logger(" ------------------------------------------------ ");
 				if (STORE_VISIT_LOGGING) logger(" `````` i "+i+"  j "+j);
 				if (STORE_VISIT_LOGGING) logger(" `````contenttype: "+contenttype);
