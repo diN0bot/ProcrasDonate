@@ -12,3 +12,10 @@ SECRET_KEY = 'oez0xk+-u34bcyd!+z0w=79mc^_tf9zm05nm9ia9)zps2s56a2'
 
 DATABASE_ENGINE = 'sqlite3'
 DATABASE_NAME = PROJECT_PATH+"/mydatabase.db"
+
+SANDBOX_PAYMENTS = True
+FPS = {'callerKey': "#@TODO FILL ME IN",
+      'secretKey': "#@TODO FILL ME IN",
+      'version': '2009-01-09',
+      'cobrandingUrl': "http://procrasdonate.com/procrasdonate_media/img/ProcrasDonateLogoText.png",
+      'websiteDescription': "ProcrasDonate (charitable incentives for good time management)"}
