@@ -1,4 +1,4 @@
-var STORE_VISIT_LOGGING = true;
+var STORE_VISIT_LOGGING = false;
 
 var ProcrasDonate__UUID="extension@procrasdonate.com";
 
@@ -646,13 +646,13 @@ PDDB.prototype = {
 		var sitegroup = site.sitegroup();
 		var tag = site.tag();
 		
-		var pd_recipient = this.Recipient.get_or_null({ twitter_name: "ProcrasDonate" });
+		var pd_recipient = this.Recipient.get_or_create({ slug: "pd" });
 		//var pd_recipientpercent = this.RecipientPercent.get_or_null({ recipient_id: pd_recipient.id });
 		var pd_pct = _un_prefify_float(this.prefs.get('support_pct', constants.DEFAULT_SUPPORT_PCT)) / 100.0;
 		
 		var end_of_day     = _dbify_date(_end_of_day());
 		var end_of_week    = _dbify_date(_end_of_week());
-		var end_of_forever = _end_of_forever;
+		var end_of_forever = _end_of_forever();
 		
 		var timetypes = [ this.Daily, this.Weekly, this.Forever ];
 		var times     = [ end_of_day, end_of_week, end_of_forever ];
@@ -718,66 +718,72 @@ PDDB.prototype = {
 		
 		this.ContentType.select({}, function(row) {
 			if (row.modelname == "Site") {
-				if (tag.id == self.TimeWellSpent.id) {
-					content_instances.push({
-						contenttype: row,
-						content: site,
-						amt: rest_amount,
-					});
-				}
+				content_instances.push({
+					contenttype: row,
+					content: site,
+					amt: rest_amount,
+					requires_payment: false
+				});
 			} else if (row.modelname == "SiteGroup") {
+				var requires_payment = (tag.id == self.TimeWellSpent.id);
 				content_instances.push({
 					contenttype: row,
 					content: sitegroup,
 					amt: rest_amount,
+					requires_payment: requires_payment
 				});
-
 			} else if (row.modelname == "Tag") {
 				content_instances.push({
 					contenttype: row,
 					content: tag,
 					amt: rest_amount,
+					requires_payment: false
 				});
-
 			} else if (row.modelname == "Recipient") {
 				if (tag.id != self.Unsorted.id) {
 					// site is TWS or PD, so some amount will go to pd
+					// this isn't used to make payments; just to check against:
+					// marketplace fees should add up to this total amount
 					content_instances.push({
 						contenttype: row,
 						content: pd_recipient,
 						amt: skim_amount,
+						requires_payment: false
 					});
-					if (tag.id == self.ProcrasDonate.id) {
-						// site is PD, so pay all recipients
-						self.RecipientPercent.select({}, function(r) {
-							var recip = self.Recipient.get_or_null({ id: r.recipient_id });
-								content_instances.push({
-									contenttype: row,
-									content: recip,
-									amt: rest_amount * parseFloat(r.percent),
-								});
+				}
+				if (tag.id == self.ProcrasDonate.id) {
+					// site is PD, so pay all recipients
+					self.RecipientPercent.select({}, function(r) {
+						var recip = self.Recipient.get_or_null({ id: r.recipient_id });
+						content_instances.push({
+							contenttype: row,
+							content: recip,
+							amt: rest_amount * parseFloat(r.percent),
+							requires_payment: true
 						});
-					}
+					});
 				}
 				
 			} else {
-				//if (STORE_VISIT_LOGGING) logger("update_totals:: not a content type we care about");
+				this.orthogonals.error("update_totals:: not a content type we care about");
+				if (STORE_VISIT_LOGGING) logger("update_totals:: not a content type we care about");
 			}
 		});
 
 		for (var i = 0; i < timetypes.length; i++) {
 		
 			for (var j = 0; j < content_instances.length; j++) {
-				var triple = content_instances[j];
-				var contenttype = triple.contenttype;
-				var content = triple.content;
-				var amt = triple.amt;
-				if (STORE_VISIT_LOGGING) logger(" `````` i "+i);
-				if (STORE_VISIT_LOGGING) logger(" `````` j "+j);
-				if (STORE_VISIT_LOGGING) logger(" `````triple: "+triple);
+				var tuple = content_instances[j];
+				var contenttype = tuple.contenttype;
+				var content = tuple.content;
+				var amt = tuple.amt;
+				var requires_payment = tuple.requires_payment && timetypes[i].id == this.Weekly.id;
+				if (STORE_VISIT_LOGGING) logger(" ------------------------------------------------ ");
+				if (STORE_VISIT_LOGGING) logger(" `````` i "+i+"  j "+j);
 				if (STORE_VISIT_LOGGING) logger(" `````contenttype: "+contenttype);
 				if (STORE_VISIT_LOGGING) logger(" `````content: "+content);
 				if (STORE_VISIT_LOGGING) logger(" `````amt: "+amt);
+				if (STORE_VISIT_LOGGING) logger(" `````requires_payment: "+requires_payment);
 				
 				if (STORE_VISIT_LOGGING) logger(" .....timetypes="+timetypes[i]);
 				if (STORE_VISIT_LOGGING) logger(" .....times="+times[i]);
@@ -792,22 +798,20 @@ PDDB.prototype = {
 					total_amount: 0,
 				});
 				var new_total_time = parseInt(total.total_time) + time_delta;
-				var new_total_amount = parseFloat(total.total_amount) + parseFloat(triple.amt);
-				if (STORE_VISIT_LOGGING) logger("poiu......... time_delta="+time_delta+" new_time="+new_total_time+"   amount_delta="+triple.amt+" new_amt="+new_total_amount);
+				var new_total_amount = parseFloat(total.total_amount) + parseFloat(amt);
+				if (STORE_VISIT_LOGGING) logger("poiu......... time_delta="+time_delta+" new_time="+new_total_time+"   amount_delta="+amt+" new_amt="+new_total_amount);
 				if (STORE_VISIT_LOGGING) logger("poiu......... total="+total);
 				
 				this.Total.set({
 					total_time: parseInt(total.total_time) + time_delta,
-					total_amount: parseFloat(total.total_amount) + parseFloat(triple.amt)
+					total_amount: parseFloat(total.total_amount) + parseFloat(amt)
 				}, {
 					id: total.id
 				});
 				if (STORE_VISIT_LOGGING) total = this.Total.get_or_null({ id: total.id });
 				if (STORE_VISIT_LOGGING) logger("updated total="+total);
 				
-				if ( contenttype.modelname == "Recipient" &&
-					 timetypes[i].id == this.Daily.id ) {
-
+				if ( requires_payment && timetypes[i].id == this.Weekly.id ) {
 					this.RequiresPayment.get_or_create({
 						total_id: total.id
 					}, {

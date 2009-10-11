@@ -399,7 +399,8 @@ _extend(TestRunner.prototype, {
 				callback.call(testEnvironment);
 			} catch(e) {
 				self.fail("Test assertion " + name + " died, exception and test assertion follows", e, callback);
-				self.ok( false, "Died on test assertion #" + (self.current_testgroup.assertions.length + 1) + ": " + e.message );
+				self.ok( false, "Died on test assertion #" + (self.current_testgroup.assertions.length + 1) + ": " + 
+						e.message + "--" + e.stack);
 			}
 			var passing = self.passing_total();
 			var total = self.total();

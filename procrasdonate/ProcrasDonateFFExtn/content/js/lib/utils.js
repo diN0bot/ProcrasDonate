@@ -256,7 +256,7 @@ var _start_of_week = function(date) {
 	return date;
 }
 
-var _end_of_forever = -3;
+var _end_of_forever = function() { return -3; }
 
 var _end_of_day = function(date) {
 	if (!date) {
@@ -301,12 +301,16 @@ var _un_dbify_bool = function(x) {
 	}
 }
 
+// do not transform _end_of_forever
 var _dbify_date = function(date) {
-	return Math.round(date.getTime() / 1000.0);
+	if (date == -3) return date;
+	else return Math.round(date.getTime() / 1000.0);
 }
 
+// do not transform _end_of_forever
 var _un_dbify_date = function(str) {
-	return new Date(parseInt(str) * 1000);
+	if (str == "-3") return -3;
+	else return new Date(parseInt(str) * 1000);
 }
 
 var _date_to_http_format = function(t) {
