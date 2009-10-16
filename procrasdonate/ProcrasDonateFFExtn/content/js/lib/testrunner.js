@@ -6,11 +6,11 @@
  *  August 27, 2009
  *  Lucy Mendel on behalf of ProcrasDonate
  *  http://github.com/diN0bot/ProcrasDonate
- * 
+ *
  * Original comment:
  *
  * QUnit - jQuery unit testrunner
- * 
+ *
  * http://docs.jquery.com/QUnit
  *
  * Copyright (c) 2008 John Resig, Jörn Zaefferer
@@ -27,36 +27,37 @@
        executing all Assertions, respectively
  * Each TestGroup runs in its own test environment
  * Each TestGroup has a set of test assertions (ok, equals, same, expect)
- 
+
  ToDoc:
    * Use of Synchronize
- 
+
  ToDo:
    * Put back pollution checks and ajaxSetting
-   
+
 /////////////////////////////////////////////////////////////////////////////*/
 
 ///
 /// Class that manages execution of unit tests
 /// Contains test result state
 ///
+///
 var TestRunner = function(request) {
 	// we need this for jQuery utility functions and
 	// to reset ajaxSettings between tests
 	this.request = request;
-	
+
 	// (name, TestModule)
 	this.test_modules = {};
-	
+
 	// current module for all added tests
 	this.current_testmodule = null;
 	// set default module
 	this.module("__default");
-	
+
 	// current group for all assertions
 	this.current_testgroup = null;
 	// there is necessarily a group before assertions...right?
-	
+
 	// queue of callbacks to process (via this.synchronize)
 	this.queue = [];
 
@@ -65,11 +66,11 @@ var TestRunner = function(request) {
 	this.blocking = true;
 	// @TODO ok, TestRunnerDisplay is done...
 	this.blocking = false;
-	
+
 	// timeout (milliseconds) to wait for stopped TestRunner
 	// to resume processing of tests.
 	this.timeout = null;
-	
+
 	// initial ajaxSettings to rest after TestGroup runs
 	this.ajaxSettings = this.request.jQuery.ajaxSettings;
 	// id of sandbox DOM element that tests can play inside
@@ -87,7 +88,7 @@ _extend(TestRunner.prototype, {
 	// Test suites: http://philrathe.com/tests/equiv
 	// Author: Philippe Rathé <prathe@gmail.com>
 	equiv: (function () {
-	
+
 	    var innerEquiv; // the real equiv function
 	    var callers = []; // stack to decide between skip/abort functions
 
@@ -95,50 +96,50 @@ _extend(TestRunner.prototype, {
 	    function hoozit(o) {
 	        if (o.constructor === String) {
 	            return "string";
-	            
+
 	        } else if (o.constructor === Boolean) {
 	            return "boolean";
-	
+
 	        } else if (o.constructor === Number) {
-	
+
 	            if (isNaN(o)) {
 	                return "nan";
 	            } else {
 	                return "number";
 	            }
-	
+
 	        } else if (typeof o === "undefined") {
 	            return "undefined";
-	
+
 	        // consider: typeof null === object
 	        } else if (o === null) {
 	            return "null";
-	
+
 	        // consider: typeof [] === object
 	        } else if (o instanceof Array) {
 	            return "array";
-	        
+
 	        // consider: typeof new Date() === object
 	        } else if (o instanceof Date) {
 	            return "date";
-	
+
 	        // consider: /./ instanceof Object;
 	        //           /./ instanceof RegExp;
 	        //          typeof /./ === "function"; // => false in IE and Opera,
 	        //                                          true in FF and Safari
 	        } else if (o instanceof RegExp) {
 	            return "regexp";
-	
+
 	        } else if (typeof o === "object") {
 	            return "object";
-	
+
 	        } else if (o instanceof Function) {
 	            return "function";
 	        } else {
 	            return undefined;
 	        }
 	    }
-	
+
 	    // Call the o related callback with the given arguments.
 	    function bindCallbacks(o, callbacks, args) {
 	        var prop = hoozit(o);
@@ -150,9 +151,9 @@ _extend(TestRunner.prototype, {
 	            }
 	        }
 	    }
-	    
+
 	    var callbacks = function () {
-	
+
 	        // for string, boolean, number and null
 	        function useStrictEquality(b, a) {
 	            if (b instanceof a.constructor || a instanceof b.constructor) {
@@ -164,22 +165,22 @@ _extend(TestRunner.prototype, {
 	                return a === b;
 	            }
 	        }
-	
+
 	        return {
 	            "string": useStrictEquality,
 	            "boolean": useStrictEquality,
 	            "number": useStrictEquality,
 	            "null": useStrictEquality,
 	            "undefined": useStrictEquality,
-	
+
 	            "nan": function (b) {
 	                return isNaN(b);
 	            },
-	
+
 	            "date": function (b, a) {
 	                return hoozit(b) === "date" && a.valueOf() === b.valueOf();
 	            },
-	
+
 	            "regexp": function (b, a) {
 	                return hoozit(b) === "regexp" &&
 	                    a.source === b.source && // the regex itself
@@ -187,7 +188,7 @@ _extend(TestRunner.prototype, {
 	                    a.ignoreCase === b.ignoreCase &&
 	                    a.multiline === b.multiline;
 	            },
-	
+
 	            // - skip when the property is a method of an instance (OOP)
 	            // - abort otherwise,
 	            //   initial === would have catch identical references anyway
@@ -196,16 +197,16 @@ _extend(TestRunner.prototype, {
 	                return caller !== Object &&
 	                        typeof caller !== "undefined";
 	            },
-	
+
 	            "array": function (b, a) {
 	                var i;
 	                var len;
-	
+
 	                // b could be an object literal here
 	                if ( ! (hoozit(b) === "array")) {
 	                    return false;
 	                }
-	
+
 	                len = a.length;
 	                if (len !== b.length) { // safe and faster
 	                    return false;
@@ -217,47 +218,47 @@ _extend(TestRunner.prototype, {
 	                }
 	                return true;
 	            },
-	
+
 	            "object": function (b, a) {
 	                var i;
 	                var eq = true; // unless we can proove it
 	                var aProperties = [], bProperties = []; // collection of strings
-	
+
 	                // comparing constructors is more strict than using instanceof
 	                if ( a.constructor !== b.constructor) {
 	                    return false;
 	                }
-	
+
 	                // stack constructor before traversing properties
 	                callers.push(a.constructor);
-	
+
 	                for (i in a) { // be strict: don't ensures hasOwnProperty and go deep
-	
+
 	                    aProperties.push(i); // collect a's properties
-	
+
 	                    if ( ! innerEquiv(a[i], b[i])) {
 	                        eq = false;
 	                    }
 	                }
-	
+
 	                callers.pop(); // unstack, we are done
-	
+
 	                for (i in b) {
 	                    bProperties.push(i); // collect b's properties
 	                }
-	
+
 	                // Ensures identical properties name
 	                return eq && innerEquiv(aProperties.sort(), bProperties.sort());
 	            }
 	        };
 	    }();
-	
+
 	    innerEquiv = function () { // can take multiple arguments
 	        var args = Array.prototype.slice.apply(arguments);
 	        if (args.length < 2) {
 	            return true; // end transition
 	        }
-	
+
 	        return (function (a, b) {
 	            if (a === b) {
 	                return true; // catch the most you can
@@ -266,14 +267,14 @@ _extend(TestRunner.prototype, {
 	            } else {
 	                return bindCallbacks(a, callbacks, [b, a]);
 	            }
-	
+
 	        // apply transition with (1..n) arguments
 	        })(args[0], args[1]) && arguments.callee.apply(this, args.splice(1, args.length -1));
 	    };
-	
+
 	    return innerEquiv;
 	})(),
-	
+
 	// Add callback processes to TestRunner queue.
 	// Blocks processing if TestRunner.blocking is true (document not ready)
 	synchronize: function(callback) {
@@ -282,14 +283,14 @@ _extend(TestRunner.prototype, {
 			this.process();
 		}
 	},
-	
+
 	// Process callback processes in TestRunner queue
 	process: function() {
 		while(this.queue.length && !this.blocking) {
 			this.queue.shift()();
 		}
 	},
-	
+
 	// Stops a process after a specified timeout (milliseconds)
 	// ??Blocking because tracks timeout state with instance variable
 	stop: function(timeout) {
@@ -300,7 +301,7 @@ _extend(TestRunner.prototype, {
 				this.start();
 			}, timeout);
 	},
-	
+
 	// Starts a process.
 	// Adds slight delay to start time to avoid any currently
 	// executing processes?
@@ -314,7 +315,7 @@ _extend(TestRunner.prototype, {
 			this.process();
 		}, 13);
 	},
-	
+
 	// i think this is for display, as in:
 	// valid to display test
 	validTest: function( name ) {
@@ -323,14 +324,14 @@ _extend(TestRunner.prototype, {
 		// this.config.filters is undefined
 		var i = this.config.filters.length,
 			run = false;
-	
+
 		if( !i )
 			return true;
-		
+
 		while( i-- ){
 			var filter = this.config.filters[i],
 				not = filter.charAt(0) == '!';
-			if( not ) 
+			if( not )
 				filter = filter.slice(1);
 			if( name.indexOf(filter) != -1 )
 				return !not;
@@ -338,53 +339,53 @@ _extend(TestRunner.prototype, {
 				run = true;
 		}
 		return run;
-		*/	
+		*/
 	},
-	
+
 	// what is this?
 	pollution: null,
-	
+
 	// wtf
 	saveGlobal: function(){
 		this.pollution = [ ];
-		
+
 		if( this.noglobals )
 			for( var key in window )
 				this.pollution.push(key);
 	},
-	
+
 	// is pollution the introduction of global variables?
 	checkPollution: function( name ){
 		var old = this.pollution;
 		this.saveGlobal();
-		
+
 		if( this.pollution.length > old.length ){
 			this.ok( false, "Introduced global variable(s): " + this.diff(old, this.pollution).join(", ") );
 			this.config.expected++;
 		}
 	},
-	
+
 	// returns array of elements in dirty that are not in clean
 	diff: function( clean, dirty ){
 		return this.request.jQuery.grep( dirty, function(name) {
 			return this.request.jQuery.inArray( name, clean ) == -1;
 		});
 	},
-	
+
 	// executes a named test, which itself contains assertions to process
 	test: function(name, callback) {
 		// create new testgroup
 		testgroup = new TestGroup(name);
 		this.current_testgroup = testgroup;
-		
+
 		// add testgroup to current module
 		this.current_testmodule.add_testgroup(testgroup);
-		
+
 		var self = this;
-		
+
 		// create a clean environment to execute the testgroup
 		var testEnvironment = {};
-		
+
 		// call setup
 		this.synchronize(function() {
 			try {
@@ -399,7 +400,7 @@ _extend(TestRunner.prototype, {
 				callback.call(testEnvironment);
 			} catch(e) {
 				self.fail("Test assertion " + name + " died, exception and test assertion follows", e, callback);
-				self.ok( false, "Died on test assertion #" + (self.current_testgroup.assertions.length + 1) + ": " + 
+				self.ok( false, "Died on test assertion #" + (self.current_testgroup.assertions.length + 1) + ": " +
 						e.message + "--" + e.stack);
 			}
 			var passing = self.passing_total();
@@ -420,13 +421,13 @@ _extend(TestRunner.prototype, {
 			} catch(e) {
 				self.fail("reset() failed, following Test " + name + ", exception and reset fn follows", e, reset);
 			}
-			
+
 			if (self.current_testgroup.expected && self.current_testgroup.expected != self.current_testgroup.assertions.length) {
 				self.ok( false, "Expected " + self.current_testgroup.expected + " assertions, but " + self.current_testgroup.assertions.length + " were run" );
 			}
 		});
 	},
-	
+
 	// report exception failures to console
 	fail: function(message, exception, callback) {
 		if( typeof console != "undefined" && console.error && console.warn ) {
@@ -437,20 +438,20 @@ _extend(TestRunner.prototype, {
 			opera.postError(message, exception, callback.toString);
 		}
 	},
-	
+
 	// Sets the current module to the specified module name and life cycle.
 	// If set previously, original lifecycle will be overwritten if a new
 	// one is specified here.
 	// @name: module name
 	// @lifecycle: (optional) object containing setup() and teardown()
 	module: function(name, lifecycle) {
-		// ensure that default setup and teardown functions are 
+		// ensure that default setup and teardown functions are
 		// present in lifecycle if not defined.
 		var full_lifecycle = _extend({
 			setup: function() {},
 			teardown: function() {}
 		}, lifecycle);
-		
+
 		// get or create a testmodule and override its lifecycle
 		// or add to test_modules, as appropriate
 		var testmodule = null;
@@ -461,19 +462,19 @@ _extend(TestRunner.prototype, {
 			testmodule = new TestModule(name, full_lifecycle);
 			this.test_modules[name] = testmodule;
 		}
-		
+
 		// set current module
 		this.current_testmodule = testmodule;
 	},
-	
+
 	/**
-	 * Specify the number of expected assertions to guarantee 
+	 * Specify the number of expected assertions to guarantee
 	 * that failed test (no assertions are run at all) don't slip through.
 	 */
 	expect: function(asserts) {
 		this.current_testgroup.expected = asserts;
 	},
-	
+
 	/**
 	 * Resets the test setup. Useful for tests that modify the DOM.
 	 */
@@ -481,7 +482,7 @@ _extend(TestRunner.prototype, {
 		this.request.jQuery( this.sandbox_id ).html( this.fixture );
 		this.request.jQuery.ajaxSettings = this.request.jQuery.extend({}, this.ajaxSettings);
 	},
-	
+
 	/**
 	 * Asserts true.
 	 * @example ok( $("a").size() > 5, "There must be at least 5 anchors" );
@@ -490,14 +491,14 @@ _extend(TestRunner.prototype, {
 		var ass = new Assertion(!!a, msg);
 		this.current_testgroup.add_assertion( ass );
 	},
-	
+
 	/**
 	 * Asserts that two arrays are the same
 	 */
 	isSet: function(a, b, msg) {
 		function serialArray( a ) {
 			var r = [];
-			
+
 			if ( a && a.length )
 		        for ( var i = 0; i < a.length; i++ ) {
 		            var str = a[i].nodeName;
@@ -509,7 +510,7 @@ _extend(TestRunner.prototype, {
 		                str = a[i];
 		            r.push( str );
 		        }
-		
+
 			return "[ " + r.join(", ") + " ]";
 		}
 		var ret = true;
@@ -521,27 +522,27 @@ _extend(TestRunner.prototype, {
 			ret = false;
 		this.ok( ret, !ret ? (msg + " expected: " + serialArray(b) + " result: " + serialArray(a)) : msg );
 	},
-	
+
 	/**
 	 * Asserts that two objects are equivalent
 	 */
 	isObj: function(a, b, msg) {
 		var ret = true;
-		
+
 		if ( a && b ) {
 			for ( var i in a )
 				if ( a[i] != b[i] )
 					ret = false;
-	
+
 			for ( i in b )
 				if ( a[i] != b[i] )
 					ret = false;
 		} else
 			ret = false;
-	
+
 	    this.ok( ret, msg );
 	},
-	
+
 	/**
 	 * Returns an array of elements with the given IDs, eg.
 	 * @example q("main", "foo", "bar")
@@ -553,7 +554,7 @@ _extend(TestRunner.prototype, {
 			r.push( this.request.jQuery( "#"+arguments[i] ) );
 		return r;
 	},
-	
+
 	/**
 	 * Asserts that a select matches the given IDs
 	 * @example t("Check for something", "//[a]", ["foo", "baar"]);
@@ -566,7 +567,7 @@ _extend(TestRunner.prototype, {
 			s += (s && ",") + '"' + f[i].id + '"';
 		isSet(f, q.apply(q,c), a + " (" + b + ")");
 	},
-	
+
 	/**
 	 * Add random number to url to stop IE from caching
 	 *
@@ -579,7 +580,7 @@ _extend(TestRunner.prototype, {
 	url: function(value) {
 		return value + (/\?/.test(value) ? "&" : "?") + new Date().getTime() + "" + parseInt(Math.random()*100000);
 	},
-	
+
 	/**
 	 * Checks that the first two arguments are equal, with an optional message.
 	 * Prints out both actual and expected values.
@@ -595,16 +596,16 @@ _extend(TestRunner.prototype, {
 	equals: function(actual, expected, message) {
 		this.push(expected == actual, actual, expected, message);
 	},
-	
+
 	same: function(a, b, msg) {
 		this.push(equiv(a, b), a, b, message);
 	},
-	
+
 	push: function(result, actual, expected, message) {
 		message = message || (result ? "okay" : "failed");
 		this.ok( result, result ? message + ": " + expected : message + ", expected: " + jsDump.parse(expected) + " result: " + jsDump.parse(actual) );
 	},
-	
+
 	/**
 	 * Trigger an event on an element.
 	 *
@@ -623,7 +624,7 @@ _extend(TestRunner.prototype, {
 			elem.fireEvent("on"+type);
 		}
 	},
-	
+
 	/*************** RETRIEVE RESULTS **********************/
 	total: function() {
 		var total = 0;
@@ -633,7 +634,7 @@ _extend(TestRunner.prototype, {
 		}
 		return total
 	},
-	
+
 	total_ran: function() {
 		var total = 0;
 		for (var name in this.test_modules) {
@@ -642,7 +643,7 @@ _extend(TestRunner.prototype, {
 		}
 		return total
 	},
-	
+
 	passing_total: function() {
 		var total = 0;
 		for (var name in this.test_modules) {

@@ -44,6 +44,8 @@
             src='chrome://ProcrasDonate/content/js/lib/testobjects.js'></script>
     <script type='application/x-javascript' 
             src='chrome://ProcrasDonate/content/js/lib/testrunner.js'></script>
+    <script type='application/x-javascript' 
+            src='chrome://ProcrasDonate/content/js/tests.js'></script>
 
 <!--
     <script src="chrome://ProcrasDonate/content/js/ext/httpd.js" type="application/x-javascript"/>

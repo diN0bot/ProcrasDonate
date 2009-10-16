@@ -59,6 +59,8 @@ TestRunnerConsoleDisplay.prototype = new TestRunnerDisplay();
 _extend(TestRunnerConsoleDisplay.prototype, {
 
 	display_testgroup_result: function(testrunner, testgroup) {
+		var fails = [];
+		
 		var passing = 0;
 		for (var i = 0; i < testgroup.assertions.length; i++) {
 			var assertion = testgroup.assertions[i];
@@ -89,10 +91,13 @@ _extend(TestRunnerConsoleDisplay.prototype, {
 				// don't display passing tests
 				// Firebug.Console.log(i+". ("+assertion.result+") "+assertion.msg);
 			} else {
-				Firebug.Console.log(i+". *"+assertion.result+"* "+assertion.msg);
+				var msg = i+". *"+assertion.result+"* "+assertion.msg;
+				Firebug.Console.log(msg);
+				fails.push(msg);
 			}
 		}
 		Firebug.Console.closeGroup();
+		return fails;
 	},
 	
 	test_done: function(testrunner) {
@@ -134,12 +139,37 @@ var TestRunnerDOMDisplay = function(request) {
 TestRunnerDOMDisplay.prototype = new TestRunnerDisplay();
 _extend(TestRunnerDOMDisplay.prototype, {
 
-	display_testgroup_result: function(testrunner) {
+	display_testgroup_result: function(testrunner, testgroup) {
 		
 	},
 	
 	test_done: function(testrunner) {
 		
+	}
+
+});
+
+///
+/// Wraps specified TestRunnerDisplay with PD-specific actions,
+/// such as logging all test failures
+///
+var TestRunnerPDDisplay = function(testrunner_display, pddb) {
+	this.testrunner_display = testrunner_display;
+	this.pddb = pddb;
+};
+TestRunnerPDDisplay.prototype = new TestRunnerDisplay();
+_extend(TestRunnerPDDisplay.prototype, {
+
+	display_testgroup_result: function(testrunner, testgroup) {
+		var self = this;
+		var fails = this.testrunner_display.display_testgroup_result(testrunner, testgroup);
+		_iterate(fails, function(key, value, index) {
+			self.pddb.orthogonals.fail("auto test failure", value);
+		});
+	},
+	
+	test_done: function(testrunner) {
+		this.testrunner_display.test_done(testrunner);
 	}
 
 });

@@ -34,7 +34,7 @@ class FPSResponse(object):
         print
         print "FPSResponse"
         print element
-        
+
         if element is not None:
             if isinstance(element, str):
                 element = ET.fromstring(element)
@@ -73,7 +73,7 @@ class FPSResponse(object):
             delattr(self, "transactionResponse")
 
 class FlexiblePaymentClient(object):
-    def __init__(self, aws_access_key_id, aws_secret_access_key, 
+    def __init__(self, aws_access_key_id, aws_secret_access_key,
                  fps_url="https://fps.sandbox.amazonaws.com",
                  pipeline_url="https://authorize.payments-sandbox.amazon.com/cobranded-ui/actions/start"):
         self.access_key_id = aws_access_key_id
@@ -91,8 +91,8 @@ class FlexiblePaymentClient(object):
         Base64 encode the result and strip whitespace.
         """
         log.debug("to sign: %s" % string)
-        sig = base64.encodestring(hmac.new(self.aws_secret_access_key, 
-                                           string, 
+        sig = base64.encodestring(hmac.new(self.aws_secret_access_key,
+                                           string,
                                            sha).digest()).strip()
         log.debug(sig)
         return(sig)
@@ -102,14 +102,14 @@ class FlexiblePaymentClient(object):
         Returns the signature for the Amazon FPS Pipeline request that will be
         made with the given parameters.  Pipeline signatures are calculated with
         a different algorithm from the REST interface.  Names and values are
-        url encoded and separated with an equal sign, unlike the REST 
+        url encoded and separated with an equal sign, unlike the REST
         signature calculation.
         """
         if path is None:
             path = self.pipeline_path + "?"
         keys = parameters.keys()
         keys.sort(upcase_compare)
-        
+
         to_sign = path
         for k in keys:
             to_sign += "%s=%s&" % (urllib.quote(k), urllib.quote(parameters[k]).replace("/", "%2F"))
@@ -138,7 +138,7 @@ class FlexiblePaymentClient(object):
     def get_signed_query(self, parameters, signature_name='Signature'):
         """
         Returns a signed query string ready for use against the FPS REST
-        interface.  Encodes the given parameters and adds a signature 
+        interface.  Encodes the given parameters and adds a signature
         parameter.
         """
         keys = parameters.keys()
@@ -148,14 +148,14 @@ class FlexiblePaymentClient(object):
             message += "%s%s" % (k, parameters[k])
         sig = self.sign_string(message)
         log.debug("signature = %s" % sig)
-        
+
         parameters[signature_name]  = sig
         return urllib.urlencode(parameters)
 
     def execute(self, parameters):
         """
         A generic call to the FPS service.  The parameters dictionary
-        is sorted, signed, and turned into a valid FPS REST call.  
+        is sorted, signed, and turned into a valid FPS REST call.
         The response is read via urllib2 and parsed into an FPSResponse object
         """
 
@@ -177,7 +177,7 @@ class FlexiblePaymentClient(object):
             httperror.close()
 
         return FPSResponse(ET.fromstring(data))
-        
+
     def cancelToken(self, token_id, reason=None):
         params = {'Action': 'CancelToken',
                   'TokenId': token_id}
@@ -273,11 +273,11 @@ class FlexiblePaymentClient(object):
                   'TransactionId': transaction_id}
         return self.execute(params)
 
-    def installPaymentInstruction(self, 
-                                  payment_instruction, 
-                                  caller_reference, 
-                                  token_type, 
-                                  token_friendly_name=None, 
+    def installPaymentInstruction(self,
+                                  payment_instruction,
+                                  caller_reference,
+                                  token_type,
+                                  token_friendly_name=None,
                                   payment_reason=None):
         """
         Install a payment instruction that conforms to the GateKeeper
@@ -293,7 +293,7 @@ class FlexiblePaymentClient(object):
             params['TokenFriendlyName'] = token_friendly_name
         if payment_reason is not None:
             params['PaymentReason'] = payment_reason
-            
+
         return self.execute(params)
 
     def installPaymentInstructionBatch(self):
