@@ -161,7 +161,7 @@ for app in APPS:
         )
 
 # read extension version number from version.conf
-pdv_f = open('version.conf', 'r')
+pdv_f = open(pathify([PROJECT_PATH, 'version.conf'], file_extension=True), 'r')
 PDVERSION = pdv_f.readline().strip()
 pdv_f.close()
 

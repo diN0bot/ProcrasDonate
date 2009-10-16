@@ -9,6 +9,8 @@ from django.utils import simplejson as json
 
 from django.core.urlresolvers import reverse
 
+import settings
+
 def _POST(url, values):
     """
     POSTs values to url. Returns whatever url returns
