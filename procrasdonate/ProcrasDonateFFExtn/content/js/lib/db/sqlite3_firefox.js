@@ -355,7 +355,7 @@ _extend(Model.prototype, {
 		this.db.execute(str);
 	},
 	
-	//DELETE from [table name] where [field name] = 'whatever';
+	//DELETE from [table name] where [field name] = 'value';
 	del: function(wheres) {
 		var str = "DELETE from "+this.table_name+" where ";
 		is_first = true;

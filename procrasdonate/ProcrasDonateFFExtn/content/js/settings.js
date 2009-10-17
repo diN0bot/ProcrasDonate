@@ -146,7 +146,12 @@ var constants = {};
 	constants.TWS_DEFAULT_HR_PER_WEEK_GOAL = 20;
 	constants.TWS_DEFAULT_HR_PER_WEEK_MAX = 30;
 	constants.DEFAULT_SUPPORT_PCT = _prefify_float(10);
+	constants.DEFAULT_PAYMENT_THRESHHOLD = 10.00;
 	
+	// flag for whether to make payments or not--
+	// eg, if db corruption or some other error
+	constants.DEFAULT_PREVENT_PAYMENTS = false;
+		
 	constants.DEFAULT_SETTINGS_STATE = "account";
 	constants.DEFAULT_REGISTER_STATE = "account";
 	constants.DEFAULT_IMPACT_STATE = "recipients";
@@ -154,7 +159,7 @@ var constants = {};
 	
 	constants.DEFAULT_IMPACT_RECIPIENTS_SUBSTATE = 'nonprofits';
 	constants.DEFAULT_IMPACT_SITES_SUBSTATE = 'procrasdonate';
-	
+		
 	// FPS DEFAULTS
 	constants.DEFAULT_GLOBAL_AMOUNT_LIMIT = 100.00;
     constants.DEFAULT_CREDIT_LIMIT = 20.00;

@@ -502,7 +502,8 @@ var PDDB = function PDDB(db_filename) {
 	this.page = new PageController(this.prefs, this);
 	this.schedule = new Schedule(this.prefs, this);
 	this.orthogonals = new Orthogonals(this.prefs, this);
-	this.tests = new PDTests(this.prefs, this);
+	this.tester = new PDTests(this.prefs, this);
+	this.checker = new PDChecks(this.prefs, this);
 };
 
 PDDB.prototype = {

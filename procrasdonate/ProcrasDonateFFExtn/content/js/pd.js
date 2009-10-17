@@ -362,6 +362,33 @@ _extend(ProcrasDonate_API.prototype, {
 			);
 	},
 	
+	make_payments: function() {
+		var self = this;
+		var prevent_payments = self.prefs.get('prevent_payments ', constants.DEFAULT_PREVENT_PAYMENTS);
+		if (prevent_payments) {
+			self.pddb.orthogonals.log("make_payments", "Aborted because prevent_payments flag is: "+prevent_payments)
+			return 
+		}
+		
+		this.pddb.RequiresPayments.select({}, function(row) {
+			var total = row.total();
+			var recipient = total.recipient();
+			var amount = parseFloat(total.total_amount) / 100.00;
+			var threshhold = self.prefs.get('payment_threshhold ', constants.DEFAULT_PAYMENT_THRESHHOLD);
+			if (recipient && amount >= threshhold) {
+				pay_multiuse(
+						total.total_amount,
+						recipient,
+						function() {
+							// after success
+							self.pddb.RequiresPayments.del({id: row.id})
+						}, function() {
+							// after_failure
+						});
+			}
+		});
+	},
+	
 	request_data_updates: function(after_success, after_failure) {
 		// after_success should take two parameters:
 		//    recipients: array of recipient rows added (new since time)

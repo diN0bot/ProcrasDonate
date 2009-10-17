@@ -1,44 +1,95 @@
+/*
+ * regression tests
+ *  --> checklist or manual tests
+ * 
+ * **methods to test: (stop_rec calls store_v calls update_t)
+ *   (not done) start_recording(url);
+ *   (not done) stop_record();
+ *   (done) store_visit(url, start_time, duration);
+ *   (done) update_totals(site, visit);
+ * (done) crossed with visiting unsorted, pd and tws sites
+ * test all data is correct: (done) times, (not done) amounts, (done) requirespayments
+ * 
+ * other tests:
+ *   makes correct payments (extension, server, amazon)
+ *       send server "test" flag to not make real transaction?
+ *       refund?
+ *       
+ *       check duplicates
+ *       verify in logs that schedule is on track ---> assert this in scheduled things
+ *   payments to pd match expected skim
+ *   time active tab correctly
+ *   ??check self-imposed limits, eg large payments, visits?
+ *   duplicate payments ok? or since time correct before and after?
+ *   receives updates correctly, esp. with since times, duplicates
+ *   "view logic" with multiauth, payments, state
+ * run tests once a day and record failures in logs?
+ * 
+ * 
+ * TESTS: may mutate database. checks that logic inserts appropriate objects into database.
+ * CHECKS: checks database is well formed, not corrupted
+ */
+var PDChecks = function PDChecks(prefs, pddb) {
+	this.prefs = prefs;
+	this.pddb = pddb;
+};
+PDChecks.prototype = {};
+_extend(PDChecks.prototype, {
+	///
+	/// RequiresPayments must:
+	/// * be for recipient or sitegroup totals
+	/// * be for weekly totals
+	/// * if partially paid, then there should be a 
+	///   corresponding Payment (same total) with 
+	///   matching amount
+	/// * else no corresponding Payment
+	///
+	check_requires_payments: function(testrunner) {
+		var self = this;
+		
+		self.pddb.RequiresPayment.select({}, function(row) {
+			var total = row.total();
+			
+			// recipient or sitegroup total only
+			testrunner.ok(!total.recipient() && !total.sitegroup(),
+					"Expected RECIPIENT or SITEGROUP requires_payment, not "+total.contenttype()+" total="+total);
+			
+			// weekly total only
+			testrunner.ok(total.timetype().id == self.pddb.Weekly,
+					"Expected WEEKLY requires_payment, not "+total.timetype()+" total="+total);
+
+			// partially paid have corresponding Payment with matching amount
+			if (row.is_partially_paid()) {
+				testrunner.ok(false,
+						"Partially paid RequiresPayment are not currently allowed !? "+row);
+			} else {
+				testrunner.ok(row.total().payments().length == 0,
+						"Fully unpaid requires should not have payments: "+row.total().payments());
+			}
+		});
+	},
+	
+	///
+	/// Payments.
+	///
+	check_payments: function(testrunner) {
+		var self = this;
+		
+		self.pddb.Payment.select({}, function(row) {
+			
+		});
+	},
+});
 
 var PDTests = function PDTests(prefs, pddb) {
 	this.prefs = prefs;
 	this.pddb = pddb;
 };
-PDTests.prototype = {
-	/*
-	 * regression tests
-	 *  --> checklist or manual tests
-	 * 
-	 * **methods to test: (stop_rec calls store_v calls update_t)
-	 *   (not done) start_recording(url);
-	 *   (not done) stop_record();
-	 *   (done) store_visit(url, start_time, duration);
-	 *   (done) update_totals(site, visit);
-	 * (done) crossed with visiting unsorted, pd and tws sites
-	 * test all data is correct: (done) times, (not done) amounts, (done) requirespayments
-	 * 
-	 * other tests:
-	 *   makes correct payments (extension, server, amazon)
-	 *       send server "test" flag to not make real transaction?
-	 *       refund?
-	 *       
-	 *       check duplicates
-	 *       verify in logs that schedule is on track ---> assert this in scheduled things
-	 *   payments to pd match expected skim
-	 *   time active tab correctly
-	 *   ??check self-imposed limits, eg large payments, visits?
-	 *   duplicate payments ok? or since time correct before and after?
-	 *   receives updates correctly, esp. with since times, duplicates
-	 *   "view logic" with multiauth, payments, state
-	 * run tests once a day and record failures in logs?
-	 */
-	
-	test_update_totals: function(request) {
-		var testrunner = new TestRunner(request);
+PDTests.prototype = {};
+_extend(PDTests.prototype, {
+
+	test_update_totals: function(testrunner) {
 		var self = this;
-		
-		var original_pddb = self.pddb;
-		self.pddb = new PDDB("test.0.sqlite");
-		self.pddb.init_db();
 		
 		/* after "store_visit" is called on a new site,
 		 * we expect to have created the following pieces of data:
@@ -53,50 +104,15 @@ PDTests.prototype = {
 		   visit: to site for 60 seconds
 		   recipient: if
 		 */ 
-		testrunner.test("visit new page", function() {
-			self.init_data();
-			var duration = 60;
-			
-			testrunner.ok( true, "---------------- new Unsorted url ----");
-			var before_totals = self.retrieve_totals(testrunner, url, self.pddb.Unsorted);
-			var url = self.visit_new_site(self.pddb.Unsorted, duration);
-			self.check_totals(testrunner, url, duration, before_totals);
-			
-			testrunner.ok( true, "---------------- new ProcrasDonate url ----");
-			before_totals = self.retrieve_totals(testrunner, url, self.pddb.ProcrasDonate);
-			url = self.visit_new_site(self.pddb.ProcrasDonate, duration);
-			self.check_totals(testrunner, url, duration, before_totals);
-			
-			testrunner.ok( true, "---------------- new TimeWellSpent url ----");
-			before_totals = self.retrieve_totals(testrunner, url, self.pddb.TimeWellSpent);
-			url = self.visit_new_site(self.pddb.TimeWellSpent, duration);
+		self.init_data();
+		var duration = 60;
+		
+		_iterate(['Unsorted', 'ProcrasDonate', 'TimeWellSpent'], function(key, value, index) {
+			testrunner.ok( true, "---------------- new "+ value +" url ----");
+			var before_totals = self.retrieve_totals(testrunner, url, self.pddb[value]);
+			var url = self.visit_new_site(self.pddb[value], duration);
 			self.check_totals(testrunner, url, duration, before_totals);
 		});
-		
-		self.pddb = original_pddb;
-		
-		/*
-		testrunner.test("a second happy test", function() {
-			testrunner.expect(3);
-			testrunner.ok( false, "this test is fine" );
-			var value = "hello";
-			testrunner.equals( "hello", value, "We expect value to be hello" );
-			testrunner.same( "hello", value, "We still expect value to be hello" );
-		});
-		*/
-		
-		// display results
-		var inner_display = new TestRunnerConsoleDisplay();
-		var display = new TestRunnerPDDisplay(inner_display, this.pddb);
-		for (var name in testrunner.test_modules) {
-			var test_module = testrunner.test_modules[name];
-			for (var i = 0; i < test_module.test_groups.length; i++) {
-				var testgroup = test_module.test_groups[i];
-				
-				display.display_testgroup_result(testrunner, testgroup);
-			}
-		}
-		display.test_done(testrunner);
 	},
 	
 	init_data: function() {
@@ -184,7 +200,9 @@ PDTests.prototype = {
 					if (total) {
 						totals[total.id] = total;
 					} else {
-						testrunner.ok(false, "While retrieving before totals, maybe expected total but found none? "+
+						testrunner.ok(false, "While retrieving before totals, maybe expected total but found none? If " +
+								"rerunning these tests does not make this failure go away, then there is a problem." +
+								"(First run of the day causes this failure because no total for the day (and week) yet.) "+
 								row.modelname+" id: "+value+" "+timetypes[idx].timetype+" "+times[idx]);							
 					}
 				});
@@ -280,4 +298,4 @@ PDTests.prototype = {
 			});
 		}
 	}
-}
+});

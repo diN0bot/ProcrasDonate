@@ -425,9 +425,53 @@ _extend(Controller.prototype, {
 			logger("inside _self_fn for "+fnname);
 		};
 	},
-	
+
+	/// run tester tests (mutates db) and checker checks 
+	/// (checks db) on test database
 	automatic_test_suite: function(request) {
-		this.pddb.tests.test_update_totals(request);
+		var testrunner = new TestRunner(request);
+		var self = this;
+		
+		var original_pddb = self.pddb;
+		self.pddb = new PDDB("test.0.sqlite");
+		self.pddb.init_db();
+		
+		testrunner.test("Test Update Totals", function() {
+			self.pddb.tester.test_update_totals(testrunner);
+		});
+		
+		testrunner.test("Check Requires Payments", function() {
+			self.pddb.checker.check_requires_payments(testrunner);
+		});
+		
+		testrunner.test("Check Payments", function() {
+			self.pddb.checker.check_payments(testrunner);
+		});
+		
+		self.pddb = original_pddb;
+		
+		/*
+		testrunner.test("a second happy test", function() {
+			testrunner.expect(3);
+			testrunner.ok( false, "this test is fine" );
+			var value = "hello";
+			testrunner.equals( "hello", value, "We expect value to be hello" );
+			testrunner.same( "hello", value, "We still expect value to be hello" );
+		});
+		*/
+		
+		// display results
+		var inner_display = new TestRunnerConsoleDisplay();
+		var display = new TestRunnerPDDisplay(inner_display, self.pddb);
+		for (var name in testrunner.test_modules) {
+			var test_module = testrunner.test_modules[name];
+			for (var i = 0; i < test_module.test_groups.length; i++) {
+				var testgroup = test_module.test_groups[i];
+				
+				display.display_testgroup_result(testrunner, testgroup);
+			}
+		}
+		display.test_done(testrunner);
 	},
 	
 	authorize_payments_callback: function(request) {
@@ -482,16 +526,6 @@ _extend(Schedule.prototype, {
 	do_once_daily_tasks: function() {
 		var self = this;
 		
-		// Send data to server (more recent than time_last_sent_KlassName)
-		this.pddb.page.pd_api.send_data();
-		/*
-		this.pddb.page.pd_api.send_totals();
-		this.pddb.page.pd_api.send_logs();
-		this.pddb.page.pd_api.send_payments();
-		this.pddb.page.pd_api.send_requires_payments();
-		this.pddb.page.pd_api.send_user_studies();
-		*/
-		
 		// Receive updates from server
 		this.pddb.page.pd_api.request_data_updates(
 			function() {
@@ -499,6 +533,11 @@ _extend(Schedule.prototype, {
 			}, function() {
 				// after failure
 			});
+		
+		// run checker to log failures, db corruptions
+		
+		// Send data to server (more recent than time_last_sent_KlassName)
+		this.pddb.page.pd_api.send_data();
 	},
 	
 	reset_24hr_period: function() {
@@ -526,7 +565,8 @@ _extend(Schedule.prototype, {
 	},
 	
 	do_once_weekly_tasks: function() {
-
+		// make payments if necessary
+		this.pddb.page.pd_api.make_payments();
 	},
 	
 	reset_week_period: function() {

@@ -111,7 +111,6 @@ function load_models(db, pddb) {
 	}, {
 		// instance methods
 		category: function() {
-			// we expect a site to always have a tag (via its sitegroup)
 			var self = this;
 			var category = Category.get_or_null({ id: self.category_id })
 			if (!category) {
@@ -360,6 +359,7 @@ function load_models(db, pddb) {
 		_payments: function(deep_dictify) {
 			// Totals may have Payments
 			// @returns list of Payment row factories
+			// @param deep_dictify: if true, returns dicts instead of row objects
 			var self = this;
 			var payments = [];
 			pddb.PaymentTotalTagging.select({ total_id: self.id }, function(row) {
@@ -378,9 +378,6 @@ function load_models(db, pddb) {
 		
 		payment_dicts: function() {
 			return this._payments(true);
-		},
-		
-		deep_row: function() {
 		},
 		
 		deep_dict: function() {
@@ -468,7 +465,31 @@ function load_models(db, pddb) {
 				amount_paid_tax_deductibly: parseFloatt(this.amount_paid_tax_deductibly),
 				datetime: _un_dbify_date(this.datetime)
 			}
-		}
+		},
+		
+		_totals: function(deep_dictify) {
+			// Payments may have Totals
+			// @returns list of Totals row factories
+			// @param deep_dictify: if true, returns dicts instead of row objects
+			var self = this;
+			var totals = [];
+			pddb.PaymentTotalTagging.select({ payment_id: self.id }, function(row) {
+				if (deep_dictify) {
+					totals.push(row.total().deep_dict());
+				} else {
+					totals.push(row.total());
+				}
+			});
+			return totals
+		},
+		
+		totals: function() {
+			return this._totals(false);
+		},
+		
+		totals_dicts: function() {
+			return this._totals(true);
+		},
 	}, {
 		// class methods
 	});
@@ -507,37 +528,41 @@ function load_models(db, pddb) {
 			}
 			return total
 		},
+		
+		// returns boolean value
+		is_partially_paid: function() {
+			return _un_dbify_bool(this.partially_paid)
+		},
 	
 		deep_dict: function() {
 			return {
 				id: this.id,
 				total: this.total().deep_dict(),
-				partially_paid: this.partiall_paid
+				partially_paid: this.is_partially_paid()
 			}
 		}
 	}, {
 		// class methods
-		partially_paid: function(fn) {
-			/*
-			 * Applies fn to all requirespayments that are partially paid
-			 * @param fn: function that takes a row
-			 */
+		
+		///
+		/// Applies fn to all requirespayments that are partially paid
+		/// @param fn: function that takes a row
+		///
+		partially_paids: function(fn) {
 			this.select({
 				partially_paid: _dbify_bool(true)
 			}, fn);
 		},
 		
-		// class methods
-		partially_paid_count: function() {
-			/*
-			 * @returns count of partially paid totals
-			 */
+		// @returns count of partially paid totals
+		partially_paids_count: function() {
 			var count = 0
 			this.select({
 				partially_paid: _dbify_bool(true)
 			}, function(row) {
 				count += 1;
 			});
+			return count
 		}
 	});
 	
