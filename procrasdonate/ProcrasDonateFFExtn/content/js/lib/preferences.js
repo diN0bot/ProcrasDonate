@@ -56,6 +56,11 @@ _extend(PreferenceManager.prototype, {
 				value = "2";
 				break;
 			default:
+				try {
+					this.FAIL(); // we expect this to fail because we haven't defined a FAIL property!
+				} catch (e) {
+					logger("ERROR: lib/preferences.set::"+e.stack);
+				}
 				throw new Error("Cannot set preference with datatype: " + type);
 		}
 		

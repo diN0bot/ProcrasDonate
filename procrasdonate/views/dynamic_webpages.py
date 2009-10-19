@@ -18,6 +18,34 @@ from django.contrib.auth.backends import ModelBackend
 
 from django.db.models import Avg
 
+#### COMMUNITY ###################################
+
+def community(request):
+    try:
+        most_recent = RecipientVisit.objects.latest('dtime')
+    except: # DoesNotExist
+        most_recent = None
+    
+    most_donators = AggregateRecipient.max('total_donors')
+    most_money = AggregateRecipient.max('total_amount')
+    most_time = AggregateRecipient.max('total_time')
+    staff_pick = StaffPick.get_random()
+    tags = AggregateTag.objects.filter(time_type=Aggregate.TIME_TYPES['FOREVER'])
+    return render_response(request, 'procrasdonate/community_pages/community_portal.html', locals())
+
+def community_type(request, type):
+    #tag = Tag.objects.get_or_none(tag=type)
+    return render_response(request, 'procrasdonate/community_pages/community_rankings.html', locals())
+
+#### PUBLIC RECIPIENT ###################################
+
+def recipient(request, slug):
+    print "RECIPIENT"
+    recipient = Recipient.get_or_none(slug=slug)
+    return render_response(request, 'procrasdonate/public_recipient_pages/recipient.html', locals())
+
+#### ACCOUNT ###################################
+
 def login_view(request):
     print "LOGIN"
     next = request.GET.get('next', None)
@@ -40,65 +68,12 @@ def login_view(request):
             error = "Your account has been disabled"
     else:
         error = "Invalid username or password."
-    return render_response(request, 'procrasdonate/login.html', locals())
+    return render_response(request, 'procrasdonate/recipient_organizer_pages/account/login.html', locals())
 
 def logout_view(request):
     print "LOGOUT"
     logout(request)
     return HttpResponseRedirect(reverse('community'))
-
-def recipient(request, slug):
-    print "RECIPIENT"
-    recipient = Recipient.get_or_none(slug=slug)
-    return render_response(request, 'procrasdonate/recipient.html', locals())
-
-@login_required
-def edit_information(request):
-    print "EDIT INFORMATION"
-    recipient = Recipient.get_or_none(slug=request.user.get_profile().recipient.slug)
-        
-    FormKlass = get_form(Recipient, EDIT_TYPE, excludes=('slug', 'is_visible'))
-
-    if request.POST:
-        form = FormKlass(request.POST, instance=recipient)
-        if form.is_valid():
-            form.save()
-            request.user.message_set.create(message='Changes saved')
-            return HttpResponseRedirect(reverse('recipient', args=(recipient.slug,)))
-    else:
-        form = FormKlass(instance=recipient)
-
-    return render_response(request, 'procrasdonate/edit_information.html', locals())
-
-def edit_weekly_blurbs(request):
-    recipient = Recipient.get_or_none(slug=request.user.get_profile().recipient.slug)
-    return render_response(request, 'procrasdonate/edit_weekly_blurbs.html', locals())
-
-def edit_thank_yous(request):
-    recipient = Recipient.get_or_none(slug=request.user.get_profile().recipient.slug)
-    return render_response(request, 'procrasdonate/edit_thank_yous.html', locals())
-
-def edit_yearly_newsletter(request):
-    recipient = Recipient.get_or_none(slug=request.user.get_profile().recipient.slug)
-    return render_response(request, 'procrasdonate/edit_yearly_newsletter.html', locals())
-
-
-def community(request):
-    try:
-        most_recent = RecipientVisit.objects.latest('dtime')
-    except: # DoesNotExist
-        most_recent = None
-    
-    most_donators = AggregateRecipient.max('total_donors')
-    most_money = AggregateRecipient.max('total_amount')
-    most_time = AggregateRecipient.max('total_time')
-    staff_pick = StaffPick.get_random()
-    tags = AggregateTag.objects.filter(time_type=Aggregate.TIME_TYPES['FOREVER'])
-    return render_response(request, 'procrasdonate/community_portal.html', locals())
-
-def community_type(request, type):
-    #tag = Tag.objects.get_or_none(tag=type)
-    return render_response(request, 'procrasdonate/community_rankings.html', locals())
 
 
 @user_passes_test(lambda u: u.is_superuser)
@@ -106,10 +81,10 @@ def register_organizer(request):
     RecipientUserTaggingForm = get_form(RecipientUserTagging, EDIT_TYPE, excludes=('user',
                                                                                    'is_confirmed',
                                                                                    'confirmation_code'))
-    RecipientUserForm = get_form(RecipientUser, EDIT_TYPE, fields=('username',
-                                                                   'first_name',
-                                                                   'last_name',
-                                                                   'email'))
+    RecipientUserForm = get_form(RecipientUser, EDIT_TYPE, includes=('username',
+                                                                     'first_name',
+                                                                     'last_name',
+                                                                     'email'))
     recipients = Recipient.objects.all()
 
     if request.POST:
@@ -256,7 +231,115 @@ def confirm_reset_password(request, username, confirmation_code):
     be more secure if you use numbers and uppercase letters in addition to lowercase letters."""
     return render_response(request, 'procrasdonate/account/confirm.html', locals())
 
+#### RECIPIENT ORGANIZER ###################################
+
+@login_required
+def edit_public_information(request):
+    recipient = Recipient.get_or_none(slug=request.user.get_profile().recipient.slug)
+        
+    FormKlass = get_form(Recipient, EDIT_TYPE, includes=('name',
+                                                         'category',
+                                                         'mission',
+                                                         'description',
+                                                         'url'))
+
+    if request.POST:
+        form = FormKlass(request.POST, instance=recipient)
+        if form.is_valid():
+            form.save()
+            request.user.message_set.create(message='Changes saved')
+            return HttpResponseRedirect(reverse('recipient', args=(recipient.slug,)))
+    else:
+        form = FormKlass(instance=recipient)
+
+    return render_response(request, 'procrasdonate/recipient_organizer_pages/edit_public_information.html', locals())
+
+@login_required
+def edit_private_information(request):
+    recipient = Recipient.get_or_none(slug=request.user.get_profile().recipient.slug)
+        
+    FormKlass = get_form(Recipient, EDIT_TYPE, includes=('employers_identification_number',
+                                                         'tax_exempt_status',
+                                                         'sponsoring_organization',
+                                                         'contact_name',
+                                                         'contact_email',
+                                                         'office_phone',
+                                                         'mailing_address',
+                                                         'city',
+                                                         'state',
+                                                         'country'))
+
+    if request.POST:
+        form = FormKlass(request.POST, instance=recipient)
+        if form.is_valid():
+            form.save()
+            request.user.message_set.create(message='Changes saved')
+            return HttpResponseRedirect(reverse('recipient', args=(recipient.slug,)))
+    else:
+        form = FormKlass(instance=recipient)
+
+    return render_response(request, 'procrasdonate/recipient_organizer_pages/edit_private_information.html', locals())
+
+
+@login_required
+def edit_media(request):
+    recipient = Recipient.get_or_none(slug=request.user.get_profile().recipient.slug)
+        
+    FormKlass = get_form(Recipient, EDIT_TYPE, includes=('logo',
+                                                         'promotional_image',
+                                                         'promotional_video',
+                                                         'pd_experience_video'))
+
+    if request.POST:
+        form = FormKlass(request.POST, instance=recipient)
+        if form.is_valid():
+            form.save()
+            request.user.message_set.create(message='Changes saved')
+            return HttpResponseRedirect(reverse('recipient', args=(recipient.slug,)))
+    else:
+        form = FormKlass(instance=recipient)
+
+    return render_response(request, 'procrasdonate/recipient_organizer_pages/edit_media.html', locals())
+
+def _edit_recipient_something(request, includes, template):
+    """
+    could use this but.... edit_foo's are likely to become more complicated with amazon auth and video stuff....
+    """
+    recipient = Recipient.get_or_none(slug=request.user.get_profile().recipient.slug)
+        
+    FormKlass = get_form(Recipient, EDIT_TYPE, includes=includes)
+
+    if request.POST:
+        form = FormKlass(request.POST, instance=recipient)
+        if form.is_valid():
+            form.save()
+            request.user.message_set.create(message='Changes saved')
+            return HttpResponseRedirect(reverse('recipient', args=(recipient.slug,)))
+    else:
+        form = FormKlass(instance=recipient)
+
+    return render_response(request, template, locals())
+
+    
+
+@login_required
+def edit_weekly_blurbs(request):
+    recipient = Recipient.get_or_none(slug=request.user.get_profile().recipient.slug)
+    return render_response(request, 'procrasdonate/recipient_organizer_pages/edit_weekly_blurbs.html', locals())
+
+@login_required
+def edit_thank_yous(request):
+    recipient = Recipient.get_or_none(slug=request.user.get_profile().recipient.slug)
+    return render_response(request, 'procrasdonate/recipient_organizer_pages/edit_thank_yous.html', locals())
+
+@login_required
+def edit_yearly_newsletter(request):
+    recipient = Recipient.get_or_none(slug=request.user.get_profile().recipient.slug)
+    return render_response(request, 'procrasdonate/recipient_organizer_pages/edit_yearly_newsletter.html', locals())
+
+#### MISC ###################################
+
 @user_passes_test(lambda u: u.is_superuser)
 def recipient_votes(request):
     recipient_votes = RecipientVote.objects.all()
-    return render_response(request, 'procrasdonate/recipientvotes.html', locals())
+    return render_response(request, 'procrasdonate/admin/recipientvotes.html', locals())

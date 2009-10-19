@@ -32,7 +32,7 @@ _extend(Controller.prototype, {
 		return false;
 	},
 	
-	insert_based_on_state: function(request, state_name, state_enums, event_inserts) {
+	insert_based_on_state: function(request, state_name, default_state, state_enums, event_inserts) {
 		/* Calls appropriate insert method based on current state
 		 * 
 		 * @param state_name: string. one of 'settings', 'register' or 'impact
@@ -42,6 +42,8 @@ _extend(Controller.prototype, {
 		 * 		'constants.SETTINGS_STATE_INSERTS', 'constants.IMPACT_STATE_INSERTS', 'constants.REGISTER_STATE_INSERTS'
 		 */
 		//this.page.$ = request.jQuery;
+		request.jQuery("#"+state_name+"_menu_item").addClass("here_we_are");
+		
 		this.prefs.set('site_classifications_settings_activated', true);
 		for (var i = 0; i < state_enums.length; i += 1) {
 			var state = state_enums[i];
@@ -50,82 +52,67 @@ _extend(Controller.prototype, {
 				return true;
 			}
 		}
+		// substate did not match!!
+		// set to default
+		this.prefs.set(state_name + '_state', default_state);
+		this.insert_based_on_state(request, default_state, state_enums, event_inserts); 
 		return false;
 	},
 	
 	pd_dispatch_by_url: function(request) {
-		
 		//logger("pd_dispatch_by_url: "+ request.url);
 		
 		this.page.default_inserts(request);
-		if (this.registration_complete()) {
-			this.page.registration_complete_inserts(request);
-		} else {
-			this.page.registration_incomplete_inserts(request);
-		}
 		
 		var path = request.url.match(new RegExp("http:\/\/[^/]+(.*)"))
 		switch (path[1]) {
 		case constants.REGISTER_URL:
-			var state_matched = this.insert_based_on_state(
+			this.insert_based_on_state(
 				request,
-				'register', 
+				'register',
+				constants.DEFAULT_REGISTER_STATE,
 				constants.REGISTER_STATE_ENUM, 
 				constants.REGISTER_STATE_INSERTS);
-			
-			if (!state_matched) {
-				this.prefs.set('register_state', constants.DEFAULT_REGISTER_STATE);
-				this.insert_based_on_state(
-					request,
-					'register', 
-					constants.REGISTER_STATE_ENUM, 
-					constants.REGISTER_STATE_INSERTS);
-			}
 			break;
 		case constants.SETTINGS_URL:
-			request.jQuery("#settings_menu_item").addClass("here_we_are");
-			var state_matched = this.insert_based_on_state(
+			this.insert_based_on_state(
 				request,
 				'settings', 
+				constants.DEFAULT_SETTINGS_STATE,
 				constants.SETTINGS_STATE_ENUM, 
 				constants.SETTINGS_STATE_INSERTS);
-			
-			if (!state_matched) {
-				this.prefs.set('settings_state', constants.DEFAULT_SETTINGS_STATE);
-				this.insert_based_on_state(
-					request,
-					'settings', 
-					constants.SETTINGS_STATE_ENUM, 
-					constants.SETTINGS_STATE_INSERTS);
-			}
 			break;
 		case constants.IMPACT_URL:
-			request.jQuery("#my_impact_menu_item").addClass("here_we_are");
-			//request.jQuery("#content").html("Impact charts coming soon!");
-			var state_matched = this.insert_based_on_state(
+			this.insert_based_on_state(
 				request,
 				'impact', 
+				constants.DEFAULT_IMPACT_STATE,
 				constants.IMPACT_STATE_ENUM, 
 				constants.IMPACT_STATE_INSERTS);
-			
-			if (!state_matched) {
-				this.prefs.set('impact_state', constants.DEFAULT_IMPACT_STATE);
-				this.insert_based_on_state(
-					request,
-					'impact', 
-					constants.IMPACT_STATE_ENUM, 
-					constants.IMPACT_STATE_INSERTS);
-			}
+			break;
+		case constants.PROGRESS_URL:
+			this.insert_based_on_state(
+				request,
+				'progress', 
+				constants.DEFAULT_PROGRESS_STATE,
+				constants.PROGRESS_STATE_ENUM, 
+				constants.PROGRESS_STATE_INSERTS);
+			break;
+		case constants.MESSAGES_URL:
+			this.insert_based_on_state(
+				request,
+				'messages', 
+				constants.DEFAULT_MESSAGES_STATE,
+				constants.MESSAGES_STATE_ENUM, 
+				constants.MESSAGES_STATE_INSERTS);
 			break;
 		case constants.AUTHORIZE_PAYMENTS_CALLBACK_URL:
 			this.authorize_payments_callback(request);
 			break;
 		case constants.HOME_URL:
-		case constants.LEARN_URL:
 			// remove start now button
 			request.jQuery("#StartButtonDiv").remove();
 			break;
-
 		case constants.MANUAL_TEST_SUITE_URL:
 			this.manual_test_suite(request);
 			break;
@@ -137,6 +124,7 @@ _extend(Controller.prototype, {
 			break;
 		default:
 			//return false;
+			//#@TODO ALERT USER
 			logger("Invalid ProcrasDonate URL: " + request.url);
 		}
 		return true;
@@ -157,6 +145,8 @@ _extend(Controller.prototype, {
 	
 	STATE_DEFAULTS: {
 		settings_state: constants.DEFAULT_SETTINGS_STATE,
+		progress_state: constants.DEFAULT_PROGRESS_STATE,
+		messages_state: constants.DEFAULT_MESSAGES_STATE,
 		impact_state: constants.DEFAULT_IMPACT_STATE,
 		impact_substate: constants.DEFAULT_IMPACT_SUBSTATE,
 		register_state: constants.DEFAULT_REGISTER_STATE,
@@ -183,12 +173,6 @@ _extend(Controller.prototype, {
 				this.prefs.set(flow_state[i], false);
 			}
 		}
-	},
-	
-	registration_complete: function() {
-		var reg_state = this.prefs.get('register_state', false);
-		var tos_accepted = this.prefs.get('tos', false);
-		return reg_state && reg_state == "done" && tos_accepted;
 	},
 	
 	initialize_state_if_necessary: function() {
@@ -299,6 +283,7 @@ _extend(Controller.prototype, {
 		 */
 		var self = this;
 		_iterate(this.STATE_DEFAULTS, function init(name, value) {
+			logger("SET STATE: name:"+name+", value:"+value);
 			self.prefs.set(name, value);
 		});
 	},
@@ -616,34 +601,34 @@ PageController.prototype = {};
 _extend(PageController.prototype, {
 	
 	default_inserts: function(request) {
-		// remove start button
-		request.jQuery("#StartButton").remove();
-
 		// add private menu items
-		var here_we_are = "";
-		var impact_menu_item = ["<div id='my_impact_menu_item'>",
-		                        "<a href='" + constants.IMPACT_URL + "'>My Impact</a>",
-		                        "</div>"];
-		request.jQuery("#MainMenu").append(impact_menu_item.join("\n"));
-	},
-
-	registration_complete_inserts: function(request) {
-		// add private menu items
-		var settings_menu_item = ["<div id='settings_menu_item'>",
-		                          "<a href='" + constants.SETTINGS_URL + "'>My Settings</a>",
-		                          "</div>"];
-		request.jQuery("#MainMenu").append(settings_menu_item.join("\n"));
+		request.jQuery("#MainMenu").before(
+			["<div id=\"ExtensionMenu\">",
+			 "    <div id=\"progress_menu_item\"><a href=\""+
+			 	constants.PROGRESS_URL+"\">My Progress</a></div>",
+			 "    <div id=\"impact_menu_item\"><a href=\""+
+			 	constants.IMPACT_URL+"\">My Impact</a></div>",
+			 "    <div id=\"messages_menu_item\"><a href=\""+
+			 	constants.MESSAGES_URL+"\">My Messages</a></div>",
+			 "    <div id=\"settings_menu_item\"><a href=\""+
+			 	constants.SETTINGS_URL+"\">My Settings</a></div>",
+			 "</div>"].join("\n"));
+	
+		if (!this.registration_complete()) {
+			request.jQuery("#settings_menu_item")
+				.attr("id", "register_menu_item")
+				.children("a")
+					.attr("href", constants.REGISTER_URL)
+					.text("Please Finish Registering !");
+		}
 	},
 	
-	registration_incomplete_inserts: function(request) {
-		// add private menu items
-		logger("pd_dispatch_by_url: "+ request.url);
-		var register_menu_item = ["<div id='register_menu_item'>",
-		                          "<a href='" + constants.REGISTER_URL + "'>Not Done Registering !</a>",
-		                          "</div>"];
-		request.jQuery("#MainMenu").append(register_menu_item.join("\n"));
+	registration_complete: function() {
+		var reg_state = this.prefs.get('register_state', false);
+		var tos_accepted = this.prefs.get('tos', false);
+		return reg_state && reg_state == "done" && tos_accepted;
 	},
-	
+
 	make_site_box: function(request, /*sitegroup_id,*/ name, url, tag) {
 		var wrapper_template = null;
 		switch(tag) {
@@ -1398,6 +1383,16 @@ _extend(PageController.prototype, {
 			request, middle, this.impact_tab_snippet(request));
 	},
 	
+	progress_wrapper_snippet: function(request, middle) {
+		return this._wrapper_snippet(
+			request, middle, this.progress_tab_snippet(request));
+	},
+	
+	messages_wrapper_snippet: function(request, middle) {
+		return this._wrapper_snippet(
+			request, middle, this.messages_tab_snippet(request));
+	},
+	
 	register_wrapper_snippet: function(request, middle) {
 		return this._wrapper_snippet(
 			request, middle, this.register_tab_snippet(request));
@@ -1822,6 +1817,16 @@ _extend(PageController.prototype, {
 		return this._track_snippet(request, 'settings', constants.SETTINGS_STATE_ENUM, constants.SETTINGS_STATE_TAB_NAMES, false);
 	},
 	
+	progress_tab_snippet: function(request) {
+		/* Creates settings state track.*/
+		return this._track_snippet(request, 'progress', constants.PROGRESS_STATE_ENUM, constants.PROGRESS_STATE_TAB_NAMES, false);
+	},
+	
+	messages_tab_snippet: function(request) {
+		/* Creates settings state track.*/
+		return this._track_snippet(request, 'messages', constants.MESSAGES_STATE_ENUM, constants.MESSAGES_STATE_TAB_NAMES, false);
+	},
+	
 	_track_snippet: function(request, state_name, state_enum, tab_names, track_progress) {
 		var tracks_text = "<table id='"+state_name+"_track' class='tracks'><tbody><tr>";
 		
@@ -1941,6 +1946,10 @@ _extend(PageController.prototype, {
 		};
 	},
 	
+	//#@TODO the settings, messages and impact activate_foo_tab_events 
+	// can all be abstracted with a single activate_tab_events
+	// that the current methods all call
+	
 	activate_settings_tab_events: function(request) {
 		/* Attaches EventListeners to settings tabs */
 		for (var i = 0; i < constants.SETTINGS_STATE_ENUM.length; i += 1) {
@@ -1991,6 +2000,22 @@ _extend(PageController.prototype, {
 			);
 		}
 		*/
+	},
+	
+	activate_messages_tab_events: function(request) {
+		/* Attaches EventListeners to messages tabs */
+		var self=this;
+		for (var i = 0; i < constants.MESSAGES_STATE_ENUM.length; i += 1) {
+			var tab_state = constants.MESSAGES_STATE_ENUM[i];
+			var event = constants.MESSAGES_STATE_INSERTS[i];
+			// closure
+			request.jQuery("#"+tab_state+"_track, #"+tab_state+"_text").click(
+				//(function(event) { return event; })(self[event])
+				this._proceed(event, request)
+			);
+		}
+		// cursor pointer to tracks
+		request.jQuery(".track, .track_text").css("cursor","pointer");
 	},
 	
 	activate_register_tab_events: function(request) {
@@ -2499,6 +2524,60 @@ _extend(PageController.prototype, {
 		//$.plot($("#procrasdonation_chart"), data, options);
 	},
 	
+	insert_messages_all: function(request) {
+		var self = this;
+		this.prefs.set('messages_state', 'all');
+
+		var middle = Template.get("messages_all_middle").render(new Context({}));
+		request.jQuery("#content").html( this.messages_wrapper_snippet(request, middle) );
+		
+		this.activate_messages_tab_events(request);
+	},
+	/*
+	"insert_messages_all",
+	"insert_messages_thankyous",
+	"insert_messages_newsletters",
+	"insert_messages_weekly",
+	"insert_messages_tax",
+	*/
+	
+	insert_progress_overview: function(request) {
+		var self = this;
+		this.prefs.set('progress_state', 'overview');
+
+		var tag_contenttype = self.pddb.ContentType.get_or_null({
+			modelname: "Tag"
+		});
+		var pd_total_this_week = self.pddb.Total.get_or_null({
+			contenttype_id: tag_contenttype.id,
+			content_id: self.pddb.ProcrasDonate.id,
+			datetime: _dbify_date(_end_of_week()),
+			timetype_id: self.pddb.Weekly.id
+		});
+		
+		var last_week = new Date();
+		last_week.setDate(last_week.getDate() - 7);
+		var pd_total_last_week = self.pddb.Total.get_or_null({
+			contenttype_id: tag_contenttype.id,
+			content_id: self.pddb.ProcrasDonate.id,
+			datetime: _dbify_date(last_week),
+			timetype_id: self.pddb.Weekly.id
+		});
+		
+		var pd_total = self.pddb.Total.get_or_null({
+			contenttype_id: tag_contenttype.id,
+			content_id: self.pddb.ProcrasDonate.id,
+			datetime: _dbify_date(_end_of_forever()),
+			timetype_id: self.pddb.Forever.id
+		});
+		
+		var middle = Template.get("progress_overview_middle").render(
+			new Context({
+				pd_total_this_week: pd_total_this_week,
+				pd_total_last_week: pd_total_last_week,
+				pd_total: pd_total
+			})
+		);
+		request.jQuery("#content").html( this.progress_wrapper_snippet(request, middle) );
+	},
 });
-
-

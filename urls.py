@@ -5,20 +5,15 @@ from django.conf.urls.defaults import *
 from django.contrib import admin
 admin.autodiscover()
 
-import os
-#import foo
-#import foo_urls
-
 urlpatterns = patterns('',)
 
 urlpatterns += patterns('',
     (r'^admin/doc/', include('django.contrib.admindocs.urls')),
     (r'^admin/(.*)', admin.site.root),
+    (r'^fps/', include('procrasdonate.views.fps_urls')),
     (r'', include('procrasdonate.views.static_urls')),
     (r'', include('procrasdonate.views.dynamic_urls')),
-    (r'^fps/', include('procrasdonate.views.fps_urls')),
-    #(r'^tst/', foo.main),
-    #(r'^tst/', include('foo_urls')),
+    (r'', include('procrasdonate.views.extension_urls')),
 )
 
 if settings.DJANGO_SERVER:

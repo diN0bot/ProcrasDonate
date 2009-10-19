@@ -1,21 +1,3 @@
-body {
-	background-image: url("/procrasdonate_media/img/StripeBG.png");			
-	color: #330000;
-	margin:0em;
-	padding:0em;
-	font-family:Verdana, Arial, Helvetica, sans-serif;
-	font-size:12px;
-}
-
-a, .link { color:#336699; text-decoration:underline; cursor: pointer; }
-a:hover, .link:hover { color:#FF9900; text-decoration:underline; cursor: pointer; }
-a img { border: none; }
-
-img { -ms-interpolation-mode:bicubic; }
-.img_link { text-decoration: none; cursor: pointer; }
-
-.paragraph_list li { margin-top: 1em; }
-
 /*
  colors (solid, dark unless stated otherwise):
    brighter blue 46C4F2
@@ -31,50 +13,73 @@ img { -ms-interpolation-mode:bicubic; }
    red (menu border) 8A4304
    bright orange FF9900
    darker orange 
-	brown header text cd8047 (was cc9966 and b15b1c)
+   brown header text cd8047 (was cc9966 and b15b1c)
    dark brown text (was 330000)
    yellow chart background f7edb4
    beige highlight for accounting FBFBDE
 */
+
+body {
+	background-image: url("/procrasdonate_media/img/StripeBG.png");			
+	color: #330000;
+	margin: 0em;
+	padding: 0em;
+	font-family:Verdana, Arial, Helvetica, sans-serif;
+	font-size:12px;
+	text-align: center;
+}
+
+#wrapper {
+	margin: auto;
+	margin: 0em 1em;
+}
+
+#left_column { float: left; }
+	#left_logo { width: 8.4em; }
+	.menu {
+		font-size: 1.2em;
+	}
+	.menu div { display: block; padding: 0.3em 0em; margin: 1em 0em; }
+	#ExtensionMenu {}
+	#MainMenu { background: #bb8230; border: 0.34em ridge #8A4304; -moz-border-radius: .4em; }
+	#MainMenu div { background: #b47925; border-top: 0.1em dotted #DBBF75; -moz-border-radius: 0em; }
+	#MainMenu div a { font-variant: small-caps; letter-spacing: .1em; text-decoration: none; color: #f9fdf4; }
+	#MainMenu .here_we_are { background: #dbbf75; border-top: 0.1em dotted white; }
+	#MainMenu .here_we_are a { color: #0A224D; text-decoration: none; letter-spacing: .15em; word-spacing: .3em; }
+	/*#MainMenu #learn_more_menu_item.here_we_are a { word-spacing: inherit; letter-spacing: .1em; }*/
+
+	#footer { font-size: .8em; height: 5em;  font-weight: normal; margin: auto; padding-top: 2em; }
+
+#content {
+	float: left;
+	width: 45em;
+	margin: 0em 4em 0em 4em;
+}
+
+#right_column { float: left; }
+	#right_logo { width: 8.4em; }
+	.video_block {}
+	#video1 {}
+	#video2 {}
+
+p { text-align: left; }
+ul { text-align: left; }
+
+a, .link { color:#336699; text-decoration:underline; cursor: pointer; }
+a:hover, .link:hover { color:#FF9900; text-decoration:underline; cursor: pointer; }
+a img { border: none; }
+
+img { -ms-interpolation-mode:bicubic; }
+.img_link { text-decoration: none; cursor: pointer; }
+
+.paragraph_list li { margin-top: 1em; }
 
 .new { color: #F37F19; }
 .odd { background: #FAF3F4; }
 .errorlist { list-style-type: none; color: red; }
 .error, .errors, #error, #errors { color: red; text-align: center; }
 .success, #success { color: green; text-align: center; }
-
-#static_menu {
-  font-size: 1.2em;
-  position: absolute;
-  margin: 2em auto auto 1.7em;
-  width: 8.9em;
-  text-align: center;
-}
-#static_menu div { display: block; padding: 0.3em 0em; margin: 1em 0em; }
-
-#content {
-  margin: auto;
-  min-width: 40em;
-  margin: 1.6em auto auto 0em;
-  position: absolute;
-  left: 12em;
-  /*top: 2em;*/
-}
-#thin_column { width: 85%; margin: auto; padding-left: 6em;  padding-bottom: 1em; }
-#footer { font-size: .8em; height: 5em;  font-weight: normal; margin: auto; padding-top: 2em; }
-
-
-#MainMenu { background: #bb8230; border: 0.34em ridge #8A4304; -moz-border-radius: .4em; }
-#MainMenu div { background: #b47925; border-top: 0.1em dotted #DBBF75; -moz-border-radius: 0em; }
-#MainMenu div a { font-variant: small-caps; letter-spacing: .1em; text-decoration: none; color: #f9fdf4; }
-#MainMenu .here_we_are { background: #dbbf75; border-top: 0.1em dotted white; }
-#MainMenu .here_we_are a {
-	color: #0A224D; 
-	text-decoration: none;
-	letter-spacing: .15em;
-	word-spacing: .3em;
-}
-#MainMenu #learn_more_menu_item.here_we_are a { word-spacing: inherit; letter-spacing: .1em; }
+.message, .messages, #message, #messagees { color: blue; }
 
 .tracks { margin-bottom: 1.5em; }
 .tracks tr td { padding: 0em; vertical-align: bottom }
@@ -84,14 +89,7 @@ img { -ms-interpolation-mode:bicubic; }
 .StageBar	{ width: 4em; height: 2em; margin: 0 -1em; }
 .StageCircle { width: 4.5em; }
 
-#logo { width: 8.5em; margin-left: .08em; }
-
-.page_menu { position: absolute; left: 0em; top: 10.6em; }
-.page_menu h3 { text-align: right; }
-.page_menu h2 { text-align: right; }
-.page_menu ul { list-style-type: none; }
-.page_menu ul li { text-align: right; }
-
+/******** EXTENSION CSS (#@TODO move to extension)*******************************************/
 
 .NextPrevSpacer {width: 6%; height: 1.5em; }
 .Spacer {width: 14em; height: 1.5em; }
@@ -105,30 +103,37 @@ img { -ms-interpolation-mode:bicubic; }
 .Right {text-align: right; }	
 .Left {text-align: left; }
 
+/********* HOME PAGE ***********/
 
-#TheBanner {
-  margin: auto;
-  min-width: 45em;
-  text-align: center;
-}
-.StartButton { width: 13em; margin-top: 2em; }/*margin-top: -3.3em; margin-right: -40em; }*/
-
-#logo_banner { width: 38em; margin-left: -3em; }
-#firefox_addon_one_liner {
-  border:medium none;
-  margin:-.4em 0 -.4em -3em;
-  text-align:center;
-}
+#TheBanner {}
+.StartButton { width: 13em; }
+#logo_banner { width: 38em; }
+#firefox_addon_one_liner { border:medium none; }
 #firefox_addon_one_liner span {
   color:#999999;
   font-size:0.7em;
   font-variant:normal;
   letter-spacing:normal;
 }
+.home_superheader { color: #669933; font-size: .8em; vertical-align: top; }
+.home_subheader { color: #669933; font-size: .8em; }
 
-.superheader { color: #669933; font-size: .8em; vertical-align: top; }
-.subheader { color: #669933; font-size: .8em; }
-.subbanner { color: #669933; font-size: 1.2em; }
+.small-image { width: 3.3em; float: left; margin-left: -4.1em; margin-top: -2.6em; }
+.screenshot-long { width: 16em; float: right; margin-right: .2em; margin-left: .5em; margin-top: .2em;
+	border: 0.27em ridge #156451; -moz-border-radius: .4em; padding: .4em;
+}
+
+/* #@ TODO everywhere */
+
+.icon-image { width: 1.6em; vertical-align: bottom; }
+
+/* #@ TODO from after install page */
+
+.right-image { width: 6em; float: right; margin: -2em 1em 0 2em; }
+
+/* #@ TODO from recipient list in extension page */
+
+.recipient-image { width: 10.25em; margin-left: 1em; float: right; padding: 0.2em 1.4em; }
 
 /*** h2 used as section headers for FAQ, etc. ***/
 
@@ -254,14 +259,6 @@ td { padding: .6em 0em .5em 0em; vertical-align: middle; }
 
 /**** IMAGES ****/
 
-.icon-image { width: 1.6em; vertical-align: bottom; }
-.small-image { width: 3.3em; float: left; margin-left: -4.1em; margin-top: -2.6em; }
-.medium-image { width: 6em; float: left; margin-left: -4.1em; margin-top: -2.6em; }
-.right-image { width: 6em; float: right; margin: -2em 1em 0 2em; }
-.screenshot-long { width: 16em; float: right; margin-right: .2em; margin-left: .5em; margin-top: .2em; 
-	border: 0.27em ridge #156451; -moz-border-radius: .4em; padding: .4em;
-}
-.recipient-image { width: 10.25em; margin-left: 1em; float: right; padding: 0.2em 1.4em; }
 
 /**** RECIPIENTS ****/
 

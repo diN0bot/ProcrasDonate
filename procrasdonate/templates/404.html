@@ -1,7 +1,9 @@
 {% extends 'procrasdonate/base.html' %}
 
 {% block content %}
-	<div id="thin_column">
-		Hello World 404
-	</div>
+	<p>Oops, page not found :-(</p>
+	<p>You can either press "Back" on your browser or go to the ProcrasDonate 
+		<a href="{% url home %}">Home page</a>.</p>
+	<p>If you'd like to tell us about this problem, please use the 
+		<a href="http://feedback.procrasdonate.com">Feedback page</a>.</p>
 {% endblock %}

@@ -370,7 +370,7 @@ _extend(ProcrasDonate_API.prototype, {
 			return 
 		}
 		
-		this.pddb.RequiresPayments.select({}, function(row) {
+		this.pddb.RequiresPayment.select({}, function(row) {
 			var total = row.total();
 			var recipient = total.recipient();
 			var amount = parseFloat(total.total_amount) / 100.00;
@@ -381,7 +381,7 @@ _extend(ProcrasDonate_API.prototype, {
 						recipient,
 						function() {
 							// after success
-							self.pddb.RequiresPayments.del({id: row.id})
+							self.pddb.RequiresPayment.del({id: row.id})
 						}, function() {
 							// after_failure
 						});

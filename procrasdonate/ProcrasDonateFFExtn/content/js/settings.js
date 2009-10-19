@@ -17,7 +17,9 @@ var constants = {};
 	constants.HOME_URL = '/home/';
 	constants.LEARN_URL = '/learn_more/';
 	constants.IMPACT_URL = '/my_impact/';
-	constants.SETTINGS_URL = '/settings/';
+	constants.SETTINGS_URL = '/my_settings/';
+	constants.PROGRESS_URL = '/my_progress/';
+	constants.MESSAGES_URL = '/my_messages/';
 
 	constants.FEEDBACK_URL = 'http://feedback.procrasdonate.com/';
 
@@ -51,6 +53,7 @@ var constants = {};
 	constants.AUTOMATIC_TEST_SUITE_URL = '/dev/automatic_test_suite/';
 
 	// enumeration of settings page state
+	constants.DEFAULT_SETTINGS_STATE = "account";
 	constants.SETTINGS_STATE_ENUM = [
 		'account', 
 		'recipients', 
@@ -77,20 +80,54 @@ var constants = {};
 		/*"process_site_classifications",*/ 
 		"process_payment_system"
 	];
+
+	// enumeration of progress page state
+	constants.DEFAULT_PROGRESS_STATE = "overview";
+	constants.PROGRESS_STATE_ENUM = [
+		"overview", 
+	];
+	constants.PROGRESS_STATE_TAB_NAMES = [
+		"XXX"
+	];
+	constants.PROGRESS_STATE_INSERTS = [
+		"insert_progress_overview",
+	];
+	
+	// enumeration of messages page state
+	constants.DEFAULT_MESSAGES_STATE = "all";
+	constants.MESSAGES_STATE_ENUM = [
+		"all", "thankyous", "newsletters", "weekly", "tax"
+	];
+	constants.MESSAGES_STATE_TAB_NAMES = [
+		"All Messages", "Thankyou Notes", "Newsletters", "Weekly Feedback", "Tax Records"
+	];
+	constants.MESSAGES_STATE_INSERTS = [
+		"insert_messages_all",
+		"insert_messages_thankyous",
+		"insert_messages_newsletters",
+		"insert_messages_weekly",
+		"insert_messages_tax",
+	];
+	
 	//enumeration of impact page state
-	constants.IMPACT_STATE_ENUM = ['recipients', 'sites', 'goals'];//, 'history'];
-	constants.IMPACT_STATE_TAB_NAMES = ['Recipients', 'Sites', 'Goals'];//, 'History'];
+	constants.DEFAULT_IMPACT_STATE = "recipients";
+	constants.IMPACT_STATE_ENUM = ["recipients", 'sites', 'goals'];//, 'history'];
+	constants.IMPACT_STATE_TAB_NAMES = ["Recipients", 'Sites', 'Goals'];//, 'History'];
 	constants.IMPACT_STATE_INSERTS = [
 		"insert_impact_recipients", 
 		"insert_impact_sites", 
 		"insert_impact_goals"
 	];//, insert_impact_history];
+	////// SUBSTATES/////
+	constants.DEFAULT_IMPACT_SUBSTATE = "this_week";
+	constants.DEFAULT_IMPACT_RECIPIENTS_SUBSTATE = 'nonprofits';
+	constants.DEFAULT_IMPACT_SITES_SUBSTATE = 'procrasdonate';
 	constants.IMPACT_SUBSTATE_INSERTS = [
-	                                     "today",
-	                                     "this_week",
-	                                     "all_time",
-	                                     "daily",
-	                                     "weekly"
+		"today",
+		"this_week",
+		"all_time",
+		"daily",
+		"weekly"
 	];
 	/*
 	// impact substate: recipients
@@ -103,6 +140,7 @@ var constants = {};
 	constants.IMPACT_SITES_SUBSTATE_INSERTS = [insert_impact_recipients_nonprofits, insert_impact_recipients_contentproviders];
 	*/
 	// enumeration of register track state
+	constants.DEFAULT_REGISTER_STATE = "account";
 	constants.REGISTER_STATE_ENUM = [
 		'account', 
 		'recipients', 
@@ -151,14 +189,6 @@ var constants = {};
 	// flag for whether to make payments or not--
 	// eg, if db corruption or some other error
 	constants.DEFAULT_PREVENT_PAYMENTS = false;
-		
-	constants.DEFAULT_SETTINGS_STATE = "account";
-	constants.DEFAULT_REGISTER_STATE = "account";
-	constants.DEFAULT_IMPACT_STATE = "recipients";
-	constants.DEFAULT_IMPACT_SUBSTATE = "this_week";
-	
-	constants.DEFAULT_IMPACT_RECIPIENTS_SUBSTATE = 'nonprofits';
-	constants.DEFAULT_IMPACT_SITES_SUBSTATE = 'procrasdonate';
 		
 	// FPS DEFAULTS
 	constants.DEFAULT_GLOBAL_AMOUNT_LIMIT = 100.00;

@@ -140,45 +140,37 @@ class Recipient(models.Model):
     """
     slug = models.SlugField(db_index=True)
     name = models.CharField(max_length=128, null=True, blank=True)
-    email = models.EmailField(null=True, blank=True)
-    url = models.URLField(null=True, blank=True)
-    twitter_name = models.CharField(max_length=32, null=True, blank=True)
+    category = models.ForeignKey('Category', blank=True, null=True)
     mission = models.CharField(max_length=256, null=True, blank=True)
     description = models.TextField(null=True, blank=True)
+    url = models.URLField(null=True, blank=True)
+    
+    twitter_name = models.CharField(max_length=32, null=True, blank=True)
+    facebook_name = models.CharField(max_length=100, null=True, blank=True)
+    
     is_visible = models.BooleanField(default=True)
-    category = models.ForeignKey('Category', blank=True, null=True)
+    
     employers_identification_number = models.CharField(max_length=32, blank=True, null=True)
-    tax_exempt_status = models.BooleanField(default=True)
+    tax_exempt_status = models.BooleanField(default=False)
+    sponsoring_organization = models.CharField(max_length=200, blank=True, null=True)
+    contact_name = models.CharField(max_length=200, blank=True, null=True)
+    contact_email = models.CharField(max_length=200, blank=True, null=True)
+    office_phone = models.CharField(max_length=200, blank=True, null=True)
+    mailing_address = models.CharField(max_length=200, blank=True, null=True)
+    city = models.CharField(max_length=200, blank=True, null=True)
+    state = models.CharField(max_length=200, blank=True, null=True)
+    country = models.CharField(max_length=200, default='USA')
+    
+    logo = models.URLField(blank=True, null=True)
+    promotional_image = models.URLField(blank=True, null=True)
+    promotional_video = models.URLField(blank=True, null=True)
+    pd_experience_video = models.URLField(blank=True, null=True)
     
     admin_options = {'prepopulated_fields': {"slug": ("name",)} }
     
     class Meta:
         ordering = ('name',)
-    
-    @classmethod
-    def make(klass,
-             name,
-             slug=None,
-             email=None,
-             url=None,
-             twitter_name=None,
-             mission=None,
-             description=None,
-             is_visible=True,
-             category=None):
-        if category:
-            category = Category.get_or_create(category)
-        return Recipient(name=name,
-                         slug=slug or model_utils.slugify(name),
-                         twitter_name=twitter_name,
-                         url=url,
-                         email=email,
-                         mission=mission,
-                         description=description,
-                         is_visible=is_visible, 
-                         category=category)
-        
-        
+
     def deep_dict(self):
         return {'name': self.name,
                 'slug': self.slug,

@@ -278,12 +278,13 @@ var _end_of_week = function(date) {
 	date.setSeconds(23);
 	date.setMilliseconds(23);
 	// last day of week. getDay should now = 6.
+	//#@TODO maybe we want this to be 0 for Sunday ?!?!?!
 	date.setDate(date.getDate() + (6-date.getDay()));
 	return date;
 }
 
-var False = 0;
-var True = 1;
+var False = false;
+var True = true;
 
 var _dbify_bool = function(bool) {
 	if (bool) {

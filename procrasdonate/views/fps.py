@@ -105,7 +105,7 @@ def _get(url):
 @login_required
 def recipient_register(request):
     errors = []
-    template = 'procrasdonate/fps/recipient_register.html'
+    template = 'procrasdonate/recipient_organizer_pages/fps/recipient_register.html'
     recipient = Recipient.get_or_none(slug=request.user.get_profile().recipient.slug)
     if not recipient:
         errors.append("No FPS Recipient found for %s. Check url." % slug)
@@ -157,7 +157,7 @@ def recipient_register_callback(request):
     callerReference=h2Yij4nUqPzL
     """
     errors = []
-    template = 'procrasdonate/fps/recipient_register_callback.html'
+    template = 'procrasdonate/recipient_organizer_pages/fps/recipient_register_callback.html'
     recipient = Recipient.get_or_none(slug=request.user.get_profile().recipient.slug)
     if not recipient:
         errors.append("Error. No FPS Recipient found for %s. Check url." % slug)
@@ -274,9 +274,6 @@ def authorize_multiuse(request):
 
     # add timestampe and signature
     finalize_parameters(camel_parameters, type=CBUI_TYPE)
-    
-    action_url = AMAZON_CBUI_URL
-    form_html = render_string(request, 'procrasdonate/fps/snippets/authorize_form.html', locals())
     
     full_url = "%s?%s" % (action_url,
                           urllib.urlencode(camel_parameters))

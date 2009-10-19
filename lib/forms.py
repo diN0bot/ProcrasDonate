@@ -20,13 +20,13 @@ FORMS = { ADMIN_TYPE: {},
           EDIT_TYPE: {},
           }
 
-def get_form(model, type=ADMIN_TYPE, excludes=None, fields=None):
+def get_form(model, type=ADMIN_TYPE, excludes=None, includes=None):
     """
     @param excludes: in addition to type-based excludes. for on-the-fly forms. 
-    @param fields: for on-the-fly forms. 
+    @param includes: for on-the-fly forms. 
     return form class for model and type
     """
-    if model in FORMS[type] and not excludes and not fields:
+    if model in FORMS[type] and not excludes and not includes:
         # don't cache on-the-fly forms
         form = FORMS[type][model]
     else:
@@ -34,39 +34,39 @@ def get_form(model, type=ADMIN_TYPE, excludes=None, fields=None):
         excludes = excludes or ()
         
         if type == ADMIN_TYPE:
-            exec('Admin%sForm = model_form_class(model, excludes, fields)' % mname )
+            exec('Admin%sForm = model_form_class(model, excludes, includes)' % mname )
             form = locals()['%sForm' % mname]
                 
         elif type == NEW_TYPE:
             if mname in new_forms_excludes:
                 excludes += new_forms_excludes[mname]
-            exec('New%sForm = model_form_class(model, excludes, fields)' % mname )
+            exec('New%sForm = model_form_class(model, excludes, includes)' % mname )
             form = locals()['New%sForm' % mname]
 
         elif type == EDIT_TYPE:
             if mname in edit_forms_excludes:
                 excludes += edit_forms_excludes[mname]
-            exec('Edit%sForm = model_form_class(model, excludes, fields)' % mname )
+            exec('Edit%sForm = model_form_class(model, excludes, includes)' % mname )
             form = locals()['Edit%sForm' % mname]
             
         else:
             raise "Type no good"
         
-        if not excludes and not fields:
+        if not excludes and not includes:
             # don't cache on-the-fly forms
             FORMS[type][model] = form
     
     return form
 
 
-def model_form_class(_model, excludes=None, _fields=None):
+def model_form_class(_model, excludes=None, includes=None):
     class klass(ModelForm):
         class Meta:
             model = _model
             if excludes:
                 exclude = excludes
-            if _fields:
-                fields = _fields
+            if includes:
+                fields = includes
     return klass
 
 new_forms_excludes = {#'Node':('url',),
