@@ -95,17 +95,21 @@ function load_models(db, pddb) {
 	var Recipient = new Model(db, "Recipient", {
 		table_name: "recipients",
 		columns: {
-			_order: ["id", "name", "slug", "mission", "description", "twitter_name", "url", "email", "category_id", "is_visible"],
+			_order: ["id", "slug", "name", "category_id", "mission",
+			         "description", "url", "twitter_name", "facebook_name", 
+			         "is_visible", "pd_registered", "tax_exempt_status"],
 			id: "INTEGER PRIMARY KEY",
-			name: "VARCHAR",
 			slug: "VARCHAR",
-			twitter_name: "VARCHAR",
+			name: "VARCHAR",
+			category_id: "INTEGER",
 			mission: "VARCHAR",
 			description: "VARCHAR",
 			url: "VARCHAR",
-			email: "VARCHAR",
-			category_id: "INTEGER",
-			is_visible: "INTEGER" // boolean 0=false
+			twitter_name: "VARCHAR",
+			facebook_name: "VARCHAR",
+			is_visible: "INTEGER", // boolean 0=false
+			pd_registered: "INTEGER", // boolean 0=false
+			tax_exempt_status: "INTEGER", // boolean 0=false
 		},
 		indexes: []
 	}, {
@@ -119,18 +123,24 @@ function load_models(db, pddb) {
 			return category
 		},
 		
+		has_tax_exempt_status: function() {
+			return _un_dbify_bool(this.tax_exempt_status);
+		},
+		
 		deep_dict: function() {
 			return {
 				id: this.id,
-				name: this.name,
 				slug: this.slug,
-				twitter_name: this.twitter_name,
+				name: this.name,
+				category: this.category().category,
 				mission: this.mission,
 				description: this.description,
 				url: this.url,
-				email: this.email,
-				category: this.category().category,
-				is_visible: _un_dbify_bool(this.is_visible)
+				twitter_name: this.twitter_name,
+				facebook_name: this.facebook_name,
+				is_visible: _un_dbify_bool(this.is_visible),
+				pd_registered: _un_dbify_bool(this.pd_registered),
+				tax_exempt_status: this.has_tax_exempt_status(),
 			}
 		}
 	}, {
@@ -145,15 +155,16 @@ function load_models(db, pddb) {
 				slug: r.slug
 			}, {
 				name: r.name,
-				email: r.email,
+				category_id: category.id,
+				mission: r.mission,
+                description: r.description,
                 url: r.url,
                 twitter_name: r.twitter_name,
-                mission: r.mission,
-                description: r.description,
-                is_visible: r.is_visible,
-                category_id: category.id
+                twitter_name: r.facebook_name,
+                is_visible: _dbify_bool(r.is_visible),
+                pd_registered: _dbify_bool(r.pd_registered),
+                tax_exempt_status: _dbify_bool(r.tax_exempt_status),
 			});
-			
 			return recipient
 		}
 	});
@@ -516,6 +527,7 @@ function load_models(db, pddb) {
 			id: "INTEGER PRIMARY KEY",
 			total_id: "INTEGER",
 			partially_paid: "INTEGER", // boolean 0=false
+			pending: "INTEGER", // boolean 0=false
 		}
 	}, {
 		// instance methods
@@ -533,12 +545,18 @@ function load_models(db, pddb) {
 		is_partially_paid: function() {
 			return _un_dbify_bool(this.partially_paid)
 		},
+		
+		// returns boolean value
+		is_pending: function() {
+			return _un_dbify_bool(this.pending)
+		},
 	
 		deep_dict: function() {
 			return {
 				id: this.id,
 				total: this.total().deep_dict(),
-				partially_paid: this.is_partially_paid()
+				partially_paid: this.is_partially_paid(),
+				pending: this.is_pending()
 			}
 		}
 	}, {

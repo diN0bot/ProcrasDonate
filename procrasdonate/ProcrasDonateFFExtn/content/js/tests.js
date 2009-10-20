@@ -167,8 +167,8 @@ _extend(PDTests.prototype, {
 		var site = self.pddb.Site.get_or_null({ url: url })
 		var host = _host(url);
 		var sitegroup = self.pddb.SiteGroup.get_or_null({ host: host });
-		var timetypes = [self.pddb.Daily, self.pddb.Weekly, self.pddb.Forever];
-		var times = [_dbify_date(_end_of_day()), _dbify_date(_end_of_week()), _dbify_date(_end_of_forever())];
+		var timetypes = [self.pddb.Daily, self.pddb.Weekly, self.pddb.Yearly, self.pddb.Forever];
+		var times = [_dbify_date(_end_of_day()), _dbify_date(_end_of_week()), _dbify_date(_end_of_year()), _dbify_date(_end_of_forever())];
 		
 		for (var idx = 0; idx < timetypes.length; idx++) {
 			self.pddb.ContentType.select({}, function(row) {
@@ -217,8 +217,8 @@ _extend(PDTests.prototype, {
 	check_totals: function(testrunner, url, seconds, before_totals) {
 		var self = this;
 		var site = self.pddb.Site.get_or_null({ url: url })
-		var timetypes = [self.pddb.Daily, self.pddb.Weekly, self.pddb.Forever];
-		var times = [_dbify_date(_end_of_day()), _dbify_date(_end_of_week()), _dbify_date(_end_of_forever())];
+		var timetypes = [self.pddb.Daily, self.pddb.Weekly, self.pddb.Yearly, self.pddb.Forever];
+		var times = [_dbify_date(_end_of_day()), _dbify_date(_end_of_week()), _dbify_date(_end_of_year()), _dbify_date(_end_of_forever())];
 		
 		for (var idx = 0; idx < timetypes.length; idx++) {
 			self.pddb.ContentType.select({}, function(row) {

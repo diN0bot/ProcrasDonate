@@ -127,6 +127,11 @@ def return_data(request):
         * data for particular user
         * latest extension version
     """
+    print
+    print "="*60
+    print "RETURN DATA";
+    print "="*60
+    print
     errors = []
     expected_parameters = ["hash", "since"]
 
@@ -164,9 +169,11 @@ def return_data(request):
         pass
         #@TODO if not has_success, then ask Amazon for token in case pipeline completed by didn't make it back to server yet.
     
+    print '#.'*30;
     print "RETURN DATA RETURNED"
     print json.dumps({'recipients': recipients,
                          'multiuse_auths': multiuse_auths}, indent=2)
+    print '#.'*30;
     
     return json_success({'recipients': recipients,
                          'multiuse_auths': multiuse_auths,

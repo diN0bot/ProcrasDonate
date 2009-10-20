@@ -456,7 +456,7 @@
         "fields": {
                     "twitter_name": "",
                     "name": "Grameen Foundation",
-		    "name": "grameen_foundation",
+		    "slug": "grameen_foundation",
                     "mission": "Combining the power of microfinance, technology and innovative solutions to defeat global poverty.",
                     "description": "Using microfinance and technology, we work with local poverty-focused organizations and global allies to help them reach and serve more of the world's poor people more effectively. Our goal is to use our resources, knowledge and innovations to identify large scale solutions and strategies that really do move people out of poverty, and then share that knowledge widely.",
                     "url": "http://www.grameenfoundation.org/",

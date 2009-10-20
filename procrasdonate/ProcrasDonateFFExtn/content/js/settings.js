@@ -110,14 +110,16 @@ var constants = {};
 	];
 	
 	//enumeration of impact page state
-	constants.DEFAULT_IMPACT_STATE = "recipients";
-	constants.IMPACT_STATE_ENUM = ["recipients", 'sites', 'goals'];//, 'history'];
-	constants.IMPACT_STATE_TAB_NAMES = ["Recipients", 'Sites', 'Goals'];//, 'History'];
+	constants.DEFAULT_IMPACT_STATE = "totals";
+	constants.IMPACT_STATE_ENUM = ['totals', 'show_all', 'tax_deductible', 'other'];
+	constants.IMPACT_STATE_TAB_NAMES = ["Totals", "Show All", "Tax-deductible", "Other"]; 
 	constants.IMPACT_STATE_INSERTS = [
-		"insert_impact_recipients", 
-		"insert_impact_sites", 
-		"insert_impact_goals"
-	];//, insert_impact_history];
+		"insert_impact_totals", 
+		"insert_impact_show_all", 
+		"insert_impact_tax_deductible",
+		"insert_impact_other"
+	];
+	/* OLD
 	////// SUBSTATES/////
 	constants.DEFAULT_IMPACT_SUBSTATE = "this_week";
 	constants.DEFAULT_IMPACT_RECIPIENTS_SUBSTATE = 'nonprofits';
@@ -128,7 +130,7 @@ var constants = {};
 		"all_time",
 		"daily",
 		"weekly"
-	];
+	];*/
 	/*
 	// impact substate: recipients
 	constants.IMPACT_RECIPIENTS_SUBSTATE_ENUM = ['nonprofits', 'contentproviders'];

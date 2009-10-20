@@ -1,40 +1,32 @@
-<div id='ranks'>
-	<h2>{{ context.title }}</h2>
-	{% for submenus in context.submenus %}
-		<div class="submenu_column">
-			<ul>
-				{% for item in submenus %}
-					<li class="menuitem link {% if item.selected %}selected{% endif %}" id="{{ item.substate }}">
-						{{ item.name }}
-						{% if item.coming %}<small>(coming soon)</small>{% endif %}
-					</li>
-				{% endfor %}
-			</ul>
-		</div>
-	{% endfor %}
-	
-	<div class='rank_legend'>
-		<h3>Legend</h3>
-		{% for class_name in context.class_names %}
-			<label>{{ class_name }}</label>
-			<div class="bar {{ class_name }}"></div>
-		{% endfor %}
-	</div>
-	
-	<h3>{{ context.sub_title }}</h3>
-	<table>
-		<tbody>
-			{% for row in context.data %}
-			<tr class="rank">
-				<td class="name">{{ row.name }}</td>
-				<td class="rank">
-					<div class="bar {{ row.class_name }}" style="width: {{ row.pct }}%">
-						<div class="rank_text">{{ row.total }}</div>
-					</div>
-				</td>
-			</tr>
-			{% endfor %}
-		</tbody>
-	</table>
+<h1>My Impact</h1>
 
-</div>
+<h2>Donations and Pledges</h2>
+
+<ul>
+	{% for item in substate_menu_items %}
+		<li
+			id="{{ item.id }}"
+			class="{% for klass in item.klasses %}{{ klass }} {% endfor %}"
+			>
+			{{ item.value }}</li>
+	{% endfor %}
+</ul>
+
+<table>
+<thead>
+	<tr>
+		{% for header in table_headers %}
+			<th>{{ header }}</th>
+		{% endfor %}
+	</tr>
+</thead>
+<tbody>
+	{% for row in table_rows %}
+	<tr>
+		{% for cell in row %}
+			<td>{{ cell }}</td>
+		{% endfor %}
+	</tr>
+	{% endfor %}
+</tbody>
+</table>

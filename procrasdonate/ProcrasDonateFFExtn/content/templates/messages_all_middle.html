@@ -1,1 +1,8 @@
 messages all middle
+
+<ul>
+	{% for item in substate_menu_items %}
+		<li id="{{ item.id }}">{{ item.value }}</li>
+	{% endfor %}
+</ul>
+

@@ -542,6 +542,7 @@ PDDB.prototype = {
 		////// TIMETYPES ////////
 		this.Daily   = this.TimeType.get_or_create({ timetype: "Daily" });
 		this.Weekly  = this.TimeType.get_or_create({ timetype: "Weekly" });
+		this.Yearly  = this.TimeType.get_or_create({ timetype: "Yearly" });
 		this.Forever = this.TimeType.get_or_create({ timetype: "Forever" });
 
 		////// CONTENTTYPES ////////
@@ -648,16 +649,17 @@ PDDB.prototype = {
 		var sitegroup = site.sitegroup();
 		var tag = site.tag();
 		
-		var pd_recipient = this.Recipient.get_or_create({ slug: "pd" });
+		var pd_recipient = this.Recipient.get_or_null({ slug: "pd" });
 		//var pd_recipientpercent = this.RecipientPercent.get_or_null({ recipient_id: pd_recipient.id });
 		var pd_pct = _un_prefify_float(this.prefs.get('support_pct', constants.DEFAULT_SUPPORT_PCT)) / 100.0;
 		
 		var end_of_day     = _dbify_date(_end_of_day());
 		var end_of_week    = _dbify_date(_end_of_week());
+		var end_of_year    = _dbify_date(_end_of_year());
 		var end_of_forever = _end_of_forever();
 		
-		var timetypes = [ this.Daily, this.Weekly, this.Forever ];
-		var times     = [ end_of_day, end_of_week, end_of_forever ];
+		var timetypes = [ this.Daily, this.Weekly, this.Yearly, this.Forever ];
+		var times     = [ end_of_day, end_of_week, end_of_year, end_of_forever ];
 		
 		var pd_cents_per_hr = this.prefs.get('pd_cents_per_hr', 0);
 		var tws_cents_per_hr = this.prefs.get('tws_cents_per_hr', 0);
@@ -680,16 +682,21 @@ PDDB.prototype = {
 			}
 		}
 		
-		// full amount. still have to calculate recipient percents and pd support
-		// use limited_time_delta for amount
+		// full amount. still have to calculate recipient percents
+		// use limited_time_delta for calculation
+		// NOTE: pd support gets taken automatically by amazon !!
+		// amazon fee and marketplace fee to PD are automatically taken
+		// from recipient's account! so full amount is tax deductible if any part is!
 		var pd_full_amount_delta = ( limited_time_delta / (60.0*60.0) ) * parseInt(pd_cents_per_hr);
 		var tws_full_amount_delta = ( limited_time_delta / (60.0*60.0) ) * parseInt(tws_cents_per_hr);
 		
 		if (STORE_VISIT_LOGGING) logger("time_delta="+time_delta+"limited_time_delta="+limited_time_delta+" pd_cents_per_hr="+pd_cents_per_hr+" tws_cents_per_hr="+tws_cents_per_hr);
 		
+		// don't need these anymore. see above note
 		var pd_skim_amount = pd_full_amount_delta * pd_pct;
 		var tws_skim_amount = tws_full_amount_delta * pd_pct;
 		
+		// don't need these anymore. see above note
 		var pd_rest_amount = pd_full_amount_delta - pd_skim_amount;
 		var tws_rest_amount = tws_full_amount_delta - tws_skim_amount;
 		
@@ -723,7 +730,7 @@ PDDB.prototype = {
 				content_instances.push({
 					contenttype: row,
 					content: site,
-					amt: rest_amount,
+					amt: full_amount_delta,//rest_amount,
 					requires_payment: false
 				});
 			} else if (row.modelname == "SiteGroup") {
@@ -731,25 +738,25 @@ PDDB.prototype = {
 				content_instances.push({
 					contenttype: row,
 					content: sitegroup,
-					amt: rest_amount,
+					amt: full_amount_delta,//rest_amount,
 					requires_payment: requires_payment
 				});
 			} else if (row.modelname == "Tag") {
 				content_instances.push({
 					contenttype: row,
 					content: tag,
-					amt: rest_amount,
+					amt: full_amount_delta,//rest_amount,
 					requires_payment: false
 				});
 			} else if (row.modelname == "Recipient") {
-				if (tag.id != self.Unsorted.id) {
+				if (tag.id != self.Unsorted.id && pd_recipient) {
 					// site is TWS or PD, so some amount will go to pd
 					// this isn't used to make payments; just to check against:
 					// marketplace fees should add up to this total amount
 					content_instances.push({
 						contenttype: row,
 						content: pd_recipient,
-						amt: skim_amount,
+						amt: skim_amount, // SKIM TO US. we record this for the heck of it.
 						requires_payment: false
 					});
 				}
@@ -760,7 +767,7 @@ PDDB.prototype = {
 						content_instances.push({
 							contenttype: row,
 							content: recip,
-							amt: rest_amount * parseFloat(r.percent),
+							amt: full_amount_delta * parseFloat(r.percent),//rest_amount_delta * parseFloat(r.percent)
 							requires_payment: true
 						});
 					});

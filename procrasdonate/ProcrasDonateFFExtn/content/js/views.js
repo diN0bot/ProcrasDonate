@@ -291,6 +291,22 @@ _extend(Controller.prototype, {
 	////////////////////////////// DEV TESTS //////////////////////////////////
 	
 	add_random_visits: function() {
+		var test1 = this.pddb.SiteGroup.get_or_create({
+			url_re: "test1.com"
+		});
+		this.pddb.SiteGroup.set({
+			tag_id: this.pddb.ProcrasDonate.id
+		}, {
+			url_re: "test1.com"
+		});
+		var test2 = this.pddb.SiteGroup.get_or_create({
+			url_re: "test2.com"
+		});
+		this.pddb.SiteGroup.set({
+			tag_id: this.pddb.TimeWellSpent.id
+		}, {
+			url_re: "test2.com"
+		});
 		var start = _start_of_day();
 		var duration = 2222;
 		var urls = ["http://test1.com/apage.html",
@@ -912,9 +928,6 @@ _extend(PageController.prototype, {
 	},
 	
 	support_middle: function(request) {
-		var pd_recipient = this.pddb.Recipient.get_or_null({
-			slug: "pd"
-		});
 		var pct = _un_prefify_float(this.prefs.get('support_pct', constants.DEFAULT_SUPPORT_PCT));
 		var context = new Context({
 			pct: pct,
@@ -1153,7 +1166,7 @@ _extend(PageController.prototype, {
 		var spacer = "<div id='recipient_spacer_row'><hr></div>";
 		
 		var potential_recipients = "";
-		this.pddb.Recipient.select({ is_visible: true }, function(row) {
+		this.pddb.Recipient.select({ is_visible: _dbify_bool(true) }, function(row) {
 			if (self.pddb.RecipientPercent.get_or_null({ recipient_id: row.id })) {
 
 			} else {
@@ -2524,15 +2537,201 @@ _extend(PageController.prototype, {
 		//$.plot($("#procrasdonation_chart"), data, options);
 	},
 	
-	insert_messages_all: function(request) {
+	insert_impact_totals: function(request) {
 		var self = this;
-		this.prefs.set('messages_state', 'all');
-
-		var middle = Template.get("messages_all_middle").render(new Context({}));
-		request.jQuery("#content").html( this.messages_wrapper_snippet(request, middle) );
+		this.prefs.set('impact_state', 'totals');
 		
-		this.activate_messages_tab_events(request);
+		var substate_menu_items = this.make_substate_menu_items('totals',
+			constants.IMPACT_STATE_ENUM, constants.IMPACT_STATE_TAB_NAMES);
+
+		var recipient_contenttype = self.pddb.ContentType.get_or_null({ modelname: "Recipient" });
+		var sitegroup_contenttype = self.pddb.ContentType.get_or_null({ modelname: "SiteGroup" });
+		
+		// total $$ PLEDGED for [this year, last year]
+		var taxdeduct_total_amounts = [0.0, 0.0];
+		var NOT_taxdeduct_total_amounts = [0.0, 0.0];
+		// payment {id: row, ...} for [this year, last year]
+		var taxdeduct_payments = [{}, {}];
+		var NOT_taxdeduct_payments = [{}, {}];
+		// total $$ PAID for [this year, last year]
+		var taxdeduct_payment_totals = [0.0, 0.0];
+		var NOT_taxdeduct_payment_totals = [0.0, 0.0];
+
+		_iterate([recipient_contenttype, sitegroup_contenttype], function(key, contenttype, index) {
+			_iterate([_end_of_year(), _end_of_last_year()], function(key2, endtime, YEAR_INDEX) {
+				// iterate through all recipients for this or last year
+				self.pddb.Total.select({
+					contenttype_id: contenttype.id,
+					datetime: _dbify_date(endtime),
+					timetype_id: self.pddb.Yearly.id
+				}, function(row) {
+					logger("(*#&%(*#&^%(#*& TOTAL="+row);
+					var amt = parseFloat(row.total_amount) / 100.00;
+					if (row["tax_exempt_status"] && row.tax_exempt_status()) {
+						taxdeduct_total_amounts[index] += amt;
+						_iterate(row.payments(), function(key3, payment, index3) {
+							taxdeduct_payments[YEAR_INDEX][payment.id] += payment;
+						});
+					} else {
+						NOT_taxdeduct_total_amounts[index] += amt;
+						_iterate(row.payments(), function(key3, payment, index3) {
+							NOT_taxdeduct_payments[YEAR_INDEX][payment.id] += payment;
+						});
+					}
+				});
+			});
+		});
+		
+		logger("taxdeduct_total_amounts");
+		_pprint(taxdeduct_total_amounts);
+		_pprint(NOT_taxdeduct_total_amounts);
+		
+		_iterate([0, 1], function(key, year_idx, idx) {
+			_iterate(taxdeduct_payments[idx], function(key, payment, index) {
+				taxdeduct_payment_totals[idx] += parseFloat(payment.total_amount_paid);
+			});
+			
+			_iterate(NOT_taxdeduct_payments[idx], function(key, payment, index) {
+				NOT_taxdeduct_payment_totals[idx] += parseFloat(payment.total_amount_paid);
+			});
+		});
+		
+		logger("taxdeduct_payment_totals");
+		_pprint(taxdeduct_payment_totals);
+		_pprint(NOT_taxdeduct_payment_totals);
+		
+		var table_headers = ["Recipients",
+		                     "Current Pledges",
+		                     "2009 Donations To Date",
+		                     "2008 All Donations",
+		                     "All Time Donations",
+		                     /*"Messages"*/];
+		var table_rows = [
+			["Total, tax-deductible recipients",
+			 (taxdeduct_total_amounts[0]+taxdeduct_total_amounts[1]) - (taxdeduct_payment_totals[0]+taxdeduct_payment_totals[1]),
+			 taxdeduct_payment_totals[0],
+			 taxdeduct_payment_totals[1],
+			 taxdeduct_payment_totals[0] + taxdeduct_payment_totals[1],
+			 /**/],
+			 
+		    ["Total, other recipients",
+		     (NOT_taxdeduct_total_amounts[0]+NOT_taxdeduct_total_amounts[1]) - (NOT_taxdeduct_payment_totals[0]+NOT_taxdeduct_payment_totals[1]),
+			 NOT_taxdeduct_payment_totals[0],
+			 NOT_taxdeduct_payment_totals[1],
+			 NOT_taxdeduct_payment_totals[0] + NOT_taxdeduct_payment_totals[1],
+			 /**/]
+		];
+		table_rows.push([
+		    "Combined total of all recipients",
+		    table_rows[0][1] + table_rows[1][1],
+		    table_rows[0][2] + table_rows[1][2],
+		    table_rows[0][3] + table_rows[1][3],
+		    table_rows[0][4] + table_rows[1][4],
+		    /**/
+		]);
+		_pprint(table_rows);
+		_iterate(table_rows, function(k1, row, i1) {
+			_iterate(row, function(k2, cell, i2) {
+				if (isNumber(cell)) {
+					table_rows[i1][i2] = "$"+cell.toFixed(2);
+				}
+			});
+		});
+		
+		var middle = Template.get("impact_middle").render(
+			new Context({
+				substate_menu_items: substate_menu_items,
+				table_headers: table_headers,
+				table_rows: table_rows
+			})
+		);
+		request.jQuery("#content").html( middle );
+		
+		this.activate_substate_menu_items(request, 'impact',
+			constants.IMPACT_STATE_ENUM, constants.IMPACT_STATE_INSERTS);
 	},
+	
+	insert_impact_show_all: function(request) {
+		var self = this;
+		this.prefs.set('impact_state', 'show_all');
+		
+		var substate_menu_items = this.make_substate_menu_items('show_all',
+			constants.IMPACT_STATE_ENUM, constants.IMPACT_STATE_TAB_NAMES);
+
+		var table_headers = ["Recipients",
+		                     "Current Pledges",
+		                     "2009 Donations To Date",
+		                     "2008 All Donations",
+		                     "All Time Donations",
+		                     /*"Messages"*/];
+		
+		var middle = Template.get("impact_middle").render(
+			new Context({
+				substate_menu_items: substate_menu_items,
+				table_headers: table_headers,
+				/*table_rows: table_rows*/
+			})
+		);
+		request.jQuery("#content").html( middle );
+		
+		this.activate_substate_menu_items(request, 'impact',
+			constants.IMPACT_STATE_ENUM, constants.IMPACT_STATE_INSERTS);
+	},
+	
+	insert_impact_tax_deductible: function(request) {
+		var self = this;
+		this.prefs.set('impact_state', 'tax_deductible');
+		
+		var substate_menu_items = this.make_substate_menu_items('tax_deductible',
+			constants.IMPACT_STATE_ENUM, constants.IMPACT_STATE_TAB_NAMES);
+
+		var table_headers = ["Recipients",
+		                     "Current Pledges",
+		                     "2009 Donations To Date",
+		                     "2008 All Donations",
+		                     "All Time Donations",
+		                     /*"Messages"*/];
+		
+		var middle = Template.get("impact_middle").render(
+			new Context({
+				substate_menu_items: substate_menu_items,
+				table_headers: table_headers,
+				/*table_rows: table_rows*/
+			})
+		);
+		request.jQuery("#content").html( middle );
+		
+		this.activate_substate_menu_items(request, 'impact',
+			constants.IMPACT_STATE_ENUM, constants.IMPACT_STATE_INSERTS);
+	},
+	
+	insert_impact_other: function(request) {
+		var self = this;
+		this.prefs.set('impact_state', 'other');
+		
+		var substate_menu_items = this.make_substate_menu_items('other',
+			constants.IMPACT_STATE_ENUM, constants.IMPACT_STATE_TAB_NAMES);
+
+		var table_headers = ["Recipients",
+		                     "Current Pledges",
+		                     "2009 Donations To Date",
+		                     "2008 All Donations",
+		                     "All Time Donations",
+		                     /*"Messages"*/];
+		
+		var middle = Template.get("impact_middle").render(
+			new Context({
+				substate_menu_items: substate_menu_items,
+				table_headers: table_headers,
+				/*table_rows: table_rows*/
+			})
+		);
+		request.jQuery("#content").html( middle );
+		
+		this.activate_substate_menu_items(request, 'impact',
+			constants.IMPACT_STATE_ENUM, constants.IMPACT_STATE_INSERTS);
+	},
+	
 	/*
 	"insert_messages_all",
 	"insert_messages_thankyous",
@@ -2540,11 +2739,32 @@ _extend(PageController.prototype, {
 	"insert_messages_weekly",
 	"insert_messages_tax",
 	*/
+	insert_messages_all: function(request) {
+		var self = this;
+		this.prefs.set('messages_state', 'all');
+		
+		var substate_menu_items = this.make_substate_menu_items('all',
+				constants.MESSAGES_STATE_ENUM, constants.MESSAGES_STATE_TAB_NAMES);
+
+		var middle = Template.get("messages_all_middle").render(
+			new Context({
+				substate_menu_items: substate_menu_items
+			})
+		);
+		request.jQuery("#content").html( middle );
+		
+		this.activate_substate_menu_items(request, 'messages',
+			constants.MESSAGES_STATE_ENUM, constants.MESSAGES_STATE_INSERTS);
+	},
 	
 	insert_progress_overview: function(request) {
 		var self = this;
 		this.prefs.set('progress_state', 'overview');
 
+		// currently, there is no progress submenu
+		var substate_menu_items = this.make_substate_menu_items('overview',
+			constants.PROGRESS_STATE_ENUM, constants.PROGRESS_STATE_TAB_NAMES);	
+		
 		var tag_contenttype = self.pddb.ContentType.get_or_null({
 			modelname: "Tag"
 		});
@@ -2573,11 +2793,108 @@ _extend(PageController.prototype, {
 		
 		var middle = Template.get("progress_overview_middle").render(
 			new Context({
+				substate_menu_items: substate_menu_items,
 				pd_total_this_week: pd_total_this_week,
 				pd_total_last_week: pd_total_last_week,
 				pd_total: pd_total
 			})
 		);
 		request.jQuery("#content").html( this.progress_wrapper_snippet(request, middle) );
+	},
+	
+	
+	
+	/*
+	 * @return: list of (id, display_name) tuples for substate menu
+	 *          id is "substate_tab_"+enums[index]
+	 *          display_name is tab_names[index]
+	 */
+	make_substate_menu_items: function(current_substate, enums, tab_names) {
+		var ret = [];
+		_iterate(tab_names, function(key, value, index) {
+			if (value != "XXX") {
+				var klasses = ["substate_tab"];
+				if (enums[index] == current_substate) {
+					klasses.push("current_tab");
+				}
+				ret.push({
+					id: "substate_tab_"+enums[index],
+					klasses: klasses,
+					value: value
+				});
+			}
+		});
+		return ret;
+	},
+	
+	activate_substate_menu_items: function(request, state_name, enums, inserts) {
+		var self=this;
+		for (var i = 0; i < enums.length; i += 1) {
+			// closure
+			request.jQuery("#substate_tab_"+enums[i]).click(
+				this._proceed(inserts[i], request)
+			);
+		}
+	},
+	
+	_process_before_proceeding: function(request, state_name, state_enums, processors, event) {
+		//logger("_process_before_proceeding event="+event);
+		var self = this;
+		return function() {
+			for (var i = 0; i < state_enums.length; i += 1) {
+				var tab_state = state_enums[i];
+				if ( self.prefs.get(state_name+"_state", "") == tab_state ) {
+					var processor = processors[i];
+					//logger("PROCESS_BEFORE_PROCEEDING: "+processor);
+					//logger(self[processor]);
+					var ret = self[processor](request, event);
+					//logger(" actual ret="+ret+" typeof="+typeof(ret));
+					if ( ret ) {
+						//logger("process returned true!"+event);
+						self[event](request);
+					}
+					break;
+				}
+			}
+		}
+	},
+	
+	/// necessary because when did direct closure
+	/// (function(event) { return event; })(self[event])
+	// .click(
+	//     (function(event) { return event; })(self[event])
+	// )
+	/// called functions had incorrect this
+	_proceed: function(event, request) {
+		var self = this;
+		return function() {
+			//self[fnname].apply(self, args);
+			self[event](request);
+		};
+	},
+
+	actdivate_settings_tab_events: function(request) {
+		/* Attaches EventListeners to settings tabs */
+		for (var i = 0; i < constants.SETTINGS_STATE_ENUM.length; i += 1) {
+			var tab_state = constants.SETTINGS_STATE_ENUM[i];
+			var event = constants.SETTINGS_STATE_INSERTS[i];
+			// closure
+			request.jQuery("#"+tab_state+"_track, #"+tab_state+"_text").click(
+					this._process_before_proceeding(
+						request, 
+						'settings', 
+						constants.SETTINGS_STATE_ENUM, 
+						constants.SETTINGS_STATE_PROCESSORS, event) );
+		}
+		// cursor pointer to tracks
+		request.jQuery(".track, .track_text").css("cursor","pointer");
+		
+		//@TODO
+		request.jQuery(".press_enter_for_next").bind( 'keypress', function(e) {
+			var code = (e.keyCode ? e.keyCode : e.which);
+			if(code == 13) { //Enter keycode
+				request.jQuery("#next_register_track").click();
+			}
+		});
 	},
 });

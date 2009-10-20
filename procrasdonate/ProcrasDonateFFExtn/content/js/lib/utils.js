@@ -256,6 +256,19 @@ var _start_of_week = function(date) {
 	return date;
 }
 
+var _start_of_year = function(date) {
+	if (!date) {
+		date = new Date();
+	}
+	date.setMonth(0);
+	date.setDate(1);
+	date.setHours(0);
+	date.setMinutes(0);
+	date.setSeconds(0);
+	date.setMilliseconds(0);
+	return date;
+}
+
 var _end_of_forever = function() { return -3; }
 
 var _end_of_day = function(date) {
@@ -278,13 +291,41 @@ var _end_of_week = function(date) {
 	date.setSeconds(23);
 	date.setMilliseconds(23);
 	// last day of week. getDay should now = 6.
-	//#@TODO maybe we want this to be 0 for Sunday ?!?!?!
+	//#@TODO maybe we want this to be 0 for Sunday ?!?!?! see also _start_of_week
 	date.setDate(date.getDate() + (6-date.getDay()));
 	return date;
 }
 
-var False = false;
-var True = true;
+var _end_of_year = function(date) {
+	if (!date) {
+		date = new Date();
+	}
+	date.setMonth(11);
+	date.setDate(31)
+	date.setHours(23);
+	date.setMinutes(23);
+	date.setSeconds(23);
+	date.setMilliseconds(23);
+	return date;
+}
+
+var _end_of_last_year = function(date) {
+	if (!date) {
+		date = new Date();
+	}
+	date.setYear(date.getYear() - 1);
+	date.setMonth(11);
+	date.setDate(31)
+	date.setHours(23);
+	date.setMinutes(23);
+	date.setSeconds(23);
+	date.setMilliseconds(23);
+	return date;
+}
+
+// These values are stored in the database for booleans (which are really integers)
+var False = 0;
+var True = 1;
 
 var _dbify_bool = function(bool) {
 	if (bool) {
@@ -295,7 +336,8 @@ var _dbify_bool = function(bool) {
 }
 
 var _un_dbify_bool = function(x) {
-	if (x == False) {
+	// !x in case value is empty or null
+	if (x == False || !x) {
 		return false;
 	} else {
 		return true;

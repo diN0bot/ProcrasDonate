@@ -172,17 +172,18 @@ class Recipient(models.Model):
         ordering = ('name',)
 
     def deep_dict(self):
-        return {'name': self.name,
-                'slug': self.slug,
-                'email': self.email,
-                'url': self.url,
-                'twitter_name': self.twitter_name,
+        return {'slug': self.slug,
+                'name': self.name,
+                'category': self.category.category,
                 'mission': self.mission,
                 'description': self.description,
+                'url': self.url,
+                
+                'twitter_name': self.twitter_name,
+                'facebook_name': self.facebook_name,
+                
                 'is_visible': self.is_visible,
-                'category': self.category.category,
                 'pd_registered': self.pd_registered(),
-                'employers_identification_number': self.employers_identification_number,
                 'tax_exempt_status': self.tax_exempt_status}
     
     def pd_registered(self):
