@@ -2559,15 +2559,14 @@ _extend(PageController.prototype, {
 
 		_iterate([recipient_contenttype, sitegroup_contenttype], function(key, contenttype, index) {
 			_iterate([_end_of_year(), _end_of_last_year()], function(key2, endtime, YEAR_INDEX) {
-				// iterate through all recipients for this or last year
+				// iterate through all recipients and sitegroups for this or last year
 				self.pddb.Total.select({
 					contenttype_id: contenttype.id,
 					datetime: _dbify_date(endtime),
 					timetype_id: self.pddb.Yearly.id
 				}, function(row) {
-					logger("(*#&%(*#&^%(#*& TOTAL="+row);
-					var amt = parseFloat(row.total_amount) / 100.00;
-					if (row["tax_exempt_status"] && row.tax_exempt_status()) {
+					var amt = row.dollars()
+					if (row.recipient() && row.recipient().has_tax_exempt_status()) {
 						taxdeduct_total_amounts[index] += amt;
 						_iterate(row.payments(), function(key3, payment, index3) {
 							taxdeduct_payments[YEAR_INDEX][payment.id] += payment;
@@ -2582,10 +2581,6 @@ _extend(PageController.prototype, {
 			});
 		});
 		
-		logger("taxdeduct_total_amounts");
-		_pprint(taxdeduct_total_amounts);
-		_pprint(NOT_taxdeduct_total_amounts);
-		
 		_iterate([0, 1], function(key, year_idx, idx) {
 			_iterate(taxdeduct_payments[idx], function(key, payment, index) {
 				taxdeduct_payment_totals[idx] += parseFloat(payment.total_amount_paid);
@@ -2595,10 +2590,6 @@ _extend(PageController.prototype, {
 				NOT_taxdeduct_payment_totals[idx] += parseFloat(payment.total_amount_paid);
 			});
 		});
-		
-		logger("taxdeduct_payment_totals");
-		_pprint(taxdeduct_payment_totals);
-		_pprint(NOT_taxdeduct_payment_totals);
 		
 		var table_headers = ["Recipients",
 		                     "Current Pledges",
@@ -2633,7 +2624,12 @@ _extend(PageController.prototype, {
 		_iterate(table_rows, function(k1, row, i1) {
 			_iterate(row, function(k2, cell, i2) {
 				if (isNumber(cell)) {
-					table_rows[i1][i2] = "$"+cell.toFixed(2);
+					var amt = cell.toFixed(2);
+					if (amt > 0) {
+						table_rows[i1][i2] = "$"+cell.toFixed(2);
+					} else {
+						table_rows[i1][i2] = "-";
+					}
 				}
 			});
 		});
@@ -2651,13 +2647,135 @@ _extend(PageController.prototype, {
 			constants.IMPACT_STATE_ENUM, constants.IMPACT_STATE_INSERTS);
 	},
 	
-	insert_impact_show_all: function(request) {
+	_insert_impact_per_item: function(request, substate, filter_fn) {
 		var self = this;
-		this.prefs.set('impact_state', 'show_all');
+		this.prefs.set('impact_state', substate);
 		
-		var substate_menu_items = this.make_substate_menu_items('show_all',
+		var substate_menu_items = this.make_substate_menu_items(substate,
 			constants.IMPACT_STATE_ENUM, constants.IMPACT_STATE_TAB_NAMES);
 
+		var recipient_contenttype = self.pddb.ContentType.get_or_null({ modelname: "Recipient" });
+		var sitegroup_contenttype = self.pddb.ContentType.get_or_null({ modelname: "SiteGroup" });
+
+		var row_data = {};
+		//{
+		//	 r: { slug: {thisyear: total,  lastyear: total}, ... }
+		//	sg: { host: {thisyear: total,  lastyear: total}, ... }
+		//}
+		row_data[recipient_contenttype.id] = {};
+		row_data[sitegroup_contenttype.id] = {};
+		
+		_iterate([recipient_contenttype, sitegroup_contenttype], function(key, contenttype, index) {
+			_iterate([_end_of_year(), _end_of_last_year()], function(key2, endtime, YEAR_INDEX) {
+				// iterate through all recipients and sitegroups for this or last year
+				self.pddb.Total.select({
+					contenttype_id: contenttype.id,
+					datetime: _dbify_date(endtime),
+					timetype_id: self.pddb.Yearly.id
+				}, function(total) {
+					if (filter_fn(total)) {
+						var fieldname = "slug";
+						if (contenttype.id == sitegroup_contenttype.id) fieldname = "host";
+						
+						if (!row_data[contenttype.id][total.content()[fieldname]]) {
+							row_data[contenttype.id][total.content()[fieldname]] = {}
+						}
+						row_data[contenttype.id][total.content()[fieldname]][endtime] = total;
+					};
+				});
+			});
+		});
+		
+		// row_data
+		// {
+		//	  r: { slug: {thisyear: total,  lastyear: total}, ... }
+		//	 sg: { host: {thisyear: total,  lastyear: total}, ... }
+		// }
+		
+		// calculate row table
+		var table_rows = [];
+		_iterate([recipient_contenttype, sitegroup_contenttype], function(key, contenttype, index) {
+			_iterate(row_data[contenttype.id], function(slug, twoyears, index2) {
+				var thisyear = twoyears[_end_of_year()];
+				var lastyear = twoyears[_end_of_last_year()];
+				
+				var contentname = "recipient";
+				if (contenttype.id == sitegroup_contenttype.id) contentname = "sitegroup";
+				
+				if (!thisyear[contentname]() || 
+						(lastyear && !lastyear[contentname]()) || 
+						(lastyear && thisyear[contentname]().id != lastyear[contentname]().id)) {
+					// #@TODO ERROR impossible
+					logger("IMPOSSIBLE ERROR");
+				}
+				
+				var thispayments = 0.0;
+				_iterate(thisyear.payments(), function(k, payment, i) {
+					thispayments += parseFloat(payment.total_amount_paid);
+				});
+				
+				var lastpayments = 0.0;
+				if (lastyear) {
+					_iterate(lastyear.payments(), function(k, payment, i) {
+						lastpayments += parseFloat(payment.total_amount_paid);
+					});
+				}
+				
+				var totalpledges = thisyear.dollars();
+				if (lastyear) totalpledges += lastyear.dollars();
+				
+				table_rows.push([thisyear[contentname](),
+				                 totalpledges - (thispayments + lastpayments),
+				                 thispayments,
+				                 lastpayments,
+				                 thispayments + lastpayments
+				                 ]);
+			});
+		});
+		
+		var new_table_rows = [];
+  		_iterate(table_rows, function(k1, row, i1) {
+			_iterate(row, function(k2, cell, i2) {
+				if (isNumber(cell)) {
+					var amt = cell.toFixed(2);
+					if (amt > 0) {
+						table_rows[i1][i2] = "$"+cell.toFixed(2);
+					} else {
+						table_rows[i1][i2] = "-";
+					}
+				}
+			});
+			// format first cell
+			var first_cell = null;
+			if (table_rows[i1][0]["host"]) {
+				first_cell = table_rows[i1][0]["host"];
+			} else {
+				first_cell = "<img src=\""+
+					table_rows[i1][0]["logo"]+
+					"\"><span>"+
+					table_rows[i1][0]["name"]+
+					"</span>";
+			}
+			
+			// for sitegroup rows, delete if trivial
+			if (table_rows[i1][0]["host"]) {
+				var allblank = true;
+				for (var i2 = 1; i2 < table_rows[i1].length; i2++) {
+					if (table_rows[i1][i2] != "-") {
+						allblank = false;
+					}
+				}
+				if (!allblank) {
+					table_rows[i1][0] = first_cell;
+					new_table_rows.push(table_rows[i1]);
+				}
+			} else {
+				table_rows[i1][0] = first_cell;
+				new_table_rows.push(table_rows[i1]);
+			}
+		});
+  		table_rows = new_table_rows;
+  		
 		var table_headers = ["Recipients",
 		                     "Current Pledges",
 		                     "2009 Donations To Date",
@@ -2669,67 +2787,31 @@ _extend(PageController.prototype, {
 			new Context({
 				substate_menu_items: substate_menu_items,
 				table_headers: table_headers,
-				/*table_rows: table_rows*/
+				table_rows: table_rows
 			})
 		);
 		request.jQuery("#content").html( middle );
 		
 		this.activate_substate_menu_items(request, 'impact',
 			constants.IMPACT_STATE_ENUM, constants.IMPACT_STATE_INSERTS);
+	},
+	
+	insert_impact_show_all: function(request) {
+		this._insert_impact_per_item(request, 'substate', function(total) {
+			return true
+		});
 	},
 	
 	insert_impact_tax_deductible: function(request) {
-		var self = this;
-		this.prefs.set('impact_state', 'tax_deductible');
-		
-		var substate_menu_items = this.make_substate_menu_items('tax_deductible',
-			constants.IMPACT_STATE_ENUM, constants.IMPACT_STATE_TAB_NAMES);
-
-		var table_headers = ["Recipients",
-		                     "Current Pledges",
-		                     "2009 Donations To Date",
-		                     "2008 All Donations",
-		                     "All Time Donations",
-		                     /*"Messages"*/];
-		
-		var middle = Template.get("impact_middle").render(
-			new Context({
-				substate_menu_items: substate_menu_items,
-				table_headers: table_headers,
-				/*table_rows: table_rows*/
-			})
-		);
-		request.jQuery("#content").html( middle );
-		
-		this.activate_substate_menu_items(request, 'impact',
-			constants.IMPACT_STATE_ENUM, constants.IMPACT_STATE_INSERTS);
+		this._insert_impact_per_item(request, 'tax_deductible', function(total) {
+			return total.content().has_tax_exempt_status()
+		});
 	},
 	
 	insert_impact_other: function(request) {
-		var self = this;
-		this.prefs.set('impact_state', 'other');
-		
-		var substate_menu_items = this.make_substate_menu_items('other',
-			constants.IMPACT_STATE_ENUM, constants.IMPACT_STATE_TAB_NAMES);
-
-		var table_headers = ["Recipients",
-		                     "Current Pledges",
-		                     "2009 Donations To Date",
-		                     "2008 All Donations",
-		                     "All Time Donations",
-		                     /*"Messages"*/];
-		
-		var middle = Template.get("impact_middle").render(
-			new Context({
-				substate_menu_items: substate_menu_items,
-				table_headers: table_headers,
-				/*table_rows: table_rows*/
-			})
-		);
-		request.jQuery("#content").html( middle );
-		
-		this.activate_substate_menu_items(request, 'impact',
-			constants.IMPACT_STATE_ENUM, constants.IMPACT_STATE_INSERTS);
+		this._insert_impact_per_item(request, 'other', function(total) {
+			return !total.content().has_tax_exempt_status()
+		});
 	},
 	
 	/*
@@ -2791,12 +2873,25 @@ _extend(PageController.prototype, {
 			timetype_id: self.pddb.Forever.id
 		});
 		
+		var this_week_hrs = 0.0;
+		if (pd_total_this_week) {
+			this_week_hrs = pd_total_this_week.hours().toFixed(2)
+		}
+		var last_week_hrs = 0.0;
+		if (pd_total_last_week) {
+			last_week_hrs = pd_total_last_week.hours().toFixed(2)
+		}
+		var total_hrs = 0.0;
+		if (pd_total) {
+			total_hrs = pd_total.hours().toFixed(2)
+		}
+		
 		var middle = Template.get("progress_overview_middle").render(
 			new Context({
 				substate_menu_items: substate_menu_items,
-				pd_total_this_week: pd_total_this_week,
-				pd_total_last_week: pd_total_last_week,
-				pd_total: pd_total
+				pd_this_week_hrs: this_week_hrs,
+				pd_last_week_hrs: last_week_hrs,
+				pd_total_hrs: total_hrs
 			})
 		);
 		request.jQuery("#content").html( this.progress_wrapper_snippet(request, middle) );

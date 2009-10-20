@@ -389,7 +389,10 @@ var _prefify_float = function(x) {
 	return x.toString();
 }
 
-var host_regexp =  /^[\w]+:\/\/([^\/]+).*/g;
+// we expect wikipedia.org to split into   [,    ,wikipedia.org  ,]
+// we expect www.bluecar.com to split into [,www.,bluecar.com    ,]
+// we expect docs.google.com to split into [,    ,docs.google.com,]
+var host_regexp =  /^[\w]+:\/\/(www\.)?([^\/]+).*/g;
 
 var _host = function(href) {
 	if (!href) {
@@ -398,9 +401,8 @@ var _host = function(href) {
 		href = urlbar.value;
 	}
 	var splits = href.split(host_regexp);
-	
-	if ( splits.length > 1 ) {
-		return splits[1]
+	if ( splits.length > 2 ) {
+		return splits[2];
 	} else {
 		return href
 	}

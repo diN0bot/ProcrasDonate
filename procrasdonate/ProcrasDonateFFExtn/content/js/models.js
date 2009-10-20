@@ -59,12 +59,13 @@ function load_models(db, pddb) {
 	var SiteGroup = new Model(db, "SiteGroup", {
 		table_name: "sitegroups",
 		columns: {
-			_order: ["id", "name", "host", "url_re", "tag_id"],
+			_order: ["id", "name", "host", "url_re", "tag_id", "tax_exempt_status"],
 			id: "INTEGER PRIMARY KEY",
 			name: "VARCHAR",
 			host: "VARCHAR",
 			url_re: "VARCHAR",
-			tag_id: "INTEGER"
+			tag_id: "INTEGER",
+			tax_exempt_status: "INTEGER", // boolean 0=false
 		},
 		indexes: []
 	}, {
@@ -79,13 +80,18 @@ function load_models(db, pddb) {
 			return tag
 		},
 		
+		has_tax_exempt_status: function() {
+			return _un_dbify_bool(this.tax_exempt_status);
+		},
+		
 		deep_dict: function() {
 			return {
 				id: this.id,
 				name: this.name,
 				host: this.host,
 				url_re: this.url_re,
-				tag: this.tag().tag
+				tag: this.tag().tag,
+				tax_exempt_status: this.has_tax_exempt_status()
 			}
 		}
 	}, {
@@ -299,6 +305,14 @@ function load_models(db, pddb) {
 			timetype_id: "INTEGER"
 		}
 	}, {
+		dollars: function() {
+			return parseFloat(this.total_amount) / 100.0;
+		},
+		
+		hours: function() {
+			return parseFloat(this.total_time) / (60*60);
+		},
+		
 		// instance methods
 		contenttype: function() {
 			// all Totals have a contenttype
@@ -313,21 +327,21 @@ function load_models(db, pddb) {
 		cached_content: null,
 		content: function() {
 			// all Totals have a content
-			if (!this.cached_content) {
-				var self = this;
-				var content = pddb[this.contenttype().modelname].get_or_null({ id: self.content_id });
+			var self = this;
+			if (!self.cached_content) {
+				var content = pddb[self.contenttype().modelname].get_or_null({ id: self.content_id });
 				if (!content) {
-					pddb.orthogonals.error("no content found for total = "+this);
+					pddb.orthogonals.error("no content found for total = "+self);
 				} else {
-					this.cached_content = content;
+					self.cached_content = content;
 				}
 			}
-			return this.cached_content;
+			return self.cached_content;
 		},
 		
 		recipient: function() {
 			// @returns Recipient row factory or null if not Recipient contenttype
-			if (this.contenttype() == "Recipient") {
+			if (this.contenttype().modelname == "Recipient") {
 				return this.content();
 			}
 			return null;
@@ -335,7 +349,7 @@ function load_models(db, pddb) {
 		
 		site: function() {
 			// @returns Site row factory or null if not Site contenttype
-			if (this.contenttype() == "Site") {
+			if (this.contenttype().modelname == "Site") {
 				return this.content();
 			}
 			return null;
@@ -343,7 +357,7 @@ function load_models(db, pddb) {
 		
 		sitegroup: function() {
 			// @returns SiteGroup row factory or null if not SiteGroup contenttype
-			if (this.contenttype() == "SiteGroup") {
+			if (this.contenttype().modelname == "SiteGroup") {
 				return this.content();
 			}
 			return null;
@@ -351,7 +365,7 @@ function load_models(db, pddb) {
 		
 		tag: function() {
 			// @returns Tag row factory or null if not Tag contenttype
-			if (this.contenttype() == "Tag") {
+			if (this.contenttype().modelname == "Tag") {
 				return this.content();
 			}
 			return null;

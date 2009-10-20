@@ -19,7 +19,7 @@
     
     Template.compile([["var", ["inner"], []], "\n<span class='img_link move_to_unsorted'>\n\t<img class='Move_Site_Arrow' src='", ["var", ["constants", "MEDIA_URL"], []], "img/RightArrow.png'>\n</span>\n"], "procrasdonate_wrap");
     
-    Template.compile(["progress overview middle\n\n<p>", ["var", ["substate_menu_items"], []], "</p>\n\n<p>this week: ", ["var", ["pd_total_this_week", "total_time"], []], "</p>\n\n<p>last week: ", ["var", ["pd_total_last_week", "total_time"], []], "</p>\n\n<p>total: ", ["var", ["pd_total", "total_time"], []], "</p>\n"], "progress_overview_middle");
+    Template.compile(["progress overview middle\n\n<p>", ["var", ["substate_menu_items"], []], "</p>\n\n<p>this week: ", ["var", ["pd_this_week_hrs"], []], "</p>\n\n<p>last week: ", ["var", ["pd_last_week_hrs"], []], "</p>\n\n<p>total: ", ["var", ["pd_total_hrs"], []], "</p>\n"], "progress_overview_middle");
     
     Template.compile(["<div class='recipient recipient_to_add'>\n\t<!-- id class needed for js -->\n\t<div class=\"recipient_id\">", ["var", ["id"], []], "</div>\n\t<div class='add_recipient' title=\"Add recipient to list\"> \n\t\t<img src=\"", ["var", ["constants", "MEDIA_URL"], []], "img/AddRecipient.png\" class=\"recipient-image img_link\">\t\t\n\t </div>\n\t <div class='name'><a href='", ["var", ["url"], []], "'>", ["var", ["name"], []], "</a></div>\n\t<div class=\"category\">", ["var", ["category"], []], "</div>\n\t<div class='mission'>", ["var", ["mission"], []], "\n\t\t<span class='link description_toggle'>(less)</span>\n\t</div>\n\t<div class='description'><p>", ["var", ["description"], []], "</p></div>\n\n</div>\n"], "recipient_snippet");
     
