@@ -166,13 +166,13 @@ var constants = {};
 		"insert_register_done"
 	];
 	constants.REGISTER_STATE_PROCESSORS = [
-		"process_incentives", 
-		"process_charities", 
-		"process_content", 
-		"process_support", 
-		"process_updates",
-		"process_payments",
-		"process_done"
+		"process_register_incentive", 
+		"process_register_charities", 
+		"process_register_content", 
+		"process_register_support", 
+		"process_register_updates",
+		"process_register_payments",
+		"process_register_done"
 	];
 	
 	constants.DEFAULT_HASH = "nohash";

@@ -2589,7 +2589,7 @@ _extend(PageController.prototype, {
 		this.activate_settings_overview(request);
 		
 		this.activate_substate_menu_items(request, 'overview',
-			constants.SETTINGS_STATE_ENUM, constants.SETTINGS_STATE_INSERTS);
+			constants.SETTINGS_STATE_ENUM, constants.SETTINGS_STATE_INSERTS, constants.SETTINGS_STATE_PROCESSORS);
 	},
 	
 	retrieve_float_for_display: function(key, def) {
@@ -3003,10 +3003,11 @@ _extend(PageController.prototype, {
 		request.jQuery("#content").html( middle );
 		
 		this.activate_substate_menu_items(request, 'incentive',
-			constants.REGISTER_STATE_ENUM, constants.REGISTER_STATE_INSERTS);
+			constants.REGISTER_STATE_ENUM, constants.REGISTER_STATE_INSERTS, constants.REGISTER_STATE_PROCESSORS);
 	},
 	
 	process_register_incentive: function(request) {
+		logger("process_register_incentive");
 		var self = this;
 		var pd_dollars_per_hr = request.jQuery("input[name='pd_dollars_per_hr']").attr("value");
 		var pd_hr_per_week_goal = request.jQuery("input[name='pd_hr_per_week_goal']").attr("value");
@@ -3023,9 +3024,11 @@ _extend(PageController.prototype, {
 			request.jQuery("#errors").append("<p>Please enter number of hours. For example, enter 30 minutes as .5</p>");
 			
 		} else {
+			logger("333333333 "+this.prefs.get('pd_hr_per_week_goal', "banana")+"     "+pd_hr_per_week_goal+"-----"+this.clean_hours_input(pd_hr_per_week_goal));
 			this.prefs.set('pd_dollars_per_hr', this.clean_dollars_input(pd_dollars_per_hr));
 			this.prefs.set('pd_hr_per_week_goal', this.clean_hours_input(pd_hr_per_week_goal));
 			this.prefs.set('pd_hr_per_week_max', this.clean_hours_input(pd_hr_per_week_max));
+			logger("777777777 "+this.prefs.get('pd_hr_per_week_goal', "banana"));
 			return true;
 		}
 		return false;
@@ -3046,32 +3049,11 @@ _extend(PageController.prototype, {
 		request.jQuery("#content").html( middle );
 		
 		this.activate_substate_menu_items(request, 'charities',
-			constants.REGISTER_STATE_ENUM, constants.REGISTER_STATE_INSERTS);
+			constants.REGISTER_STATE_ENUM, constants.REGISTER_STATE_INSERTS, constants.REGISTER_STATE_PROCESSORS);
 	},
 	
 	process_register_charities: function(request) {
-		var self = this;
-		var pd_dollars_per_hr = request.jQuery("input[name='pd_dollars_per_hr']").attr("value");
-		var pd_hr_per_week_goal = request.jQuery("input[name='pd_hr_per_week_goal']").attr("value");
-		var pd_hr_per_week_max = request.jQuery("input[name='pd_hr_per_week_max']").attr("value");
-
-		request.jQuery("#errors").text("");
-		if ( !this.validate_dollars_input(request, pd_dollars_per_hr) ) {
-			request.jQuery("#errors").append("<p>Please enter a valid dollar amount. For example, to donate $2.34 per hour, please enter 2.34</p>");
-			
-		} else if ( !this.validate_hours_input(request, pd_hr_per_week_goal) ) {
-			request.jQuery("#errors").append("<p>Please enter number of hours. For example, to strive for 8 hrs and 15 minutes, please enter 1.25</p>");
-			
-		} else if ( !this.validate_hours_input(request, pd_hr_per_week_max) ) {
-			request.jQuery("#errors").append("<p>Please enter number of hours. For example, enter 30 minutes as .5</p>");
-			
-		} else {
-			this.prefs.set('pd_dollars_per_hr', this.clean_dollars_input(pd_dollars_per_hr));
-			this.prefs.set('pd_hr_per_week_goal', this.clean_hours_input(pd_hr_per_week_goal));
-			this.prefs.set('pd_hr_per_week_max', this.clean_hours_input(pd_hr_per_week_max));
-			return true;
-		}
-		return false;
+		return true
 	},
 	
 	insert_register_content: function(request) {
@@ -3092,7 +3074,7 @@ _extend(PageController.prototype, {
 		request.jQuery("#content").html( middle );
 		
 		this.activate_substate_menu_items(request, 'content',
-			constants.REGISTER_STATE_ENUM, constants.REGISTER_STATE_INSERTS);
+			constants.REGISTER_STATE_ENUM, constants.REGISTER_STATE_INSERTS, constants.REGISTER_STATE_PROCESSORS);
 	},
 	
 	process_register_content: function(request) {
@@ -3138,7 +3120,7 @@ _extend(PageController.prototype, {
 		request.jQuery("#content").html( middle );
 		
 		this.activate_substate_menu_items(request, 'support',
-			constants.REGISTER_STATE_ENUM, constants.REGISTER_STATE_INSERTS);
+			constants.REGISTER_STATE_ENUM, constants.REGISTER_STATE_INSERTS, constants.REGISTER_STATE_PROCESSORS);
 	},
 	
 	process_register_support: function(request) {
@@ -3178,27 +3160,11 @@ _extend(PageController.prototype, {
 		request.jQuery("#content").html( middle );
 		
 		this.activate_substate_menu_items(request, 'updates',
-			constants.REGISTER_STATE_ENUM, constants.REGISTER_STATE_INSERTS);
+			constants.REGISTER_STATE_ENUM, constants.REGISTER_STATE_INSERTS, constants.REGISTER_STATE_PROCESSORS);
 	},
 	
 	process_register_updates: function(request) {
-		var self = this;
-		var support_pct = request.jQuery("input[name='support_pct']").attr("value");
-		var monthly_fee = request.jQuery("input[name='monthly_fee']").attr("value");
-
-		request.jQuery("#errors").text("");
-		if ( !this.validate_positive_float_input(request, support_pct) ) {
-			request.jQuery("#errors").append("<p>Please enter a valid percent. For example, blah blah</p>");
-			
-		} else if ( !this.validate_dollars_input(request, monthly_fee) ) {
-			request.jQuery("#errors").append("<p>Please blah</p>");
-			
-		} else {
-			this.prefs.set('support_pct', this.clean_percent_input(support_pct));
-			this.prefs.set('monthly_fee', this.clean_dollars_input(monthly_fee));
-			return true;
-		}
-		return false;
+		return true
 	},
 	
 	insert_register_payments: function(request) {
@@ -3218,27 +3184,11 @@ _extend(PageController.prototype, {
 		request.jQuery("#content").html( middle );
 		
 		this.activate_substate_menu_items(request, 'payments',
-			constants.REGISTER_STATE_ENUM, constants.REGISTER_STATE_INSERTS);
+			constants.REGISTER_STATE_ENUM, constants.REGISTER_STATE_INSERTS, constants.REGISTER_STATE_PROCESSORS);
 	},
 	
 	process_register_payments: function(request) {
-		var self = this;
-		var support_pct = request.jQuery("input[name='support_pct']").attr("value");
-		var monthly_fee = request.jQuery("input[name='monthly_fee']").attr("value");
-
-		request.jQuery("#errors").text("");
-		if ( !this.validate_positive_float_input(request, support_pct) ) {
-			request.jQuery("#errors").append("<p>Please enter a valid percent. For example, blah blah</p>");
-			
-		} else if ( !this.validate_dollars_input(request, monthly_fee) ) {
-			request.jQuery("#errors").append("<p>Please blah</p>");
-			
-		} else {
-			this.prefs.set('support_pct', this.clean_percent_input(support_pct));
-			this.prefs.set('monthly_fee', this.clean_dollars_input(monthly_fee));
-			return true;
-		}
-		return false;
+		return true
 	},
 	
 	insert_register_done: function(request) {
@@ -3299,17 +3249,54 @@ _extend(PageController.prototype, {
 		}
 	},
 	
-	activate_substate_menu_items: function(request, current_substate, enums, inserts) {
-		var self=this;
-		for (var i = 0; i < enums.length; i += 1) {
-			// closure
-			request.jQuery("#substate_tab_"+enums[i]).click(
-				this._proceed(inserts[i], request)
-			);
-		}
+	activate_substate_menu_items: function(request, current_substate, enums, inserts, processors) {
+		var self = this;
+		_iterate(enums, function(key, substate, index) {
+			if (processors) {
+				request.jQuery("#substate_tab_"+substate).click(
+					self._process(current_substate, enums, processors, inserts[index], request)
+				);
+			} else {
+				request.jQuery("#substate_tab_"+substate).click(
+					self._proceed(inserts[index], request)
+				);
+			}
+		});
 	},
 	
-	_process_before_proceeding: function(request, state_name, state_enums, processors, event) {
+	_process: function(current_substate, enums, processors, event, request) {
+		var self = this;
+		return function() {
+			logger("_process !!!! "+current_substate+"\n"+enums+"\n"+processors);
+			_iterate(enums, function(key, substate, index) {
+				if (substate == current_substate) {
+					logger("processors="+processors);
+					logger("processors[index]="+processors[index]);
+					var success = self[processors[index]](request, event);
+					logger("_process success="+success);
+					if (success) {
+						self[event](request);
+					}
+				}
+			});
+		};
+	},
+	
+	/// necessary because when did direct closure
+	/// (function(event) { return event; })(self[event])
+	// .click(
+	//     (function(event) { return event; })(self[event])
+	// )
+	/// called functions had incorrect this
+	_proceed: function(event, request) {
+		var self = this;
+		return function() {
+			//self[fnname].apply(self, args);
+			self[event](request);
+		};
+	},
+	
+	_process_before_proceeding: function(request, current_substate, enums, inserts, processors, event) {
 		//logger("_process_before_proceeding event="+event);
 		var self = this;
 		return function() {
@@ -3329,20 +3316,6 @@ _extend(PageController.prototype, {
 				}
 			}
 		}
-	},
-	
-	/// necessary because when did direct closure
-	/// (function(event) { return event; })(self[event])
-	// .click(
-	//     (function(event) { return event; })(self[event])
-	// )
-	/// called functions had incorrect this
-	_proceed: function(event, request) {
-		var self = this;
-		return function() {
-			//self[fnname].apply(self, args);
-			self[event](request);
-		};
 	},
 
 	actdivate_settings_tab_events: function(request) {
