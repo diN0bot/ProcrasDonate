@@ -362,7 +362,6 @@ Overlay.prototype = {
 		    classes["@mozilla.org/extensions/manager;1"].
 		    getService(Components.interfaces.nsIExtensionManager);
 		
-		//"extension@guid.net" should be replaced with your extension's GUID.
 		var current = gExtensionManager.getItemForID(ProcrasDonate__UUID).version;
 		
 		try {
@@ -661,8 +660,8 @@ PDDB.prototype = {
 		var timetypes = [ this.Daily, this.Weekly, this.Yearly, this.Forever ];
 		var times     = [ end_of_day, end_of_week, end_of_year, end_of_forever ];
 		
-		var pd_cents_per_hr = this.prefs.get('pd_cents_per_hr', 0);
-		var tws_cents_per_hr = this.prefs.get('tws_cents_per_hr', 0);
+		var pd_dollars_per_hr = this.prefs.get('pd_dollars_per_hr', constants.PD_DEFAULT_DOLLARS_PER_HR);
+		var tws_dollars_per_hr = this.prefs.get('tws_dollars_per_hr', constants.TWS_DEFAULT_DOLLARS_PER_HR);
 		
 		if (STORE_VISIT_LOGGING) logger("update visit="+visit);
 		
@@ -683,14 +682,14 @@ PDDB.prototype = {
 		}
 		
 		// full amount. still have to calculate recipient percents
-		// use limited_time_delta for calculation
+		// use limited_time_delta for calculation (in seconds, so turn into hours)
 		// NOTE: pd support gets taken automatically by amazon !!
 		// amazon fee and marketplace fee to PD are automatically taken
 		// from recipient's account! so full amount is tax deductible if any part is!
-		var pd_full_amount_delta = ( limited_time_delta / (60.0*60.0) ) * parseInt(pd_cents_per_hr);
-		var tws_full_amount_delta = ( limited_time_delta / (60.0*60.0) ) * parseInt(tws_cents_per_hr);
+		var pd_full_amount_delta = ( limited_time_delta / (60.0*60.0) ) * parseFloat(pd_dollars_per_hr);
+		var tws_full_amount_delta = ( limited_time_delta / (60.0*60.0) ) * parseFloat(tws_dollars_per_hr);
 		
-		if (STORE_VISIT_LOGGING) logger("time_delta="+time_delta+"limited_time_delta="+limited_time_delta+" pd_cents_per_hr="+pd_cents_per_hr+" tws_cents_per_hr="+tws_cents_per_hr);
+		if (STORE_VISIT_LOGGING) logger("time_delta="+time_delta+"limited_time_delta="+limited_time_delta+" pd_dollars_per_hr="+pd_dollars_per_hr+" tws_dollars_per_hr="+tws_dollars_per_hr);
 		
 		// don't need these anymore. see above note
 		var pd_skim_amount = pd_full_amount_delta * pd_pct;

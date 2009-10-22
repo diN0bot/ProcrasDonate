@@ -1,6 +1,12 @@
 progress overview middle
 
-<p>{{ substate_menu_items }}</p>
+<ul>
+	{% for item in substate_menu_items.menu_items %}
+		<li id="{{ item.id }}"
+			class="{% for klass in item.klasses %}{{ klass }} {% endfor %}">
+			{{ item.value }}</li>
+	{% endfor %}
+</ul>
 
 <p>this week: {{ pd_this_week_hrs }}</p>
 

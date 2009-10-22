@@ -3,11 +3,9 @@
 <h2>Donations and Pledges</h2>
 
 <ul>
-	{% for item in substate_menu_items %}
-		<li
-			id="{{ item.id }}"
-			class="{% for klass in item.klasses %}{{ klass }} {% endfor %}"
-			>
+	{% for item in substate_menu_items.menu_items %}
+		<li id="{{ item.id }}"
+			class="{% for klass in item.klasses %}{{ klass }} {% endfor %}">
 			{{ item.value }}</li>
 	{% endfor %}
 </ul>

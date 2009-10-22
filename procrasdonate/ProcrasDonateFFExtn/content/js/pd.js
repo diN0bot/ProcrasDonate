@@ -413,9 +413,9 @@ _extend(ProcrasDonate_API.prototype, {
 					self.pddb.FPSMultiuseAuthorization.process_object(value);
 				});
 				_iterate(r.recipients, function(key, value, index) {
-					logger("NEW RECIPIENT FROM SERVER "+key+" "+value.slug);
+					//logger("NEW RECIPIENT FROM SERVER "+key+" "+value.slug);
 					var r = self.pddb.Recipient.process_object(value);
-					logger("recip: "+r.slug);
+					//logger("recip: "+r.slug);
 				});
 				self.prefs.set('since_received_data', _dbify_date(new_since));
 				self.pddb.orthogonals.log("dataflow", "Done: "+_dbify_date(new_since));

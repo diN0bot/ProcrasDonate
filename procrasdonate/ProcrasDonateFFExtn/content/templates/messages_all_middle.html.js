@@ -1,3 +1,3 @@
 
-    Template.compile(["messages all middle\n\n<ul>\n\t", ["for", ["item"], ["var", ["substate_menu_items"], []], false, ["\n\t\t<li id=\"", ["var", ["item", "id"], []], "\">", ["var", ["item", "value"], []], "</li>\n\t"]], "\n</ul>\n\n"], "messages_all_middle");
+    Template.compile(["messages all middle\n\n<ul>\n\t", ["for", ["item"], ["var", ["substate_menu_items", "menu_items"], []], false, ["\n\t\t<li id=\"", ["var", ["item", "id"], []], "\"\n\t\t\tclass=\"", ["for", ["klass"], ["var", ["item", "klasses"], []], false, [["var", ["klass"], []], " "]], "\">\n\t\t\t", ["var", ["item", "value"], []], "</li>\n\t"]], "\n</ul>\n"], "messages_all_middle");
     

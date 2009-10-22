@@ -377,11 +377,7 @@ var _date_to_http_format = function(t) {
 // if x can be parsed as an int, return that
 // otherwise, we return x parsed as a float to 2 decimal places
 var _un_prefify_float = function(x) {
-	if ( parseInt(x) == x ) {
-		return parseInt(x);
-	} else {
-		return parseFloat(x).toFixed(2);
-	}
+	return parseFloat(x);
 }
 
 // can't store floats in prefs, so convert to string

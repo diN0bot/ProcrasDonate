@@ -160,10 +160,14 @@ for app in APPS:
             '%s.context.defaults' % app,
         )
 
-# read extension version number from version.conf
-pdv_f = open(pathify([PROJECT_PATH, 'version.conf'], file_extension=True), 'r')
-PDVERSION = pdv_f.readline().strip()
-pdv_f.close()
+# read extension version number from extension install.rdf
+import re
+update_url_re = re.compile("<em:updateURL>(.*)</em:updateURL>")
+install_rdf = open(pathify([PROJECT_PATH, 'procrasdonate/ProcrasDonateFFExtn/install.rdf'], file_extension=True), 'r')
+urls = update_url_re.findall(install_rdf.read())
+install_rdf.close()
+PDVERSION = urls[0].strip()
+### exceptions get raised if something is wrong
 
 
 """

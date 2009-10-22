@@ -1,3 +1,3 @@
 
-    Template.compile(["progress overview middle\n\n<p>", ["var", ["substate_menu_items"], []], "</p>\n\n<p>this week: ", ["var", ["pd_this_week_hrs"], []], "</p>\n\n<p>last week: ", ["var", ["pd_last_week_hrs"], []], "</p>\n\n<p>total: ", ["var", ["pd_total_hrs"], []], "</p>\n"], "progress_overview_middle");
+    Template.compile(["progress overview middle\n\n<ul>\n\t", ["for", ["item"], ["var", ["substate_menu_items", "menu_items"], []], false, ["\n\t\t<li id=\"", ["var", ["item", "id"], []], "\"\n\t\t\tclass=\"", ["for", ["klass"], ["var", ["item", "klasses"], []], false, [["var", ["klass"], []], " "]], "\">\n\t\t\t", ["var", ["item", "value"], []], "</li>\n\t"]], "\n</ul>\n\n<p>this week: ", ["var", ["pd_this_week_hrs"], []], "</p>\n\n<p>last week: ", ["var", ["pd_last_week_hrs"], []], "</p>\n\n<p>total: ", ["var", ["pd_total_hrs"], []], "</p>\n"], "progress_overview_middle");
     

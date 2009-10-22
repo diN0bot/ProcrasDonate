@@ -1,0 +1,48 @@
+
+<ul>
+	{% for item in substate_menu_items.menu_items %}
+		<li class="{% for klass in item.klasses %}{{ klass }} {% endfor %}">
+			{{ item.value }}</li>
+	{% endfor %}
+</ul>
+
+{% if substate_menu_items.prev %}
+<span id="{{ substate_menu_items.prev.id }}" class="prev">PREV</span>
+{% endif %}
+
+{% if substate_menu_items.next %}
+<span id="{{ substate_menu_items.next.id }}" class="next">NEXT</span>
+{% endif %}
+
+{% ifequal substate_menu_items.next.value "XXX" %}
+	<span id="{{ substate_menu_items.next.id }}" class="done">DONE</span>
+{% endifequal %}
+
+<h1>Customize your charitable incentive</h1>
+
+<h2>Goal</h2>
+<p>How many hours per week of ProcrasDonation would you like to strive for?</p>
+<p><input
+	type="text"
+	id="pd_hr_per_week_goal"
+	name="pd_hr_per_week_goal" 
+	value="{{ pd_hr_per_week_goal }}" />
+   <span class="units">hours per week</span></p>
+
+<h2>Incentive</h2>
+<p>Blah blah blah</p>
+<p><input
+	type="text"
+	id="pd_dollars_per_hr"
+	name="pd_dollars_per_hr" 
+	value="{{ pd_dollars_per_hr }}" />
+   <span class="units">dollars per hour</span></p>
+
+<h2>ProcrasDonation Limit</h2>
+<p>Blah blah blah</p>
+<p><input
+	type="text"
+	id="pd_hr_per_week_max"
+	name="pd_hr_per_week_max" 
+	value="{{ pd_hr_per_week_max }}" />
+   <span class="units">hours per week</span></p>

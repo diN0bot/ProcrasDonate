@@ -1,0 +1,33 @@
+
+<ul>
+	{% for item in substate_menu_items.menu_items %}
+		<li class="{% for klass in item.klasses %}{{ klass }} {% endfor %}">
+			{{ item.value }}</li>
+	{% endfor %}
+</ul>
+
+{% if substate_menu_items.prev %}
+<span id="{{ substate_menu_items.prev.id }}" class="prev">PREV</span>
+{% endif %}
+
+{% if substate_menu_items.next %}
+<span id="{{ substate_menu_items.next.id }}" class="next">NEXT</span>
+{% endif %}
+
+{% ifequal substate_menu_items.next.value "XXX" %}
+	<span id="{{ substate_menu_items.next.id }}" class="done">DONE</span>
+{% endifequal %}
+
+<h1>Approving payments</h1>
+<p>blah blah</p>
+
+<h2>Determining an overall limit</h2>
+<p>Blah blah blah</p>
+<p><input
+	type="text"
+	id="a"
+	name="a" 
+	value="{{ a }}" />
+   </p>
+
+<p>Blah blah blah <span id="limit_in_dollars">{{ limit_in_dollars }}</span> blah blah</p>

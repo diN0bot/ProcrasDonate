@@ -55,7 +55,7 @@ _extend(Controller.prototype, {
 		// substate did not match!!
 		// set to default
 		this.prefs.set(state_name + '_state', default_state);
-		this.insert_based_on_state(request, default_state, state_enums, event_inserts); 
+		this.insert_based_on_state(request, state_name, default_state, state_enums, event_inserts); 
 		return false;
 	},
 	
@@ -223,13 +223,14 @@ _extend(Controller.prototype, {
 		email: constants.DEFAULT_EMAIL,
 		procrasdonate_reason: constants.DEFAULT_PROCRASDONATE_REASON,
 		timewellspent_reason: constants.DEFAULT_TIMEWELLSPENT_REASON,
-		pd_cents_per_hr: constants.PD_DEFAULT_CENTS_PER_HR,
+		pd_dollars_per_hr: constants.PD_DEFAULT_DOLLARS_PER_HR,
 		pd_hr_per_week_goal: constants.PD_DEFAULT_HR_PER_WEEK_GOAL,
 		pd_hr_per_week_max: constants.PD_DEFAULT_HR_PER_WEEK_MAX,
-		tws_cents_per_hr: constants.TWS_DEFAULT_CENTS_PER_HR,
+		tws_dollars_per_hr: constants.TWS_DEFAULT_DOLLARS_PER_HR,
 		tws_hr_per_week_goal: constants.TWS_DEFAULT_HR_PER_WEEK_GOAL,
 		tws_hr_per_week_max: constants.TWS_DEFAULT_HR_PER_WEEK_MAX,
 		support_pct: constants.DEFAULT_SUPPORT_PCT,
+		monthly_fee: constants.DEFAULT_MONTHLY_FEE,
 		tos: false,
 		
 		global_amount_limit: constants.DEFAULT_GLOBAL_AMOUNT_LIMIT,
@@ -1382,10 +1383,10 @@ _extend(PageController.prototype, {
 		var context = new Context({
 			pd_hr_per_week_max: this.prefs.get("pd_hr_per_week_max", constants.PD_DEFAULT_HR_PER_WEEK_MAX),
 			pd_hr_per_week_goal: this.prefs.get("pd_hr_per_week_goal", constants.PD_DEFAULT_HR_PER_WEEK_GOAL),
-			pd_cents_per_hr: this.prefs.get("pd_cents_per_hr", constants.PD_DEFAULT_CENTS_PER_HR),
+			pd_dollars_per_hr: this.prefs.get("pd_dollars_per_hr", constants.PD_DEFAULT_DOLLARS_PER_HR),
 			tws_hr_per_week_max: this.prefs.get("tws_hr_per_week_max", constants.TWS_DEFAULT_HR_PER_WEEK_MAX),
 			tws_hr_per_week_goal: this.prefs.get("tws_hr_per_week_goal", constants.TWS_DEFAULT_HR_PER_WEEK_MAX),
-			tws_cents_per_hr: this.prefs.get("tws_cents_per_hr", constants.TWS_DEFAULT_CENTS_PER_HR),
+			tws_dollars_per_hr: this.prefs.get("tws_dollars_per_hr", constants.TWS_DEFAULT_DOLLARS_PER_HR),
 			constants: constants,
 		});
 		return Template.get("donation_amounts_middle").render(context);
@@ -1538,16 +1539,27 @@ _extend(PageController.prototype, {
 		}
 	},
 	
-	validate_cents_input: function(request, v) {
-		var cents = parseInt(v);
+	validate_positive_float_input: function(request, v) {
+		try {
+			return parseFloat(v) >= 0
+		} catch(e) {
+			return false
+		}
+	},
+	
+	validate_dollars_input: function(request, v) {
+		return parseFloat(v) >= 0
+		
+		/// old
+		
 		//var hr_per_week_goal = parseFloat(
 		//	request.jQuery("input[name='hr_per_week_goal']").attr("value"));
-		var max = 2000;
-		if ( cents > 0 && cents < max )
+		var max = 20;
+		if ( dollars >= 0 && dollars <= max )
 			return true;
 		
-		if ( cents >= max ) {
-			var confirm_results = confirm("Do you really want to donate " + cents + "&cent; every hour you spend procrastinating up to your daily limit of " + hr_per_week_goal + "?");
+		if ( dollars >= max ) {
+			var confirm_results = confirm("Do you really want to donate $" + dollars + " every hour you spend procrastinating up to your daily limit?");
 			if ( confirm_results ) {
 				return true;
 			} else {
@@ -1559,28 +1571,27 @@ _extend(PageController.prototype, {
 	
 	validate_hours_input: function(request, v) {
 		var hours = parseFloat(v);
-		if ( hours > 0 )
+		if ( hours >= 0 )
 			return true;
 		else
 			return false;
 	},
 	
-	clean_cents_input: function(v) {
-		var cents = parseInt(v);
-		return cents;
+	clean_dollars_input: function(v) {
+		return _prefify_float(v);
 	},
 	
 	clean_hours_input: function(v) {
-		var hours = parseFloat(v);
-		if ( hours > (24*7) )
-			hours = (24*7);
-		if ( parseInt(hours) != hours )
-			hours = hours.toFixed(2);
-		return hours;
+		return _prefify_float(v);
 	},
 	
-	validate_twitter_username_and_password: function(username, password) {
-		return this.validate_string(username) && this.validate_string(password)
+	clean_positive_float_input: function(request, v) {
+		return _prefify_float(v);
+	},
+	
+	clean_percent_input: function(request, v) {
+		var f = parseFloat(v);
+		return _prefify_float(f / 100.00);
 	},
 	
 	validate_string: function(v) {
@@ -1590,27 +1601,27 @@ _extend(PageController.prototype, {
 		
 	process_donation: function(request, event) {
 		/*
-		 * cents_per_hr: pos int
+		 * dollars_per_hr: pos int
 		 * hr_per_week_goal: pos float < 25
 		 * hr_per_week_max: pos float < 25
 		 */
-		var pd_cents_per_hr = parseInt(
-			request.jQuery("input[name='pd_cents_per_hr']").attr("value"));
-		var pd_hr_per_week_goal = parseFloat(
-			request.jQuery("input[name='pd_hr_per_week_goal']").attr("value"));
-		var pd_hr_per_week_max = parseFloat(
-			request.jQuery("input[name='pd_hr_per_week_max']").attr("value"));
+		var pd_dollars_per_hr = 
+			request.jQuery("input[name='pd_dollars_per_hr']").attr("value");
+		var pd_hr_per_week_goal = 
+			request.jQuery("input[name='pd_hr_per_week_goal']").attr("value");
+		var pd_hr_per_week_max =
+			request.jQuery("input[name='pd_hr_per_week_max']").attr("value");
 		
-		var tws_cents_per_hr = parseInt(
-			request.jQuery("input[name='tws_cents_per_hr']").attr("value"));
-		var tws_hr_per_week_goal = parseFloat(
-			request.jQuery("input[name='tws_hr_per_week_goal']").attr("value"));
-		var tws_hr_per_week_max = parseFloat(
-			request.jQuery("input[name='tws_hr_per_week_max']").attr("value"));
+		var tws_dollars_per_hr =
+			request.jQuery("input[name='tws_dollars_per_hr']").attr("value");
+		var tws_hr_per_week_goal =
+			request.jQuery("input[name='tws_hr_per_week_goal']").attr("value");
+		var tws_hr_per_week_max =
+			request.jQuery("input[name='tws_hr_per_week_max']").attr("value");
 
 		request.jQuery("#errors").text("");
-		if ( !this.validate_cents_input(request, pd_cents_per_hr) || 
-				!this.validate_cents_input(request, tws_cents_per_hr) ) {
+		if ( !this.validate_dollars_input(request, pd_dollars_per_hr) || 
+				!this.validate_dollars_input(request, tws_dollars_per_hr) ) {
 			request.jQuery("#errors").append("<p>Please enter a valid dollar amount. For example, to donate $2.34 an hour, please enter 2.34</p>");
 		} else if ( !this.validate_hours_input(request, pd_hr_per_week_goal) ||
 				!this.validate_hours_input(request, tws_hr_per_week_goal)) {
@@ -1619,11 +1630,11 @@ _extend(PageController.prototype, {
 				!this.validate_hours_input(request, tws_hr_per_week_max)) {
 			request.jQuery("#errors").append("<p>Please enter number of hours. For example, enter 30 minutes as .5</p>");
 		} else {
-			this.prefs.set('pd_cents_per_hr', this.clean_cents_input(pd_cents_per_hr));
+			this.prefs.set('pd_dollars_per_hr', this.clean_dollars_input(pd_dollars_per_hr));
 			this.prefs.set('pd_hr_per_week_goal', this.clean_hours_input(pd_hr_per_week_goal));
 			this.prefs.set('pd_hr_per_week_max', this.clean_hours_input(pd_hr_per_week_max));
 			
-			this.prefs.set('tws_cents_per_hr', this.clean_cents_input(tws_cents_per_hr));
+			this.prefs.set('tws_dollars_per_hr', this.clean_dollars_input(tws_dollars_per_hr));
 			this.prefs.set('tws_hr_per_week_goal', this.clean_hours_input(tws_hr_per_week_goal));
 			this.prefs.set('tws_hr_per_week_max', this.clean_hours_input(tws_hr_per_week_max));
 			return true;
@@ -2537,6 +2548,83 @@ _extend(PageController.prototype, {
 		//$.plot($("#procrasdonation_chart"), data, options);
 	},
 	
+	/***********************************************************************************/
+	/***********************************************************************************/
+	/*****************************   N    E    W   *************************************/
+	/***********************************************************************************/
+	/***********************************************************************************/
+
+	insert_settings_overview: function(request) {
+		var self = this;
+		this.prefs.set('settings_state', 'overview');
+		
+		var substate_menu_items = this.make_substate_menu_items('overview',
+			constants.SETTINGS_STATE_ENUM, constants.SETTINGS_STATE_TAB_NAMES);
+
+		var middle = Template.get("settings_overview_middle").render(
+			new Context({
+				substate_menu_items: substate_menu_items,
+				
+				estimated_time_till_reauth: {units: "months", time: 4},
+				
+				pd_hr_per_week_goal: self.retrieve_float_for_display("pd_hr_per_week_goal", constants.PD_DEFAULT_HR_PER_WEEK_GOAL),
+				pd_dollars_per_hr: self.retrieve_float_for_display("pd_dollars_per_hr", constants.PD_DEFAULT_DOLLARS_PER_HR),
+				pd_hr_per_week_max: self.retrieve_float_for_display("pd_hr_per_week_max", constants.PD_DEFAULT_HR_PER_WEEK_MAX),
+				
+				tws_hr_per_week_goal: self.retrieve_float_for_display("tws_hr_per_week_goal", constants.TWS_DEFAULT_HR_PER_WEEK_MAX),
+				tws_dollars_per_hr: self.retrieve_float_for_display("tws_dollars_per_hr", constants.TWS_DEFAULT_DOLLARS_PER_HR),
+				tws_hr_per_week_max: self.retrieve_float_for_display("tws_hr_per_week_max", constants.TWS_DEFAULT_HR_PER_WEEK_MAX),
+				
+				monthly_fee: 0,
+				support_pct: self.retrieve_float_for_display('support_pct', constants.DEFAULT_SUPPORT_PCT),
+				
+				email: this.prefs.get("email", constants.DEFAULT_EMAIL),
+				receive_weekly_affirmations: this.prefs.get("receive_weekly_affirmations", constants.DEFAULT_RECEIVE_WEEKLY_AFFIRMATIONS),
+				receive_thankyous: this.prefs.get("receive_thankyous", constants.DEFAULT_RECEIVE_THANKYOUS),
+				receive_newsletters: this.prefs.get("receive_newsletters", constants.DEFAULT_RECEIVE_NEWSLETTERS),
+			})
+		);
+		request.jQuery("#content").html( middle );
+		
+		this.activate_settings_overview(request);
+		
+		this.activate_substate_menu_items(request, 'overview',
+			constants.SETTINGS_STATE_ENUM, constants.SETTINGS_STATE_INSERTS);
+	},
+	
+	retrieve_float_for_display: function(key, def) {
+		return _un_prefify_float( this.prefs.get(key, def) ).toFixed(2)
+	},
+	
+	activate_settings_overview: function(request) {
+		var self = this;
+		
+		function arrow_click(arrow_id, diff) {
+			request.jQuery(arrow_id)
+				.css("cursor", "pointer")
+				.click(function(e) {
+					var item = request.jQuery(this).siblings(".thevalue");
+					var id = item.attr("id");
+					item.append(" "+id+" ");
+					var value = _un_prefify_float( self.prefs.get(id, null) );
+					if (value != null) {
+						var new_value = value + diff;
+						if (new_value < 0) new_value = 0.0;
+						self.prefs.set(id, _prefify_float(new_value));
+						item.text(new_value.toFixed(2));
+						item.siblings(".error").text("");
+					} else {
+						item.siblings(".error").text("ERROR");
+					}
+				});
+		}
+		arrow_click(".up_arrow", 0.25);
+		arrow_click(".down_arrow", -0.25);
+	},
+	
+	process_settings_overview: function(request) {
+	},
+	
 	insert_impact_totals: function(request) {
 		var self = this;
 		this.prefs.set('impact_state', 'totals');
@@ -2643,7 +2731,7 @@ _extend(PageController.prototype, {
 		);
 		request.jQuery("#content").html( middle );
 		
-		this.activate_substate_menu_items(request, 'impact',
+		this.activate_substate_menu_items(request, 'totals',
 			constants.IMPACT_STATE_ENUM, constants.IMPACT_STATE_INSERTS);
 	},
 	
@@ -2792,7 +2880,7 @@ _extend(PageController.prototype, {
 		);
 		request.jQuery("#content").html( middle );
 		
-		this.activate_substate_menu_items(request, 'impact',
+		this.activate_substate_menu_items(request, substate,
 			constants.IMPACT_STATE_ENUM, constants.IMPACT_STATE_INSERTS);
 	},
 	
@@ -2835,7 +2923,7 @@ _extend(PageController.prototype, {
 		);
 		request.jQuery("#content").html( middle );
 		
-		this.activate_substate_menu_items(request, 'messages',
+		this.activate_substate_menu_items(request, 'all',
 			constants.MESSAGES_STATE_ENUM, constants.MESSAGES_STATE_INSERTS);
 	},
 	
@@ -2897,32 +2985,321 @@ _extend(PageController.prototype, {
 		request.jQuery("#content").html( this.progress_wrapper_snippet(request, middle) );
 	},
 	
-	
-	
-	/*
-	 * @return: list of (id, display_name) tuples for substate menu
-	 *          id is "substate_tab_"+enums[index]
-	 *          display_name is tab_names[index]
-	 */
-	make_substate_menu_items: function(current_substate, enums, tab_names) {
-		var ret = [];
-		_iterate(tab_names, function(key, value, index) {
-			if (value != "XXX") {
-				var klasses = ["substate_tab"];
-				if (enums[index] == current_substate) {
-					klasses.push("current_tab");
-				}
-				ret.push({
-					id: "substate_tab_"+enums[index],
-					klasses: klasses,
-					value: value
-				});
-			}
-		});
-		return ret;
+	insert_register_incentive: function(request) {
+		var self = this;
+		this.prefs.set('register_state', 'incentive');
+		
+		var substate_menu_items = this.make_substate_menu_items('incentive',
+				constants.REGISTER_STATE_ENUM, constants.REGISTER_STATE_TAB_NAMES);
+
+		var middle = Template.get("register_incentive_middle").render(
+			new Context({
+				substate_menu_items: substate_menu_items,
+				pd_dollars_per_hr: self.retrieve_float_for_display('pd_dollars_per_hr', constants.PD_DEFAULT_DOLLARS_PER_HR),
+				pd_hr_per_week_goal: self.retrieve_float_for_display('pd_hr_per_week_goal', constants.PD_DEFAULT_HR_PER_WEEK_GOAL),
+				pd_hr_per_week_max: self.retrieve_float_for_display('pd_hr_per_week_max', constants.PD_DEFAULT_HR_PER_WEEK_MAX),
+			})
+		);
+		request.jQuery("#content").html( middle );
+		
+		this.activate_substate_menu_items(request, 'incentive',
+			constants.REGISTER_STATE_ENUM, constants.REGISTER_STATE_INSERTS);
 	},
 	
-	activate_substate_menu_items: function(request, state_name, enums, inserts) {
+	process_register_incentive: function(request) {
+		var self = this;
+		var pd_dollars_per_hr = request.jQuery("input[name='pd_dollars_per_hr']").attr("value");
+		var pd_hr_per_week_goal = request.jQuery("input[name='pd_hr_per_week_goal']").attr("value");
+		var pd_hr_per_week_max = request.jQuery("input[name='pd_hr_per_week_max']").attr("value");
+
+		request.jQuery("#errors").text("");
+		if ( !this.validate_dollars_input(request, pd_dollars_per_hr) ) {
+			request.jQuery("#errors").append("<p>Please enter a valid dollar amount. For example, to donate $2.34 per hour, please enter 2.34</p>");
+			
+		} else if ( !this.validate_hours_input(request, pd_hr_per_week_goal) ) {
+			request.jQuery("#errors").append("<p>Please enter number of hours. For example, to strive for 8 hrs and 15 minutes, please enter 1.25</p>");
+			
+		} else if ( !this.validate_hours_input(request, pd_hr_per_week_max) ) {
+			request.jQuery("#errors").append("<p>Please enter number of hours. For example, enter 30 minutes as .5</p>");
+			
+		} else {
+			this.prefs.set('pd_dollars_per_hr', this.clean_dollars_input(pd_dollars_per_hr));
+			this.prefs.set('pd_hr_per_week_goal', this.clean_hours_input(pd_hr_per_week_goal));
+			this.prefs.set('pd_hr_per_week_max', this.clean_hours_input(pd_hr_per_week_max));
+			return true;
+		}
+		return false;
+	},
+	
+	insert_register_charities: function(request) {
+		var self = this;
+		this.prefs.set('register_state', 'charities');
+		
+		var substate_menu_items = this.make_substate_menu_items('charities',
+				constants.REGISTER_STATE_ENUM, constants.REGISTER_STATE_TAB_NAMES);
+
+		var middle = Template.get("register_charities_middle").render(
+			new Context({
+				substate_menu_items: substate_menu_items,
+			})
+		);
+		request.jQuery("#content").html( middle );
+		
+		this.activate_substate_menu_items(request, 'charities',
+			constants.REGISTER_STATE_ENUM, constants.REGISTER_STATE_INSERTS);
+	},
+	
+	process_register_charities: function(request) {
+		var self = this;
+		var pd_dollars_per_hr = request.jQuery("input[name='pd_dollars_per_hr']").attr("value");
+		var pd_hr_per_week_goal = request.jQuery("input[name='pd_hr_per_week_goal']").attr("value");
+		var pd_hr_per_week_max = request.jQuery("input[name='pd_hr_per_week_max']").attr("value");
+
+		request.jQuery("#errors").text("");
+		if ( !this.validate_dollars_input(request, pd_dollars_per_hr) ) {
+			request.jQuery("#errors").append("<p>Please enter a valid dollar amount. For example, to donate $2.34 per hour, please enter 2.34</p>");
+			
+		} else if ( !this.validate_hours_input(request, pd_hr_per_week_goal) ) {
+			request.jQuery("#errors").append("<p>Please enter number of hours. For example, to strive for 8 hrs and 15 minutes, please enter 1.25</p>");
+			
+		} else if ( !this.validate_hours_input(request, pd_hr_per_week_max) ) {
+			request.jQuery("#errors").append("<p>Please enter number of hours. For example, enter 30 minutes as .5</p>");
+			
+		} else {
+			this.prefs.set('pd_dollars_per_hr', this.clean_dollars_input(pd_dollars_per_hr));
+			this.prefs.set('pd_hr_per_week_goal', this.clean_hours_input(pd_hr_per_week_goal));
+			this.prefs.set('pd_hr_per_week_max', this.clean_hours_input(pd_hr_per_week_max));
+			return true;
+		}
+		return false;
+	},
+	
+	insert_register_content: function(request) {
+		var self = this;
+		this.prefs.set('register_state', 'content');
+		
+		var substate_menu_items = this.make_substate_menu_items('content',
+				constants.REGISTER_STATE_ENUM, constants.REGISTER_STATE_TAB_NAMES);
+
+		var middle = Template.get("register_content_middle").render(
+			new Context({
+				substate_menu_items: substate_menu_items,
+				tws_dollars_per_hr: self.retrieve_float_for_display('tws_dollars_per_hr', constants.TWS_DEFAULT_DOLLARS_PER_HR),
+				//tws_hr_per_week_goal: self.retrieve_float_for_display('tws_hr_per_week_goal', constants.TWS_DEFAULT_HR_PER_WEEK_GOAL),
+				tws_hr_per_week_max: self.retrieve_float_for_display('tws_hr_per_week_max', constants.TWS_DEFAULT_HR_PER_WEEK_MAX),
+			})
+		);
+		request.jQuery("#content").html( middle );
+		
+		this.activate_substate_menu_items(request, 'content',
+			constants.REGISTER_STATE_ENUM, constants.REGISTER_STATE_INSERTS);
+	},
+	
+	process_register_content: function(request) {
+		var self = this;
+		var tws_dollars_per_hr = request.jQuery("input[name='tws_dollars_per_hr']").attr("value");
+		//var tws_hr_per_week_goal = request.jQuery("input[name='tws_hr_per_week_goal']").attr("value");
+		var tws_hr_per_week_max = request.jQuery("input[name='tws_hr_per_week_max']").attr("value");
+
+		request.jQuery("#errors").text("");
+		if ( !this.validate_dollars_input(request, tws_dollars_per_hr) ) {
+			request.jQuery("#errors").append("<p>Please enter a valid dollar amount. For example, to donate $2.34 per hour, please enter 2.34</p>");
+			
+		//} else if ( !this.validate_hours_input(request, tws_hr_per_week_goal) ) {
+		//	request.jQuery("#errors").append("<p>Please enter number of hours. For example, to strive for 8 hrs and 15 minutes, please enter 1.25</p>");
+			
+		} else if ( !this.validate_hours_input(request, tws_hr_per_week_max) ) {
+			request.jQuery("#errors").append("<p>Please enter number of hours. For example, enter 30 minutes as .5</p>");
+			
+		} else {
+			this.prefs.set('tws_dollars_per_hr', this.clean_dollars_input(tws_dollars_per_hr));
+			//this.prefs.set('tws_hr_per_week_goal', this.clean_hours_input(tws_hr_per_week_goal));
+			this.prefs.set('tws_hr_per_week_max', this.clean_hours_input(tws_hr_per_week_max));
+			return true;
+		}
+		return false;
+	},
+	
+
+	insert_register_support: function(request) {
+		var self = this;
+		this.prefs.set('register_state', 'support');
+		
+		var substate_menu_items = this.make_substate_menu_items('support',
+				constants.REGISTER_STATE_ENUM, constants.REGISTER_STATE_TAB_NAMES);
+
+		var middle = Template.get("register_support_middle").render(
+			new Context({
+				substate_menu_items: substate_menu_items,
+				support_pct: self.retrieve_float_for_display('support_pct', constants.DEFAULT_SUPPORT_PCT),
+				monthly_fee: self.retrieve_float_for_display('monthly_fee', constants.DEFAULT_MONTHLY_FEE),
+			})
+		);
+		request.jQuery("#content").html( middle );
+		
+		this.activate_substate_menu_items(request, 'support',
+			constants.REGISTER_STATE_ENUM, constants.REGISTER_STATE_INSERTS);
+	},
+	
+	process_register_support: function(request) {
+		var self = this;
+		var support_pct = request.jQuery("input[name='support_pct']").attr("value");
+		var monthly_fee = request.jQuery("input[name='monthly_fee']").attr("value");
+
+		request.jQuery("#errors").text("");
+		if ( !this.validate_positive_float_input(request, support_pct) ) {
+			request.jQuery("#errors").append("<p>Please enter a valid percent. For example, blah blah</p>");
+			
+		} else if ( !this.validate_dollars_input(request, monthly_fee) ) {
+			request.jQuery("#errors").append("<p>Please blah</p>");
+			
+		} else {
+			this.prefs.set('support_pct', this.clean_percent_input(support_pct));
+			this.prefs.set('monthly_fee', this.clean_dollars_input(monthly_fee));
+			return true;
+		}
+		return false;
+	},
+	
+	insert_register_updates: function(request) {
+		var self = this;
+		this.prefs.set('register_state', 'updates');
+		
+		var substate_menu_items = this.make_substate_menu_items('updates',
+				constants.REGISTER_STATE_ENUM, constants.REGISTER_STATE_TAB_NAMES);
+
+		var middle = Template.get("register_updates_middle").render(
+			new Context({
+				substate_menu_items: substate_menu_items,
+				support_pct: self.retrieve_float_for_display('support_pct', constants.DEFAULT_SUPPORT_PCT),
+				monthly_fee: self.retrieve_float_for_display('monthly_fee', constants.DEFAULT_MONTHLY_FEE),
+			})
+		);
+		request.jQuery("#content").html( middle );
+		
+		this.activate_substate_menu_items(request, 'updates',
+			constants.REGISTER_STATE_ENUM, constants.REGISTER_STATE_INSERTS);
+	},
+	
+	process_register_updates: function(request) {
+		var self = this;
+		var support_pct = request.jQuery("input[name='support_pct']").attr("value");
+		var monthly_fee = request.jQuery("input[name='monthly_fee']").attr("value");
+
+		request.jQuery("#errors").text("");
+		if ( !this.validate_positive_float_input(request, support_pct) ) {
+			request.jQuery("#errors").append("<p>Please enter a valid percent. For example, blah blah</p>");
+			
+		} else if ( !this.validate_dollars_input(request, monthly_fee) ) {
+			request.jQuery("#errors").append("<p>Please blah</p>");
+			
+		} else {
+			this.prefs.set('support_pct', this.clean_percent_input(support_pct));
+			this.prefs.set('monthly_fee', this.clean_dollars_input(monthly_fee));
+			return true;
+		}
+		return false;
+	},
+	
+	insert_register_payments: function(request) {
+		var self = this;
+		this.prefs.set('register_state', 'payments');
+		
+		var substate_menu_items = this.make_substate_menu_items('payments',
+				constants.REGISTER_STATE_ENUM, constants.REGISTER_STATE_TAB_NAMES);
+
+		var middle = Template.get("register_payments_middle").render(
+			new Context({
+				substate_menu_items: substate_menu_items,
+				support_pct: self.retrieve_float_for_display('support_pct', constants.DEFAULT_SUPPORT_PCT),
+				monthly_fee: self.retrieve_float_for_display('monthly_fee', constants.DEFAULT_MONTHLY_FEE),
+			})
+		);
+		request.jQuery("#content").html( middle );
+		
+		this.activate_substate_menu_items(request, 'payments',
+			constants.REGISTER_STATE_ENUM, constants.REGISTER_STATE_INSERTS);
+	},
+	
+	process_register_payments: function(request) {
+		var self = this;
+		var support_pct = request.jQuery("input[name='support_pct']").attr("value");
+		var monthly_fee = request.jQuery("input[name='monthly_fee']").attr("value");
+
+		request.jQuery("#errors").text("");
+		if ( !this.validate_positive_float_input(request, support_pct) ) {
+			request.jQuery("#errors").append("<p>Please enter a valid percent. For example, blah blah</p>");
+			
+		} else if ( !this.validate_dollars_input(request, monthly_fee) ) {
+			request.jQuery("#errors").append("<p>Please blah</p>");
+			
+		} else {
+			this.prefs.set('support_pct', this.clean_percent_input(support_pct));
+			this.prefs.set('monthly_fee', this.clean_dollars_input(monthly_fee));
+			return true;
+		}
+		return false;
+	},
+	
+	insert_register_done: function(request) {
+	}, 
+	
+	process_register_done: function(request) {
+		return true
+	},
+	
+	/*
+	 * @return: dictionary of:
+	 * 		menu_items: list of (id, klasses, value) tuples for substate menu
+	 *          id is "substate_tab_"+enums[index]
+	 *          value is tab_names[index]
+	 *          klasses is ["substate_tab", "current_tab"]<---if current tab
+	 *      next: tuple of next tab or null
+	 *      prev: tuple of prev tab or null
+	 */
+	make_substate_menu_items: function(current_substate, enums, tab_names) {
+		var menu_items = [];
+		var prev = null;
+		var next = null;
+		
+		var _last = null;
+		var _one_past_current = false;
+		var _two_past_current = false; // because can't tell the difference bw nulls
+		_iterate(tab_names, function(key, value, index) {
+			// figure out menu item
+			var klasses = ["substate_tab"];
+			if (enums[index] == current_substate) {
+				klasses.push("current_tab");
+			}
+			var menu_item = {
+				id: "substate_tab_"+enums[index],
+				klasses: klasses,
+				value: value
+			}
+			// set next
+			if (_one_past_current && !_two_past_current) {
+				next = menu_item;
+				_two_past_current = true
+			}
+			// set prev
+			if (enums[index] == current_substate) {
+				_one_past_current = true;
+				prev = _last;
+			}
+			// add to menu items
+			if (value != "XXX") {
+				menu_items.push(menu_item);
+			}
+			_last = menu_item;
+		});
+		return {
+			menu_items: menu_items,
+			next: next,
+			prev: prev
+		}
+	},
+	
+	activate_substate_menu_items: function(request, current_substate, enums, inserts) {
 		var self=this;
 		for (var i = 0; i < enums.length; i += 1) {
 			// closure

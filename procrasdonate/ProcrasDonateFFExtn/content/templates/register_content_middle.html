@@ -1,0 +1,39 @@
+
+<ul>
+	{% for item in substate_menu_items.menu_items %}
+		<li class="{% for klass in item.klasses %}{{ klass }} {% endfor %}">
+			{{ item.value }}</li>
+	{% endfor %}
+</ul>
+
+{% if substate_menu_items.prev %}
+<span id="{{ substate_menu_items.prev.id }}" class="prev">PREV</span>
+{% endif %}
+
+{% if substate_menu_items.next %}
+<span id="{{ substate_menu_items.next.id }}" class="next">NEXT</span>
+{% endif %}
+
+{% ifequal substate_menu_items.next.value "XXX" %}
+	<span id="{{ substate_menu_items.next.id }}" class="done">DONE</span>
+{% endifequal %}
+
+<h1>Voluntarily pay for online content</h1>
+
+<h2>TimeWellSpent payments</h2>
+<p>Blah blah blah</p>
+<p><input
+	type="text"
+	id="tws_dollars_per_hr"
+	name="tws_dollars_per_hr" 
+	value="{{ tws_dollars_per_hr }}" />
+   <span class="units">dollars per hour</span></p>
+
+<h2>TimeWellSpent Limit</h2>
+<p>Blah blah blah</p>
+<p><input
+	type="text"
+	id="tws_hr_per_week_max"
+	name="tws_hr_per_week_max" 
+	value="{{ tws_hr_per_week_max }}" />
+   <span class="units">hours per week</span></p>

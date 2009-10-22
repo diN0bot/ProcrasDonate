@@ -53,32 +53,35 @@ var constants = {};
 	constants.AUTOMATIC_TEST_SUITE_URL = '/dev/automatic_test_suite/';
 
 	// enumeration of settings page state
-	constants.DEFAULT_SETTINGS_STATE = "account";
+	constants.DEFAULT_SETTINGS_STATE = "overview";
 	constants.SETTINGS_STATE_ENUM = [
-		'account', 
+	    'overview'
+		/*'account', 
 		'recipients', 
 		'donation_amounts', 
 		'support', 
-		/*'site_classifications',*/
-		'payment_system'
+		//'site_classifications',
+		'payment_system'*/
 	];
-	constants.SETTINGS_STATE_TAB_NAMES = [
-		'Email', 'Recipients', 'Donations', 'Support', /*'Sites',*/ 'Amazon'];
+	constants.SETTINGS_STATE_TAB_NAMES = ['XXX'];
+		//'Email', 'Recipients', 'Donations', 'Support', /*'Sites',*/ 'Amazon'];
 	constants.SETTINGS_STATE_INSERTS = [
-		"insert_settings_account", 
+	    "insert_settings_overview",
+		/*"insert_settings_account", 
 		"insert_settings_recipients", 
 		"insert_settings_donation_amounts", 
 		"insert_settings_support", 
-		/*"insert_settings_site_classifications",*/ 
-		"insert_settings_payment_system"
+		//"insert_settings_site_classifications", 
+		"insert_settings_payment_system"*/
 	];
 	constants.SETTINGS_STATE_PROCESSORS = [
-		"process_account", 
+	    "process_settings_overview",
+		/*"process_account", 
 		"process_recipients", 
 		"process_donation", 
 		"process_support", 
-		/*"process_site_classifications",*/ 
-		"process_payment_system"
+		//"process_site_classifications", 
+		"process_payment_system"*/
 	];
 
 	// enumeration of progress page state
@@ -142,34 +145,33 @@ var constants = {};
 	constants.IMPACT_SITES_SUBSTATE_INSERTS = [insert_impact_recipients_nonprofits, insert_impact_recipients_contentproviders];
 	*/
 	// enumeration of register track state
-	constants.DEFAULT_REGISTER_STATE = "account";
+	constants.DEFAULT_REGISTER_STATE = "incentive";
 	constants.REGISTER_STATE_ENUM = [
-		'account', 
-		'recipients', 
-		'donation_amounts', 
+		'incentive', 
+		'charities', 
+		'content', 
 		'support', 
-		/*'site_classifications',*/ 
-		'payment_system', 
-		'done'
+		'updates', 
+		'payments'
 	];
 	constants.REGISTER_STATE_TAB_NAMES = [
-		'Email', 'Recipients', 'Donation', 'Support', /*'Sites', */'Amazon', 'XXX'];
+		'Incentive', 'Charities', 'Content', 'Support', 'Updates', 'Payments', 'XXX'];
 	constants.REGISTER_STATE_INSERTS = [
-		"insert_register_account", 
-		"insert_register_recipients", 
-		"insert_register_donation_amounts", 
+		"insert_register_incentive", 
+		"insert_register_charities", 
+		"insert_register_content", 
 		"insert_register_support", 
-		/*"insert_register_site_classifications",*/ 
-		"insert_register_payment_system", 
+		"insert_register_updates",
+		"insert_register_payments",
 		"insert_register_done"
 	];
 	constants.REGISTER_STATE_PROCESSORS = [
-		"process_account", 
-		"process_recipients", 
-		"process_donation", 
+		"process_incentives", 
+		"process_charities", 
+		"process_content", 
 		"process_support", 
-		/*"process_site_classifications",*/
-		"process_payment_system", 
+		"process_updates",
+		"process_payments",
 		"process_done"
 	];
 	
@@ -179,22 +181,23 @@ var constants = {};
 	constants.DEFAULT_EMAIL = "";
 	constants.DEFAULT_PROCRASDONATE_REASON = "ProcrasDonating for a good cause";
 	constants.DEFAULT_TIMEWELLSPENT_REASON = "TimeWellSpent for a good cause";
-	constants.PD_DEFAULT_CENTS_PER_HR = 95;
+	constants.PD_DEFAULT_DOLLARS_PER_HR = 2;
 	constants.PD_DEFAULT_HR_PER_WEEK_GOAL = 20;
 	constants.PD_DEFAULT_HR_PER_WEEK_MAX = 30;
-	constants.TWS_DEFAULT_CENTS_PER_HR = 95;
+	constants.TWS_DEFAULT_DOLLARS_PER_HR = 2;
 	constants.TWS_DEFAULT_HR_PER_WEEK_GOAL = 20;
 	constants.TWS_DEFAULT_HR_PER_WEEK_MAX = 30;
 	constants.DEFAULT_SUPPORT_PCT = _prefify_float(10);
-	constants.DEFAULT_PAYMENT_THRESHHOLD = 10.00;
+	constants.DEFAULT_MONTHLY_FEE = _prefify_float(1.00);
+	constants.DEFAULT_PAYMENT_THRESHHOLD = 10;
 	
 	// flag for whether to make payments or not--
 	// eg, if db corruption or some other error
 	constants.DEFAULT_PREVENT_PAYMENTS = false;
 		
 	// FPS DEFAULTS
-	constants.DEFAULT_GLOBAL_AMOUNT_LIMIT = 100.00;
-    constants.DEFAULT_CREDIT_LIMIT = 20.00;
+	constants.DEFAULT_GLOBAL_AMOUNT_LIMIT = _prefify_float(100.00);
+    constants.DEFAULT_CREDIT_LIMIT = _prefify_float(20.00);
     constants.DEFAULT_FPS_CBUI_VERSION = "2009-01-09";
     constants.DEFAULT_FPS_API_VERSION = "2008-09-17";
     constants.DEFAULT_PAYMENT_REASON = "Proudly ProcrasDonating for a good cause!";
