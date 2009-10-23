@@ -1585,12 +1585,14 @@ _extend(PageController.prototype, {
 		return _prefify_float(v);
 	},
 	
-	clean_positive_float_input: function(request, v) {
+	clean_positive_float_input: function(v) {
 		return _prefify_float(v);
 	},
 	
-	clean_percent_input: function(request, v) {
+	clean_percent_input: function(v) {
+		logger("clean_percent_input v="+v);
 		var f = parseFloat(v);
+		logger("f="+f+" "+_prefify_float(f / 100.00));
 		return _prefify_float(f / 100.00);
 	},
 	
@@ -1598,7 +1600,6 @@ _extend(PageController.prototype, {
 		return v && v != ''
 	},
 	
-		
 	process_donation: function(request, event) {
 		/*
 		 * dollars_per_hr: pos int
@@ -3113,7 +3114,7 @@ _extend(PageController.prototype, {
 		var middle = Template.get("register_support_middle").render(
 			new Context({
 				substate_menu_items: substate_menu_items,
-				support_pct: self.retrieve_float_for_display('support_pct', constants.DEFAULT_SUPPORT_PCT),
+				support_pct: self.retrieve_float_for_display('support_pct', constants.DEFAULT_SUPPORT_PCT) * 100,
 				monthly_fee: self.retrieve_float_for_display('monthly_fee', constants.DEFAULT_MONTHLY_FEE),
 			})
 		);
@@ -3126,6 +3127,7 @@ _extend(PageController.prototype, {
 	process_register_support: function(request) {
 		var self = this;
 		var support_pct = request.jQuery("input[name='support_pct']").attr("value");
+		logger("process spct="+support_pct);
 		var monthly_fee = request.jQuery("input[name='monthly_fee']").attr("value");
 
 		request.jQuery("#errors").text("");
@@ -3136,6 +3138,7 @@ _extend(PageController.prototype, {
 			request.jQuery("#errors").append("<p>Please blah</p>");
 			
 		} else {
+			logger("2. process spct="+support_pct);
 			this.prefs.set('support_pct', this.clean_percent_input(support_pct));
 			this.prefs.set('monthly_fee', this.clean_dollars_input(monthly_fee));
 			return true;

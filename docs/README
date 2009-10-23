@@ -5,10 +5,11 @@
 export REPO="/Users/lucy/sandbox/CalmProcrasDonate/"
 
 ## read version number from version conf file
+##### this is broken. need to read from install.rdf. use awk.
 export PDVERSION=`cat ${REPO}version.conf`
 
 ## creates xpi file from ff_extn/ProcrasDonate and places in media/xpi 
 alias xpi_it='pushd ${REPO}procrasdonate/ff_extn/ProcrasDonate; zip -r ${REPO}media/xpi/ProcrasDonate_${PDVERSION}.xpi *; popd'
 
 ## rebuilds extension templates. you will still need to reload chrome to see changes
-alias rebuild='python ${REPO}procrasdonate/ff_extn/ProcrasDonate/content/bin/build_templates.py ${REPO}procrasdonate/ff_extn/ProcrasDonate/content/templates/*.html; cat ${REPO}procrasdonate/ff_extn/ProcrasDonate/content/templates/*.js > ${REPO}procrasdonate/ff_extn/ProcrasDonate/content/js/templates/all.js'
+alias rebuild='python ${REPO}procrasdonate/ProcrasDonateFFExtn/content/bin/build_templates.py ${REPO}procrasdonate/ProcrasDonateFFExtn/content/templates/*.html; cat ${REPO}procrasdonate/ProcrasDonateFFExtn/content/templates/*.js > ${REPO}procrasdonate/ProcrasDonateFFExtn/content/js/templates/all.js'
