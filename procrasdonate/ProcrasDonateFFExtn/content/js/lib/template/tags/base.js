@@ -83,6 +83,10 @@ var TAGS = {
 		return this.render_nodelist(nodelist_false, context, env);
 	},
 	
+	'comment':function(args, context, env) {
+		return ''
+	},
+	
 	'firstof': function(args, context, env) {
 		var vars = args[0];
 		for (var vi in vars) {
@@ -121,13 +125,39 @@ var TAGS = {
 	'extends': function(args, context, env) {
 		return '';
 	},
+	
 	'include': function(args, context, env) {
+		logger("include");
+		_pprint(args);
+		_pprint(context);
+		_pprint(env);
 		var template_name = this.render_filter(args[0], context, env);
+		logger("template_name="+template_name);
 		var t = Template.get(template_name);
-		if (t)
+		logger("t="+t);
+		if (t) {
 			return t.render(context, env);
+		}
 		return '';
 	},
+	
+	/*
+	'now': function(args, context, env) {
+		logger("include");
+		_pprint(args);
+		_pprint(context);
+		_pprint(env);
+		var template_name = this.render_filter(args[0], context, env);
+		logger("template_name="+template_name);
+		var t = Template.get(template_name);
+		logger("t="+t);
+		if (t) {
+			return t.render(context, env);
+		}
+		return '';
+	},
+	*/
+	
 	'block': function(args, context, env) {
 		var name = args[0];
 		var nodelist = args[1];
@@ -170,6 +200,7 @@ _extend(TAGS, {
 		env.js += [this.render_nodelist(nodelist, context, env)]
 		return ""
 	},
+	
 });
 
 

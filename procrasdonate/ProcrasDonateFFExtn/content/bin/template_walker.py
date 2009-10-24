@@ -67,7 +67,7 @@ class TemplateWalker(object):
         handler = converter.get_handler(obj)
         
         if handler is None:
-            return ["blah"]
+            return ["blah(template_walker.handle_object"]
             #raise RuntimeError("Attribute has no mapping: %s" % (obj,))
         
         value = handler.handle(converter, obj)

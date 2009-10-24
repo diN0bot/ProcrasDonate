@@ -625,8 +625,8 @@ _extend(PageController.prototype, {
 			 	constants.PROGRESS_URL+"\">My Progress</a></div>",
 			 "    <div id=\"impact_menu_item\"><a href=\""+
 			 	constants.IMPACT_URL+"\">My Impact</a></div>",
-			 "    <div id=\"messages_menu_item\"><a href=\""+
-			 	constants.MESSAGES_URL+"\">My Messages</a></div>",
+			 //"    <div id=\"messages_menu_item\"><a href=\""+
+			// 	constants.MESSAGES_URL+"\">My Messages</a></div>",
 			 "    <div id=\"settings_menu_item\"><a href=\""+
 			 	constants.SETTINGS_URL+"\">My Settings</a></div>",
 			 "</div>"].join("\n"));
@@ -2577,7 +2577,7 @@ _extend(PageController.prototype, {
 				tws_hr_per_week_max: self.retrieve_float_for_display("tws_hr_per_week_max", constants.TWS_DEFAULT_HR_PER_WEEK_MAX),
 				
 				monthly_fee: 0,
-				support_pct: self.retrieve_float_for_display('support_pct', constants.DEFAULT_SUPPORT_PCT),
+				support_pct: self.retrieve_percent_for_display('support_pct', constants.DEFAULT_SUPPORT_PCT),
 				
 				email: this.prefs.get("email", constants.DEFAULT_EMAIL),
 				receive_weekly_affirmations: this.prefs.get("receive_weekly_affirmations", constants.DEFAULT_RECEIVE_WEEKLY_AFFIRMATIONS),
@@ -2595,6 +2595,10 @@ _extend(PageController.prototype, {
 	
 	retrieve_float_for_display: function(key, def) {
 		return _un_prefify_float( this.prefs.get(key, def) ).toFixed(2)
+	},
+	
+	retrieve_percent_for_display: function(key, def) {
+		return (_un_prefify_float( this.prefs.get(key, def) ) * 100).toFixed(2)
 	},
 	
 	activate_settings_overview: function(request) {
@@ -3114,7 +3118,7 @@ _extend(PageController.prototype, {
 		var middle = Template.get("register_support_middle").render(
 			new Context({
 				substate_menu_items: substate_menu_items,
-				support_pct: self.retrieve_float_for_display('support_pct', constants.DEFAULT_SUPPORT_PCT) * 100,
+				support_pct: self.retrieve_percent_for_display('support_pct', constants.DEFAULT_SUPPORT_PCT),
 				monthly_fee: self.retrieve_float_for_display('monthly_fee', constants.DEFAULT_MONTHLY_FEE),
 			})
 		);

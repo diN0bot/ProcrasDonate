@@ -49,32 +49,15 @@ URLBarListener.prototype = {
 		//logger(jQuery(aProgress.DOMWindow,
 		//if (aURI == "about:config")
 		//	return;
+		if  (aURI == "") {
+			return
+		}
 		//logger(window);
 		//logger(document);
 		//logger(gBrowser);
 		//logger(gBrowser.contentWindow);
 		//logger(gBrowser.contentWindow.document);
 		//logger(gBrowser.contentDocument);
-		
-		/*
-		 this was for testing purposes, right? unnecessary
-		http_request = new HttpRequest(window, window);
-		var request = http_request.contentStartRequest({
-			method: "get",
-			//url: "http://localhost:8000/start_now",
-			url: "http://www.google.com",
-			onload: function(event) {
-				//logger(["HttpRequest->onload()", arguments.length]);
-				//logger(event.responseText);
-			},
-			onerror: function(event) {
-				//logger(["HttpRequest->onerror()",arguments.length]);
-			},
-			onreadystatechange: function(event) {
-				//logger(["HttpRequest->onreadystatechange()", arguments]);
-			},
-		});
-		*/
 		
 		//logger(jQuery("*", gBrowser.contentWindow.document).length);
 		//logger([]);
