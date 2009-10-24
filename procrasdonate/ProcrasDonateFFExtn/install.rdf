@@ -18,7 +18,7 @@
         <em:maxVersion>3.5.*</em:maxVersion>
       </Description>
     </em:targetApplication>
-    <em:updateURL>https://procrasdonate.com/update.rdf</em:updateURL>
+    <em:updateURL>https://procrasdonate.com/procrasdonate_media/rdf/update.rdf</em:updateURL>
   </Description>
 </RDF>
 

@@ -161,6 +161,7 @@ for app in APPS:
         )
 
 # read extension version number from extension install.rdf
+## TODO we also extract this from ProcrasDonateFFExtn/content/bin/xpi_it.py :: get_version
 import re
 update_url_re = re.compile("<em:updateURL>(.*)</em:updateURL>")
 install_rdf = open(pathify([PROJECT_PATH, 'procrasdonate/ProcrasDonateFFExtn/install.rdf'], file_extension=True), 'r')
