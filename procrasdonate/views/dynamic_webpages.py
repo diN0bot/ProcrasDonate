@@ -110,7 +110,7 @@ def register_organizer(request):
                                                                     tagging.confirmation_code))),
                          'confirmation_code': tagging.confirmation_code,
                          'expiration_days': 14 })
-            t = loader.get_template('procrasdonate/account/confirmation_email.txt')
+            t = loader.get_template('procrasdonate/recipient_organizer_pages/account/confirmation_email.txt')
             tagging.send_email("Welcome to ProcrasDonate! Please complete registration for %s" % tagging.recipient.name,
                                t.render(c),
                                from_email="clay@bilumi.org")
@@ -121,7 +121,7 @@ def register_organizer(request):
         recipient_user_tagging_form = RecipientUserTaggingForm()
         recipient_user_form = RecipientUserForm()
 
-    return render_response(request, 'procrasdonate/account/register.html', locals())
+    return render_response(request, 'procrasdonate/recipient_organizer_pages/account/register.html', locals())
 
 def confirm(request, username, confirmation_code):
     logout(request)
@@ -147,13 +147,13 @@ def confirm(request, username, confirmation_code):
                 
                 success = tagging.confirm(confirmation_code)
                 if not success:
-                    return render_response(request, 'account/confirmation_error.html', locals())
+                    return render_response(request, 'procrasdonate/recipient_organizer_pages/account/confirmation_error.html', locals())
 
                 user = authenticate(username=username, password=form.cleaned_data['new_password1'])
                 if user.is_active:
                     login(request, user)
                     user.message_set.create(message='Registration complete!')
-                    return HttpResponseRedirect(reverse('edit_information'))                
+                    return HttpResponseRedirect(reverse('edit_public_information'))                
                 else:
                     return HttpResponseRedirect(reverse('login'))
         
@@ -161,7 +161,7 @@ def confirm(request, username, confirmation_code):
     instructions = """<p>Welcome, %s.</p><p>Please enter a password. You can enter whatever 
     you want; for security, consider using at least 8 characters and mixing numbers with 
     lower and uppercase letters.</p>""" % username
-    return render_response(request, 'procrasdonate/account/confirm.html', locals())
+    return render_response(request, 'procrasdonate/recipient_organizer_pages/account/confirm.html', locals())
 
 def reset_password(request):
     error = ""
@@ -169,14 +169,14 @@ def reset_password(request):
         username_or_email = request.POST.get('username_or_email', None)
         if not username_or_email:
             error = "Please enter your username or email"
-            return render_response(request, 'procrasdonate/account/reset_password.html', locals())
+            return render_response(request, 'procrasdonate/recipient_organizer_pages/account/reset_password.html', locals())
         
         tagging = RecipientUserTagging.get_or_none(user__username=username_or_email)
         if not tagging:
             tagging = RecipientUserTagging.get_or_none(user__email=username_or_email)
             if not tagging:
                 error = "No matching username or email found"
-                return render_response(request, 'procrasdonate/account/reset_password.html', locals())
+                return render_response(request, 'procrasdonate/recipient_organizer_pages/account/reset_password.html', locals())
         
         tagging.reset_password()
         # send email for recipient user to reset password
@@ -188,15 +188,15 @@ def reset_password(request):
                                                                 tagging.confirmation_code))),
                      'confirmation_code': tagging.confirmation_code,
                      'expiration_days': 14 })
-        t = loader.get_template('procrasdonate/account/reset_password_email.txt')
+        t = loader.get_template('procrasdonate/recipient_organizer_pages/account/reset_password_email.txt')
         tagging.send_email("Password reset for ProcrasDonate organizer for %s" % tagging.recipient.name,
                            t.render(c),
                            from_email="clay@bilumi.org")
         
         email_address = tagging.user.email
-        return render_response(request, 'procrasdonate/account/reset_password_email_sent.html', locals())
+        return render_response(request, 'procrasdonate/recipient_organizer_pages/account/reset_password_email_sent.html', locals())
 
-    return render_response(request, 'procrasdonate/account/reset_password.html', locals())
+    return render_response(request, 'procrasdonate/recipient_organizer_pages/account/reset_password.html', locals())
 
 def confirm_reset_password(request, username, confirmation_code):
     logout(request)
@@ -216,7 +216,7 @@ def confirm_reset_password(request, username, confirmation_code):
                 
                 success = tagging.confirm(confirmation_code)
                 if not success:
-                    return render_response(request, 'account/confirmation_error.html', locals())
+                    return render_response(request, 'procrasdonate/recipient_organizer_pages/account/confirmation_error.html', locals())
 
                 user = authenticate(username=username, password=form.cleaned_data['new_password1'])
                 if user.is_active:
@@ -229,7 +229,7 @@ def confirm_reset_password(request, username, confirmation_code):
     form = SetPasswordForm(tagging.user)
     instructions = """Enter a new password. It can be whatever you want, but it will
     be more secure if you use numbers and uppercase letters in addition to lowercase letters."""
-    return render_response(request, 'procrasdonate/account/confirm.html', locals())
+    return render_response(request, 'procrasdonate/recipient_organizer_pages/account/confirm.html', locals())
 
 #### RECIPIENT ORGANIZER ###################################
 

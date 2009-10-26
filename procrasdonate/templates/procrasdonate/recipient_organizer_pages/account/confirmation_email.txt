@@ -4,17 +4,21 @@ Hello {{ user.first_name }} {{ user.last_name }},
 
 Thanks for participating in ProcrasDonate!
 
-As an organizer for {{ recipient.name }}, you will be able to 
-    * Publish information about {{ recipient.name }} on our website
-    * Communicate with ProcrasDonators
-    * Authorize {{ recipient.name }} to receive donations via an Amazon Flexible Payment System account
-  
+As an organizer for {{ recipient.name }}, only you will be able to 
+    * Publish and make changes to the public facing {{ recipient.name }} profile
+    * Record how you've alerted your membership that they can support {{ recipient.name }} with ProcrasDonate.
+    * Authorize {{ recipient.name }} to receive donations via an Amazon business account
+    * Track your donors and donations 
+    * Create thank you notes for your donors
+    * Create year-end updates for your donors
+
+    
 In order to complete your registration, please click the link below
 or copy and paste it into your web browser's address bar:
 
     {{ site_url }}{{ confirmation_link }}
 
-Please let us know if you have any questions.
+We're here to help.  So please let us know if you have any questions.
 
 Thank you!
 
