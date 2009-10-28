@@ -119,6 +119,7 @@ img { -ms-interpolation-mode:bicubic; }
 .home_subheader { color: #669933; font-size: .8em; }
 
 .small-image { width: 3.3em; float: left; margin-left: -4.1em; margin-top: -2.6em; }
+.text-image { height: 1.7em; margin-right: -.2em; vertical-align: middle; }
 .screenshot-long { width: 16em; float: right; margin-right: .2em; margin-left: .5em; margin-top: .2em;
 	border: 0.27em ridge #156451; -moz-border-radius: .4em; padding: .4em;
 }

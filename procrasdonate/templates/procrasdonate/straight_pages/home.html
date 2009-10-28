@@ -11,39 +11,54 @@
 	<img src="{{ MEDIA_URL }}img/Calendar.png" class="small-image">		
 	<img src="{{ MEDIA_URL }}img/ScreenshotUnsorted.png" class="screenshot-long">		
 	<p>
-	<p><i><b>ProcrasDonate</b></i> helps you make hourly charitable donations for time spent on <b>your</b> selected web sites.
+	<p><b>Sort</b> your favorite websites into 
+		<img src="{{ MEDIA_URL }}img/ToolbarImages/ProcrasDonateIcon.png" class="text-image">		
+		<i>ProcrasDonation</i> or
+		<img src="{{ MEDIA_URL }}img/ToolbarImages/TimeWellSpentIcon.png" class="text-image">		
+		<i>TimeWellSpent</i>.
 	</p>
 	<p> 
-	Our FireFox add-on provides
-		<b>convenient</b> toolbar icons that you can click to classify the time you spend on particular websites.
+	It's as <b>easy</b> as clicking on the question mark icon that will appear at the top of your web browser
 	</p>
-		
-	<h2><a name="what"></a>ProcrasDonate: <span class="subheader">Help Out By Goofing Around</span></h2>
+
+	<h2><a name="goals"></a>Your Weekly Progress Meter</h2>
+	<img src="{{ MEDIA_URL }}img/HourGlass.png" class="small-image">	
+			<img src="{{ MEDIA_URL }}img/ScreenshotProgressBar.png" class="screenshot-long">		
+	<p>Set your <b>goals</b> and watch your procrastination
+		<img src="{{ MEDIA_URL }}img/ToolbarImages/IconBar40.png" class="text-image">		
+		<i>meter</i> fill up throughout the week.  
+	</p>
+	<p>	When you see <b>red</b> bars you've wasted more time than you wanted to this week.
+	</p>
+	<h2><a name="what"></a>ProcrasDonate: <span class="subheader">Your charitable incentive</span></h2>
 	<img src="{{ MEDIA_URL }}img/ProcrasDonateLogoNoText.png" class="small-image">		
 	<img src="{{ MEDIA_URL }}img/ScreenshotPD.png" class="screenshot-long">		
-	<p>Use the ''hands offering a sprout'' icon to mark <b>frivolous</b> sites as <i>ProcrasDonation</i>.  
-	</p><p>Hours spent <i>ProcrasDonating</i> are <b>micro-pledges</b> to your favorite charities.
+	
+	<p>
+	Feedback paired with a good <b>incentive</b> really works.  
+	</p>
+	<p>
+	Automatically donate <b>real</b> money to your favorite charity for every hour you spend noodling around on websites you've marked 
+		as <i>ProcrasDonation</i>.
+	</p>
+	<p>	
+	ProcrasDonate helps you use your <b>existing</b> Amazon account to create whatever charitable incentive is right for you.  
 	</p>
 	
 	<h2><a name="quality"></a>Time Well Spent: <span class="subheader">Support Quality Content</span></h2>
 	<img src="{{ MEDIA_URL }}img/ThumbsUp.png" class="small-image">		
 	<img src="{{ MEDIA_URL }}img/ScreenshotTWS.png" class="screenshot-long">		
-	<p>Hours spent on websites marked as <i><b>Time Well Spent</b></i> can also be micro-pledges that benefit those sites directly.
-	</p><p>Use the "thumbs up" icon to mark <b>worthwhile</b> sites as <i>Time Well Spent</i>. 
+	<p>You can also donate directly to websites you've marked as <i>TimeWellSpent</i> whenever you are using them.
 	</p>
+	<p>	Together we can support websites that are keeping quality internet content freely available.
+	</p>	
 	
-	<h2><a name="goals"></a>Set Your Own Goals: <span class="subheader">Feedback and Limits on Incentives</span></h2>
-	<img src="{{ MEDIA_URL }}img/HourGlass.png" class="small-image">	
-			<img src="{{ MEDIA_URL }}img/ScreenshotProgressBar.png" class="screenshot-long">		
-	<p>When your <b>progress bar</b> moves into the red you have passed your weekly ProcrasDonation and TimeWellSpent goal.  
-	<p>When all bars are full you have reached your <b>limit</b> &#x2014; no more pledges will be made until next week.</p>	
-	
-	<h2>Privacy Guarantee: <span class="subheader">Your browsing record is private.</h2>
+	<h2>Privacy: <span class="subheader"> Your browsing data is anonymous.</h2>
 	<img src="{{ MEDIA_URL }}img/FireWall.png" class="small-image">		
 	<p>Privacy is <b>important</b> to us. 
-		Your financial data stays with a trusted <b>third party</b>.  
-		Your personal data <b>stays</b> on <i>your</i> machine. 
-		We <b>only</b> collect <i>statistical</i> data to measure our community impact.		
+		Your financial data is handled by Amazon.com.  
+		Your can track your browsing data on your own computer.  
+		We only store <b>anonymous</b> statistical data to measure our community impact.		
 	</p> 
 	
 	<h2><a name="T-shirts"></a>Testers get a free shirt! &nbsp;
@@ -55,13 +70,12 @@
 	<img src="{{ MEDIA_URL }}img/ProcrasDonateShirtDetail.png" class="screenshot-long">		
 	<p>We need your help to <b>improve</b>.
 	Click "{% include 'procrasdonate/straight_pages/snippets/start_now.html' %}" to try our FireFox add-on.
-	</p><p>Use our <b>feedback</b> page to tell us what you think, and we'll send you a <i>hand screened organic cotton work of art</i>.  
+	</p><p>Use our <b><a href="http://feedback.procrasdonate.com">feedback</a></b> page to tell us what you think, and we'll send you a <i>hand screened organic cotton work of art</i>.  
 	</p><p><b>Thanks!</b>
 	</p>
 	
 	<h2><a name="changes"></a>Expect Changes</h2>
 	<p>You'll automatically receive add-on <b>updates</b> as we add new features.
-	</p><p>Some of your settings and data <b>may be lost</b> as we work to stabilize the current rough-cut.
 	</p>
 
 {% endblock %}
