@@ -79,20 +79,22 @@ $(document).ready( function() {
 				if ($.browser.msie) browser = "Internet Explorer";
 				else if ($.browser.safari) browser = "Safari";
 				else if ($.browser.opera) browser = "Opera";
-				explanation = "ProcrasDonate is an add-on specifically for the Firefox Browser. ";
+				explanation = "ProcrasDonate is an add-on specifically for the <b>Firefox</b> web browser. ";
 				if (browser) {
 					explanation += "ProcrasDonate won't work with your current browser, "+browser+".";
 				}
 			}
-			$("body").prepend([
+			$("#wrapper").prepend([
+			        "<div id=\"brwoser_message\" class=\"above_layout_table\">",
 			       	"<p>",
 			       	explanation,
 			       	"</p><ol>",
 					"<li><a id=\"download_firefox\" href=\"",
 					href,
 					"\">Please download Firefox 3.5</a></li>",
-					"<li>Then come back to ProcrasDonate.com ",
-					"to download this add-on!</li></ol>"].join("\n"));
+					"<li>Then come back to <a href=\"http://ProcrasDonate.com\">ProcrasDonate.com</a> ",
+					"to download this add-on</li></ol>",
+					"</div>"].join("\n"));
 		}
 	}
 });

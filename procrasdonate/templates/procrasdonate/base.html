@@ -30,35 +30,39 @@
 
 	<body>
 		<div id="wrapper">
-	  		<p style="padding: .5em; border: 1px solid #AAAAAA; margin: .5em; -moz-border-radius: .5em;">
+	  		<p class="above_layout_table">
 	  		Payments through our service have been temporarily suspended because
 			the third party payment service we've been using has gone out of
 			business.  You are still welcome to continue using ProcrasDonate to
 			classify websites and set weekly goals while we look into another
 			payment option.</p>
-		
-		
-			{% if messages %}
-			<ul>
-			    {% for message in messages %}
-			    <li class="message">{{ message }}</li>
-			    {% endfor %}
-			</ul>
-			{% endif %}
 
 			{# Three columned layout: left menu, center content, right menu #}
 			
-			<div id="left_column">
+			<table id="LayoutTable">
+			<tbody>
+			<tr>
+			<td id="left_column">
 			
 				<img id="left_logo" alt="" src="{{ MEDIA_URL }}img/ProcrasDonateLogoText.png">
 	
 				{# extension inserts id="ExtensionMenu" here #}
 	
-				<div id="MainMenu">
+				<div id="MainMenu" class="menu">
 					<div {% ifequal selected "home" %}class="here_we_are"{% endifequal %} id='home_menu_item'><a href="{% url home %}">Home</a></div>
 					<div {% ifequal selected "community" %}class="here_we_are"{% endifequal %} id='community_menu_item'><a href="{% url community %}">Community</a></div>
 					<div {% ifequal selected "faq" %}class="here_we_are"{% endifequal %} id='faq_menu_item'><a href="{% url faq %}">FAQ</a></div>
 					<div id='blog_menu_item'><a href="http://procrasdonate.wordpress.com">Blog</a></div>
+				</div>
+				
+				<div id="OrganizerMenu" class="menu">
+					<div {% ifequal selected "dashboard" %}class="here_we_are"{% endifequal %} id='dashboard_menu_item'>
+					{% if request.user.is_authenticated %}
+						<a href="{% url recipient_organizer_dashboard %}">Dashboard</a>
+					{% else %}
+						<a href="{% url login %}">Login</a>
+					{% endif %}
+					</div>
 				</div>
 				
 				<div id="footer">
@@ -67,14 +71,28 @@
 					<div class="copyright">&copy; '09 ProcrasDonate</div> 
 				</div>
 			
-			</div>
+			</td>
 			
-			<div id="content">
-				{% block content %}
-				{% endblock %}
-			</div>
+			<td id="middle">
+				{% if messages %}
+				<table id="user_messages">
+				<tbody><tr><td>
+					<ul>
+					    {% for message in messages %}
+					    <li class="message">{{ message }}</li>
+					    {% endfor %}
+					</ul>
+				</td></tr></tbody>
+				</table>
+				{% endif %}
+				
+				<div id="content">
+					{% block content %}
+					{% endblock %}
+				</div>
+			</td>
 			
-			<div id="right_column">
+			<td id="right_column">
 				
 				<img id="right_logo" alt="" src="{{ MEDIA_URL }}img/ProcrasDonateLogoText.png">
 				
@@ -88,9 +106,10 @@
 					<p>Speaking With MIT Entrepreneurs</p>
 				</div>
 				
-			</div>
-			
-		</div>
+			</td>
+		</tr>
+		</tbody>
+		</table>
 
 	</body>
 

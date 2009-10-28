@@ -51,7 +51,7 @@ def login_view(request):
     next = request.GET.get('next', None)
     # Light security check -- make sure redirect_to isn't garbage.                                                                                                                
     if not next or '//' in next or ' ' in next:
-        next = reverse('edit_information')
+        next = reverse('recipient_organizer_dashboard')
 
     username = request.POST.get('username', None)
     password = request.POST.get('password', None)
@@ -235,7 +235,7 @@ def confirm_reset_password(request, username, confirmation_code):
 
 @login_required
 def edit_public_information(request):
-    recipient = Recipient.get_or_none(slug=request.user.get_profile().recipient.slug)
+    recipient = request.user.get_profile().recipient
         
     FormKlass = get_form(Recipient, EDIT_TYPE, includes=('name',
                                                          'category',
@@ -255,8 +255,39 @@ def edit_public_information(request):
     return render_response(request, 'procrasdonate/recipient_organizer_pages/edit_public_information.html', locals())
 
 @login_required
+def recipient_organizer_dashboard(request):
+    recipient_user_tagging = request.user.get_profile()
+    recipient = recipient_user_tagging.recipient
+    
+    checkbox_fields = []
+    for field in RecipientUserTagging.CHECKBOX_FIELDS:
+        f = getattr(recipient_user_tagging, field)
+        if f != RecipientUserTagging.TASK_STATES["INVISIBLE"]:
+            if request.POST:
+                checked = request.POST.get(field)
+            else:
+                checked = f == RecipientUserTagging.TASK_STATES["DONE"]
+            checkbox_fields.append({'name'   : field,
+                                    'checked': checked,
+                                    'label'  : field,
+                                    'help'   : '',
+                                    'error'  : ''})
+
+    if request.POST:
+        for field in checkbox_fields:
+            if field['checked']:
+                setattr(recipient_user_tagging, field['name'], RecipientUserTagging.TASK_STATES["DONE"])
+            else:
+                setattr(recipient_user_tagging, field['name'], RecipientUserTagging.TASK_STATES["TODO"])
+        recipient_user_tagging.save()
+        request.user.message_set.create(message='changes saved')
+        return HttpResponseRedirect(reverse('recipient_organizer_dashboard'))
+    
+    return render_response(request, 'procrasdonate/recipient_organizer_pages/dashboard.html', locals())
+
+@login_required
 def edit_private_information(request):
-    recipient = Recipient.get_or_none(slug=request.user.get_profile().recipient.slug)
+    recipient = request.user.get_profile().recipient
         
     FormKlass = get_form(Recipient, EDIT_TYPE, includes=('employers_identification_number',
                                                          'tax_exempt_status',
@@ -283,7 +314,7 @@ def edit_private_information(request):
 
 @login_required
 def edit_media(request):
-    recipient = Recipient.get_or_none(slug=request.user.get_profile().recipient.slug)
+    recipient = request.user.get_profile().recipient
         
     FormKlass = get_form(Recipient, EDIT_TYPE, includes=('logo',
                                                          'promotional_image',
@@ -305,7 +336,7 @@ def _edit_recipient_something(request, includes, template):
     """
     could use this but.... edit_foo's are likely to become more complicated with amazon auth and video stuff....
     """
-    recipient = Recipient.get_or_none(slug=request.user.get_profile().recipient.slug)
+    recipient = request.user.get_profile().recipient
         
     FormKlass = get_form(Recipient, EDIT_TYPE, includes=includes)
 
@@ -324,7 +355,7 @@ def _edit_recipient_something(request, includes, template):
 
 @login_required
 def edit_weekly_blurbs(request):
-    recipient = Recipient.get_or_none(slug=request.user.get_profile().recipient.slug)
+    recipient = request.user.get_profile().recipient
     return render_response(request, 'procrasdonate/recipient_organizer_pages/edit_weekly_blurbs.html', locals())
 
 @login_required
@@ -334,7 +365,7 @@ def edit_thank_yous(request):
 
 @login_required
 def edit_yearly_newsletter(request):
-    recipient = Recipient.get_or_none(slug=request.user.get_profile().recipient.slug)
+    recipient = request.user.get_profile().recipient
     return render_response(request, 'procrasdonate/recipient_organizer_pages/edit_yearly_newsletter.html', locals())
 
 #### MISC ###################################

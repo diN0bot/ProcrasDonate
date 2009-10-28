@@ -13,4 +13,11 @@ def selected(request):
     # u"/foo/" gets split into [u"", u"foo", u""]
     # '/' is appended to all URLs, regardless of what user requests
     # is this robust?! we'll see come deploy time...
-    return { 'selected': request.path.split('/')[-2] }
+    path = request.path.split('/')
+    if len(path) == 2:
+        selected = 'home'
+    else:
+        selected = path[-2]
+    print path
+    print selected
+    return { 'selected': selected }

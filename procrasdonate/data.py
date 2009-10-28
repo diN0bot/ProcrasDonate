@@ -133,7 +133,7 @@ class SiteGroup(models.Model):
     
     def __unicode__(self):
         return u"%s" % self.host
-
+    
 class Recipient(models.Model):
     """
     Recipient of donations
@@ -200,6 +200,30 @@ class RecipientUserTagging(models.Model):
     
     is_confirmed = models.BooleanField(default=False)
     confirmation_code = models.CharField(max_length=255, null=True, blank=True)
+    
+    #we've communicated with our membership base that they can use PD
+    # to benefit our services using:
+    TASK_STATES_LIST = ["INVISIBLE", "TODO", "DONE"]
+    task_max_len, TASK_STATES, TASK_CHOICES = model_utils.convert_to_choices(TASK_STATES_LIST)
+    
+    CHECKBOX_FIELDS = ['email_to_supporters',
+                       'newsletter_article',
+                       'mailed_letter',
+                       'other_mailing',
+                       'event_postcard',
+                       'homepage_link',
+                       'blog_post',
+                       'twitter_tweet']
+    
+    email_to_supporters = models.CharField(max_length=task_max_len, choices=TASK_CHOICES, default=TASK_STATES["TODO"])
+    newsletter_article = models.CharField(max_length=task_max_len, choices=TASK_CHOICES, default=TASK_STATES["TODO"])
+    mailed_letter = models.CharField(max_length=task_max_len, choices=TASK_CHOICES, default=TASK_STATES["TODO"])
+    mailed_postcard = models.CharField(max_length=task_max_len, choices=TASK_CHOICES, default=TASK_STATES["TODO"])
+    other_mailing = models.CharField(max_length=task_max_len, choices=TASK_CHOICES, default=TASK_STATES["TODO"])
+    event_postcard = models.CharField(max_length=task_max_len, choices=TASK_CHOICES, default=TASK_STATES["TODO"])
+    homepage_link = models.CharField(max_length=task_max_len, choices=TASK_CHOICES, default=TASK_STATES["TODO"])
+    blog_post = models.CharField(max_length=task_max_len, choices=TASK_CHOICES, default=TASK_STATES["TODO"])
+    twitter_tweet = models.CharField(max_length=task_max_len, choices=TASK_CHOICES, default=TASK_STATES["TODO"])
     
     def set_recipient(self, recipient):
         self.recipient = recipient
