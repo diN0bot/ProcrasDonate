@@ -57,16 +57,19 @@ img { -ms-interpolation-mode:bicubic; }
 	margin: auto;
 }
 
+#StartButtonDiv { text-align: center; }
+#StartButton { width: 13em; margin-bottom: 0em; }
+
 #LayoutTable { margin: 0em; padding: 0em; }
 #LayoutTable tr td { vertical-align: top; }
 
 /******** LEFT COLUMN *******************************************/
 #left_column { width: 10em; }
-#left_logo { width: 8.4em; margin-bottom: 1em; }
+#left_logo { width: 8.4em; margin-bottom: 2em; }
 #left_column .menu {
 	-moz-border-radius: .4em; 
 	font-size: 1.2em;
-	margin-bottom: 1em;
+	margin-bottom: 2em;
 }
 #left_column .menu div {
 	display: block;
@@ -105,15 +108,46 @@ img { -ms-interpolation-mode:bicubic; }
 /******** CONTENT *******************************************/
 #middle {
 	width: 53em;
-	padding: 0em 2em;
+	padding: 0em 4em;
 }
 
 /******** RIGHT COLUMN *******************************************/
-#right_column { width: 10em; }
-#right_logo { width: 8.4em; }
-.video_block {}
+#right_column { width: 9.5em; }
+#right_logo { width: 9.5em; margin-bottom: 2em; }
+.video_block { margin-bottom: 2em; }
+.video_block img { width: 9.5em; background: black;  }
+.video_block p { margin-top: .3em; text-align: left; }
 #video1 {}
 #video2 {}
+
+/*** attempt at expanding videos. divs not inserted now
+ because doesn't work. large_video is always behind table,
+ whereas we want it on top */
+#large_video {
+	background: red;
+	text-align: right;
+	height: 0em;
+	width: 0em;
+	text-align: right;
+	vertical-align: bottom;
+	margin-left: 45em;
+}
+#large_video #inside {
+	background: green;
+	width: 33em;
+	height: 13em;
+	padding-top: 20em;
+}
+#large_video #inside img {
+	z-index: 999999;
+}
+#large_video_floatifier {
+	background: blue;
+	float: right;
+	width: 20em;
+	height: 22em;
+	margin-top: 9em;
+}
 
 /******** ABOVE LAYOUTTABLE STUFF (header, messages) *******************************************/
 .above_layout_table {
@@ -128,6 +162,7 @@ img { -ms-interpolation-mode:bicubic; }
 #user_messages {
 	margin: 0em auto;
 	padding: 0em;
+	margin-bottom: -3em;
 }
 #user_messages td { padding: 0em; }
 #user_messages ul {
@@ -174,7 +209,6 @@ img { -ms-interpolation-mode:bicubic; }
 
 #HOME { margin-left: 5em; }
 #TheBanner {}
-.StartButton { width: 13em; }
 #logo_banner { width: 38em; }
 #firefox_addon_one_liner { border:medium none; }
 #firefox_addon_one_liner span {
@@ -187,7 +221,6 @@ img { -ms-interpolation-mode:bicubic; }
 .home_subheader { color: #669933; font-size: .8em; }
 
 .small-image { width: 3.3em; float: left; margin-left: -4.1em; margin-top: -2.6em; }
-.text-image { height: 1.7em; margin-right: -.2em; vertical-align: middle; }
 .screenshot-long { width: 16em; float: right; margin-right: .2em; margin-left: .5em; margin-top: .2em;
 	border: 0.27em ridge #156451; -moz-border-radius: .4em; padding: .4em;
 }
@@ -207,7 +240,7 @@ img { -ms-interpolation-mode:bicubic; }
 /*** h2 used as section headers for FAQ, etc. ***/
 
 h2 {
-  clear: both;
+  /*clear: both;*/
   font-family:"Trebuchet MS",Helvetica,Jamrul,sans-serif;
   font-size: 1.7em;
   color: #cd8047;
@@ -218,6 +251,7 @@ h2 {
   border-bottom: .5px solid #ccff99;
   padding: 1em 0em 0em .5em;
   margin-left: -.5em;
+  text-align: left;
 }
 
 .h2-no-margin {margin: 0 0 0 0; }
@@ -227,7 +261,7 @@ h2 {
 .RegisterHeader {	margin: .5em 0 1.5em -.5em; }
 
 h3 {
-  clear: both;
+  /*clear: both;*/
   font-family:"Trebuchet MS",Helvetica,Jamrul,sans-serif;
   font-size: 1.38em;
   color: #89958c;
@@ -237,6 +271,7 @@ h3 {
   letter-spacing: .1em;
   border-bottom: .5px solid #ccff99;
   padding: 1em 0em 0em .5em;
+  text-align: left;
 }
 
 h4 {
@@ -247,6 +282,7 @@ h4 {
   margin: 2.5em 0em 0em 0em;
   font-weight: normal;
   color: #156451;
+  text-align: left;
 }
 
 /************ REGISTER/SETTINGS FORM ********/

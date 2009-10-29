@@ -30,12 +30,14 @@
 
 	<body>
 		<div id="wrapper">
+	  		{% comment %}
 	  		<p class="above_layout_table">
 	  		Payments through our service have been temporarily suspended because
 			the third party payment service we've been using has gone out of
 			business.  You are still welcome to continue using ProcrasDonate to
 			classify websites and set weekly goals while we look into another
 			payment option.</p>
+			{% endcomment %}
 
 			{# Three columned layout: left menu, center content, right menu #}
 			
@@ -74,6 +76,12 @@
 			</td>
 			
 			<td id="middle">
+				<div id="StartButtonDiv" class="">
+					{% with True as show_start_now %}
+						{% include 'procrasdonate/straight_pages/snippets/start_now.html' %}
+					{% endwith %}
+				</div>
+							
 				{% if messages %}
 				<table id="user_messages">
 				<tbody><tr><td>
@@ -94,15 +102,15 @@
 			
 			<td id="right_column">
 				
-				<img id="right_logo" alt="" src="{{ MEDIA_URL }}img/ProcrasDonateLogoText.png">
+				<img id="right_logo" alt="" src="{{ MEDIA_URL }}img/LaptopLogo.png">
 				
-				<div id="video1" class="video_block>
-					<img id="logo" alt="" src="{{ MEDIA_URL }}img/ProcrasDonateLogoText.png">
+				<div id="video1" class="video_block">
+					<img id="logo" alt="" src="{{ MEDIA_URL }}img/FireWall.png">
 					<p>Charity With A Long And Awkward Name</p>
 				</div>
 				
-				<div id="video2" class="video_block>
-					<img id="logo" alt="" src="{{ MEDIA_URL }}img/ProcrasDonateLogoText.png">
+				<div id="video2" class="video_block">
+					<img id="logo" alt="" src="{{ MEDIA_URL }}img/FireWall.png">
 					<p>Speaking With MIT Entrepreneurs</p>
 				</div>
 				
