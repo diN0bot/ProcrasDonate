@@ -19,8 +19,11 @@
    beige highlight for accounting FBFBDE
 */
 
+/******** GENERAL LOOK AND FEEL *******************************************/
+
 body {
-	background-image: url("/procrasdonate_media/img/StripeBG.png");			
+	/*background-image: url("/procrasdonate_media/img/StripeBG.png");*/
+	background: white;			
 	color: #330000;
 	margin: 0em;
 	padding: 0em;
@@ -29,41 +32,8 @@ body {
 	text-align: center;
 }
 
-#wrapper {
-	margin: auto;
-	margin: 0em 1em;
-}
-
-#left_column { float: left; }
-	#left_logo { width: 8.4em; }
-	.menu {
-		font-size: 1.2em;
-	}
-	.menu div { display: block; padding: 0.3em 0em; margin: 1em 0em; }
-	#ExtensionMenu {}
-	#MainMenu { background: #bb8230; border: 0.34em ridge #8A4304; -moz-border-radius: .4em; }
-	#MainMenu div { background: #b47925; border-top: 0.1em dotted #DBBF75; -moz-border-radius: 0em; }
-	#MainMenu div a { font-variant: small-caps; letter-spacing: .1em; text-decoration: none; color: #f9fdf4; }
-	#MainMenu .here_we_are { background: #dbbf75; border-top: 0.1em dotted white; }
-	#MainMenu .here_we_are a { color: #0A224D; text-decoration: none; letter-spacing: .15em; word-spacing: .3em; }
-	/*#MainMenu #learn_more_menu_item.here_we_are a { word-spacing: inherit; letter-spacing: .1em; }*/
-
-	#footer { font-size: .8em; height: 5em;  font-weight: normal; margin: auto; padding-top: 2em; }
-
-#content {
-	float: left;
-	width: 45em;
-	margin: 0em 4em 0em 4em;
-}
-
-#right_column { float: left; }
-	#right_logo { width: 8.4em; }
-	.video_block {}
-	#video1 {}
-	#video2 {}
-
 p { text-align: left; }
-ul { text-align: left; }
+ul, ol, ul li, ol li { text-align: left; }
 
 a, .link { color:#336699; text-decoration:underline; cursor: pointer; }
 a:hover, .link:hover { color:#FF9900; text-decoration:underline; cursor: pointer; }
@@ -79,7 +49,139 @@ img { -ms-interpolation-mode:bicubic; }
 .errorlist { list-style-type: none; color: red; }
 .error, .errors, #error, #errors { color: red; text-align: center; }
 .success, #success { color: green; text-align: center; }
-.message, .messages, #message, #messagees { color: blue; }
+.message, .messages, #message, #messagees { }
+
+/******** LAYOUT *******************************************/
+#wrapper {
+	width: 78em;
+	margin: auto;
+}
+
+#StartButtonDiv { text-align: center; }
+#StartButton { width: 13em; margin-bottom: 0em; }
+
+#LayoutTable { margin: 0em; padding: 0em; }
+#LayoutTable tr td { vertical-align: top; }
+
+/******** LEFT COLUMN *******************************************/
+#left_column { width: 10em; }
+#left_logo { width: 8.4em; margin-bottom: 2em; }
+#left_column .menu {
+	-moz-border-radius: .4em; 
+	font-size: 1.2em;
+	margin-bottom: 2em;
+}
+#left_column .menu div {
+	display: block;
+	padding: 0.3em 0em;
+	margin: 1em 0em;
+	border-top: 0.1em dotted #DBBF75;
+	-moz-border-radius: 0em;
+}
+#left_column .menu div a {
+	font-variant: small-caps; letter-spacing: .1em; text-decoration: none; color: #f9fdf4;
+}
+#left_column .menu .here_we_are a {
+	text-decoration: none; letter-spacing: .15em; word-spacing: .3em; 
+}
+
+#ExtensionMenu { background: #156451; border: 0.34em ridge #8A4304; }
+#ExtensionMenu div { background: #669933; border-top: 0.1em dotted #DBBF75;  }
+#ExtensionMenu .here_we_are { background: #669933; border-top: 0.1em dotted white; }
+#ExtensionMenu .here_we_are a { color: #669933; }
+
+#MainMenu { background: #bb8230; border: 0.34em ridge #8A4304; }
+#MainMenu div { background: #b47925; border-top: 0.1em dotted #DBBF75;  }
+#MainMenu .here_we_are { background: #dbbf75; border-top: 0.1em dotted white; }
+#MainMenu .here_we_are a { color: #0A224D; }
+
+#OrganizerMenu { background: #003366; border: 0.34em ridge #336699; }
+#OrganizerMenu div { background: #1C5492; border-top: 0.1em dotted #003366;  }
+#OrganizerMenu .here_we_are { background: #0099D8; border-top: 0.1em dotted white; }
+#OrganizerMenu .here_we_are a { color: #00B0F0; }
+
+/*#MainMenu #learn_more_menu_item.here_we_are a { word-spacing: inherit; letter-spacing: .1em; }*/
+
+#footer { font-size: .8em; height: 5em;  font-weight: normal; margin: auto; }
+.copyright { margin-top: 1em; }
+
+/******** CONTENT *******************************************/
+#middle {
+	width: 53em;
+	padding: 0em 4em;
+}
+
+/******** RIGHT COLUMN *******************************************/
+#right_column { width: 9.5em; }
+#right_logo { width: 9.5em; margin-bottom: 2em; }
+.video_block { margin-bottom: 2em; }
+.video_block img { width: 9.5em; background: black;  }
+.video_block p { margin-top: .3em; text-align: left; }
+#video1 {}
+#video2 {}
+
+/*** attempt at expanding videos. divs not inserted now
+ because doesn't work. large_video is always behind table,
+ whereas we want it on top */
+#large_video {
+	background: red;
+	text-align: right;
+	height: 0em;
+	width: 0em;
+	text-align: right;
+	vertical-align: bottom;
+	margin-left: 45em;
+}
+#large_video #inside {
+	background: green;
+	width: 33em;
+	height: 13em;
+	padding-top: 20em;
+}
+#large_video #inside img {
+	z-index: 999999;
+}
+#large_video_floatifier {
+	background: blue;
+	float: right;
+	width: 20em;
+	height: 22em;
+	margin-top: 9em;
+}
+
+/******** ABOVE LAYOUTTABLE STUFF (header, messages) *******************************************/
+.above_layout_table {
+	padding: .5em;
+	border: 1px solid #AAAAAA;
+	margin: .5em;
+	-moz-border-radius: .5em;
+	margin-bottom: 0em;
+}
+#brwoser_message p, #brwoser_message ol { margin: 0em; }
+
+#user_messages {
+	margin: 0em auto;
+	padding: 0em;
+	margin-bottom: -3em;
+}
+#user_messages td { padding: 0em; }
+#user_messages ul {
+	list-style-type: none;
+	padding: .4em 1.2em;
+	margin: 0em auto;
+	
+	-moz-border-radius:.7em;
+	
+	background:#FFF1A8;
+	color: #000000;
+	font-weight: bold;
+}
+#user_messages .message {
+	text-align: center;
+}
+/******** BELOW LAYOUTTABLE STUFF (nothing) *******************************************/
+
+/******** EXTENSION CSS (#@TODO move to extension)*******************************************/
 
 .tracks { margin-bottom: 1.5em; }
 .tracks tr td { padding: 0em; vertical-align: bottom }
@@ -89,7 +191,7 @@ img { -ms-interpolation-mode:bicubic; }
 .StageBar	{ width: 4em; height: 2em; margin: 0 -1em; }
 .StageCircle { width: 4.5em; }
 
-/******** EXTENSION CSS (#@TODO move to extension)*******************************************/
+
 
 .NextPrevSpacer {width: 6%; height: 1.5em; }
 .Spacer {width: 14em; height: 1.5em; }
@@ -105,8 +207,8 @@ img { -ms-interpolation-mode:bicubic; }
 
 /********* HOME PAGE ***********/
 
+#HOME { margin-left: 5em; }
 #TheBanner {}
-.StartButton { width: 13em; }
 #logo_banner { width: 38em; }
 #firefox_addon_one_liner { border:medium none; }
 #firefox_addon_one_liner span {
@@ -119,7 +221,6 @@ img { -ms-interpolation-mode:bicubic; }
 .home_subheader { color: #669933; font-size: .8em; }
 
 .small-image { width: 3.3em; float: left; margin-left: -4.1em; margin-top: -2.6em; }
-.text-image { height: 1.7em; margin-right: -.2em; vertical-align: middle; }
 .screenshot-long { width: 16em; float: right; margin-right: .2em; margin-left: .5em; margin-top: .2em;
 	border: 0.27em ridge #156451; -moz-border-radius: .4em; padding: .4em;
 }
@@ -139,7 +240,7 @@ img { -ms-interpolation-mode:bicubic; }
 /*** h2 used as section headers for FAQ, etc. ***/
 
 h2 {
-  clear: both;
+  /*clear: both;*/
   font-family:"Trebuchet MS",Helvetica,Jamrul,sans-serif;
   font-size: 1.7em;
   color: #cd8047;
@@ -150,6 +251,7 @@ h2 {
   border-bottom: .5px solid #ccff99;
   padding: 1em 0em 0em .5em;
   margin-left: -.5em;
+  text-align: left;
 }
 
 .h2-no-margin {margin: 0 0 0 0; }
@@ -159,7 +261,7 @@ h2 {
 .RegisterHeader {	margin: .5em 0 1.5em -.5em; }
 
 h3 {
-  clear: both;
+  /*clear: both;*/
   font-family:"Trebuchet MS",Helvetica,Jamrul,sans-serif;
   font-size: 1.38em;
   color: #89958c;
@@ -169,6 +271,7 @@ h3 {
   letter-spacing: .1em;
   border-bottom: .5px solid #ccff99;
   padding: 1em 0em 0em .5em;
+  text-align: left;
 }
 
 h4 {
@@ -179,6 +282,7 @@ h4 {
   margin: 2.5em 0em 0em 0em;
   font-weight: normal;
   color: #156451;
+  text-align: left;
 }
 
 /************ REGISTER/SETTINGS FORM ********/

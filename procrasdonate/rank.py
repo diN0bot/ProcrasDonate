@@ -10,10 +10,12 @@ class Aggregate(models.Model):
     # Valid Time Types                                                                                                                                                                
     TIME_TYPES = {'DAILY':'D',
                   'WEEKLY':'M',
+                  'YEARLY':'Y',
                   'FOREVER':'F'}
     # for database (data, friendly_name)                                                                                                                                           
     TIME_TYPE_CHOICES = ((TIME_TYPES['DAILY'], 'Daily',),
                          (TIME_TYPES['WEEKLY'], 'Weekly',),
+                         (TIME_TYPES['YEARLY'], 'Yearly',),
                          (TIME_TYPES['FOREVER'], 'All Time',))
 
     FOREVER = datetime.datetime(2222, 2, 2)
@@ -31,7 +33,8 @@ class Aggregate(models.Model):
     @classmethod
     def start_of_week(klass, d=None):
         d = d or datetime.datetime.now()
-        return datetime.datetime(d.year, d.month, d.day-d.weekday(), 0, 0, 0)
+        x = datetime.datetime(d.year, d.month, d.day, 23, 59, 59)
+        return x + datetime.timedelta(days=-1*x.weekday())
     
     @classmethod 
     def end_of_day(klass, d=None):
@@ -41,8 +44,14 @@ class Aggregate(models.Model):
     @classmethod 
     def end_of_week(klass, d=None):
         d = d or datetime.datetime.now()
-        return datetime.datetime(d.year, d.month, d.day+(6-d.weekday()), 23, 59, 59)
+        x = datetime.datetime(d.year, d.month, d.day, 23, 59, 59)
+        return x + datetime.timedelta(days=6-x.weekday())
     
+    @classmethod 
+    def end_of_year(klass, d=None):
+        d = d or datetime.datetime.now()
+        return datetime.datetime(d.year, 12, 31, 23, 59, 59)
+
     @classmethod 
     def end_of_forever(klass):
         return klass.FOREVER
@@ -117,6 +126,10 @@ class AggregateRecipient(Aggregate):
                              "recipient",
                              AggregateRecipient,
                              time)
+    
+    @classmethod
+    def Initialize(klass):
+        model_utils.mixin(AggregateRecipientMixin, Recipient)
 
 class AggregateUser(Aggregate):
     """
@@ -181,7 +194,23 @@ class StaffPick(models.Model):
                          start=start,
                          end=end)
 
+class AggregateRecipientMixin(object):
     
+    def weekly_aggregate(self):
+        return AggregateRecipient.get_or_none(recipient=self,
+                                              time_type=AggregateRecipient.TIME_TYPES["WEEKLY"],
+                                              time=AggregateRecipient.end_of_week())
+        
+    def yearly_aggregate(self):
+        return AggregateRecipient.get_or_none(recipient=self,
+                                              time_type=AggregateRecipient.TIME_TYPES["YEARLY"],
+                                              time=AggregateRecipient.end_of_year())
+        
+    def forever_aggregate(self):
+        return AggregateRecipient.get_or_none(recipient=self,
+                                              time_type=AggregateRecipient.TIME_TYPES["FOREVER"],
+                                              time=AggregateRecipient.end_of_forever())
+
 ALL_MODELS = [AggregateSiteGroup,
               AggregateRecipient,
               AggregateUser,

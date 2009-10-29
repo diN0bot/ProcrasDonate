@@ -14,6 +14,7 @@ urlpatterns = patterns('',
     # public recipient information and stats
     url(r'^r/(?P<slug>%s)/$' % slug_re, dynamic_webpages.recipient, name='recipient'),
     # requires login
+    url(r'^recipient/dashboard/$', dynamic_webpages.recipient_organizer_dashboard, name='recipient_organizer_dashboard'),
     url(r'^recipient/edit/public_information/$', dynamic_webpages.edit_public_information, name='edit_public_information'),
     url(r'^recipient/edit/private_information/$', dynamic_webpages.edit_private_information, name='edit_private_information'),
     url(r'^recipient/edit/media/$', dynamic_webpages.edit_media, name='edit_media'),

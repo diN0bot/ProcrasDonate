@@ -620,7 +620,7 @@ _extend(PageController.prototype, {
 	default_inserts: function(request) {
 		// add private menu items
 		request.jQuery("#MainMenu").before(
-			["<div id=\"ExtensionMenu\">",
+			["<div id=\"ExtensionMenu\" class=\"menu\">",
 			 "    <div id=\"progress_menu_item\"><a href=\""+
 			 	constants.PROGRESS_URL+"\">My Progress</a></div>",
 			 "    <div id=\"impact_menu_item\"><a href=\""+
@@ -636,7 +636,7 @@ _extend(PageController.prototype, {
 				.attr("id", "register_menu_item")
 				.children("a")
 					.attr("href", constants.REGISTER_URL)
-					.text("Please Finish Registering !");
+					.text("Not Done Registering");
 		}
 	},
 	

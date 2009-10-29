@@ -1,0 +1,42 @@
+{% extends 'procrasdonate/base.html' %}
+
+{% block head %}
+	{{ block.super }}
+{% endblock %}
+
+{% block content %}
+	<h2>Dashboard</h2>
+	
+	<h3>something</h3>
+	<ul>
+		<li><a href="mailto:clay@bilumi.org">email us</a></li>
+	
+		<li><a href="{% url edit_public_information %}">edit_public_information</a></li>
+		<li><a href="{% url edit_private_information %}">edit_private_information</a></li>
+		<li><a href="{% url edit_media %}">edit_media</a></li>
+		<li><a href="{% url edit_weekly_blurbs %}">edit_weekly_blurbs</a></li>
+		<li><a href="{% url edit_thank_yous %}">edit_thank_yous</a></li>
+		<li><a href="{% url edit_yearly_newsletter %}">edit_yearly_newsletter</a></li>
+	</ul>
+	
+	<div id="thin_column">
+		<form method="post">
+			<table><tbody>
+				{% for field in checkbox_fields %}
+				<tr>
+					<td><input type="checkbox" name="{{ field.name }}" {% if field.checked %}checked {% endif %} /></td>
+					<td>{{ field.label }}</td>
+					<td class="error">{{ field.error }}</td>
+					<td class="help">{{ field.help }}</td>
+				</tr>
+				{% endfor %}
+			</tbody></table>
+			<input type="submit" value="save" />
+		</form>
+	</div>
+	
+	<p>total donations received in {% now "Y" %}: ${{ recipient.yearly_aggregate.total_amount|floatformat:"2"|default:"0" }}</p>
+	<p>total donations received all time: ${{ recipient.forever_aggregate.total_amount|floatformat:"2"|default:"0" }}</p>
+	<p>number of donors: {{ recipient.forever_aggregate.total_donors|floatformat:"2"|default:"0" }}</p>
+	
+{% endblock %}
