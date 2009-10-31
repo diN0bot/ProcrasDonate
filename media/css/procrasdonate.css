@@ -276,14 +276,18 @@ h3 {
   text-align: left;
 }
 
+/*** h4 is used as a headline for the community stats page ***/
+
 h4 {
-  /*font-family:Georgia, "Times New Roman", Times, serif;
+  /*clear: both;*/
+  font-family:"Trebuchet MS",Helvetica,Jamrul,sans-serif;
+  font-size: 1.38em;
+  color: #89958c;
+  margin: 1.5em 0em .5em -.5em;
+  font-variant: small-caps;
+  font-weight: bold;
   letter-spacing: .1em;
-  font-size: 1.2em;
-  */
-  margin: 2.5em 0em 0em 0em;
-  font-weight: normal;
-  color: #156451;
+  padding: 1em 0em 0em .5em;
   text-align: left;
 }
 
