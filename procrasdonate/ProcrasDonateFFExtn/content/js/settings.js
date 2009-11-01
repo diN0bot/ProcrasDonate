@@ -191,6 +191,9 @@ var constants = {};
 	constants.DEFAULT_MONTHLY_FEE = _prefify_float(1.00);
 	constants.DEFAULT_PAYMENT_THRESHHOLD = 10;
 	
+	constants.DEFAULT_MAX_IDLE = 10; // 3 minutes
+	constants.DEFAULT_FLASH_MAX_IDLE = 30; // 20 minutes
+	
 	// flag for whether to make payments or not--
 	// eg, if db corruption or some other error
 	constants.DEFAULT_PREVENT_PAYMENTS = false;

@@ -45,7 +45,7 @@ URLBarListener.prototype = {
 		// or when the user switches tabs. If you use myListener for more than one tab/window,
 		// use aProgress.DOMWindow to obtain the tab/window which triggered the change.
 		var href = aProgress.DOMWindow.location.href;
-		//logger("onLocationChange:: " + href +" "+aURI);
+		logger("onLocationChange:: href=" + href +" aURI="+aURI);
 		//logger(jQuery(aProgress.DOMWindow,
 		//if (aURI == "about:config")
 		//	return;
@@ -103,20 +103,20 @@ function Overlay() {
 	//logger([window, document, gBrowser]);
 	
 	var self = this;
-	window.addEventListener("load", _bind(this, this.init), false);
+	// load ff app. onPageLoad handles page loads
+ 	window.addEventListener("load", _bind(this, this.init), false);
 	window.addEventListener("unload", _bind(this, this.uninit), false);
-	//function() { return self.init() }, false);
+	
+	// #@TODO use change listener to automatically save user input ?? (in activate fns)
+
 };
 
 Overlay.prototype = {
 	VERSION: -1,
 	
-	//eventListeners: {
-	//	load: function(){ Overlay.init(); },
-	//	unload: function() { Overlay.uninit(); }
-	//},
-	
 	init: function() {
+		var self = this;
+	
 		//logger([window, document, gBrowser]);
 		logger("Overlay.init()");
 		
@@ -163,13 +163,35 @@ Overlay.prototype = {
 		//window.removeEventListener("load", this.eventListeners.load ,true);
 		//window.addEventListener("load", function(){ Overlay.onLoad(); }, false);
 		
-		//logger("Overlay.init() => end");
+		// set focus state to true. this means that FF is the active app right now.
+		//this.pddb.prefs.set("ff_is_in_focus", true);
+		this.pddb.prefs.set("ff_focus_timer_started", false);
 		
 		// setup uninstall observer
 		this.observerService = Cc['@mozilla.org/observer-service;1'].
 			getService(Ci.nsIObserverService);
-		var self = this;
 		this.observerService.addObserver({ observe: self.uninstall }, "em-action-requested", false);
+		
+		// add listeners for idle times
+		// we want to listen for 3 minutes and 20 minutes.
+		// https://developer.mozilla.org/en/nsIIdleService
+		
+		// need to restart ff to see changes, not just reload chrome.
+		// observers stick around until ff shutdown, then automatically removed
+		// (based on experience. not sure what we're *supposed* to do)
+		
+		// idle time is based on OS idle time, NOT FF only.
+		// so if switch apps and then start clicking, 'back' will be triggered....
+		
+		this.idleService = Components.classes["@mozilla.org/widget/idleservice;1"].
+			getService(Components.interfaces.nsIIdleService);
+		
+		// need to provide named dict... when unnamed, got error couldn't find 'observe' function
+		idle_no_flash_observer = { observe: self.pddb.idle_no_flash };
+		idle_flash_observer = { observe: self.pddb.idle_flash };
+		
+		this.idleService.addIdleObserver(idle_no_flash_observer, constants.DEFAULT_MAX_IDLE);
+		this.idleService.addIdleObserver(idle_flash_observer, constants.DEFAULT_FLASH_MAX_IDLE);
 	},
 	
 	uninstall: function(aSubject, aTopic, aData) {
@@ -199,8 +221,17 @@ Overlay.prototype = {
 	},
 	
 	uninit: function() {
+		// stop recording
+		this.pddb.stop_recording();
+
 		//logger("Overlay.uninit()");
 		gBrowser.removeProgressListener(this.url_bar_listener);
+		
+		idle_no_flash_observer = { observe: _bind(self, self.pddb.idle_no_flash) };
+		idle_flash_observer = { observe: _bind(self, self.pddb.idle_flash) };
+		
+		this.idleService.removeIdleObserver(idle_no_flash_observer, constants.DEFAULT_MAX_IDLE);
+		this.idleService.removeIdleObserver(idle_flash_observer, constants.DEFAULT_FLASH_MAX_IDLE);
 	},
 	
 	
@@ -247,8 +278,24 @@ Overlay.prototype = {
 		var href = new XPCNativeWrapper(
 			new XPCNativeWrapper(unsafeWin, "location").location, "href").href;
 		
-		//logger("  x-x-x-x-x-x-x-x href="+href);
 		return this.dispatch(href, event);
+		
+		// record if there is flash on page so that appropriate max idle time is used
+		var request = new PageRequest(href, event);
+		var has_flash = null;
+		var max_idle = null;
+		request.jQuery("*[type=application/x-shockwave-flash]").after("<H1>BOOM</h1>");
+		if (request.jQuery("[type=application/x-shockwave-flash]").length > 0) {
+			has_flash = true;
+			max_idle = constants.DEFAULT_FLASH_MAX_IDLE;
+			logger("flash on page");
+		} else {
+			has_flash = false;
+			max_idle = constants.DEFAULT_MAX_IDLE;
+			logger("NO flash on page");
+		}
+		// create site if necessary and overwrite flash and max idle
+		var site = this.Site.get_or_make(href, has_flash, max_idle);
 		
 		////////// OLD /////////////
 		//
@@ -486,6 +533,10 @@ var PDDB = function PDDB(db_filename) {
 	this.orthogonals = new Orthogonals(this.prefs, this);
 	this.tester = new PDTests(this.prefs, this);
 	this.checker = new PDChecks(this.prefs, this);
+	
+	// #@TODO can we remove need for timer by adding listener higher up ??
+	window.addEventListener('focus', _bind(this, this.focus), true);
+	window.addEventListener('blur', _bind(this, this.blur), true);
 };
 
 PDDB.prototype = {
@@ -547,70 +598,207 @@ PDDB.prototype = {
 		/* Called on every page load.
 		   Checks schedule. Not sure if it should do anything else... */
 		
-		// does period checks
-		//   * latext version of extension?
-		//   * new 24hr period?
-		//   * new week?
+		// does periodic checks for whether it's time to do scheduled tasks
 		this.schedule.run();
+	},
+	
+	focus: function(e) {
+		//_pprint(e.target);
+		this.prefs.set("new_ff_is_in_focus", true);
+		this.prefs.set("ff_blur_time", _dbify_date(new Date()));
 		
-		// @TODO might still want last vist to be time in seconds not 0 >>>??
-		//var last_global = this.prefs.get('last_visit', 0);
-		//var first = this.prefs.get('first_visit', 0);
-		// var currentTime = new Date();
-		// var t_in_s = Math.round(currentTime.getTime()/1000);
-		// this.prefs.set('last_visit', t_in_s);
+		//logger("before FOCUS: "+e.target+
+		//		"\n in_focus="+this.prefs.get("new_ff_is_in_focus", "--")+
+		//		"\n timer_started="+this.prefs.get("ff_focus_timer_started", "--"));
+		
+		var self = this;
+		if (!this.prefs.get("ff_focus_timer_started", false)) {
+			setTimeout(function() {
+				self.determine_ff_focus_state()
+			}, 1000);
+			this.prefs.set("ff_focus_timer_started", true);
+		}
+	},
+	
+	blur: function(e) {
+		//_pprint(e.target);
+		this.prefs.set("new_ff_is_in_focus", false);
+		this.prefs.set("ff_blur_time", _dbify_date(new Date()));
+		
+		//logger("before BLUR: "+e.target+
+		//		"\n in_focus="+this.prefs.get("new_ff_is_in_focus", "--")+
+		//		"\n timer_started="+this.prefs.get("ff_focus_timer_started", "--"));
+		
+		var self = this;
+		
+		if (!this.prefs.get("ff_focus_timer_started", false)) {
+			setTimeout(function() {
+				self.determine_ff_focus_state()
+			}, 1000);
+			this.prefs.set("ff_focus_timer_started", true);
+		}
+	},
+	
+	determine_ff_focus_state: function() {
+		this.prefs.set("ff_focus_timer_started", false);
+		var new_ff_state = this.prefs.get("new_ff_is_in_focus", false);
+		var ff_state = this.prefs.get("ff_is_in_focus", false);
+		
+		//logger("determine_ff_focus_state timer_started="+this.prefs.get("ff_focus_timer_started", false)+
+		//		" new ff state="+new_ff_state+
+		//		"     ff state="+ff_state);
+		
+		
+		if (ff_state != new_ff_state) {
+			this.prefs.set("ff_is_in_focus", new_ff_state);
+			if (new_ff_state) {
+				var url = this.prefs.get("saved_focus_last_url", "");
+				logger("focus last_url="+this.prefs.get("last_url", "")+
+						"\n focus_url="+this.prefs.get("saved_focus_last_url", "-"));
+				if (url) {
+					this.prefs.set("saved_focus_last_url", "");
+					this.start_recording(url);
+				}
+			} else {
+				var last_url = this.prefs.get("last_url", "");
+				logger("blur last_url="+this.prefs.get("last_url", "")+
+						"\n focus_url="+this.prefs.get("saved_focus_last_url", "-"));
+				
+				if (last_url) {
+					this.prefs.set("saved_focus_last_url", last_url); 
+					this.stop_recording();
+				}
+			}
+		}
+	},
+	
+	idle_no_flash: function(subject, topic, data) {
+		logger(topic+" -- no flash   ");
+		// if idle and no flash on site, call idle()
+		// if back, call back()
+		if (topic == "back") {
+			this.back();
+		} else if (topic == "idle") {
+			var url = this.prefs.get("saved_idle_last_url", "");
+			if (url) {
+				var site = this.Site.get_or_null({url__eq: url });
+				if (site) {
+					if (!site.has_flash()) {
+						this.idle();
+					}
+				} else {
+					logger("NO SITE in idle_no_flash "+url);
+				}
+			}
+		}
+	},
+	
+	idle_flash: function(subject, topic, data) {
+		logger(topci+" -- flash");
+		// if idle, call idle() regardless of flash ( might as well)
+		// if back, call back()
+		if (topic == "back") {
+			this.back();
+		} else if (topic == "idle") {
+			this.idle();
+		}
+	},
+	
+	idle: function() {
+		logger("IDLE last_url="+this.prefs.get("last_url", "")+
+				"\n idle_url="+this.prefs.get("saved_idle_last_url", ""));
+		var last_url = this.prefs.get("last_url", "");
+		if (last_url) {
+			this.prefs.set("saved_idle_last_url", last_url); 
+			this.stop_recording();
+		}
+	},
+	
+	back: function() {
+		logger("BACK in_focus="+this.prefs.get("ff_is_in_focus", "")+
+				"\n last_url="+this.prefs.get("last_url", "")+
+				"\n idle_url="+this.prefs.get("saved_idle_last_url", ""));
+		if (this.prefs.get("ff_is_in_focus", "")) {
+			// we want to check this because maybe we start_recording
+			// before back is called, in which case, we don't
+			// want to do anything.
+			// (ns1IdleService can have 5 second delay)
+			var url = this.prefs.get("saved_idle_last_url", "");
+			if (url) {
+				this.prefs.set("saved_idle_last_url", "");
+				this.start_recording(url);
+			}
+		}
 	},
 
 	start_recording: function(url) {
 		this.stop_recording();
+		logger("start recording "+url+
+				"\n last_url="+this.prefs.get("last_url", "--")+
+				"\n idle_url="+this.prefs.get("saved_idle_last_url", "")+
+				"\n focus_url="+this.prefs.get("saved_focus_last_url", ""));
+		this.prefs.set("saved_idle_last_url", "");
+		this.prefs.set("saved_focus_last_url", "");
 		
-		if (this.prefs.get("idle_timeout_mode", true)) {
-			this.prefs.set("last_url", url);
-			var now = Math.round((new Date()).getTime() / 1000);
-			this.prefs.set("last_start", now);
-			this.prefs.set("last_wakeup", now);
-		}
+		this.prefs.set("last_url", url);
+		var now = _dbify_date(new Date());
+		this.prefs.set("last_start", now);
 	},
 	
 	stop_recording: function() {
+		logger("stop recording "+
+				"\n last_url="+this.prefs.get("last_url", "")+
+				"\n idle_url="+this.prefs.get("saved_idle_last_url", "")+
+				"\n focus_url="+this.prefs.get("saved_focus_last_url", "")+
+				"\n in focus="+this.prefs.get("ff_is_in_focus", "--"));
 		var url = this.prefs.get("last_url", false);
 		if (url) {
-			this.prefs.set("last_url", null);
-			var start = this.prefs.get("last_start");
-			var now = Math.round((new Date()).getTime() / 1000.0);
-			//logger(" start: "+start+" now: "+now+" diff: "+now-start);
-			this.prefs.set("last_start", null);
-			var diff = now - start;
-			// cap diff at 20 mintes (60s/m * 20m)
-			//#@TODO
-			if (diff > 60*20) {
-				diff = 60*20;
+			this.prefs.set("last_url", "");
+			logger("stop recording MID: last_url="+this.prefs.get("last_url", "--")+
+					" null="+null);
+			if (this.prefs.get("last_url", null)) {
+				logger("if last_url, yes");
 			}
+			var start = this.prefs.get("last_start");
+			var now = _dbify_date(new Date());
+			//logger(" start: "+start+" now: "+now+" diff: "+now-start);
+			this.prefs.set("last_start", "");
+			var diff = now - start;
+			// cap diff at 20 minutes (60sec * 20min)
+			//if (diff > 60*20) {
+			//	diff = 60*20;
+			//}
 			this.store_visit(url, start, diff);
+			logger("stop recording MID: last_url="+this.prefs.get("last_url", null));
 		}
+		logger("stop recording AFTER"+
+				"\n last_url="+this.prefs.get("last_url", "")+
+				"\n idle_url="+this.prefs.get("saved_idle_last_url", "")+
+				"\n focus_url="+this.prefs.get("saved_focus_last_url", ""));
 	},
 	
 	store_visit: function(url, start_time, duration) {
 		if (STORE_VISIT_LOGGING) logger("  >>>> store_visit "+url+" "+start_time+" for "+duration);
 		
-		var site = null;
-		this.Site.select({ url__eq: url }, function(row) {
-			if (STORE_VISIT_LOGGING) logger("site exists "+row);
-			site = row;
-		});
-
-		if (STORE_VISIT_LOGGING) logger(site);
+		var site = this.Site.get_or_null({url__eq: url });
+		if (STORE_VISIT_LOGGING) logger("SITE: "+site);
+		
 		if (!site) {
 			var host = _host(url);
-			var sitegroup = this.SiteGroup.get_or_null({ host: host });
-			if (!sitegroup) {
-				sitegroup = this.SiteGroup.create({
-					name: host,
-					host: host,
-					tag_id: this.Unsorted.id
-				});
-			}
-			site = this.Site.create({ url: url, sitegroup_id: sitegroup.id });
+			var sitegroup = this.SiteGroup.get_or_create({
+				host: host
+			}, {
+				name: host,
+				host: host,
+				tag_id: this.Unsorted.id
+			});
+
+			site = this.Site.create({
+				url: url,
+				sitegroup_id: sitegroup.id,
+				flash: _dbify_bool(false),
+				max_idle: 3*60
+			});
 			if (STORE_VISIT_LOGGING) logger("store created "+site);
 		}
 		if (STORE_VISIT_LOGGING) logger("store_visit site: "+site);

@@ -110,8 +110,6 @@ _extend(Controller.prototype, {
 			this.authorize_payments_callback(request);
 			break;
 		case constants.HOME_URL:
-			// remove start now button
-			request.jQuery("#StartButtonDiv").remove();
 			break;
 		case constants.MANUAL_TEST_SUITE_URL:
 			this.manual_test_suite(request);
@@ -123,9 +121,8 @@ _extend(Controller.prototype, {
 			this.authorize_payments(request);
 			break;
 		default:
-			//return false;
-			//#@TODO ALERT USER
-			logger("Invalid ProcrasDonate URL: " + request.url);
+			return false;
+			//logger("Invalid ProcrasDonate URL: " + request.url);
 		}
 		return true;
 	},
@@ -638,6 +635,9 @@ _extend(PageController.prototype, {
 					.attr("href", constants.REGISTER_URL)
 					.text("Not Done Registering");
 		}
+		
+		// remove start
+		request.jQuery("#StartButtonDiv").remove();
 	},
 	
 	registration_complete: function() {

@@ -49,19 +49,19 @@ _extend(PreferenceManager.prototype, {
 					throw new Error("Cannot set preference to non integral number");
 				}
 				break;
-			case "object":
-				type = "string";
+			//case "object":
+				//type = "string";
 				//value = JSON.stringify(value);
 				//alert("value: "+value+" string: "+JSON.stringify(value));
-				value = "2";
-				break;
+			//	break;
 			default:
 				try {
 					this.FAIL(); // we expect this to fail because we haven't defined a FAIL property!
 				} catch (e) {
 					logger("ERROR: lib/preferences.set::"+e.stack);
 				}
-				throw new Error("Cannot set preference with datatype: " + type);
+				throw new Error("Cannot set preference with datatype: " + type +
+						"\nname="+name+" value="+value);
 		}
 		
 		// underlying preferences object throws an exception if new pref has a

@@ -15,10 +15,12 @@ function load_models(db, pddb) {
 		// Model metadata
 		table_name: "sites",
 		columns: {
-			_order: ["id", "sitegroup_id", "url"],
+			_order: ["id", "sitegroup_id", "url", "flash", "max_idle"],
 			id: "INTEGER PRIMARY KEY",
 			sitegroup_id: "INTEGER",
-			url: "VARCHAR"
+			url: "VARCHAR",
+			flash: "INTEGER", // boolean
+			max_idle: "INTEGER", // in seconds
 		},
 		indexes: []
 	}, {
@@ -43,17 +45,64 @@ function load_models(db, pddb) {
 			return sitegroup;
 		},
 		
+		has_flash: function() {
+			return _un_dbify_bool(this.flash)
+		},
+		
 		deep_dict: function() {
 			return {
 				id: this.id,
 				sitegroup: this.sitegroup().deep_dict(),
 				url: this.url,
-				tag: this.tag().tag
+				tag: this.tag().tag,
+				has_flash: this.has_flash(),
+				max_idle: this.max_idle
 			}
 		}
 		
 	}, {
 		// Model-class methods
+		get_or_make: function(url, has_flash, max_idle) {
+			var site = this.get_or_null({url__eq: url});
+			if (!site) {
+				var host = _host(url);
+				var sitegroup = this.SiteGroup.get_or_create({
+					host: host
+				}, {
+					name: host,
+					host: host,
+					tag_id: pddb.Unsorted.id
+				});
+	
+				site = this.create({
+					url: url,
+					sitegroup_id: sitegroup.id,
+					flash: _dbify_bool(has_flash),
+					max_idle: max_idle || this.prefs.get("DEFAULT_MAX_IDLE")
+				});
+				return site
+				
+			} else {
+				// overwrite flash and idle times if necessary
+				if (site.has_flash() != has_flash || site.max_idle != max_idle) {
+					this.set({
+						flash: _dbify_bool(has_flash),
+						max_idle: max_idle
+					}, {
+						url: url
+					});
+					return this.get_or_null({url__eq: url});
+				} else {
+					return site
+				}
+				
+				/*if (site.has_flash() != has_flash || site.max_idle != max_idle) {
+					logger("Site existed. did not override flash\n"+
+							"existing site: "+site+
+							"\nnew values: "+has_flash+" "+max_idle+" "+url);
+				}*/
+			}
+		}
 	});
 	
 	var SiteGroup = new Model(db, "SiteGroup", {
