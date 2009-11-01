@@ -2996,10 +2996,14 @@ _extend(PageController.prototype, {
 		
 		var substate_menu_items = this.make_substate_menu_items('incentive',
 				constants.REGISTER_STATE_ENUM, constants.REGISTER_STATE_TAB_NAMES);
-
+		var substate_menu = Template.get("register_submenu").render(
+				new Context({ substate_menu_items: substate_menu_items })
+			);
+		
 		var middle = Template.get("register_incentive_middle").render(
 			new Context({
 				substate_menu_items: substate_menu_items,
+				substate_menu: substate_menu,
 				pd_dollars_per_hr: self.retrieve_float_for_display('pd_dollars_per_hr', constants.PD_DEFAULT_DOLLARS_PER_HR),
 				pd_hr_per_week_goal: self.retrieve_float_for_display('pd_hr_per_week_goal', constants.PD_DEFAULT_HR_PER_WEEK_GOAL),
 				pd_hr_per_week_max: self.retrieve_float_for_display('pd_hr_per_week_max', constants.PD_DEFAULT_HR_PER_WEEK_MAX),
@@ -3045,10 +3049,14 @@ _extend(PageController.prototype, {
 		
 		var substate_menu_items = this.make_substate_menu_items('charities',
 				constants.REGISTER_STATE_ENUM, constants.REGISTER_STATE_TAB_NAMES);
-
+		var substate_menu = Template.get("register_submenu").render(
+				new Context({ substate_menu_items: substate_menu_items })
+			);
+		
 		var middle = Template.get("register_charities_middle").render(
 			new Context({
 				substate_menu_items: substate_menu_items,
+				substate_menu: substate_menu
 			})
 		);
 		request.jQuery("#content").html( middle );
@@ -3067,10 +3075,14 @@ _extend(PageController.prototype, {
 		
 		var substate_menu_items = this.make_substate_menu_items('content',
 				constants.REGISTER_STATE_ENUM, constants.REGISTER_STATE_TAB_NAMES);
-
+		var substate_menu = Template.get("register_submenu").render(
+				new Context({ substate_menu_items: substate_menu_items })
+			);
+		
 		var middle = Template.get("register_content_middle").render(
 			new Context({
 				substate_menu_items: substate_menu_items,
+				substate_menu: substate_menu,
 				tws_dollars_per_hr: self.retrieve_float_for_display('tws_dollars_per_hr', constants.TWS_DEFAULT_DOLLARS_PER_HR),
 				//tws_hr_per_week_goal: self.retrieve_float_for_display('tws_hr_per_week_goal', constants.TWS_DEFAULT_HR_PER_WEEK_GOAL),
 				tws_hr_per_week_max: self.retrieve_float_for_display('tws_hr_per_week_max', constants.TWS_DEFAULT_HR_PER_WEEK_MAX),
@@ -3114,10 +3126,14 @@ _extend(PageController.prototype, {
 		
 		var substate_menu_items = this.make_substate_menu_items('support',
 				constants.REGISTER_STATE_ENUM, constants.REGISTER_STATE_TAB_NAMES);
-
+		var substate_menu = Template.get("register_submenu").render(
+				new Context({ substate_menu_items: substate_menu_items })
+			);
+		
 		var middle = Template.get("register_support_middle").render(
 			new Context({
 				substate_menu_items: substate_menu_items,
+				substate_menu: substate_menu,
 				support_pct: self.retrieve_percent_for_display('support_pct', constants.DEFAULT_SUPPORT_PCT),
 				monthly_fee: self.retrieve_float_for_display('monthly_fee', constants.DEFAULT_MONTHLY_FEE),
 			})
@@ -3156,10 +3172,14 @@ _extend(PageController.prototype, {
 		
 		var substate_menu_items = this.make_substate_menu_items('updates',
 				constants.REGISTER_STATE_ENUM, constants.REGISTER_STATE_TAB_NAMES);
-
+		var substate_menu = Template.get("register_submenu").render(
+				new Context({ substate_menu_items: substate_menu_items })
+			);
+		
 		var middle = Template.get("register_updates_middle").render(
 			new Context({
 				substate_menu_items: substate_menu_items,
+				substate_menu: substate_menu,
 				support_pct: self.retrieve_float_for_display('support_pct', constants.DEFAULT_SUPPORT_PCT),
 				monthly_fee: self.retrieve_float_for_display('monthly_fee', constants.DEFAULT_MONTHLY_FEE),
 			})
@@ -3180,14 +3200,18 @@ _extend(PageController.prototype, {
 		
 		var substate_menu_items = this.make_substate_menu_items('payments',
 				constants.REGISTER_STATE_ENUM, constants.REGISTER_STATE_TAB_NAMES);
+		var substate_menu = Template.get("register_submenu").render(
+				new Context({ substate_menu_items: substate_menu_items })
+			);
 
 		var middle = Template.get("register_payments_middle").render(
-			new Context({
-				substate_menu_items: substate_menu_items,
-				support_pct: self.retrieve_float_for_display('support_pct', constants.DEFAULT_SUPPORT_PCT),
-				monthly_fee: self.retrieve_float_for_display('monthly_fee', constants.DEFAULT_MONTHLY_FEE),
-			})
-		);
+				new Context({
+					substate_menu_items: substate_menu_items,
+					substate_menu: substate_menu,
+					support_pct: self.retrieve_float_for_display('support_pct', constants.DEFAULT_SUPPORT_PCT),
+					monthly_fee: self.retrieve_float_for_display('monthly_fee', constants.DEFAULT_MONTHLY_FEE),
+				})
+			);
 		request.jQuery("#content").html( middle );
 		
 		this.activate_substate_menu_items(request, 'payments',
@@ -3228,10 +3252,22 @@ _extend(PageController.prototype, {
 			if (enums[index] == current_substate) {
 				klasses.push("current_tab");
 			}
+			var img = "";
+			var bar = "";
+			if (!_one_past_current && enums[index] != current_substate) {
+				img = "/procrasdonate_media/img/StepCircle"+(index+1)+"Done.png";
+				bar = "/procrasdonate_media/img/Dash.png";
+			} else {
+				img = "/procrasdonate_media/img/StepCircle"+(index+1)+".png";
+				bar = "/procrasdonate_media/img/DashGreen.png";
+			}
+				
 			var menu_item = {
 				id: "substate_tab_"+enums[index],
 				klasses: klasses,
-				value: value
+				value: value,
+				img: img,
+				bar: bar
 			}
 			// set next
 			if (_one_past_current && !_two_past_current) {

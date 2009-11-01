@@ -1,22 +1,4 @@
-
-<ul>
-	{% for item in substate_menu_items.menu_items %}
-		<li class="{% for klass in item.klasses %}{{ klass }} {% endfor %}">
-			{{ item.value }}</li>
-	{% endfor %}
-</ul>
-
-{% if substate_menu_items.prev %}
-<span id="{{ substate_menu_items.prev.id }}" class="prev">PREV</span>
-{% endif %}
-
-{% if substate_menu_items.next %}
-<span id="{{ substate_menu_items.next.id }}" class="next">NEXT</span>
-{% endif %}
-
-{% ifequal substate_menu_items.next.value "XXX" %}
-	<span id="{{ substate_menu_items.next.id }}" class="done">DONE</span>
-{% endifequal %}
+{{ substate_menu }}
 
 <h1>Customize your charitable incentive</h1>
 

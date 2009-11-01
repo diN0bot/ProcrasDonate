@@ -1,0 +1,45 @@
+<div id="register_track">
+{# ROW 1 #}
+	<ul>
+	{% for item in substate_menu_items.menu_items %}
+		<li class="{% for klass in item.klasses %}{{ klass }} {% endfor %}">
+			<img src="{{ item.img }}" />
+		</li>
+		<li class="bar">
+			{% if not forloop.last %}
+				<img src="{{ item.bar }}" />
+			{% endif %}
+		</li>
+	{% endfor %}
+	</ul>
+	
+{# ROW 2 #}
+	<ul class="menu_text">
+	{% for item in substate_menu_items.menu_items %}
+		<li class="{% for klass in item.klasses %}{{ klass }} {% endfor %}">
+			{{ item.value }}
+		</li>
+	{% endfor %}
+	</ul>
+</div>
+
+{% if substate_menu_items.prev %}
+<img
+  id="{{ substate_menu_items.prev.id }}"
+  class="prev"
+  src="/procrasdonate_media/img/BackArrow.png" />
+{% endif %}
+
+{% ifequal substate_menu_items.next.value "XXX" %}
+<img
+  id="{{ substate_menu_items.next.id }}"
+  class="done"
+  src="/procrasdonate_media/img/DoneButton.png" />
+{% else %}
+	{% if substate_menu_items.next %}
+	<img
+	  id="{{ substate_menu_items.next.id }}"
+	  class="next"
+	  src="/procrasdonate_media/img/NextArrow.png" />
+	{% endif %}
+{% endifequal %}
