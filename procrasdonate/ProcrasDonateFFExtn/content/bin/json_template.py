@@ -91,8 +91,7 @@ class AttributeHandler(Handler):
             handler = converter.get_handler(self.type_)
             
             if handler is None:
-                print "no mapping: %s" % (self.type_,)
-                #raise RuntimeError("Attribute type has no mapping: %s" % (self.type_,))
+                raise RuntimeError("Attribute type has no mapping: %s" % (self.type_,))
             
         return handler.handle(converter, value)
     
@@ -213,7 +212,8 @@ def prepare_handlers(handlers=None):
     
     handle(IncludeNode, 
            "include",
-           template_name=Literal)
+           #template_name=Literal)
+           template_name=FilterExpression)
     
     handle(BlockNode, 
            "block", ["name", "nodelist", "parent"],

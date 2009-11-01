@@ -12,6 +12,8 @@ var DjangoTemplate = function(o, name, options) {
 	Template.apply(this, [name, options]);
 	this.nodelist = o || [];
 	this.TAGS = this.options.tags || TAGS;
+	
+	this.DEBUG = false;
 }
 DjangoTemplate.prototype = new Template();
 _extend(DjangoTemplate.prototype, {
@@ -21,15 +23,20 @@ _extend(DjangoTemplate.prototype, {
 	//},
 	
 	render_variable: function(v, context, env) {
+		if (this.DEBUG) logger("RENDER VARIABLE");
 		if (isNumber(v) || isString(v) || isBoolean(v)) {
+			if (this.DEBUG) logger("num, str, bool");
 			return v;
 		} else if (isArray(v)) {
+			if (this.DEBUG) logger("array");
 			var ret = context;
+			if (this.DEBUG) _pprint(ret);
 			for (var ai in v) {
 				ret = get(ret, v[ai]);
 			}
 			return ret;
 		} else {
+			if (this.DEBUG) logger("unknown");
 			if (Template.DEBUG_TEMPLATES)
 				Error("Unknown variable type: "+v);
 			return null;
@@ -37,22 +44,31 @@ _extend(DjangoTemplate.prototype, {
 	},
 	
 	render_filter: function(v, context, env) {
+		if (this.DEBUG) logger("RENDER FILTER");
+		if (this.DEBUG) _pprint(v);
 		if (!isArray(v)) {
 			if (isString(v)) {
+				if (this.DEBUG) logger("is string");
 				m = v.match(/^["'](.*)['"]$/);
+				if (this.DEBUG) logger("m="+m);
 				if (m)
 					return m[1];
 			}
+			if (this.DEBUG) logger("is not string");
 			return v;
 		}
 		if (v[0] == 'var')
 			v = v.slice(1);
+		if (this.DEBUG) logger("v.slice(1)="+v);
 		
 		var ret = context;
 		var filters = v[1];
+		if (this.DEBUG) logger("filters="+v[1])
 		v = v[0];
+		if (this.DEBUG) logger("v[0]="+v[0])
 		
 		ret = this.render_variable(v, context, env);
+		if (this.DEBUG) logger("RET="+ret);
 		
 		for (var fi in filters) {
 			var f = filters[fi];

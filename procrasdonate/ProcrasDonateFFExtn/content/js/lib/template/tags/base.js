@@ -115,9 +115,11 @@ var TAGS = {
 		var name = args[1];
 		var nodelist = args[2];
 		var new_context = {};
+		logger("WITH value="+value+" name="+name);
 		new_context[name] = value;
 		context.push(new_context);
 		var out = this.render_nodelist(nodelist, context, env);
+		logger("OUT="+out);
 		context.pop();
 		return out;
 	},
@@ -127,14 +129,19 @@ var TAGS = {
 	},
 	
 	'include': function(args, context, env) {
-		logger("include");
+		this.DEBUG = true;
+		logger("include (args)");
 		_pprint(args);
-		_pprint(context);
-		_pprint(env);
+		var s = "";
+		for (var k in args) {
+			s += "<"+k+"="+args[k]+"> ";
+		}
+		logger("ARGS="+s);
 		var template_name = this.render_filter(args[0], context, env);
 		logger("template_name="+template_name);
 		var t = Template.get(template_name);
 		logger("t="+t);
+		this.DEBUG = false;
 		if (t) {
 			return t.render(context, env);
 		}
