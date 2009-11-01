@@ -1,9 +1,12 @@
 {{ substate_menu }}
 
 <h1>Charitable recipients</h1>
-<p>BLah blah blah</p>
+<p>You can use your ProcrasDonation incentive to help several 
+	charities or focus on supporting just one.  Simply find, select, 
+	and then adjust the percentage of your support that each charity 
+	receives.</p>
 
-<h2>Selected charities</h2>
+<h2>Selected charities:</h2>
 <table>
 <tbody>
 {% for charity in charities %}
@@ -18,7 +21,7 @@
 </tbody>
 </table>
 
-<h2>Find other charities</h2>
+<h2>Find other charities:</h2>
 <select>
 	<option>Select Category</option>
 	{% for category in categories %}
@@ -35,10 +38,15 @@
 </p>
 
 
-<h2>Invite new charity</h2>
-<p>Blah blah blah</p>
+<h2>Invite new charities:</h2>
+<p>If a non-profit charity is not listed then you can invite 
+	them to join by entering their name below.
+	<br>You can even make pledges to the charities you've invited. 
+	When they create a free account then your pledges will eligible to 
+	become donations.
+</p>
 <p>
-<label>Charity name</label>
+<label>Name of unlisted charity to invite:</label>
 <input type="text" id="" name="" />
 <input type="button" value="Search!" />
 </p>

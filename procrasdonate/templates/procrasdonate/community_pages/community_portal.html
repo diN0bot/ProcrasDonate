@@ -6,7 +6,31 @@
 
 {% block content %}
 	<div id="thin_column">
-		<h2>Community Portal</h2>
+		<h1>Community Stats</h1>
+
+<h2>This week in ProcrasDonation:</h2>
+
+<h4>Most Popular Charity: <span class="subheader">{{ most_donators.recipient.name }}</span></h4>
+<p><b>{{ most_donators.total_donors }}</b> of us have made pledges to <b>{{ most_donators.recipient.name }}</b> so far this week.
+</p>
+
+<h4>Biggest Fundraiser: <span class="subheader">{{ most_money.recipient.name }}</span></h4>
+<p><b>{{ most_money.recipient.name }}</b> has raised <b>${{ most_money.total_amount }}</b> using ProcrasDonate this week.
+</p>
+
+{% endblock %}
+
+{% comment %}
+
+things we want to add to the page: 
+
+- Most recent donation (not pledge, but donation) that has been made, what the donation amount was, and who the recipient was.
+- Best Distraction: hours spent PD on a particular website group
+- Best Quality Time: hours spent TWS on a particular website group
+- All Time totals for number of charities donated to, total donation value, total number of donations.
+- All Time totals for number of TWS content providers donated to, total donation value, total number of donations.
+
+the following lists a bunch of stuff that we don't necessarily use for this page but might want to later
 		
 		<h3>Most recently donated to this week</h3>
 			<p>{{ most_recent }} is a RecipientVisit. 
@@ -98,4 +122,5 @@
 			{% endfor %}
 
 	</div>
-{% endblock %}
+
+{% endcomment %}

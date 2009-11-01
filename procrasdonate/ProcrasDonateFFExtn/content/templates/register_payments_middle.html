@@ -1,10 +1,16 @@
 {{ substate_menu }}
 
 <h1>Approving payments</h1>
-<p>blah blah</p>
+<p>Your final step is to approve payments on your existing Amazon.com 
+	account.  
+</p>
+<p>Payments to registered 501c3 non-profits will be fully tax deductible.
+	<br>Payments will be fully refundable up to 30 days after they are made.
+	<br>No one else will be able to make payments on your behalf. </p>
+<p>Click on ''Go to Amazon to approve payments'' when you are ready.</p>
 
 <h2>Determining an overall limit</h2>
-<p>Blah blah blah</p>
+<p>How often do you want to have to re-authorize payments for your account?</p>
 <p><input
 	type="text"
 	id="a"
@@ -12,4 +18,10 @@
 	value="{{ a }}" />
    </p>
 
-<p>Blah blah blah <span id="limit_in_dollars">{{ limit_in_dollars }}</span> blah blah</p>
+<p>Amazon will authorize you for an overall payment limit of  
+	$<span id="limit_in_dollars">{{ limit_in_dollars }}</span>
+	based on your weekly payment limits and the number of months between
+	reauthorizations.  
+	Remember, you can change how often you want to make payments or go
+	back to adjust your weekly limits.
+</p>

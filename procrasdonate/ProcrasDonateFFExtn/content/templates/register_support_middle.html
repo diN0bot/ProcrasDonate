@@ -1,10 +1,13 @@
 {{ substate_menu }}
 
 <h1>Supporting our service</h1>
-<p>blah blah</p>
+<p>What are you willing to pay to subscribe to this service?  
+	<br>We're making improvements all the time and we do have bills to pay.
+</p>
+<p>	Your support makes it all possible!</p>
 
-<h2>Monthly membership fee</h2>
-<p>Blah blah blah</p>
+<h2>Monthly membership fee:</h2>
+<p>Voluntary membership fees are charged to your account each month.</p>
 <p><input
 	type="text"
 	id="monthly_fee"
@@ -12,13 +15,18 @@
 	value="{{ monthly_fee }}" />
    <span class="units">dollars per month</span></p>
 
-<h2>Percentage of payment transactions</h2>
-<p>Blah blah blah</p>
+<h2>Transactions fees:</h2>
+<p>You can also pay us a percentage of every transaction you 
+	make using our service.
+	<br>Since we don't charge charities for receiving donations
+	your transaction fees will be charged separately and 
+	paid directly to ProcrasDonate.</p>
 <p><input
 	type="text"
 	id="support_pct"
 	name="support_pct" 
 	value="{{ support_pct }}" />
    <span class="units">%</span>
-   <span class="help">e.g., 4.25 for 4.25%</span>
+   <span class="help"> 
+   	<br>(enter ''4.00'' to donate 4% per transaction.)</span>
    </p>

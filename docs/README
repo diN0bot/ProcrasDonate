@@ -1,9 +1,9 @@
 
 ##### USEFUL BASH ALIASES:
 
-## set python path o current working directory
-## there are other ways to do this. you'll need to do 
-## something in order for xpi_it, for example, to work.
+## set python path to current working directory
+## (there are other ways to do this. you'll need to do 
+## something in order for xpi_it, for example, to work)
 PYTHONPATH=./
 
 ## replace with your path to repo
