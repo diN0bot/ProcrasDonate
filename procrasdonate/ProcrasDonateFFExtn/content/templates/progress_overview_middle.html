@@ -1,15 +1,10 @@
-progress overview middle
+<h2>My Progress</h2>
 
-<ul>
-	{% for item in substate_menu_items.menu_items %}
-		<li id="{{ item.id }}"
-			class="{% for klass in item.klasses %}{{ klass }} {% endfor %}">
-			{{ item.value }}</li>
-	{% endfor %}
-</ul>
+<h3>ProcrasDonation Comparison</h3>
 
-<p>this week: {{ pd_this_week_hrs }}</p>
+<p>Hours that I ProcrasDonated</p>
 
-<p>last week: {{ pd_last_week_hrs }}</p>
+{# google gauges are inserted by view #}
+<div id="gauges"></div>
 
-<p>total: {{ pd_total_hrs }}</p>
+{# see progress_explanation_snippet.html for explanation text #}

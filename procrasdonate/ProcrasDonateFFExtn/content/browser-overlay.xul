@@ -29,6 +29,14 @@
             src='chrome://ProcrasDonate/content/js/ext/jssha2/sha2.js'></script>
     <script type='application/x-javascript'
             src='chrome://ProcrasDonate/content/js/ext/jssha2/sha256.js'></script>
+
+    <!-- google apis copied from:
+	 http://www.google.com/jsapi
+	 http://www.google.com/uds/api/visualization/1.0/f7efd978d795712a65e4d86efbd329f3/default,gauge.I.js -->
+    <script type='application/x-javascript'
+            src='chrome://ProcrasDonate/content/js/ext/google_gauge_api.js'></script>
+    <script type='application/x-javascript'
+            src='chrome://ProcrasDonate/content/js/ext/the_real_google_gauge_api.js'></script>
     
     <!-- Basic utils
       -->

@@ -190,8 +190,8 @@ Overlay.prototype = {
 		idle_no_flash_observer = { observe: self.pddb.idle_no_flash };
 		idle_flash_observer = { observe: self.pddb.idle_flash };
 		
-		this.idleService.addIdleObserver(idle_no_flash_observer, constants.DEFAULT_MAX_IDLE);
-		this.idleService.addIdleObserver(idle_flash_observer, constants.DEFAULT_FLASH_MAX_IDLE);
+		//this.idleService.addIdleObserver(idle_no_flash_observer, constants.DEFAULT_MAX_IDLE);
+		//this.idleService.addIdleObserver(idle_flash_observer, constants.DEFAULT_FLASH_MAX_IDLE);
 	},
 	
 	uninstall: function(aSubject, aTopic, aData) {
@@ -221,9 +221,11 @@ Overlay.prototype = {
 	},
 	
 	uninit: function() {
+		var self = this;
+
 		// stop recording
 		this.pddb.stop_recording();
-
+		
 		//logger("Overlay.uninit()");
 		gBrowser.removeProgressListener(this.url_bar_listener);
 		

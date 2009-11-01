@@ -354,14 +354,6 @@ td { padding: .6em 0em .5em 0em; vertical-align: middle; }
 .Move_Site_Arrow { width: 1.2em; vertical-align: bottom; margin-bottom: -.25em; padding: 0 .5em 0 .5em; }
 
 /**** REGISTER ****/
-#register_next_prev { clear: both; }
-.register_button {
-  width: 5.5em;
-  padding: 0 35.5%;
-}
-
-#what_is_twitter.open { padding-left: 2em; }
-
 #register_track ul { text-align: center; list-style-type: none; margin: 0em; }
 #register_track ul li { text-align: center; display: inline; }
 #register_track .bar { vertical-align: bottom; }
@@ -422,3 +414,6 @@ td { padding: .6em 0em .5em 0em; vertical-align: middle; }
 .ui-slider-vertical .ui-slider-range { left: 0; width: 100%; }
 .ui-slider-vertical .ui-slider-range-min { bottom: 0; }
 .ui-slider-vertical .ui-slider-range-max { top: 0; }
+
+/**** MY PROGRESS ****/
+.laptop { width: 10em; }
