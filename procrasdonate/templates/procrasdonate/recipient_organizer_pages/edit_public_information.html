@@ -1,19 +1,22 @@
 {% extends 'procrasdonate/base.html' %}
 
-{% block head %}
-	{{ block.super }}
-{% endblock %}
-
 {% block content %}
-	EDIT PUBLIC INFORMATION
-	<div id="thin_column">
-		<form method="post">
-			<table><tbody>
-				{{ form }}
-			</tbody></table>
-			<input type="submit" value="save" />
-		</form>
-	</div>
+	{% include 'register_submenu.html' %}
+	
+	<h2>Public Profile</h2>
+	
+	<h3>This page will educate donors about your organization</h3>
+	
+	<p>Please fill in blah</p>
+	
+	<p>We consider you blah blah</p>
+	
+	<form method="post">
+		<table><tbody>
+			{{ form }}
+		</tbody></table>
+		<input type="submit" value="save" />
+	</form>
 	
 	<a href="{% url recipient_register %}">Authorize to receive donations</a>
 {% endblock %}

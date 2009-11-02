@@ -1,7 +1,7 @@
 var STORE_VISIT_LOGGING = false;
+var IDLE_LOGGING = false;
 
 var ProcrasDonate__UUID="extension@procrasdonate.com";
-
 
 // from https://developer.mozilla.org/En/Code_snippets:On_page_load
 const STATE_START = Components.interfaces.nsIWebProgressListener.STATE_START;
@@ -338,7 +338,7 @@ Overlay.prototype = {
 		//	//this.injectScript("logger(\"Script injected!\");", href, unsafeWin);
 		//} else {
 		//	logger("storing url: "+href);
-		//	var now = Math.round((new Date()).getTime() / 1000);
+		//	var now = parseInt((new Date()).getTime() / 1000);
 		//	this.pddb.store_visit(href, now, 1000);
 		//}
 	},
@@ -655,7 +655,7 @@ PDDB.prototype = {
 			this.prefs.set("ff_is_in_focus", new_ff_state);
 			if (new_ff_state) {
 				var url = this.prefs.get("saved_focus_last_url", "");
-				logger("focus last_url="+this.prefs.get("last_url", "")+
+				if (IDLE_LOGGING) logger("focus last_url="+this.prefs.get("last_url", "")+
 						"\n focus_url="+this.prefs.get("saved_focus_last_url", "-"));
 				if (url) {
 					this.prefs.set("saved_focus_last_url", "");
@@ -663,7 +663,7 @@ PDDB.prototype = {
 				}
 			} else {
 				var last_url = this.prefs.get("last_url", "");
-				logger("blur last_url="+this.prefs.get("last_url", "")+
+				if (IDLE_LOGGING) logger("blur last_url="+this.prefs.get("last_url", "")+
 						"\n focus_url="+this.prefs.get("saved_focus_last_url", "-"));
 				
 				if (last_url) {
@@ -675,7 +675,7 @@ PDDB.prototype = {
 	},
 	
 	idle_no_flash: function(subject, topic, data) {
-		logger(topic+" -- no flash   ");
+		if (IDLE_LOGGING) logger(topic+" -- no flash   ");
 		// if idle and no flash on site, call idle()
 		// if back, call back()
 		if (topic == "back") {
@@ -689,14 +689,14 @@ PDDB.prototype = {
 						this.idle();
 					}
 				} else {
-					logger("NO SITE in idle_no_flash "+url);
+					if (IDLE_LOGGING) logger("NO SITE in idle_no_flash "+url);
 				}
 			}
 		}
 	},
 	
 	idle_flash: function(subject, topic, data) {
-		logger(topci+" -- flash");
+		if (IDLE_LOGGING) logger(topci+" -- flash");
 		// if idle, call idle() regardless of flash ( might as well)
 		// if back, call back()
 		if (topic == "back") {
@@ -707,7 +707,7 @@ PDDB.prototype = {
 	},
 	
 	idle: function() {
-		logger("IDLE last_url="+this.prefs.get("last_url", "")+
+		if (IDLE_LOGGING) logger("IDLE last_url="+this.prefs.get("last_url", "")+
 				"\n idle_url="+this.prefs.get("saved_idle_last_url", ""));
 		var last_url = this.prefs.get("last_url", "");
 		if (last_url) {
@@ -717,7 +717,7 @@ PDDB.prototype = {
 	},
 	
 	back: function() {
-		logger("BACK in_focus="+this.prefs.get("ff_is_in_focus", "")+
+		if (IDLE_LOGGING) logger("BACK in_focus="+this.prefs.get("ff_is_in_focus", "")+
 				"\n last_url="+this.prefs.get("last_url", "")+
 				"\n idle_url="+this.prefs.get("saved_idle_last_url", ""));
 		if (this.prefs.get("ff_is_in_focus", "")) {
@@ -735,7 +735,7 @@ PDDB.prototype = {
 
 	start_recording: function(url) {
 		this.stop_recording();
-		logger("start recording "+url+
+		if (IDLE_LOGGING) logger("start recording "+url+
 				"\n last_url="+this.prefs.get("last_url", "--")+
 				"\n idle_url="+this.prefs.get("saved_idle_last_url", "")+
 				"\n focus_url="+this.prefs.get("saved_focus_last_url", ""));
@@ -748,7 +748,7 @@ PDDB.prototype = {
 	},
 	
 	stop_recording: function() {
-		logger("stop recording "+
+		if (IDLE_LOGGING) logger("stop recording "+
 				"\n last_url="+this.prefs.get("last_url", "")+
 				"\n idle_url="+this.prefs.get("saved_idle_last_url", "")+
 				"\n focus_url="+this.prefs.get("saved_focus_last_url", "")+
@@ -756,27 +756,18 @@ PDDB.prototype = {
 		var url = this.prefs.get("last_url", false);
 		if (url) {
 			this.prefs.set("last_url", "");
-			logger("stop recording MID: last_url="+this.prefs.get("last_url", "--")+
-					" null="+null);
-			if (this.prefs.get("last_url", null)) {
-				logger("if last_url, yes");
-			}
 			var start = this.prefs.get("last_start");
 			var now = _dbify_date(new Date());
 			//logger(" start: "+start+" now: "+now+" diff: "+now-start);
 			this.prefs.set("last_start", "");
 			var diff = now - start;
-			// cap diff at 20 minutes (60sec * 20min)
-			//if (diff > 60*20) {
-			//	diff = 60*20;
-			//}
+			// cap diff at flash max...just in case...
+			if (diff > constants.DEFAULT_FLASH_MAX_IDLE) {
+				this.orthogonals.warn("store_visit:: diff greater than flash max: "+diff+" start="+start+" url="+url);
+				diff = constants.DEFAULT_FLASH_MAX_IDLE + 1;
+			}
 			this.store_visit(url, start, diff);
-			logger("stop recording MID: last_url="+this.prefs.get("last_url", null));
 		}
-		logger("stop recording AFTER"+
-				"\n last_url="+this.prefs.get("last_url", "")+
-				"\n idle_url="+this.prefs.get("saved_idle_last_url", "")+
-				"\n focus_url="+this.prefs.get("saved_focus_last_url", ""));
 	},
 	
 	store_visit: function(url, start_time, duration) {
@@ -1012,7 +1003,7 @@ PDDB.prototype = {
 		 * if (total_time + time_delta) - limit < 0, return time_delta
 		 * if (total_time + time_delta) - limit > 0, then
 		 *    if total_time - limit > 0, return time_delta
-		 *    if total_time - limit < 0, return parseInt( limit - total-time )
+		 *    if total_time - limit < 0, return Math.round( limit - total-time )
 		 *         this difference is the amount to add to meet limit exactly.
 		 */
 		if (STORE_VISIT_LOGGING) logger("main.js::check_limit: time_delta="+time_delta+" ||end_of_week="+end_of_week+" ||contenttype="+contenttype+" ||tag="+tag);
@@ -1040,7 +1031,7 @@ PDDB.prototype = {
 				if (STORE_VISIT_LOGGING) logger("    dml < 0, return time_delta="+time_delta);
 				return time_delta;
 			} else {
-				var short = parseInt( limit - total_time );
+				var short = Math.round( limit - total_time );
 				if ( short < 0 ) {
 					if (STORE_VISIT_LOGGING) logger("    limit - total_time < 0 >>> "+total_time+" "+limit+"   return 0");
 					if (STORE_VISIT_LOGGING) logger("    short "+short);

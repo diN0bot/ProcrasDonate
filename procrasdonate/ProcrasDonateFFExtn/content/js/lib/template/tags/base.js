@@ -29,6 +29,7 @@ var TAGS = {
 					'counter0': i,
 					'revcounter': sequence.length - i,
 					'revcounter0': sequence.length - i - 1,
+					'is_odd': i%2
 			};
 			var new_context = { 'forloop': forloop };
 			if (vars.length > 1) {
@@ -98,9 +99,17 @@ var TAGS = {
 		return '';
 	},
 	'cycle': function(args, context, env) {
+		//// DOES NOT SEEM TO GET CALLED
+		//// <tr class="{% cycle 'odd' 'even' %}">
+		//// no-op ?!
+		//// use forloop.is_odd instead
 		var variable_name = args[0];
 		var cycle_vars = args[1];
 		var counter = args[2];
+		logger("CYCLE!!! variable_name="+variable_name+
+				" cycle_vars="+cycle_vars+
+				" counter="+counter);
+		
 		if (counter[0] != null)
 			counter[0] += 1;
 		else
@@ -108,6 +117,7 @@ var TAGS = {
 		var value = this.render_filter(cycle_vars[counter[0] % cycle_vars.length], context, env);
 		if (variable_name)
 			context.set(variable_name, value);
+		logger("CYCLE VALUE ="+value);
 		return value;
 	},
 	'with': function(args, context, env) {

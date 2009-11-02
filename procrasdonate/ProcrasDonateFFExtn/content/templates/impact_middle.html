@@ -1,15 +1,8 @@
-----A-----
-{% with tmpl as "clickable_substate_menu.html" %}
-	name:{{ tmpl }}:
-	{% include tmpl %}
-{% endwith %}
-----B-----
-
 <h1>My Impact</h1>
 
 <h2>Donations and Pledges</h2>
 
-<ul>
+<ul id="impact_submenu">
 	{% for item in substate_menu_items.menu_items %}
 		<li id="{{ item.id }}"
 			class="{% for klass in item.klasses %}{{ klass }} {% endfor %}">
@@ -17,7 +10,7 @@
 	{% endfor %}
 </ul>
 
-<table>
+<table id="impact_table" cellspacing="0">
 <thead>
 	<tr>
 		{% for header in table_headers %}
@@ -27,7 +20,7 @@
 </thead>
 <tbody>
 	{% for row in table_rows %}
-	<tr>
+	<tr class="{% if forloop.is_odd %}odd{% else %}even{% endif %}">
 		{% for cell in row %}
 			<td>{{ cell }}</td>
 		{% endfor %}

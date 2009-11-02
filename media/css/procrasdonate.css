@@ -53,7 +53,7 @@ img { -ms-interpolation-mode:bicubic; }
 
 /******** LAYOUT *******************************************/
 #wrapper {
-	width: 78em;
+	width: 85em;
 	margin: auto;
 }
 
@@ -107,18 +107,41 @@ img { -ms-interpolation-mode:bicubic; }
 
 /******** CONTENT *******************************************/
 #middle {
-	width: 53em;
+	width: 60em;
 	padding: 0em 4em;
 }
 
 /******** RIGHT COLUMN *******************************************/
-#right_column { width: 9.5em; }
+#right_column { /*text-align: left; *//*width: 9.5em;*/ }
 #right_logo { width: 9.5em; margin-bottom: 2em; }
 .video_block { margin-bottom: 2em; }
 .video_block img { width: 9.5em; background: black;  }
 .video_block p { margin-top: .3em; text-align: left; }
-#video1 {}
-#video2 {}
+
+.video_block {
+	-moz-border-radius: .4em; 
+	font-size: 1.2em;
+	margin-bottom: 2em;
+	background: #9C9C9C;
+	border: 0.34em ridge #5C5C5C;
+}
+.video_block p {
+	text-align: center;
+	display: block;
+	padding: 0.3em 0em;
+	margin: 1em 0em;
+	border-top: 0.1em dotted #BCBCBC;
+	-moz-border-radius: 0em;
+	background: #5C5C5C;
+	/*border-top: 0.1em dotted #1C1C1C;*/
+	font-variant: small-caps; /*letter-spacing: .1em;*/
+	text-decoration: none;
+	color: #f9fdf4;
+}
+.video_block p a {
+	color: #f9fdf4;
+	text-decoration: none;
+}
 
 /*** attempt at expanding videos. divs not inserted now
  because doesn't work. large_video is always behind table,
@@ -371,9 +394,9 @@ td { padding: .6em 0em .5em 0em; vertical-align: middle; }
 #register_track .menu_text .past { color: green; }
 #register_track .menu_text .future { color: #330000; }
 
-.prev { margin: 1em 1em 0em 0em; width: 6em; max-height: 52px; }
-.next { margin: 1em 0em 0em 1em; width: 6em; }
-.done { margin: 1em 1em 0em 0em; width: 6em; }
+.prev { margin: 1em 1em 0em 0em; width: 6em; max-height: 52px; cursor: pointer; }
+.next { margin: 1em 0em 0em 1em; width: 6em; max-height: 52px; cursor: pointer; }
+.done { margin: 1em 1em 0em 0em; width: 6em; cursor: pointer; }
 
 /**** IMAGES ****/
 
@@ -425,3 +448,36 @@ td { padding: .6em 0em .5em 0em; vertical-align: middle; }
 
 /**** MY PROGRESS ****/
 .laptop { width: 10em; }
+#progress_explanation tr td { padding: 0em; }
+
+/**** MY IMPACT ****/
+#impact_submenu {
+	list-style: none;
+	padding: 0em;
+	margin: 2em 0em 0em 0em;
+	text-align: center;
+}
+#impact_submenu li {
+	display: inline;
+	padding: .2em 1em;
+	margin: 0em .3em;
+	color: #777777;
+	cursor: pointer;
+}
+#impact_submenu .current_tab {
+	background: #E6E6E6; /* should match table border below */
+	-moz-border-radius-topright: 0.4em;
+	-moz-border-radius-topleft: 0.4em;
+	color: black;
+}
+
+#impact_table {
+	-moz-border-radius: 0.4em;
+	border: 0.7em solid #E6E6E6;
+}
+#impact_table tr th {
+	padding-top: 1em;
+}
+#impact_table .even td {
+	background: #f7edb4;
+}

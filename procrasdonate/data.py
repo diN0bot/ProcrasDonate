@@ -166,6 +166,8 @@ class Recipient(models.Model):
     promotional_video = models.URLField(blank=True, null=True)
     pd_experience_video = models.URLField(blank=True, null=True)
     
+    charity_navigator_score = models.IntegerField(blank=True, null=True)
+    
     admin_options = {'prepopulated_fields': {"slug": ("name",)} }
     
     class Meta:

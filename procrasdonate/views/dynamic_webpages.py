@@ -40,7 +40,6 @@ def community_type(request, type):
 #### PUBLIC RECIPIENT ###################################
 
 def recipient(request, slug):
-    print "RECIPIENT"
     recipient = Recipient.get_or_none(slug=slug)
     return render_response(request, 'procrasdonate/public_recipient_pages/recipient.html', locals())
 
@@ -233,9 +232,71 @@ def confirm_reset_password(request, username, confirmation_code):
 
 #### RECIPIENT ORGANIZER ###################################
 
+def _organizer_submenu(request, current_slug):
+    menu_items = []
+    next = None
+    prev = None
+    
+    _last = None;
+    _one_past_current = False
+    _two_past_current = False # because can't tell the difference bw nulls
+    idx = 0
+    for item in [{'name': 'Profile',
+                  'slug': 'public',
+                  'url': reverse("edit_public_information")},
+                  
+                 {'name': 'Record',
+                  'slug': 'private',
+                  'url': reverse("edit_private_information")},
+                  
+                 {'name': 'Media',
+                  'slug': 'media',
+                  'url': reverse("edit_media")}]:
+        
+        klasses = ["substate_tab"]
+        if item['slug'] == current_slug:
+            klasses.append("current_tab")
+        elif not _one_past_current:
+            klasses.append("past")
+        else:
+            klasses.append("future")
+            
+        img = "/procrasdonate_media/img/StepCircle%sDone.png" % (idx+1)
+        bar = "/procrasdonate_media/img/Dash.png"
+        if _one_past_current:
+            img = "/procrasdonate_media/img/StepCircle%s.png" % (idx+1)
+            bar = "/procrasdonate_media/img/DashGreen.png"
+
+        menu_item = {"id": item['slug'],
+                     "klasses": klasses,
+                     "value": item['name'],
+                     "img": img,
+                     "bar": bar,
+                     "url": item['url']}
+
+        # set next
+        if _one_past_current and not _two_past_current:
+            next = menu_item
+            _two_past_current = True
+
+        # set prev
+        if item['slug'] == current_slug:
+            _one_past_current = True
+            prev = _last
+
+        # add to menu items
+        menu_items.append(menu_item);
+        _last = menu_item
+        idx += 1
+    
+    return {"menu_items": menu_items,
+            "next": next,
+            "prev": prev}
+
 @login_required
 def edit_public_information(request):
     recipient = request.user.get_profile().recipient
+    substate_menu_items = _organizer_submenu(request, "public")
         
     FormKlass = get_form(Recipient, EDIT_TYPE, includes=('name',
                                                          'category',
@@ -288,6 +349,7 @@ def recipient_organizer_dashboard(request):
 @login_required
 def edit_private_information(request):
     recipient = request.user.get_profile().recipient
+    substate_menu_items = _organizer_submenu(request, "private")
         
     FormKlass = get_form(Recipient, EDIT_TYPE, includes=('employers_identification_number',
                                                          'tax_exempt_status',
@@ -315,7 +377,8 @@ def edit_private_information(request):
 @login_required
 def edit_media(request):
     recipient = request.user.get_profile().recipient
-        
+    substate_menu_items = _organizer_submenu(request, "media")
+    
     FormKlass = get_form(Recipient, EDIT_TYPE, includes=('logo',
                                                          'promotional_image',
                                                          'promotional_video',

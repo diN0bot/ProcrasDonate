@@ -17,34 +17,46 @@
 	<ul class="menu_text">
 	{% for item in substate_menu_items.menu_items %}
 		<li class="{% for klass in item.klasses %}{{ klass }} {% endfor %}">
-			{{ item.value }}
+			{% if item.url %}<a href="{{ item.url }}">{% endif %}
+				{{ item.value }}
+			{% if item.url %}</a>{% endif %}
 		</li>
 	{% endfor %}
 	</ul>
 </div>
 
 {% if substate_menu_items.prev %}
-<img
-  id="{{ substate_menu_items.prev.id }}"
-  class="prev"
-  src="/procrasdonate_media/img/BackArrow.png" />
+	{% if substate_menu_items.prev.url %}<a href="{{ substate_menu_items.prev.url }}">{% endif %}
+		<img
+		  id="{{ substate_menu_items.prev.id }}"
+		  class="prev"
+		  src="/procrasdonate_media/img/BackArrow.png" />
+  {% if substate_menu_items.prev.url %}</a>{% endif %}
 {% else %}
 <img
-  id="{{ substate_menu_items.prev.id }}"
+  id=""
   class="prev"
   src="/procrasdonate_media/img/Spacer.png" />
 {% endif %}
 
-{% ifequal substate_menu_items.next.value "XXX" %}
-<img
-  id="{{ substate_menu_items.next.id }}"
-  class="done"
-  src="/procrasdonate_media/img/DoneButton.png" />
+{% if substate_menu_items.next %}
+	{% ifequal substate_menu_items.next.value "XXX" %}
+		<img
+		  id="{{ substate_menu_items.next.id }}"
+		  class="done"
+		  src="/procrasdonate_media/img/DoneButton.png" />
+	{% else %}
+		{% if substate_menu_items.next.url %}<a href="{{ substate_menu_items.next.url }}">{% endif %}
+			<img
+			  id="{{ substate_menu_items.next.id }}"
+			  class="next"
+			  src="/procrasdonate_media/img/NextArrow.png" />
+		{% if substate_menu_items.next.url %}</a>{% endif %}
+	{% endifequal %}
 {% else %}
-	{% if substate_menu_items.next %}
-	<img
-	  id="{{ substate_menu_items.next.id }}"
-	  class="next"
-	  src="/procrasdonate_media/img/NextArrow.png" />
-	{% endif %}
-{% endifequal %}
+<img
+  id=""
+  class="next"
+  src="/procrasdonate_media/img/Spacer.png" />
+{% endif %}
+

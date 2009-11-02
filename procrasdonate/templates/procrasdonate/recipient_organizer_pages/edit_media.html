@@ -1,19 +1,14 @@
 {% extends 'procrasdonate/base.html' %}
 
-{% block head %}
-	{{ block.super }}
-{% endblock %}
-
 {% block content %}
-	EDIT MEDIA
-	<div id="thin_column">
-		<form method="post">
-			<table><tbody>
-				{{ form }}
-			</tbody></table>
-			<input type="submit" value="save" />
-		</form>
-	</div>
+	{% include 'register_submenu.html' %}
 	
-	<a href="{% url recipient_register %}">Authorize to receive donations</a>
+	<h2>Upload your logo and video or image</h2>
+	
+	<form method="post">
+		<table><tbody>
+			{{ form }}
+		</tbody></table>
+		<input type="submit" value="save" />
+	</form>
 {% endblock %}

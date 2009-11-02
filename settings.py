@@ -108,7 +108,9 @@ if DEBUG_TOOLBAR:
         'debug_toolbar.middleware.DebugToolbarMiddleware',
     )
         
-TEMPLATE_DIRS = ()
+TEMPLATE_DIRS = (
+    'procrasdonate/ProcrasDonateFFExtn/content/templates',
+)
 
 for app in APPS:
     if os.path.exists(pathify([PROJECT_PATH, app, 'templates'])):

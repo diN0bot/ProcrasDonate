@@ -1,30 +1,28 @@
 {% extends 'procrasdonate/base.html' %}
 
-{% block head %}
-	{{ block.super }}
-	<script language="javascript" type="text/javascript" src="{{ MEDIA_URL }}js/flot/jquery.flot.js"></script>
-	<!--[if IE]>
-		<script language="javascript" type="text/javascript" src="{{ MEDIA_URL }}js/flot/excanvas.min.js"></script>
-	<![endif]--> 
-{% endblock %}
-
 {% block content %}
-	<div id="thin_column">
-		<h3>{{ recipient.name }}</h3>
-		<ul>
-			<li>mission: {{ recipient.mission }}</li>
-			<li>description: {{ recipient.description }}</li>
-			<li>category: {{ recipient.category.category }}</li>
-			<li>twitter_name: {{ recipient.twitter_name }}</li>
-			<li>email: {{ recipient.email }}</li>
-			<li>url: {{ recipient.url }}</li>
-			<li>tax deductible donation: {{ recipient.tax_exempt_status }}</li>
-		</ul>
-		
+	<div id="public_recipient_page">
 		{% if user.is_authenticated %}
 			{% ifequal user.get_profile.recipient.slug recipient.slug %}
-				<a href="{% url edit_public_information %}">EDIT</a>
+				<h2><a href="{% url edit_public_information %}">Edit</a></h2>
 			{% endifequal %}
 		{% endif %}
-	</div>
+		
+		<h2>{{ recipient.name }}</h2>
+		
+		<h3>Category: {{ recipient.category.category }}</h3>
+		
+		<h3>Charity Navigator Score: {{ recipient.charity_navigator_score|default:"-" }}</h3>
+		
+		<h3>Mission:</h3>
+		<div class="recipient_mission">
+			{{ recipient.mission }}
+		</div>
+		
+		<h3>Description:</h3>
+		<div class="recipient_description">
+			{{ recipient.description }}
+		</div>
+		
+		<h3>Website: {{ recipient.url }}</h3>
 {% endblock %}

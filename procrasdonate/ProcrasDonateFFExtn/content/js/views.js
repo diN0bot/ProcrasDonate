@@ -646,31 +646,6 @@ _extend(PageController.prototype, {
 		return reg_state && reg_state == "done" && tos_accepted;
 	},
 	
-	check_latest_version: function() {
-		/*
-		 * Check if user should update to newer version of ProcrasDonate.
-		 * Inserts html into page.
-		 * @TODO THIS IS NOT CALLED Y DISPATCH, nor is the actual
-		 * code here correct. Maybe we don't even need this. see upgrade/version
-		 * stuff in main.js
-		 */
-		var newest_version;
-		
-		if (document.getElementById("newest_version")) {
-			newest_version = parseInt(
-				document.getElementById("newest_version").innerHTML, 10);
-			if (newest_version > 30) { // change to a constant somehow
-				
-				var cell_text;
-				cell_text = "You are running an old version of ProcrasDonate. ";
-				cell_text += 'Update <a href="https://addons.mozilla.org/firefox/3685/">here</a>';
-				document.getElementById("newest_version").innerHTML = cell_text;
-				document.getElementById("newest_version").style.display = "inline";
-				// document.getElementById("newest_version").style.color="#EDCB09";
-			}
-		}
-	},
-	
 	/*************************************************************************/
 	/***************************** VIEW UTILS ********************************/
 	
@@ -1190,7 +1165,7 @@ _extend(PageController.prototype, {
 	},
 	
 	insert_impact_show_all: function(request) {
-		this._insert_impact_per_item(request, 'substate', function(total) {
+		this._insert_impact_per_item(request, 'show_all', function(total) {
 			return true
 		});
 	},
@@ -1274,15 +1249,15 @@ _extend(PageController.prototype, {
 		
 		var this_week_hrs = 0.0;
 		if (pd_total_this_week) {
-			this_week_hrs = pd_total_this_week.hours().toFixed(2)
+			this_week_hrs = pd_total_this_week.hours().toFixed(1)
 		}
 		var last_week_hrs = 0.0;
 		if (pd_total_last_week) {
-			last_week_hrs = pd_total_last_week.hours().toFixed(2)
+			last_week_hrs = pd_total_last_week.hours().toFixed(1)
 		}
 		var total_hrs = 0.0;
 		if (pd_total) {
-			total_hrs = pd_total.hours().toFixed(2)
+			total_hrs = pd_total.hours().toFixed(1)
 		}
 		
 		var middle = Template.get("progress_overview_middle").render(
@@ -1310,42 +1285,45 @@ _extend(PageController.prototype, {
 		// instead, our overlay includes the real google gauges api that gets loaded
 		// by the above muck. thus, we already have access to the necessary methods.
 		
-		var max = this.prefs.get("pd_hr_per_week_max", constants.DEFAULT_PD_HR_PER_WEEK_MAX);
-		var goal = this.prefs.get("pd_hr_per_week_goal", constants.DEFAULT_PD_HR_PER_WEEK_GOAL);
-		var width = 475;
+		var max = _un_prefify_float(this.prefs.get("pd_hr_per_week_max", constants.DEFAULT_PD_HR_PER_WEEK_MAX));
+		var goal = _un_prefify_float(this.prefs.get("pd_hr_per_week_goal", constants.DEFAULT_PD_HR_PER_WEEK_GOAL));
+		var width = 600;
 		
 		if (pd_this_week_hrs > max) pd_this_week_hrs = max;
 		if (pd_last_week_hrs > max) pd_last_week_hrs = max;
 		if (pd_total_hrs > max) pd_total_hrs = max;
 		
 		var data = new google.visualization.DataTable();
-		logger("TTTTTTTTTTTTTTTTTTTTTTT "+
-				"\nthis="+pd_this_week_hrs+
-				"\nlast="+pd_last_week_hrs+
-				"\ntotal="+pd_total_hrs);
-		
 		data.addColumn('string', 'Label');
 		data.addColumn('number', 'Value');
 		data.addRows(3);
 		data.setValue(0, 0, 'This Week');
-		data.setValue(0, 1, parseInt(pd_this_week_hrs));
+		data.setValue(0, 1, Math.round(pd_this_week_hrs));
 		data.setValue(1, 0, 'Last Week');
-		data.setValue(1, 1, parseInt(pd_last_week_hrs));
+		data.setValue(1, 1, Math.round(pd_last_week_hrs));
 		data.setValue(2, 0, 'Average');
-		data.setValue(2, 1, parseInt(pd_total_hrs));
+		data.setValue(2, 1, Math.round(pd_total_hrs));
 
 		var chart = new google.visualization.Gauge( request.jQuery("#gauges").get(0) );
 
+		// create labels for major ticks
+		var major_tick_labels = [];
+		var major_tick_SPACES_count = 5;
+		for (var i = 0; i <= major_tick_SPACES_count; i++) {
+			major_tick_labels.push( Math.round(max / major_tick_SPACES_count * i) );
+		}
+		
 		var options = {
 			width : width,
-			height : 200,
+			height : 250,
 			min: 0,
-			max: parseInt(max),
+			max: Math.round(max),
 			greenFrom : 0,
-			greenTo : parseInt(goal),
-			redFrom : parseInt(goal),
-			redTo : parseInt(max),
-			minorTicks : 5
+			greenTo : Math.round(goal),
+			redFrom : Math.round(goal),
+			redTo : Math.round(max),
+			minorTicks : 5,
+			majorTicks: major_tick_labels
 		};
 		chart.draw(data, options);
 		
@@ -1409,14 +1387,17 @@ _extend(PageController.prototype, {
 
 		request.jQuery("#errors").text("");
 		if ( !this.validate_dollars_input(request, pd_dollars_per_hr) ) {
-			request.jQuery("#errors").append("<p>Please enter a valid dollar amount. For example, to donate $2.34 per hour, please enter 2.34</p>");
+			request.jQuery("#rate_error").text("Please enter a valid dollar amount. For example, to donate $2.34 per hour, please enter 2.34");
 			
 		} else if ( !this.validate_hours_input(request, pd_hr_per_week_goal) ) {
-			request.jQuery("#errors").append("<p>Please enter number of hours. For example, to strive for 8 hrs and 15 minutes, please enter 1.25</p>");
+			request.jQuery("#goal_error").text("Please enter number of hours. For example, to strive for 8 hrs and 15 minutes, please enter 1.25");
 			
 		} else if ( !this.validate_hours_input(request, pd_hr_per_week_max) ) {
-			request.jQuery("#errors").append("<p>Please enter number of hours. For example, enter 30 minutes as .5</p>");
+			request.jQuery("#max_error").text("Please enter number of hours. For example, enter 30 minutes as .5");
 			
+		} else if (parseFloat(pd_hr_per_week_goal) > parseFloat(pd_hr_per_week_max)) { 
+			request.jQuery("#max_error").text("You maximum hours cannot be less than your goal");
+
 		} else {
 			logger("333333333 "+this.prefs.get('pd_hr_per_week_goal', "banana")+"     "+pd_hr_per_week_goal+"-----"+this.clean_hours_input(pd_hr_per_week_goal));
 			this.prefs.set('pd_dollars_per_hr', this.clean_dollars_input(pd_dollars_per_hr));
