@@ -28,6 +28,11 @@
   id="{{ substate_menu_items.prev.id }}"
   class="prev"
   src="/procrasdonate_media/img/BackArrow.png" />
+{% else %}
+<img
+  id="{{ substate_menu_items.prev.id }}"
+  class="prev"
+  src="/procrasdonate_media/img/Spacer.png" />
 {% endif %}
 
 {% ifequal substate_menu_items.next.value "XXX" %}

@@ -696,10 +696,15 @@ _extend(PageController.prototype, {
 			var klasses = ["substate_tab"];
 			if (enums[index] == current_substate) {
 				klasses.push("current_tab");
+			} else if (!_one_past_current) {
+				klasses.push("past");
+			} else {
+				klasses.push("future");
 			}
+			
 			var img = "";
 			var bar = "";
-			if (!_one_past_current && enums[index] != current_substate) {
+			if (!_one_past_current) {
 				img = "/procrasdonate_media/img/StepCircle"+(index+1)+"Done.png";
 				bar = "/procrasdonate_media/img/Dash.png";
 			} else {

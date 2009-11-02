@@ -367,9 +367,11 @@ td { padding: .6em 0em .5em 0em; vertical-align: middle; }
 
 #register_track .substate_tab img { width: 4em; }
 #register_track .menu_text .substate_tab { padding: .6em; }
-#register_track .menu_text .current_tab { font-weight: bold; }
+#register_track .menu_text .current_tab { color: #336699; }
+#register_track .menu_text .past { color: green; }
+#register_track .menu_text .future { color: #330000; }
 
-.prev { margin: 1em 1em 0em 0em; width: 6em; }
+.prev { margin: 1em 1em 0em 0em; width: 6em; max-height: 52px; }
 .next { margin: 1em 0em 0em 1em; width: 6em; }
 .done { margin: 1em 1em 0em 0em; width: 6em; }
 
