@@ -64,7 +64,9 @@ function install(anchor_class) {
 		return false
 		
 	} else {
-		var item = $("."+anchor_class).slice(0,1);
+		return not_ready_to_install();
+		// NOT READY FOR INSTALL YET
+		/*var item = $("."+anchor_class).slice(0,1);
 		var params = {
 			"ProcrasDonate, a charitable incentive for good time management": {
 				URL: item.attr("href"),
@@ -74,7 +76,7 @@ function install(anchor_class) {
 			}
 		};
 		InstallTrigger.install( params );
-		return true
+		return true*/
 	}
 }
 
