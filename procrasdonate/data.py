@@ -1,3 +1,5 @@
+from __future__ import division
+
 from django.db import models
 from lib import model_utils
 
@@ -205,8 +207,12 @@ class Recipient(models.Model):
     country = models.CharField(max_length=200, default='USA')
     
     logo = models.ImageField(upload_to=get_image_path, blank=True, null=True)
-    logo_height = models.IntegerField(default=100)
-    logo_width = models.IntegerField(default=100)
+    SCALED_MAX_HEIGHT = 100
+    SCALED_MAX_WIDTH = 100
+    #### these are wrong !!!!!!!
+    logo_height = models.IntegerField(default=SCALED_MAX_HEIGHT)
+    logo_width = models.IntegerField(default=SCALED_MAX_WIDTH)
+    
     promotional_video = models.TextField(blank=True, null=True)
     pd_experience_video = models.TextField(blank=True, null=True)
     
@@ -224,6 +230,7 @@ class Recipient(models.Model):
                 'mission': self.mission,
                 'description': self.description,
                 'url': self.url,
+                "logo": self.logo.url,
                 
                 'twitter_name': self.twitter_name,
                 'facebook_name': self.facebook_name,
@@ -237,9 +244,9 @@ class Recipient(models.Model):
     
     @classmethod
     def Initialize(klass):
-        models.signals.pre_save.connect(Recipient.set_logo_dimensions, sender=Recipient)
+        #models.signals.pre_save.connect(Recipient.set_logo_dimensions, sender=Recipient)
         models.signals.post_save.connect(Recipient.scale_logo, sender=Recipient)
-        
+    
     @classmethod
     def set_logo_dimensions(klass, signal, sender, instance, **kwargs):
         """
@@ -252,12 +259,12 @@ class Recipient(models.Model):
         h = instance.logo.height
         w = instance.logo.width
         if h > w:
-            if h > 200:
-                w = int((200.0/h) * w)
-                h = 200
-        if w > 50:
-            h = int((50.0/w) * h)
-            w = 50
+            if h > Recipient.SCALED_MAX_HEIGHT:
+                w = int((Recipient.SCALED_MAX_HEIGHT/h) * w)
+                h = Recipient.SCALED_MAX_HEIGHT
+        if w > Recipient.SCALED_MAX_WIDTH:
+            h = int((Recipient.SCALED_MAX_WIDTH/w) * h)
+            w = Recipient.SCALED_MAX_WIDTH
         
         instance.logo_height = h
         instance.logo_width = w
@@ -265,22 +272,8 @@ class Recipient(models.Model):
     @classmethod
     def scale_logo(klass, signal, sender, instance, created, **kwargs):
         """
-        @summary: scales the logo based on the logo_height and logo_width fields
+        @summary: scales the logo based on MAX_SCALED_<dimension>
         """
-        # determine scale
-        """h = instance.logo.height
-        w = instance.logo.width
-        if h > w:
-            if h > 200:
-                w = int((200.0/h) * w)
-                h = 200
-        if w > 50:
-            h = int((50.0/w) * h)
-            w = 50
-        instance.logo_height = h
-        instance.logo_width = w
-        instance"""
-            
         im = Image.open(instance.logo.path)
         #@todo: log these
         print im.info
@@ -289,53 +282,15 @@ class Recipient(models.Model):
         if 'duration' in im.info:
             print "animation not allowed"
         else:
-            im.thumbnail((instance.logo_width, instance.logo_height), Image.ANTIALIAS)
+            #im.thumbnail((instance.logo_width, instance.logo_height), Image.ANTIALIAS)
+            im.thumbnail((Recipient.SCALED_MAX_WIDTH, Recipient.SCALED_MAX_HEIGHT), Image.ANTIALIAS)
             im.save(instance.logo.path, im.format)
-    
-    def rescale(data, width, height, force=True):
+
         """
-        copied from http://www.djangosnippets.org/snippets/224/
+        looked at but didn't use: http://www.djangosnippets.org/snippets/224/
         @summary: Rescale the given image, optionally cropping it to 
             make sure the result image has the specified width and height.
         """
-        import Image as pil
-        from cStringIO import StringIO
-        
-        max_width = width
-        max_height = height
-    
-        input_file = StringIO(data)
-        img = pil.open(input_file)
-        if not force:
-            img.thumbnail((max_width, max_height), pil.ANTIALIAS)
-        else:
-            src_width, src_height = img.size
-            src_ratio = float(src_width) / float(src_height)
-            dst_width, dst_height = max_width, max_height
-            dst_ratio = float(dst_width) / float(dst_height)
-            
-            if dst_ratio < src_ratio:
-                crop_height = src_height
-                crop_width = crop_height * dst_ratio
-                x_offset = float(src_width - crop_width) / 2
-                y_offset = 0
-            else:
-                crop_width = src_width
-                crop_height = crop_width / dst_ratio
-                x_offset = 0
-                y_offset = float(src_height - crop_height) / 3
-            img = img.crop((x_offset, y_offset, x_offset+int(crop_width), y_offset+int(crop_height)))
-            img = img.resize((dst_width, dst_height), pil.ANTIALIAS)
-            
-        tmp = StringIO()
-        img.save(tmp, 'JPEG')
-        tmp.seek(0)
-        output_data = tmp.getvalue()
-        input_file.close()
-        tmp.close()
-        
-        return output_data
-
     
     def __unicode__(self):
         return u"%s - %s - %s" % (self.name,
