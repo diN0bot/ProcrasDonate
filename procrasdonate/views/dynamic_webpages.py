@@ -294,6 +294,18 @@ def _organizer_submenu(request, current_slug):
             "prev": prev}
 
 @login_required
+def registration_help(request):
+    recipient = request.user.get_profile().recipient
+    #substate_menu_items = _organizer_submenu(request, "public")
+    return render_response(request, 'procrasdonate/recipient_organizer_pages/registration_help.html', locals())
+
+@login_required
+def edit_promo_cards(request):
+    recipient = request.user.get_profile().recipient
+    #substate_menu_items = _organizer_submenu(request, "public")
+    return render_response(request, 'procrasdonate/recipient_organizer_pages/edit_promo_cards.html', locals())
+
+@login_required
 def edit_public_information(request):
     recipient = request.user.get_profile().recipient
     substate_menu_items = _organizer_submenu(request, "public")
