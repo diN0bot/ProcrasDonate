@@ -25,18 +25,20 @@ _extend(DjangoTemplate.prototype, {
 	render_variable: function(v, context, env) {
 		if (this.DEBUG) logger("RENDER VARIABLE");
 		if (isNumber(v) || isString(v) || isBoolean(v)) {
-			if (this.DEBUG) logger("num, str, bool");
+			if (this.DEBUG) logger("is a: num, str, bool");
 			return v;
 		} else if (isArray(v)) {
-			if (this.DEBUG) logger("array");
+			if (this.DEBUG) logger("is: array");
 			var ret = context;
-			if (this.DEBUG) _pprint(ret);
+			if (this.DEBUG) _pprint(v);
 			for (var ai in v) {
+				if (this.DEBUG) logger("ai="+ai+"  v.ai="+v[ai]+" get="+get(ret, v[ai]));
 				ret = get(ret, v[ai]);
 			}
+			if (this.DEBUG) logger("RENDER VARIABLE returning: "+ret);
 			return ret;
 		} else {
-			if (this.DEBUG) logger("unknown");
+			if (this.DEBUG) logger("is...unknown");
 			if (Template.DEBUG_TEMPLATES)
 				Error("Unknown variable type: "+v);
 			return null;
@@ -44,7 +46,7 @@ _extend(DjangoTemplate.prototype, {
 	},
 	
 	render_filter: function(v, context, env) {
-		if (this.DEBUG) logger("RENDER FILTER");
+		if (this.DEBUG) logger("\n\nRENDER FILTER ");
 		if (this.DEBUG) _pprint(v);
 		if (!isArray(v)) {
 			if (isString(v)) {
@@ -93,6 +95,7 @@ _extend(DjangoTemplate.prototype, {
 				ret = "";
 			}
 		}
+		if (this.DEBUG) logger("RENDER FILTER returning "+ret);
 		return ret;
 	},
 	

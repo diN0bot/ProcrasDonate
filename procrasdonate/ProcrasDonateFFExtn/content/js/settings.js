@@ -25,7 +25,7 @@ var constants = {};
 
 	constants.COMMUNITY_URL = '/our_community';
 	constants.PRIVACY_URL = '/privacy_guarantee/';
-	constants.RECIPIENTS_URL = '/recipients';
+	constants.RECIPIENTS_URL = '/r/';
 	
 	constants.AUTHORIZE_PAYMENTS_URL = '/fps/user/payment/authorize/';
 	constants.AUTHORIZE_PAYMENTS_CALLBACK_URL = '/fps/user/payment/authorize_callback/';

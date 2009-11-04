@@ -44,6 +44,7 @@ img { -ms-interpolation-mode:bicubic; }
 
 .paragraph_list li { margin-top: 1em; }
 
+.hidden { display: none; }
 .new { color: #F37F19; }
 .odd { background: #FAF3F4; }
 .errorlist { list-style-type: none; color: red; }
@@ -261,6 +262,10 @@ img { -ms-interpolation-mode:bicubic; }
 /* #@ TODO from recipient list in extension page */
 
 .recipient-image { width: 10.25em; margin-left: 1em; float: right; padding: 0.2em 1.4em; }
+#new_recipient_submit { width: 10.25em; padding: 0em; margin: .6em 0em -.6em 0em; /*float: right;*/ }
+/* goes with register charity page stuff that is commented out
+.new_recipient { color: #797979; }
+#new_recipient_website { margin-right: 1em; }*/
 
 /*** h2 used as section headers for FAQ, etc. ***/
 

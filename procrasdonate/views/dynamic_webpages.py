@@ -9,6 +9,8 @@ from django.utils import simplejson
 
 from django.core.urlresolvers import reverse
 
+from django.shortcuts import get_object_or_404
+
 from django.template import loader, Context
 from django.contrib.auth.models import User as RecipientUser
 from django.contrib.auth import authenticate, login, logout
@@ -40,7 +42,7 @@ def community_type(request, type):
 #### PUBLIC RECIPIENT ###################################
 
 def recipient(request, slug):
-    recipient = Recipient.get_or_none(slug=slug)
+    recipient = get_object_or_404(Recipient, slug=slug)
     return render_response(request, 'procrasdonate/public_recipient_pages/recipient.html', locals())
 
 #### ACCOUNT ###################################
@@ -380,12 +382,11 @@ def edit_media(request):
     substate_menu_items = _organizer_submenu(request, "media")
     
     FormKlass = get_form(Recipient, EDIT_TYPE, includes=('logo',
-                                                         'promotional_image',
                                                          'promotional_video',
                                                          'pd_experience_video'))
 
     if request.POST:
-        form = FormKlass(request.POST, instance=recipient)
+        form = FormKlass(request.POST, request.FILES, instance=recipient)
         if form.is_valid():
             form.save()
             request.user.message_set.create(message='Changes saved')
@@ -423,7 +424,7 @@ def edit_weekly_blurbs(request):
 
 @login_required
 def edit_thank_yous(request):
-    recipient = Recipient.get_or_none(slug=request.user.get_profile().recipient.slug)
+    recipient = request.user.get_profile().recipient
     return render_response(request, 'procrasdonate/recipient_organizer_pages/edit_thank_yous.html', locals())
 
 @login_required

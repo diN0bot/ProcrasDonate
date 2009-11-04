@@ -105,13 +105,8 @@
 				<img id="right_logo" alt="" src="{{ MEDIA_URL }}img/LaptopLogo.png">
 				
 				<div id="video1" class="video_block">
-					<object width="168" height="140">
-						<param value="http://www.youtube.com/v/kyBR5UL8nRs&hl=en&fs=1" name="movie"/>
-						<param value="true" name="allowFullScreen"/>
-						<param value="always" name="allowscriptaccess"/>
-						<embed width="168" height="140" allowfullscreen="true" allowscriptaccess="always" type="application/x-shockwave-flash" src="http://www.youtube.com/v/kyBR5UL8nRs&hl=en&fs=1"/>
-					</object>
-					<p><a href="{% url recipient "procrasdonate" %}">Charity With A Long And Awkward Name</a></p>
+					{{ video1.promotional_video|safe }}
+					<p><a href="{% url recipient video1.slug %}">{{ video1.name }}</a></p>
 				</div>
 				
 				<div id="video2" class="video_block">
@@ -129,6 +124,17 @@
 		</tbody>
 		</table>
 
+		{# google analytics #}
+		<script type="text/javascript">
+		var gaJsHost = (("https:" == document.location.protocol) ? "https://ssl." : "http://www.");
+		document.write(unescape("%3Cscript src='" + gaJsHost + "google-analytics.com/ga.js' type='text/javascript'%3E%3C/script%3E"));
+		</script>
+		<script type="text/javascript">
+		try {
+		var pageTracker = _gat._getTracker("UA-2115025-7");
+		pageTracker._trackPageview();
+		} catch(err) {}</script>
+		
 	</body>
 
 </html>

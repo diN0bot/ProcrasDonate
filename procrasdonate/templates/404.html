@@ -1,9 +1,11 @@
 {% extends 'procrasdonate/base.html' %}
 
 {% block content %}
-	<p>Oops, page not found :-(</p>
-	<p>You can either press "Back" on your browser or go to the ProcrasDonate 
-		<a href="{% url home %}">Home page</a>.</p>
-	<p>If you'd like to tell us about this problem, please use the 
-		<a href="http://feedback.procrasdonate.com">Feedback page</a>.</p>
+	<h2>404 Page Not Found</h2>
+	<p>If we've made an error, please
+		<a href="http://feedback.procrasdonate.com">let us know</a>.</p>
+	<p>If this is your first visit to ProcrasDonate, you may wish to visit our
+		<a href="{% url home %}">Homepage</a>
+		and <a href="">Community and Recipients pages</a>.</p>
+	
 {% endblock %}

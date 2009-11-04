@@ -38,7 +38,7 @@ urlpatterns = patterns('',
     url(r'^recipient/confirm_reset_password/(?P<username>%s)/(?P<confirmation_code>%s)/$' % (slug_re, code_re), dynamic_webpages.confirm_reset_password, name="confirm_reset_password"),
     
     # RecipientVote dashboard
-    url(r'^recipientvotes/$', dynamic_webpages.recipient_votes, name="recipient_votes"),
+    url(r'^recipient/votes/$', dynamic_webpages.recipient_votes, name="recipient_votes"),
 )
 """
     

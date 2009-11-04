@@ -5,7 +5,9 @@
 	
 	<h2>Upload your logo and video or image</h2>
 	
-	<form method="post">
+	<div>{{ form.cleaned_data }}</div>
+
+	<form method="post" enctype="multipart/form-data">
 		<table><tbody>
 			{{ form }}
 		</tbody></table>

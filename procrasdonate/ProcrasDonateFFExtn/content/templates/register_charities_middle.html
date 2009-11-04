@@ -7,36 +7,47 @@
 	receives.</p>
 
 <h2>Selected charities:</h2>
-<table>
-<tbody>
-{% for charity in charities %}
-	<tr>
-		<td>{{ charity.html }}</td>
-		<td><input
-	id="{{ charity.id }}_percent"
-	name="{{ charity.id }}_percent" 
-	value="{{ charity.percent }}" />%</td>
-	</tr>
-{% endfor %}
-</tbody>
-</table>
+
+<div id="chosen_charities">
+	{% for deep_recip_pct_html in chosen_charities %}
+		{{ deep_recip_pct_html }}
+	{% endfor %}
+</div>
 
 <h2>Find other charities:</h2>
-<select>
-	<option>Select Category</option>
+
+{% comment %}
+<select name="categories">
+	<option value="null">Select Category</option>
 	{% for category in categories %}
-	<option>{{ category.name }}</option>
+		<option value="{{ category.id }}"
+			{% ifequal selected_category.id category.id %} selected {% endifequal %}>
+				{{ category.category }}
+		</option>
 	{% endfor %}
 </select>
 
 <p style="margin-left: 5em;">or</p>
 
 <p>
-<label>Search all listings</label>
-<input type="text" id="" name="" />
-<input type="button" value="Search!" />
+	<label>Search all listings</label>
+	<input type="text" id="" name="" />
+	<input type="button" value="Search!" />
 </p>
 
+<div id="charity_results">
+	{% for deep_recip_html in charity_results %}
+		{{ deep_recip_html }}
+	{% endfor %}
+</div>
+
+{% endcomment %}
+
+<div id="not_chosen_charities">
+	{% for recipient_html in not_chosen_charities %}
+		{{ recipient_html }}
+	{% endfor %}
+</div>
 
 <h2>Invite new charities:</h2>
 <p>If a non-profit charity is not listed then you can invite 
@@ -45,8 +56,26 @@
 	When they create a free account then your pledges will eligible to 
 	become donations.
 </p>
+		
 <p>
-<label>Name of unlisted charity to invite:</label>
-<input type="text" id="" name="" />
-<input type="button" value="Search!" />
+	<label>Name of unlisted charity to invite:</label>
+	<input id="new_recipient_name" type="text" size="30" />
+
+	<input
+		id="new_recipient_submit"
+		type="image"
+		src="{{ constants.MEDIA_URL }}img/AddRecipient.png"
+		value="add new recipient"/>
 </p>
+
+{% comment %}
+<p class="new_recipient">
+	Optionally provide a website or email to help us contact the charity.
+</p>
+<p class="new_recipient">
+	<label>Website</label>
+	<input id="new_recipient_website" type="text" />
+	<label>Email</label>
+	<input id="new_recipient_email" type="text" size="23" />
+</p>
+{% endcomment %}

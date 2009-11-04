@@ -1,3 +1,0 @@
-
-    Template.compile(["\n<h3 class='RegisterHeader'>Your charitable recipients</h3>\n<p><ul class='recipient_instructions'>\n\t<li>Assign a <b>percentage</b> of your ProcrasDonate pledges to your selected recipients.</li>\n\t<li>Click the \"Add Recipients\" and \"Remove\" buttons to change your selections.</li>\n</ul></p>\n<div id='user_recipients'>\n\t", ["var", ["user_recipients"], []], "\n</div>\n<h3 class='RegisterHeader'>Other registered non-profits</h3>\n<div id='potential_recipients'>\n\t", ["var", ["potential_recipients"], []], "\n</div>\n\n"], "recipients_middle");
-    

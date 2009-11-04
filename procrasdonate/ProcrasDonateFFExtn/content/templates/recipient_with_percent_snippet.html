@@ -1,19 +1,35 @@
 <div class='recipient'>
 	<!-- id class needed for js -->
-	<div class="recipient_id">{{ id }}</div>	
+	<div class="recipient_id hidden">{{ deep_recip_pct.recipient.id }}</div>	
 
 	<div class='remove_recipient' title="Remove recipient from list">
 		<img src="{{ constants.MEDIA_URL }}img/Remove.png" class="recipient-image img_link">		
 	</div>
 	<div class='recipient_percent form-input'>
-		<input type="text" name="percent" id="recipient_{{ id }}" size='4' value="{{ percent }}" />
+		<input
+			type="text"
+			name="percent"
+			id="recipient_{{ deep_recip_pct.recipient.id }}"
+			size='4'
+			value="{{ deep_recip_pct.display_percent }}" />
 		<div class='percent_symbol'>%</div>
 	</div>
-	<div class='name'><a href='{{ url }}'>{{ name }}</a></div>
+	<div class='name'>
+		{% if deep_recip_pct.recipient.is_pd_registered %}
+			<a href='{{ constants.RECIPIENTS_URL }}{{ deep_recip_pct.recipient.slug }}'>
+		{% endif %}
+			{{ deep_recip_pct.recipient.name }}
+		{% if deep_recip_pct.recipient.is_pd_registered %}
+			</a>
+		{% endif %}
+	</div>
 
-	<div class="category">{{ category }}</div>
-	<div class='mission'>{{ mission }}
+	<div class="category">{{ deep_recip_pct.recipient.category.category }}</div>
+	<div class='mission'>
+		{{ deep_recip_pct.recipient.mission }}
 		<span class='link description_toggle'>(less)</span>
 	</div>
-	<div class='description'><p>{{ description }}</p></div>
+	<div class='description'>
+		{{ deep_recip_pct.recipient.html_description }}
+	</div>
 </div>

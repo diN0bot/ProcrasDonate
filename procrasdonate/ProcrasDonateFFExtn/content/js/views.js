@@ -680,11 +680,11 @@ _extend(PageController.prototype, {
 			var img = "";
 			var bar = "";
 			if (!_one_past_current) {
-				img = "/procrasdonate_media/img/StepCircle"+(index+1)+"Done.png";
-				bar = "/procrasdonate_media/img/Dash.png";
+				img = constants.MEDIA_URL+"img/StepCircle"+(index+1)+"Done.png";
+				bar = constants.MEDIA_URL+"img/Dash.png";
 			} else {
-				img = "/procrasdonate_media/img/StepCircle"+(index+1)+".png";
-				bar = "/procrasdonate_media/img/DashGreen.png";
+				img = constants.MEDIA_URL+"img/StepCircle"+(index+1)+".png";
+				bar = constants.MEDIA_URL+"img/DashGreen.png";
 			}
 				
 			var menu_item = {
@@ -1327,8 +1327,8 @@ _extend(PageController.prototype, {
 		};
 		chart.draw(data, options);
 		
-		var happylaptop = "/procrasdonate_media/img/laptophappy.png";
-		var sadlaptop = "/procrasdonate_media/img/laptopsad.png";
+		var happylaptop = constants.MEDIA_URL+"img/laptophappy.png";
+		var sadlaptop = constants.MEDIA_URL+"img/laptopsad.png";
 		var this_week_laptop = happylaptop;
 		var last_week_laptop = happylaptop;
 		var total_laptop = happylaptop;
@@ -1419,20 +1419,195 @@ _extend(PageController.prototype, {
 				new Context({ substate_menu_items: substate_menu_items })
 			);
 		
+		var categories = [];
+		this.pddb.Category.select({}, function(row) {
+			categories.push(row)
+		});
+		
+		var chosen_charities = [];
+		this.pddb.RecipientPercent.select({}, function(row) {
+			var recipient = row.recipient();
+			if (recipient.bool_is_visible()) {
+				var html = Template.get("recipient_with_percent_snippet").render(
+					new Context({
+						constants: constants,
+						deep_recip_pct: row
+					})
+				);
+				chosen_charities.push(html);
+			}
+		});
+		
+		var not_chosen_charities = [];
+		this.pddb.Recipient.select({}, function(row) {
+			if (row.bool_is_visible()) {
+				var chosen = false;
+				_iterate(chosen_charities, function(key, value, index) {
+					if (value.slug == row.slug) { chosen = true; }
+				});
+				if (!chosen) {
+					var html = Template.get("recipient_snippet").render(
+						new Context({
+							constants: constants,
+							recipient: row
+						})
+					);
+					not_chosen_charities.push(html);
+				}
+			}
+		});
+		
 		var middle = Template.get("register_charities_middle").render(
 			new Context({
+				constants: constants,
 				substate_menu_items: substate_menu_items,
-				substate_menu: substate_menu
+				substate_menu: substate_menu,
+				categories: categories,
+				chosen_charities: chosen_charities,
+				not_chosen_charities: not_chosen_charities
 			})
 		);
 		request.jQuery("#content").html( middle );
 		
 		this.activate_substate_menu_items(request, 'charities',
 			constants.REGISTER_STATE_ENUM, constants.REGISTER_STATE_INSERTS, constants.REGISTER_STATE_PROCESSORS);
+		this.activate_register_charities(request);
+	},
+	
+	activate_register_charities: function(request) {
+		var self = this;
+
+		// activate add and remove buttons per recipient
+		request.jQuery(".recipient").each( function() {
+			self.activate_a_recipient(request, request.jQuery(this));
+		});
+		
+		// activate recipient suggestion
+		request.jQuery("#new_recipient_submit").click(function() {
+			var value = request.jQuery("#new_recipient_name").attr("value").trim();
+			logger("value:"+value+".");
+			if (!value || value == "") return
+			
+			var slug = slugify(value);
+			logger("slug:"+slug+"."+(!slug)+" "+(slug==""));
+			if (!slug || slug == "") {
+				slug = "blank_" + parseInt(Math.random()*10000)
+				logger("new slug:"+slug+".");
+			}
+			// ensure unique slug
+			if (self.pddb.Recipient.get_or_null({ slug: slug })) {
+				slug = slug + "_" + parseInt(Math.random()*10000);
+				logger("2new slug:"+slug+".");
+			}
+			// create User Created category if necessary
+			var category = self.pddb.Category.get_or_create({ category: "User Created" });
+			// create recipient and recipient percent
+			var recipient = self.pddb.Recipient.create({
+				slug: slug,
+				name: value,
+				category_id: category.id,
+				is_visible: _dbify_bool(true),
+				pd_registered: _dbify_bool(false)
+			});
+			var recipient_pct = self.pddb.RecipientPercent.create({
+				recipient_id: recipient.id,
+				percent: 0
+			});
+			// insert into DOM
+			var html = Template.get("recipient_with_percent_snippet").render(
+				new Context({
+					constants: constants,
+					deep_recip_pct: recipient_pct
+				})
+			);
+			request.jQuery("#chosen_charities").prepend(html);
+			// clear input
+			request.jQuery("#new_recipient_name").attr("value", "");
+		});
+	},
+	
+	activate_a_recipient: function(request, recipient_elem) {
+		var self = this;
+		recipient_elem.children(".recipient_id").hide();
+		
+		var dtoggle = recipient_elem.children(".mission").children(".description_toggle");
+		dtoggle.click( function() {
+			if (dtoggle.text() == "(less)") {
+				dtoggle.text("(more)");
+				dtoggle.parent().siblings(".description").hide();
+			} else {
+				dtoggle.text("(less)");
+				dtoggle.parent().siblings(".description").show();
+			}
+		})
+		if (dtoggle.text() == "(less)") {
+			dtoggle.text("(more)")
+			dtoggle.parent().siblings(".description").hide();
+		}
+		
+		var user_recipients_div = request.jQuery("#user_recipients");
+		var potential_recipients_div = request.jQuery("#potential_recipients");
+		
+		recipient_elem.children(".add_recipient").click(function() {
+			var recipient_id = request.jQuery(this).siblings(".recipient_id").text();
+			var recipient = self.pddb.Recipient.get_or_null({ id: recipient_id });
+			var percent = 0;
+			self.pddb.RecipientPercent.create({
+				recipient_id: recipient_id,
+				percent: percent
+			});
+			request.jQuery(this).parent().fadeOut("slow", function() {
+				request.jQuery(this).remove();
+			});
+			
+			var new_recip = request.jQuery(self.recipient_with_percent_snippet(request, recipient, percent*100));
+			user_recipients_div.append(new_recip);
+			
+			self.activate_a_recipient(request, new_recip);
+		});
+		
+		recipient_elem.children(".remove_recipient").click(function() {
+			var recipient_id = request.jQuery(this).siblings(".recipient_id").text();
+			self.pddb.RecipientPercent.del({
+				recipient_id: recipient_id
+			});
+			var recipient = self.pddb.Recipient.get_or_null({ id: recipient_id });
+			
+			//request.jQuery(this).parent().clone(true).insertAfter(spacer);
+			request.jQuery(this).parent().fadeOut("slow", function() {
+				request.jQuery(this).remove();
+			});
+
+			var new_recip = request.jQuery(self.recipient_snippet(request, recipient));
+			potential_recipients_div.prepend(new_recip);
+			
+			self.activate_a_recipient(request, new_recip);
+		});
 	},
 	
 	process_register_charities: function(request) {
-		return true
+		var self = this;
+		var ret = true;
+		request.jQuery("input").each( function() {
+			var percent = request.jQuery(this).attr("value");
+			try {
+				percent = parseFloat(percent) / 100.0;
+				if (percent < 0.0) {
+					request.jQuery("#errors").append("<p>Please enter a percent greater than 0");
+					logger(" process_recipients says please enter a percent greater than 0");
+					ret = false;
+				}
+			} catch(e) {
+				request.jQuery("#errors").append("<p>Please enter a number, such as 22</p>");
+				logger(" process_recipients says please enter a number");
+				ret = false;
+			}
+			var recipient_id = request.jQuery(this).parent().siblings(".recipient_id").text();
+			logger("process_recipients:: rid="+recipient_id+" pct="+percent);
+			self.pddb.RecipientPercent.set({ percent: percent }, { recipient_id: recipient_id });
+		});
+		logger(" process_recipients says okiedokie");
+		return ret;
 	},
 	
 	insert_register_content: function(request) {

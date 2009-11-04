@@ -6,8 +6,15 @@ from django.db.models.signals import post_save
 
 from django.template.defaultfilters import slugify
 
+import settings
+
+from django.contrib.contenttypes.models import ContentType
+
+import Image # Image = PIL
+
 import re
 import random
+import os
 
 class Email(models.Model):
     """
@@ -134,6 +141,42 @@ class SiteGroup(models.Model):
     def __unicode__(self):
         return u"%s" % self.host
     
+
+# where files are stored after settings.MEDIA_ROOT
+_IMAGE_UPLOAD_PATH = 'uploaded_img'
+    
+def _Get_Image_Path(filename, folder):
+    """
+    """
+    if isinstance(folder, Recipient):
+        folder = folder.slug
+
+    path = '%s/%s/%s' % (_IMAGE_UPLOAD_PATH, folder, filename)
+    fullpath = "%s%s/%s" % (settings.MEDIA_ROOT, _IMAGE_UPLOAD_PATH, folder)
+    print "_GET_IMAGE_PATH", filename, folder, path, fullpath
+    if not os.path.exists(fullpath):
+        os.mkdir(fullpath)
+    return path
+
+filename_slug = re.compile('[^\w_\-\.]')
+def get_image_path(instance, filename):
+    """
+    """
+    ctype = ContentType.objects.get_for_model(instance)
+    model = ctype.model
+    
+    print "get_image_page", instance, filename, model
+    
+    if model == "recipient":
+        slug = filename_slug.sub('', filename.replace(' ', '_'))
+        print "slug:", slug
+        return _Get_Image_Path(slug, instance)
+    
+    else:
+        # shouldn't happen
+        print "FAIL get_image_patch", instance, filename
+        raise "FAIL get_image_page"
+        
 class Recipient(models.Model):
     """
     Recipient of donations
@@ -161,10 +204,11 @@ class Recipient(models.Model):
     state = models.CharField(max_length=200, blank=True, null=True)
     country = models.CharField(max_length=200, default='USA')
     
-    logo = models.URLField(blank=True, null=True)
-    promotional_image = models.URLField(blank=True, null=True)
-    promotional_video = models.URLField(blank=True, null=True)
-    pd_experience_video = models.URLField(blank=True, null=True)
+    logo = models.ImageField(upload_to=get_image_path, blank=True, null=True)
+    logo_height = models.IntegerField(default=100)
+    logo_width = models.IntegerField(default=100)
+    promotional_video = models.TextField(blank=True, null=True)
+    pd_experience_video = models.TextField(blank=True, null=True)
     
     charity_navigator_score = models.IntegerField(blank=True, null=True)
     
@@ -190,6 +234,108 @@ class Recipient(models.Model):
     
     def pd_registered(self):
         return self.fps_data and self.fps_data.good_to_go()
+    
+    @classmethod
+    def Initialize(klass):
+        models.signals.pre_save.connect(Recipient.set_logo_dimensions, sender=Recipient)
+        models.signals.post_save.connect(Recipient.scale_logo, sender=Recipient)
+        
+    @classmethod
+    def set_logo_dimensions(klass, signal, sender, instance, **kwargs):
+        """
+        @summary: sets the *scaled* logo_height and logo_width fields based on the
+            logo's original dimensions.
+            Does not actually scale the logo.
+        """
+        print "set_logo_dimensions", instance, sender, kwargs
+
+        h = instance.logo.height
+        w = instance.logo.width
+        if h > w:
+            if h > 200:
+                w = int((200.0/h) * w)
+                h = 200
+        if w > 50:
+            h = int((50.0/w) * h)
+            w = 50
+        
+        instance.logo_height = h
+        instance.logo_width = w
+ 
+    @classmethod
+    def scale_logo(klass, signal, sender, instance, created, **kwargs):
+        """
+        @summary: scales the logo based on the logo_height and logo_width fields
+        """
+        # determine scale
+        """h = instance.logo.height
+        w = instance.logo.width
+        if h > w:
+            if h > 200:
+                w = int((200.0/h) * w)
+                h = 200
+        if w > 50:
+            h = int((50.0/w) * h)
+            w = 50
+        instance.logo_height = h
+        instance.logo_width = w
+        instance"""
+            
+        im = Image.open(instance.logo.path)
+        #@todo: log these
+        print im.info
+        print im.format
+        print im.mode
+        if 'duration' in im.info:
+            print "animation not allowed"
+        else:
+            im.thumbnail((instance.logo_width, instance.logo_height), Image.ANTIALIAS)
+            im.save(instance.logo.path, im.format)
+    
+    def rescale(data, width, height, force=True):
+        """
+        copied from http://www.djangosnippets.org/snippets/224/
+        @summary: Rescale the given image, optionally cropping it to 
+            make sure the result image has the specified width and height.
+        """
+        import Image as pil
+        from cStringIO import StringIO
+        
+        max_width = width
+        max_height = height
+    
+        input_file = StringIO(data)
+        img = pil.open(input_file)
+        if not force:
+            img.thumbnail((max_width, max_height), pil.ANTIALIAS)
+        else:
+            src_width, src_height = img.size
+            src_ratio = float(src_width) / float(src_height)
+            dst_width, dst_height = max_width, max_height
+            dst_ratio = float(dst_width) / float(dst_height)
+            
+            if dst_ratio < src_ratio:
+                crop_height = src_height
+                crop_width = crop_height * dst_ratio
+                x_offset = float(src_width - crop_width) / 2
+                y_offset = 0
+            else:
+                crop_width = src_width
+                crop_height = crop_width / dst_ratio
+                x_offset = 0
+                y_offset = float(src_height - crop_height) / 3
+            img = img.crop((x_offset, y_offset, x_offset+int(crop_width), y_offset+int(crop_height)))
+            img = img.resize((dst_width, dst_height), pil.ANTIALIAS)
+            
+        tmp = StringIO()
+        img.save(tmp, 'JPEG')
+        tmp.seek(0)
+        output_data = tmp.getvalue()
+        input_file.close()
+        tmp.close()
+        
+        return output_data
+
     
     def __unicode__(self):
         return u"%s - %s - %s" % (self.name,
@@ -639,7 +785,7 @@ class RecipientVote(models.Model):
         ordering = ('url', 'name')
     
     @classmethod
-    def make(klass, name, url, user, recipient=None):
+    def make(klass, name, user, url=None, recipient=None):
         return RecipientVote(name=name,
                              url=url,
                              user=user,

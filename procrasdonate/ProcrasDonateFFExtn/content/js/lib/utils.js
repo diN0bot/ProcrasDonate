@@ -414,7 +414,17 @@ function isEmpty(ob) {
 	return true;
 }
 
-
+/**
+ * Transform text into a URL slug: spaces turned into *underlines*, remove non alpha-num
+ * @param string text
+ * originally copied from http://www.milesj.me/resources/snippet/13
+ */
+function slugify(text) {
+	text = text.replace(/[^-a-zA-Z0-9\s]+/ig, '');
+	text = text.replace(/-/gi, "_");
+	text = text.replace(/\s/gi, "_");
+	return text;
+}
 
 /**
  * jsDump

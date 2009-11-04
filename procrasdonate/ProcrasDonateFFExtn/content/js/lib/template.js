@@ -1,4 +1,4 @@
-
+var DEBUG_TEMPLATE_VARS = false;
 
 //var Base = Class;
 //console.debug("hmm");
@@ -8,6 +8,7 @@ function isContext(o) {
 }
 
 function get(o, attr, _default) {
+	if (DEBUG_TEMPLATE_VARS) logger("GET: o="+o+" attr="+attr+" _default="+_default)
 	if (!attr) {
 		return o;
 	} else if (!o) {
@@ -16,25 +17,37 @@ function get(o, attr, _default) {
 	_default = _default || null;
 	
 	if (isString(attr) && attr.match(/^\d+$/)) {
+		if (DEBUG_TEMPLATE_VARS) logger(">GET: is string and \d match");
 		attr = parseInt(attr);
 	}
 	
 	var ret = _default;
 	if (isContext(o)) {
+		if (DEBUG_TEMPLATE_VARS) logger(">GET: is context");
 		ret = o.get(attr) || _default;
 		//return (ret != null && ret) || _default;
 	} else if (isObject(o) || isArray(o)) {
+		if (DEBUG_TEMPLATE_VARS)  {
+			for (var k in o) {
+				logger("...............k="+k+" o[k]="+o[k]);
+			}
+		}
 		ret = (attr in o ? o[attr] : _default);
+		if (DEBUG_TEMPLATE_VARS) logger(">GET: is object or array     attr="+attr+"  ret="+ret+"     o[attr]="+o[attr]);
+		if (DEBUG_TEMPLATE_VARS) _pprint(ret);
 	} else {
 		if (Template.DEBUG_TEMPLATES)
 			Error("Unhandled object type in 'get': "+o);
 		return _default;
 	}
 	
-	if (isFunction(ret))
+	if (isFunction(ret)) {
+		if (DEBUG_TEMPLATE_VARS) logger(">GET: IS FUNC!")
 		return ret.apply(o);
-	else
+	} else {
+		if (DEBUG_TEMPLATE_VARS) logger(">GET: not a func... returned "+ret+"   typeof(ret)="+typeof(ret));
 		return ret;
+	}
 	
 }
 

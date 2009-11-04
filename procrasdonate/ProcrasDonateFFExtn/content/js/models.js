@@ -182,6 +182,14 @@ function load_models(db, pddb) {
 			return _un_dbify_bool(this.tax_exempt_status);
 		},
 		
+		bool_is_visible: function() {
+			return _un_dbify_bool(this.is_visible);
+		},
+		
+		is_pd_registered: function() {
+			return _un_dbify_bool(this.pd_registered);
+		},
+		
 		deep_dict: function() {
 			return {
 				id: this.id,
@@ -197,6 +205,11 @@ function load_models(db, pddb) {
 				pd_registered: _un_dbify_bool(this.pd_registered),
 				tax_exempt_status: this.has_tax_exempt_status(),
 			}
+		},
+		
+		html_description: function() {
+			logger("b=<p>"+this.description.replace("\n\n", "</p><p>")+"</p>");
+			return "<p>"+this.description.replace("\n\n", "</p><p>")+"</p>"
 		}
 	}, {
 		// class methods
@@ -253,11 +266,15 @@ function load_models(db, pddb) {
 		recipient: function() {
 			// we expect a RecipientPercent to always have a recipient
 			var self = this;
-			var recipient = RecipientPercent.get_or_null({ id: self.recipient_id })
+			var recipient = Recipient.get_or_null({ id: self.recipient_id })
 			if (!recipient) {
 				pddb.orthogonals.error("no Recipient found for recipientpercent = "+this);
 			}
 			return recipient
+		},
+		
+		display_percent: function() {
+			return this.percent * 100
 		},
 		
 		deep_dict: function() {

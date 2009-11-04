@@ -1,14 +1,22 @@
 <div class='recipient recipient_to_add'>
 	<!-- id class needed for js -->
-	<div class="recipient_id">{{ id }}</div>
+	<div class="recipient_id hidden">{{ recipient.id }}</div>
 	<div class='add_recipient' title="Add recipient to list"> 
 		<img src="{{ constants.MEDIA_URL }}img/AddRecipient.png" class="recipient-image img_link">		
 	 </div>
-	 <div class='name'><a href='{{ url }}'>{{ name }}</a></div>
-	<div class="category">{{ category }}</div>
-	<div class='mission'>{{ mission }}
+	 <div class='name'>
+		{% if deep_recip_pct.recipient.is_pd_registered %}
+			<a href='{{ constants.RECIPIENTS_URL }}{{ deep_recip_pct.recipient.slug }}'>
+		{% endif %}
+			{{ recipient.name }}
+		{% if deep_recip_pct.recipient.is_pd_registered %}
+			</a>
+		{% endif %}
+	  </div>
+	<div class="category">{{ recipient.category.category }}</div>
+	<div class='mission'>{{ recipient.mission }}
 		<span class='link description_toggle'>(less)</span>
 	</div>
-	<div class='description'><p>{{ description }}</p></div>
+	<div class='description'><p>{{ recipient.description }}</p></div>
 
 </div>

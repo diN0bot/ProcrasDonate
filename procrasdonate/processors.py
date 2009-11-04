@@ -71,8 +71,9 @@ class Processor(object):
             
             recipient = Recipient.get_or_none(slug=slug)
             if not recipient:
-                RecipientVote.get_or_none()
-                obj = None
+                rvote = RecipientVote.get_or_none(name=name, user=user)
+                if not rvote:
+                    RecipientVote.add(name, user)
             else:
                 obj = RecipientVisit.add(recipient,
                                          dtime,
@@ -123,7 +124,7 @@ class Processor(object):
             obj = None
 
         return obj
-
+    
     @classmethod
     def process_log(klass, log, user):
         """
