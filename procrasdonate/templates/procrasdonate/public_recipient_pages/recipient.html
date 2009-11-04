@@ -8,21 +8,20 @@
 			{% endifequal %}
 		{% endif %}
 		
-		<h2>{{ recipient.name }}</h2>
+		<h2>{{ recipient.name }} Profile</h2>
 		
-		<h3>Category: {{ recipient.category.category }}</h3>
+		<h4>Category:</h4>
+			{{ recipient.category.category }}
+				
+	{% comment %}	<h3>Charity Navigator Score: {{ recipient.charity_navigator_score|default:"-" }}</h3> {% endcomment %}
 		
-		<h3>Charity Navigator Score: {{ recipient.charity_navigator_score|default:"-" }}</h3>
-		
-		<h3>Mission:</h3>
-		<div class="recipient_mission">
+		<h4>Charitable Mission:</h4>
 			{{ recipient.mission }}
-		</div>
 		
-		<h3>Description:</h3>
-		<div class="recipient_description">
+		<h4>Methods Toward Fulfilling Mission:</h4>
 			{{ recipient.description }}
 		</div>
 		
-		<h3>Website: {{ recipient.url }}</h3>
+		<h4>Website:</h4>
+		 {{ recipient.url }}
 {% endblock %}
