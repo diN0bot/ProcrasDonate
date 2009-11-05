@@ -105,8 +105,10 @@
 				<img id="right_logo" alt="" src="{{ MEDIA_URL }}img/LaptopLogo.png">
 				
 				<div id="video1" class="video_block">
-					{{ video1.promotional_video|safe }}
-					<p><a href="{% url recipient video1.slug %}">{{ video1.name }}</a></p>
+					{% if video1 %}
+						{{ video1.promotional_video|safe }}
+						<p><a href="{% url recipient video1.slug %}">{{ video1.name }}</a></p>
+					{% endif %}
 				</div>
 				
 				<div id="video2" class="video_block">
