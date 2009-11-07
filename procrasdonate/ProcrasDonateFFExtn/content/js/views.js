@@ -365,6 +365,8 @@ _extend(Controller.prototype, {
 	
 	///
 	/// Triggers payment. Does not reset payment period.
+	/// #@TODO check if authorized to make payments ?! 
+	///       or should pd::pay_multiuse check?
 	///
 	trigger_payment: function() {
 		var recipient = this.pddb.Recipient.get_or_null({
@@ -432,34 +434,44 @@ _extend(Controller.prototype, {
 		var self = this;
 		
 		var original_pddb = self.pddb;
-		self.pddb = new PDDB("test.0.sqlite");
-		self.pddb.init_db();
 		
-		testrunner.test("Test Update Totals", function() {
-			self.pddb.tester.test_update_totals(testrunner);
-		});
-		
-		testrunner.test("Check Requires Payments", function() {
-			self.pddb.checker.check_requires_payments(testrunner);
-		});
-		
-		testrunner.test("Check Payments", function() {
-			self.pddb.checker.check_payments(testrunner);
-		});
+		try {
+			self.pddb = new PDDB("test.0.sqlite");
+			self.pddb.init_db();
+			
+			/*testrunner.test("Test Update Totals", function() {
+				self.pddb.tester.test_update_totals(testrunner);
+			});
+			
+			testrunner.test("Check Requires Payments", function() {
+				self.pddb.checker.check_requires_payments(testrunner);
+			});
+			
+			testrunner.test("Check Payments", function() {
+				self.pddb.checker.check_payments(testrunner);
+			});*/
+			
+			/// WARNING: this uses setTimeout to test blur/focus,
+			///          idle/back, start/stop-recording....
+			///          tests after this one should worry about interference!
+			
+			/// WARNING 2: this test requires the tester to continuous move 
+			///            their mouse but not click so that IDLE isn't
+			///            inadvertantly triggered in the middle of the test.
+			///            the test runs for at least 5 minute.
+			testrunner.test("Test Idle/Back-Focus/Blur Combos", function() {
+				self.pddb.tester.test_idle_focus_combos(testrunner, _bind(self, self.display_test_results));
+			});
+		} catch(e) {
+			self.pddb.orthogonals.error(e+"\n\n"+e.stack);
+		}
 		
 		self.pddb = original_pddb;
 		
-		/*
-		testrunner.test("a second happy test", function() {
-			testrunner.expect(3);
-			testrunner.ok( false, "this test is fine" );
-			var value = "hello";
-			testrunner.equals( "hello", value, "We expect value to be hello" );
-			testrunner.same( "hello", value, "We still expect value to be hello" );
-		});
-		*/
-		
-		// display results
+		self.display_test_results(testrunner);
+	},
+	
+	display_test_results: function(testrunner) {
 		var inner_display = new TestRunnerConsoleDisplay();
 		var display = new TestRunnerPDDisplay(inner_display, self.pddb);
 		for (var name in testrunner.test_modules) {
@@ -1425,6 +1437,7 @@ _extend(PageController.prototype, {
 		});
 		
 		var chosen_charities = [];
+		var chosen_charities_rows = [];
 		this.pddb.RecipientPercent.select({}, function(row) {
 			var recipient = row.recipient();
 			if (recipient.bool_is_visible()) {
@@ -1435,6 +1448,7 @@ _extend(PageController.prototype, {
 					})
 				);
 				chosen_charities.push(html);
+				chosen_charities_rows.push(recipient);
 			}
 		});
 		
@@ -1442,8 +1456,8 @@ _extend(PageController.prototype, {
 		this.pddb.Recipient.select({}, function(row) {
 			if (row.bool_is_visible()) {
 				var chosen = false;
-				_iterate(chosen_charities, function(key, value, index) {
-					if (value.slug == row.slug) { chosen = true; }
+				_iterate(chosen_charities_rows, function(key, value, index) {
+					if (value.id == row.id) { chosen = true; }
 				});
 				if (!chosen) {
 					var html = Template.get("recipient_snippet").render(
@@ -1545,14 +1559,14 @@ _extend(PageController.prototype, {
 			dtoggle.parent().siblings(".description").hide();
 		}
 		
-		var user_recipients_div = request.jQuery("#user_recipients");
-		var potential_recipients_div = request.jQuery("#potential_recipients");
+		var user_recipients_div = request.jQuery("#chosen_charities");
+		var potential_recipients_div = request.jQuery("#not_chosen_charities");
 		
 		recipient_elem.children(".add_recipient").click(function() {
 			var recipient_id = request.jQuery(this).siblings(".recipient_id").text();
 			var recipient = self.pddb.Recipient.get_or_null({ id: recipient_id });
 			var percent = 0;
-			self.pddb.RecipientPercent.create({
+			var recipient_pct = self.pddb.RecipientPercent.create({
 				recipient_id: recipient_id,
 				percent: percent
 			});
@@ -1560,9 +1574,14 @@ _extend(PageController.prototype, {
 				request.jQuery(this).remove();
 			});
 			
-			var new_recip = request.jQuery(self.recipient_with_percent_snippet(request, recipient, percent*100));
-			user_recipients_div.append(new_recip);
+			var context = new Context({
+				constants: constants,
+				deep_recip_pct: recipient_pct
+			});
+			var new_recip = request.jQuery(
+					Template.get("recipient_with_percent_snippet").render(context));
 			
+			user_recipients_div.append(new_recip);
 			self.activate_a_recipient(request, new_recip);
 		});
 		
@@ -1577,10 +1596,14 @@ _extend(PageController.prototype, {
 			request.jQuery(this).parent().fadeOut("slow", function() {
 				request.jQuery(this).remove();
 			});
-
-			var new_recip = request.jQuery(self.recipient_snippet(request, recipient));
-			potential_recipients_div.prepend(new_recip);
 			
+			var context = new Context({
+				constants: constants,
+				recipient: recipient
+			});
+			var new_recip = request.jQuery(Template.get("recipient_snippet").render(context));
+			
+			potential_recipients_div.prepend(new_recip);
 			self.activate_a_recipient(request, new_recip);
 		});
 	},
@@ -1764,6 +1787,26 @@ _extend(PageController.prototype, {
 	},
 	
 	insert_register_done: function(request) {
+		if (this.prefs.get('register_state', false) != 'done') {
+			this.prefs.set('register_state', 'done');
+			var unsafeWin = request.get_unsafeContentWin();//event.target.defaultView;
+			if (unsafeWin.wrappedJSObject) {
+				// raises: [Exception... "Illegal value" nsresult: "0x80070057
+				// (NS_ERROR_ILLEGAL_VALUE)" location: "JS frame :: 
+				// chrome://procrasdonate/content/js/views.js :: anonymous :: line 828" data: no]
+				unsafeWin = unsafeWin.wrappedJSObject;
+			}
+			
+			// raises [Exception... "Illegal value" nsresult: "0x80070057 
+			// (NS_ERROR_ILLEGAL_VALUE)" location: "JS frame :: 
+			// chrome://procrasdonate/content/js/views.js :: anonymous :: line 834" data: no]
+			new XPCNativeWrapper(unsafeWin, "location").location = constants.IMPACT_URL;
+		} else {
+			var middle = Template.get("register_done_middle").render(
+				new Context({ constants: constants })
+			);
+			request.jQuery("#content").html( middle );
+		}
 	}, 
 	
 	process_register_done: function(request) {

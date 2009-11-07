@@ -215,15 +215,28 @@ function load_models(db, pddb) {
 		}
 	}, {
 		// class methods
-		process_object: function(r) {
+		process_object: function(r, last_receive_time, return_row) {
 			// @param r: object from server. json already loaded
-			// @return: recipient row
+			// @param last_receive_time: time last received data. 
+			//		if r.last_modified is older than last receive time,
+			//		only add row if doesn't exist. no need to overwrite data.
+			// @param return_row: if true, will return the created row
+			// @return: if return_row, returns created row
+		
+			last_modified = new Date(r.last_modified);
+			var recipient = pddb.Recipient.get_or_create({
+				slug: r.slug
+			});
+			if (last_receive_time &&
+					last_receive_time > new Date(last_modified) &&
+					recipient) {
+				return null
+			} // else, unknown or modified recipient
+			
 			var category = pddb.Category.get_or_create({
 				category: r.category
 			});
-			var recipient = pddb.Recipient.get_or_create({
-				slug: r.slug
-			}, {
+			pddb.Recipient.set({
 				name: r.name,
 				category_id: category.id,
 				mission: r.mission,
@@ -231,12 +244,18 @@ function load_models(db, pddb) {
                 url: r.url,
                 logo: r.logo,
                 twitter_name: r.twitter_name,
-                twitter_name: r.facebook_name,
+                facebook_name: r.facebook_name,
                 is_visible: _dbify_bool(r.is_visible),
                 pd_registered: _dbify_bool(r.pd_registered),
                 tax_exempt_status: _dbify_bool(r.tax_exempt_status),
+			}, {
+				slug: r.slug
 			});
-			return recipient
+			if (return_row) {
+				return pddb.Recipient.get_or_create({
+					slug: r.slug
+				});
+			}
 		}
 	});
 	

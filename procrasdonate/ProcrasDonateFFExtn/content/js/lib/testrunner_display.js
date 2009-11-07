@@ -164,7 +164,7 @@ _extend(TestRunnerPDDisplay.prototype, {
 		var self = this;
 		var fails = this.testrunner_display.display_testgroup_result(testrunner, testgroup);
 		_iterate(fails, function(key, value, index) {
-			self.pddb.orthogonals.fail("auto test failure", value);
+			self.pddb.orthogonals.fail(value, "auto test failure");
 		});
 	},
 	

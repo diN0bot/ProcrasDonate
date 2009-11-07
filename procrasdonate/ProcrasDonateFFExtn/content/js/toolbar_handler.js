@@ -299,7 +299,7 @@ _extend(PD_ToolbarManager.prototype, {
     
     onProgressButtonPDCommand : function(e) {
     	this.pddb.prefs.set('impact_state', 'goals');
-    	window.content.location.href = constants.PD_URL + constants.IMPACT_URL;
+    	window.content.location.href = constants.PD_URL + constants.PROGRESS_URL;
     },
     
     onProgressButtonTWSCommand : function(e) {

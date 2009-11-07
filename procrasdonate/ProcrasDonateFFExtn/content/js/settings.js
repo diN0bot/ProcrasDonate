@@ -152,7 +152,8 @@ var constants = {};
 		'content', 
 		'support', 
 		'updates', 
-		'payments'
+		'payments',
+		'done'
 	];
 	constants.REGISTER_STATE_TAB_NAMES = [
 		'Incentive', 'Charities', 'Content', 'Support', 'Updates', 'Payments', 'XXX'];

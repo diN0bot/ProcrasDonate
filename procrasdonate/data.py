@@ -183,6 +183,8 @@ class Recipient(models.Model):
     """
     Recipient of donations
     """
+    last_modified = models.DateField(auto_now=True)
+
     slug = models.SlugField(db_index=True)
     name = models.CharField(max_length=128, null=True, blank=True)
     category = models.ForeignKey('Category', blank=True, null=True)
@@ -230,14 +232,15 @@ class Recipient(models.Model):
                 'mission': self.mission,
                 'description': self.description,
                 'url': self.url,
-                "logo": self.logo.url,
+                "logo": self.logo and self.logo.url or None,
                 
                 'twitter_name': self.twitter_name,
                 'facebook_name': self.facebook_name,
                 
                 'is_visible': self.is_visible,
                 'pd_registered': self.pd_registered(),
-                'tax_exempt_status': self.tax_exempt_status}
+                'tax_exempt_status': self.tax_exempt_status,
+                'last_modified': self.last_modified.ctime()}
     
     def pd_registered(self):
         return self.fps_data and self.fps_data.good_to_go()
@@ -254,6 +257,8 @@ class Recipient(models.Model):
             logo's original dimensions.
             Does not actually scale the logo.
         """
+        if not instance.logo:
+            return
         print "set_logo_dimensions", instance, sender, kwargs
 
         h = instance.logo.height
@@ -274,6 +279,8 @@ class Recipient(models.Model):
         """
         @summary: scales the logo based on MAX_SCALED_<dimension>
         """
+        if not instance.logo:
+            return
         im = Image.open(instance.logo.path)
         #@todo: log these
         print im.info

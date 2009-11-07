@@ -25,6 +25,4 @@ def selected(request):
         selected = 'home'
     else:
         selected = path[-2]
-    print path
-    print selected
     return { 'selected': selected }

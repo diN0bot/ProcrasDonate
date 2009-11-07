@@ -261,7 +261,7 @@ _extend(ProcrasDonate_API.prototype, {
 			version: this.prefs.get('fps_version', constants.DEFAULT_FPS_CBUI_VERSION)
 		});
 
-		//this.pddb.orthogonals.info("pd.js", "authorize_multiuse: "+JSON.stringify(multi_auth));
+		//this.pddb.orthogonals.info("authorize_multiuse: "+JSON.stringify(multi_auth), "pd.js");
 		this._hello_operator_give_me_procrasdonate(
 			constants.PD_URL + constants.AUTHORIZE_MULTIUSE_URL,
 			data,
@@ -292,7 +292,7 @@ _extend(ProcrasDonate_API.prototype, {
 			},
 			"POST",
 			function(r) {
-				self.pddb.orthogonals.log("multiuse token", "Successfully cancelled multiuse token");
+				self.pddb.orthogonals.log("Successfully cancelled multiuse token", "multiuse token");
 				
 				// set token to canceleld
 				self.pddb.FPSMultiuseAuthorization.set({
@@ -305,7 +305,7 @@ _extend(ProcrasDonate_API.prototype, {
 				if (after_success) after_success();
 			},
 			function(r) {
-				self.pddb.orthogonals.log("multiuse token", "Failed to cancel multiuse token: "+r.reason);
+				self.pddb.orthogonals.log("Failed to cancel multiuse token: "+r.reason, "multiuse token");
 				if (after_failure) after_failure();
 			}
 		);
@@ -316,7 +316,7 @@ _extend(ProcrasDonate_API.prototype, {
 		
 		var multiauth = this.pddb.FPSMultiuseAuthorization.get_latest_success();
 		if (!multiauth || !multiauth.token_id) {
-			self.pddb.orthogonals.error("pay", "Not successfully authorized to make payments");
+			self.pddb.orthogonals.error("Not successfully authorized to make payments", "pay");
 			return
 		}
 		
@@ -344,7 +344,7 @@ _extend(ProcrasDonate_API.prototype, {
 				data,
 				"POST",
 				function(r) {
-					self.pddb.orthogonals.log("pay", "Successfully paid "+transaction_amount);
+					self.pddb.orthogonals.log("Successfully paid "+transaction_amount, "pay");
 					
 					// process returned pay object
 					if (r.pay) {
@@ -356,7 +356,7 @@ _extend(ProcrasDonate_API.prototype, {
 					if (after_success) after_success();
 				},
 				function(r) {
-					self.pddb.orthogonals.log("pay", "Failed to pay "+transaction_amount+": "+r.reason);
+					self.pddb.orthogonals.log("Failed to pay "+transaction_amount+": "+r.reason, "pay");
 					if (after_failure) after_failure();
 				}
 			);
@@ -366,7 +366,7 @@ _extend(ProcrasDonate_API.prototype, {
 		var self = this;
 		var prevent_payments = self.prefs.get('prevent_payments ', constants.DEFAULT_PREVENT_PAYMENTS);
 		if (prevent_payments) {
-			self.pddb.orthogonals.log("make_payments", "Aborted because prevent_payments flag is: "+prevent_payments)
+			self.pddb.orthogonals.log("Aborted because prevent_payments flag is: "+prevent_payments, "make_payments")
 			return 
 		}
 		
@@ -403,7 +403,7 @@ _extend(ProcrasDonate_API.prototype, {
 			}, //#@TODO store time in prefs
 			"GET",
 			function(r) {
-				self.pddb.orthogonals.log("dataflow", "Successfully received data");
+				self.pddb.orthogonals.log("Successfully received data", "dataflow");
 				
 				var recipients = [];
 				var multi_auths = [];
@@ -418,12 +418,12 @@ _extend(ProcrasDonate_API.prototype, {
 					//logger("recip: "+r.slug);
 				});
 				self.prefs.set('since_received_data', _dbify_date(new_since));
-				self.pddb.orthogonals.log("dataflow", "Done: "+_dbify_date(new_since));
+				self.pddb.orthogonals.log("Done: "+_dbify_date(new_since), "dataflow");
 				
 				if (after_success) after_success(recipients, multi_auths);
 			},
 			function(r) {
-				self.pddb.orthogonals.log("dataflow", "Failed to received data: "+r.reason);
+				self.pddb.orthogonals.log("Failed to received data: "+r.reason, "dataflow");
 				if (after_failure) after_failure();
 			}
 		);

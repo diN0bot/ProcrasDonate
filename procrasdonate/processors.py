@@ -52,6 +52,8 @@ class Processor(object):
         }
 
         """
+        ret = None
+        
         total_amount = float( total['total_amount'] )
         total_time   = float( total['total_time'] )
         dtime         = Processor.parse_seconds(int(total['datetime']))
@@ -73,9 +75,9 @@ class Processor(object):
             if not recipient:
                 rvote = RecipientVote.get_or_none(name=name, user=user)
                 if not rvote:
-                    RecipientVote.add(name, user)
+                    ret = RecipientVote.add(name, user)
             else:
-                obj = RecipientVisit.add(recipient,
+                ret = RecipientVisit.add(recipient,
                                          dtime,
                                          total_time,
                                          total_amount,
@@ -93,7 +95,7 @@ class Processor(object):
                                                 url_re=url_re,
                                                 name=name)
 
-            obj = SiteGroupVisit.add(sitegroup,
+            ret = SiteGroupVisit.add(sitegroup,
                                      dtime,
                                      total_time,
                                      total_amount,
@@ -108,7 +110,7 @@ class Processor(object):
             extn_id = int(total['content']['id'])
             site = Site.get_or_create(url=url)
             
-            obj = SiteVisit.add(site, dtime, total_time, total_amount, user, extn_id)
+            ret = SiteVisit.add(site, dtime, total_time, total_amount, user, extn_id)
             
         elif 'Tag' == total['contenttype']:
             tagtag     = total['content']['tag']
@@ -118,12 +120,9 @@ class Processor(object):
             if not tag:
                 tag = Tag.add(tag=tagtag)
             
-            obj = TagVisit.add(tag, dtime, total_time, total_amount, user, extn_id)
+            ret = TagVisit.add(tag, dtime, total_time, total_amount, user, extn_id)
             
-        else:
-            obj = None
-
-        return obj
+        return ret
     
     @classmethod
     def process_log(klass, log, user):

@@ -137,26 +137,38 @@ _extend(PDTests.prototype, {
 	},
 	
 	//
+	// creates new tag
+	// @param tag: tag instance
+	//
+	new_site: function(tag) {
+		var self = this;
+		var newdomain = create_caller_reference()+".com";
+		var newpage = create_caller_reference()+".html";
+		var url = "http://"+newdomain+"/"+newpage;
+
+		var host = _host(url);
+		sitegroup = self.pddb.SiteGroup.create({
+				name: newdomain,
+				host: newdomain,
+				tag_id: tag.id
+		});
+		return self.pddb.Site.create({
+			url: url,
+			sitegroup_id: sitegroup.id,
+			flash: _dbify_bool(false),
+			max_idle: constants.DEFAULT_FLASH_MAX_IDLE
+		});
+	},
+	
+	//
 	// calls store_visit for new site
 	// creates site and sitegroup with specified tag first if
 	// specified tag is not Unosrted
 	// @param tag: tag instance
 	//
 	visit_new_site: function(tag, seconds) {
-		var self = this;
-		var newdomain = create_caller_reference()+".com";
-		var newpage = create_caller_reference()+".html";
-		var url = "http://"+newdomain+"/"+newpage;
-		if (tag.id != self.pddb.Unsorted.id) {
-			var host = _host(url);
-			sitegroup = self.pddb.SiteGroup.create({
-					name: newdomain,
-					host: newdomain,
-					tag_id: tag.id
-			});
-			site = self.pddb.Site.create({ url: url, sitegroup_id: sitegroup.id });
-		}
-		self.pddb.store_visit(url, _dbify_date(new Date()), seconds);
+		var site = this.new_site(tag);
+		self.pddb.store_visit(site.url, _dbify_date(new Date()), seconds);
 		return url
 	},
 	
@@ -297,5 +309,392 @@ _extend(PDTests.prototype, {
 				});
 			});
 		}
-	}
+	},
+
+	/**
+	 * [
+	 *  {fn, self, args, interval},
+	 *  {fn, self, args, interval},
+	 *  ...
+	 * ]
+	 */
+	sequentialize: function(items, idx) {
+		var self = this;
+		if (idx < items.length) {
+			logger("SEQUENTIALIZE "+idx+" interval="+items[idx].interval);
+			items[idx].fn.apply(items[idx].self, items[idx].args);
+			if (items[idx].interval) {
+				setTimeout(function() {
+					self.sequentialize(items, idx+1);
+				}, items[idx].interval);
+			} else if (idx+1 < items.length) {
+				logger("no timeout interval set");
+				self.sequentialize(items, idx+1);
+			}
+		}
+	},
+	
+	check_visits: function(testrunner, display_results_callback, site, expected_durations) {
+		var actual_durations = [];
+		this.pddb.Visit.select({
+			site_id: site.id
+		}, function(row) {
+			actual_durations.push(parseInt(row.duration));
+		});
+		logger(" expected_durations = "+expected_durations.join(", ")+
+			"\n actual_durations = "+actual_durations.join(", "));
+		
+		testrunner.equals(expected_durations.length, actual_durations.length, 
+				"Expected and actual visit durations do not match for site="+site+
+				"\n actual_durations="+actual_durations.join(", ")+
+				"\n expected_durations="+expected_durations.join(", "));
+		
+		_iterate(expected_durations, function(key, actual, index) {
+			testrunner.ok(index < actual_durations.length, 
+					"More expected visits than actual visits for site="+site+
+					"\n actual_durations="+actual_durations.join(", ")+
+					"\n expected_durations="+expected_durations.join(", "));
+			
+			testrunner.equals(actual_durations[index], actual, " ");
+		});
+		
+		// display results
+		display_results_callback(testrunner);
+	},
+	
+	/**
+	 * Permutate on idle/back and focus/blur combinations.
+	 * 
+	 * Need to mimic boundary-case timings in actual use.
+	 * For example, idle/back calls can be delayed by as much as 5 seconds.
+	 * Focus/blur has a 1-second delay to collate groups of calls.
+	 * 
+	 *  Make sure these use cases and others are covered.
+	 */
+	test_idle_focus_combos: function(testrunner, display_results_callback) {
+		var self = this;
+		this.sequentialize(
+			[{
+				fn: self._simple_idle,
+				self: self,
+				args: [testrunner, display_results_callback],
+				interval: 30000
+			}, {
+				fn: self._simple_focus,
+				self: self,
+				args: [testrunner, display_results_callback],
+				interval: 30000
+			}, {
+				fn: self._simple_mixed_1,
+				self: self,
+				args: [testrunner, display_results_callback],
+				interval: 50000
+			}, {
+				fn: self._simple_mixed_2,
+				self: self,
+				args: [testrunner, display_results_callback],
+				interval: 50000
+			}, {
+				fn: self._simple_mixed_3,
+				self: self,
+				args: [testrunner, display_results_callback],
+				interval: 50000
+			}, {
+				fn: self._simple_mixed_4,
+				self: self,
+				args: [testrunner, display_results_callback],
+				interval: 50000
+			}],
+			0
+		);
+	},
+	
+	/**
+	 * start_recording, idle, back, stop_recording
+	 */
+	_simple_idle: function(testrunner, display_results_callback) {
+		var self = this;
+		var site = this.new_site(this.pddb.ProcrasDonate);
+		self._create_sequence(
+			testrunner,
+			display_results_callback,
+			site,
+			[{
+				fn: self.pddb.start_recording,
+				self: self.pddb,
+				args: [site.url],
+				interval: Math.floor(Math.random()*7000)+2000,
+				expected_visit: true
+			}, {
+				fn: self.pddb.idle,
+				self: self.pddb,
+				args: [],
+				interval: Math.floor(Math.random()*7000)+2000
+			}, {
+				fn: self.pddb.back,
+				self: self.pddb,
+				args: [],
+				interval: Math.floor(Math.random()*7000)+2000,
+				expected_visit: true
+			}, {
+				fn: self.pddb.stop_recording,
+				self: self.pddb,
+				args: [],
+				interval: 0
+			}]
+		);
+	},
+	
+	/**
+	 * start_recording, blur, focus, stop_recording
+	 */
+	_simple_focus: function(testrunner, display_results_callback) {
+		var self = this;
+		var site = this.new_site(this.pddb.ProcrasDonate);
+		self._create_sequence(
+			testrunner,
+			display_results_callback,
+			site,
+			[{
+				fn: self.pddb.start_recording,
+				self: self.pddb,
+				args: [site.url],
+				interval: Math.floor(Math.random()*7000)+2000,
+				expected_visit: true
+			}, {
+				fn: self.pddb.blur,
+				self: self.pddb,
+				args: [],
+				interval: Math.floor(Math.random()*7000)+2000
+			}, {
+				fn: self.pddb.focus,
+				self: self.pddb,
+				args: [],
+				interval: Math.floor(Math.random()*7000)+2000,
+				expected_visit: true
+			}, {
+				fn: self.pddb.stop_recording,
+				self: self.pddb,
+				args: [],
+				interval: 0
+			}]
+		);
+	},
+	
+	/**
+	 * start_recording, blur, idle, back, focus, stop_recording
+	 */
+	_simple_mixed_1: function(testrunner, display_results_callback) {
+		var self = this;
+		var site = this.new_site(this.pddb.ProcrasDonate);
+		self._create_sequence(
+			testrunner,
+			display_results_callback,
+			site,
+			[{
+				fn: self.pddb.start_recording,
+				self: self.pddb,
+				args: [site.url],
+				interval: Math.floor(Math.random()*7000)+2000,
+				expected_visit: true
+			}, {
+				fn: self.pddb.blur,
+				self: self.pddb,
+				args: [],
+				interval: Math.floor(Math.random()*7000)+2000
+			}, {
+				fn: self.pddb.idle,
+				self: self.pddb,
+				args: [],
+				interval: Math.floor(Math.random()*7000)+2000,
+			}, {
+				fn: self.pddb.back,
+				self: self.pddb,
+				args: [],
+				interval: Math.floor(Math.random()*7000)+2000,
+			}, {
+				fn: self.pddb.focus,
+				self: self.pddb,
+				args: [],
+				interval: Math.floor(Math.random()*7000)+2000,
+				expected_visit: true
+			}, {
+				fn: self.pddb.stop_recording,
+				self: self.pddb,
+				args: [],
+				interval: 0
+			}]
+		);
+	},
+	
+	/**
+	 * start_recording, blur, idle, focus, back, stop_recording
+	 */
+	_simple_mixed_2: function(testrunner, display_results_callback) {
+		var self = this;
+		var site = this.new_site(this.pddb.ProcrasDonate);
+		self._create_sequence(
+			testrunner,
+			display_results_callback,
+			site,
+			[{
+				fn: self.pddb.start_recording,
+				self: self.pddb,
+				args: [site.url],
+				interval: Math.floor(Math.random()*7000)+2000,
+				expected_visit: true
+			}, {
+				fn: self.pddb.blur,
+				self: self.pddb,
+				args: [],
+				interval: Math.floor(Math.random()*7000)+2000
+			}, {
+				fn: self.pddb.idle,
+				self: self.pddb,
+				args: [],
+				interval: Math.floor(Math.random()*7000)+2000,
+			}, {
+				fn: self.pddb.focus,
+				self: self.pddb,
+				args: [],
+				interval: Math.floor(Math.random()*7000)+2000,
+				expected_visit: true // #@TODO ?
+			}, {
+				fn: self.pddb.back,
+				self: self.pddb,
+				args: [],
+				interval: Math.floor(Math.random()*7000)+2000,
+				expected_visit: true // #@TODO ?
+			}, {
+				fn: self.pddb.stop_recording,
+				self: self.pddb,
+				args: [],
+				interval: 0
+			}]
+		);
+	},
+	
+	/**
+	 * start_recording, idle, blur, back, focus, stop_recording
+	 */
+	_simple_mixed_3: function(testrunner, display_results_callback) {
+		var self = this;
+		var site = this.new_site(this.pddb.ProcrasDonate);
+		self._create_sequence(
+			testrunner,
+			display_results_callback,
+			site,
+			[{
+				fn: self.pddb.start_recording,
+				self: self.pddb,
+				args: [site.url],
+				interval: Math.floor(Math.random()*7000)+2000,
+				expected_visit: true
+			}, {
+				fn: self.pddb.idle,
+				self: self.pddb,
+				args: [],
+				interval: Math.floor(Math.random()*7000)+2000
+			}, {
+				fn: self.pddb.blur,
+				self: self.pddb,
+				args: [],
+				interval: Math.floor(Math.random()*7000)+2000,
+			}, {
+				fn: self.pddb.back,
+				self: self.pddb,
+				args: [],
+				interval: Math.floor(Math.random()*7000)+2000,
+			}, {
+				fn: self.pddb.focus,
+				self: self.pddb,
+				args: [],
+				interval: Math.floor(Math.random()*7000)+2000,
+				expected_visit: true
+			}, {
+				fn: self.pddb.stop_recording,
+				self: self.pddb,
+				args: [],
+				interval: 0
+			}]
+		);
+	},
+	
+	/**
+	 * start_recording, idle, blur, focus, back, stop_recording
+	 */
+	_simple_mixed_4: function(testrunner, display_results_callback) {
+		var self = this;
+		var site = this.new_site(this.pddb.ProcrasDonate);
+		self._create_sequence(
+			testrunner,
+			display_results_callback,
+			site,
+			[{
+				fn: self.pddb.start_recording,
+				self: self.pddb,
+				args: [site.url],
+				interval: Math.floor(Math.random()*7000)+2000,
+				expected_visit: true
+			}, {
+				fn: self.pddb.idle,
+				self: self.pddb,
+				args: [],
+				interval: Math.floor(Math.random()*7000)+2000
+			}, {
+				fn: self.pddb.blur,
+				self: self.pddb,
+				args: [],
+				interval: Math.floor(Math.random()*7000)+2000,
+			}, {
+				fn: self.pddb.focus,
+				self: self.pddb,
+				args: [],
+				interval: Math.floor(Math.random()*7000)+2000,
+				expected_visit: true // #@TODO ?
+			}, {
+				fn: self.pddb.back,
+				self: self.pddb,
+				args: [],
+				interval: Math.floor(Math.random()*7000)+2000,
+				expected_visit: true // #@TODO ?
+			}, {
+				fn: self.pddb.stop_recording,
+				self: self.pddb,
+				args: [],
+				interval: 0
+			}]
+		);
+	},
+	
+	/**
+	 * 
+	 */
+	_create_sequence: function(testrunner, display_results_callback, site, actions) {
+		var self = this;
+		
+		var expected_durations = [];
+		var sequence = [];
+		
+		_iterate(actions, function(key, action, index) {
+			if (action.expected_visit) {
+				expected_durations.push(Math.round(action.interval/1000.0));
+			}
+			sequence.push({
+				fn: action.fn,
+				self: action.self,
+				args: action.args,
+				interval: action.interval
+			});
+		});
+		// append tests to sequence
+		sequence.push({
+			fn: self.check_visits,
+			self: self,
+			args: [testrunner, display_results_callback, site, expected_durations],
+			interval: 1
+		})
+		// initiate sequence execution
+		self.sequentialize(sequence, 0);
+	},
 });

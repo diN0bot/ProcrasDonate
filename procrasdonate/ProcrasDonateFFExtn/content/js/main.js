@@ -187,11 +187,11 @@ Overlay.prototype = {
 			getService(Components.interfaces.nsIIdleService);
 		
 		// need to provide named dict... when unnamed, got error couldn't find 'observe' function
-		idle_no_flash_observer = { observe: self.pddb.idle_no_flash };
-		idle_flash_observer = { observe: self.pddb.idle_flash };
+		var idle_no_flash_observer = { observe: _bind(self.pddb, self.pddb.idle_no_flash) };
+		var idle_flash_observer = { observe: _bind(self.pddb, self.pddb.idle_flash) };
 		
-		//this.idleService.addIdleObserver(idle_no_flash_observer, constants.DEFAULT_MAX_IDLE);
-		//this.idleService.addIdleObserver(idle_flash_observer, constants.DEFAULT_FLASH_MAX_IDLE);
+		this.idleService.addIdleObserver(idle_no_flash_observer, constants.DEFAULT_MAX_IDLE);
+		this.idleService.addIdleObserver(idle_flash_observer, constants.DEFAULT_FLASH_MAX_IDLE);
 	},
 	
 	uninstall: function(aSubject, aTopic, aData) {
@@ -229,8 +229,8 @@ Overlay.prototype = {
 		//logger("Overlay.uninit()");
 		gBrowser.removeProgressListener(this.url_bar_listener);
 		
-		idle_no_flash_observer = { observe: _bind(self, self.pddb.idle_no_flash) };
-		idle_flash_observer = { observe: _bind(self, self.pddb.idle_flash) };
+		var idle_no_flash_observer = { observe: _bind(self.pddb, self.pddb.idle_no_flash) };
+		var idle_flash_observer = { observe: _bind(self.pddb, self.pddb.idle_flash) };
 		
 		this.idleService.removeIdleObserver(idle_no_flash_observer, constants.DEFAULT_MAX_IDLE);
 		this.idleService.removeIdleObserver(idle_flash_observer, constants.DEFAULT_FLASH_MAX_IDLE);
@@ -654,6 +654,7 @@ PDDB.prototype = {
 		if (ff_state != new_ff_state) {
 			this.prefs.set("ff_is_in_focus", new_ff_state);
 			if (new_ff_state) {
+				//#@TODO check multiple urls like in idle_no_flash??
 				var url = this.prefs.get("saved_focus_last_url", "");
 				if (IDLE_LOGGING) logger("focus last_url="+this.prefs.get("last_url", "")+
 						"\n focus_url="+this.prefs.get("saved_focus_last_url", "-"));
@@ -662,6 +663,7 @@ PDDB.prototype = {
 					this.start_recording(url);
 				}
 			} else {
+				//#@TODO check multiple urls like in idle_no_flash??
 				var last_url = this.prefs.get("last_url", "");
 				if (IDLE_LOGGING) logger("blur last_url="+this.prefs.get("last_url", "")+
 						"\n focus_url="+this.prefs.get("saved_focus_last_url", "-"));
@@ -675,13 +677,17 @@ PDDB.prototype = {
 	},
 	
 	idle_no_flash: function(subject, topic, data) {
-		if (IDLE_LOGGING) logger(topic+" -- no flash   ");
+		logger(topic+" -- no flash   ");
 		// if idle and no flash on site, call idle()
 		// if back, call back()
 		if (topic == "back") {
 			this.back();
 		} else if (topic == "idle") {
-			var url = this.prefs.get("saved_idle_last_url", "");
+			var url = this.prefs.get("last_url", "");
+			if (!url) {
+				url = this.prefs.get("saved_idle_last_url", "");
+			}
+			logger("saved_idle_last_url is "+url);
 			if (url) {
 				var site = this.Site.get_or_null({url__eq: url });
 				if (site) {
@@ -689,14 +695,14 @@ PDDB.prototype = {
 						this.idle();
 					}
 				} else {
-					if (IDLE_LOGGING) logger("NO SITE in idle_no_flash "+url);
+					logger("NO SITE in idle_no_flash "+url);
 				}
 			}
 		}
 	},
 	
 	idle_flash: function(subject, topic, data) {
-		if (IDLE_LOGGING) logger(topci+" -- flash");
+		logger(topic+" -- flash");
 		// if idle, call idle() regardless of flash ( might as well)
 		// if back, call back()
 		if (topic == "back") {
@@ -709,6 +715,7 @@ PDDB.prototype = {
 	idle: function() {
 		if (IDLE_LOGGING) logger("IDLE last_url="+this.prefs.get("last_url", "")+
 				"\n idle_url="+this.prefs.get("saved_idle_last_url", ""));
+		//#@TODO check multiple urls like in idle_no_flash??
 		var last_url = this.prefs.get("last_url", "");
 		if (last_url) {
 			this.prefs.set("saved_idle_last_url", last_url); 
@@ -726,6 +733,7 @@ PDDB.prototype = {
 			// want to do anything.
 			// (ns1IdleService can have 5 second delay)
 			var url = this.prefs.get("saved_idle_last_url", "");
+			//#@TODO check multiple urls like in idle_no_flash??
 			if (url) {
 				this.prefs.set("saved_idle_last_url", "");
 				this.start_recording(url);
@@ -758,15 +766,23 @@ PDDB.prototype = {
 			this.prefs.set("last_url", "");
 			var start = this.prefs.get("last_start");
 			var now = _dbify_date(new Date());
-			//logger(" start: "+start+" now: "+now+" diff: "+now-start);
-			this.prefs.set("last_start", "");
 			var diff = now - start;
+			if (IDLE_LOGGING) logger(">> stop recording "+
+					"\n last_start="+this.prefs.get("last_start", "")+
+					"\n now="+now+
+					"\n diff="+diff+
+					"\n rounded="+Math.round(diff));
+			this.prefs.set("last_start", "");
 			// cap diff at flash max...just in case...
 			if (diff > constants.DEFAULT_FLASH_MAX_IDLE) {
 				this.orthogonals.warn("store_visit:: diff greater than flash max: "+diff+" start="+start+" url="+url);
 				diff = constants.DEFAULT_FLASH_MAX_IDLE + 1;
 			}
-			this.store_visit(url, start, diff);
+			if (IDLE_LOGGING) logger(">> stop recording "+
+					"\n diff="+diff);
+			if (diff > 0) {
+				this.store_visit(url, start, diff);
+			}
 		}
 	},
 	
@@ -790,7 +806,7 @@ PDDB.prototype = {
 				url: url,
 				sitegroup_id: sitegroup.id,
 				flash: _dbify_bool(false),
-				max_idle: 3*60
+				max_idle: constants.DEFAULT_FLASH_MAX_IDLE
 			});
 			if (STORE_VISIT_LOGGING) logger("store created "+site);
 		}
@@ -1053,7 +1069,8 @@ var Orthogonals = function Orthogonals(prefs, pddb) {
 	this.pddb = pddb;
 };
 Orthogonals.prototype = {
-	_record: function(type, detail_type, msg) {
+	_record: function(type, msg, detail_type) {
+		detail_type = detail_type || "default";
 		this.pddb.Log.create({
 			datetime: _dbify_date(new Date()),
 			type: type,
@@ -1063,28 +1080,28 @@ Orthogonals.prototype = {
 		logger("Orthogonal."+type+" ("+detail_type+"): "+msg);
 	},
 	
-	info: function(detail_type, msg) {
-		this._record("INFO", detail_type, msg);
+	info: function(msg, detail_type) {
+		this._record("INFO", msg, detail_type);
 	},
 	
-	debug: function(detail_type, msg) {
-		this._record("DEBUG", detail_type, msg);
+	debug: function(msg, detail_type) {
+		this._record("DEBUG", msg, detail_type);
 	},
 	
-	log: function(detail_type, msg) {
-		this._record("LOG", detail_type, msg);
+	log: function(msg, detail_type) {
+		this._record("LOG", msg, detail_type);
 	},
 	
-	warn: function(detail_type, msg) {
-		this._record("WARN", detail_type, msg);
+	warn: function(msg, detail_type) {
+		this._record("WARN", msg, detail_type);
 	},
 	
-	fail: function(detail_type, msg) {
-		this._record("FAIL", detail_type, msg);
+	fail: function(msg, detail_type) {
+		this._record("FAIL", msg, detail_type);
 	},
 	
-	error: function(detail_type, msg) {
-		this._record("ERROR", detail_type, msg);
+	error: function(msg, detail_type) {
+		this._record("ERROR", msg, detail_type);
 		try {
 			this.FAIL(); // we expect this to fail because we haven't defined a FAIL property!
 		} catch (e) {
