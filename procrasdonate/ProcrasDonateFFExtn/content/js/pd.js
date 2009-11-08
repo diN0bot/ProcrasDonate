@@ -420,7 +420,9 @@ _extend(ProcrasDonate_API.prototype, {
 				self.prefs.set('since_received_data', _dbify_date(new_since));
 				self.pddb.orthogonals.log("Done: "+_dbify_date(new_since), "dataflow");
 				
-				if (after_success) after_success(recipients, multi_auths);
+				if (after_success) {
+					after_success(recipients, multi_auths);
+				}
 			},
 			function(r) {
 				self.pddb.orthogonals.log("Failed to received data: "+r.reason, "dataflow");

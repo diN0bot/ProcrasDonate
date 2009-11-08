@@ -64,19 +64,44 @@ function install(anchor_class) {
 		return false
 		
 	} else {
-		return not_ready_to_install();
 		// NOT READY FOR INSTALL YET
-		/*var item = $("."+anchor_class).slice(0,1);
-		var params = {
-			"ProcrasDonate, a charitable incentive for good time management": {
-				URL: item.attr("href"),
-				IconURL: item.attr("iconURL"),
-				Hash: $.trim(item.children(".hash").text()),
-				toString: function() { return this.URL; }
-			}
-		};
-		InstallTrigger.install( params );
-		return true*/
+		// return not_ready_to_install();
+		var item = $("."+anchor_class).slice(0,1);
+		var xpi_url = item.attr("href");
+		var xpi_hash = $.trim(item.children(".hash").text());
+		
+		// get recipient slug if on recipient page
+		// /r/PD/ --> ['', 'r', 'PD', '']
+		var cur_url = location.pathname.split("/");
+		var slug = "__none__";
+		if (cur_url.length >= 3 && cur_url[cur_url.length-3].trim() == "r") {
+			slug = cur_url[cur_url.length-2].trim();
+		}
+		$.post("/generate_xpi/"+slug,
+				{},
+				function(data) {
+					/*var s = "";
+					for (var k in data) {
+						s += k+"="+data[k]+"\n";
+					}
+					alert(s);*/
+					if (data && data.xpi_url && data.xpi_hash) {
+						xpi_url = data.xpi_url;
+						xpi_hash = data.xpi_hash;
+					}
+					//alert("url "+xpi_url+"\nhash "+xpi_hash);
+					var params = {
+						"ProcrasDonate, a charitable incentive for good time management": {
+							URL: xpi_url,
+							IconURL: item.attr("iconURL"),
+							Hash: xpi_hash,
+							toString: function() { return this.URL; }
+						}
+					};
+					InstallTrigger.install( params );
+				},
+				"json");
+		return false
 	}
 }
 

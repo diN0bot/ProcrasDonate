@@ -1,5 +1,6 @@
 from lib.view_utils import render_response, HttpResponseRedirect, extract_parameters
 from lib.json_utils import json_success, json_failure
+from procrasdonate.applib.xpi_builder import XpiBuilder
 from procrasdonate.models import *
 
 from procrasdonate.processors import *
@@ -9,7 +10,7 @@ from django.utils import simplejson as json
 
 from django.core.urlresolvers import reverse
 
-import settings
+from settings import pathify, path, PROJECT_PATH, MEDIA_ROOT
 
 def _POST(url, values):
     """
@@ -175,6 +176,24 @@ def return_data(request):
                          'multiuse_auths': multiuse_auths}, indent=2)
     print '#.'*30;
     
+    xpi_builder = XpiBuilder(pathify([PROJECT_PATH, 'procrasdonate', 'ProcrasDonateFFExtn'], file_extension=True),
+                             pathify([MEDIA_ROOT, 'xpi']))
     return json_success({'recipients': recipients,
                          'multiuse_auths': multiuse_auths,
-                         'latest_version': settings.PDVERSION})
+                         'latest_version': xpi_builder.get_version()})
+
+def generate_xpi(request, slug):
+    print "GENERATE XPI", slug
+    recipient = slug != '__none__' and Recipient.get_or_none(slug=slug) or None
+    xpi_builder = XpiBuilder(pathify([PROJECT_PATH, 'procrasdonate', 'ProcrasDonateFFExtn'], file_extension=True),
+                             pathify([MEDIA_ROOT, 'xpi']),
+                             recipient)
+    
+    private_key = xpi_builder.write_input_json()
+    user = User.add(private_key)
+    Log.Log("Built XPI for download", detail="usage", user=user)
+    
+    (xpi_url, xpi_hash) = xpi_builder.build_xpi()
+    return json_success({'xpi_url': xpi_url,
+                         'xpi_hash': xpi_hash})
+

@@ -449,19 +449,25 @@ Overlay.prototype = {
 		this.pddb.page.pd_api.request_data_updates(
 			function() {
 				// after success
+
+				// install generated input
+				_iterate(generated_input()[0], function(key, value, index) {
+					if (key == "private_key") {
+						self.pddb.prefs.set("private_key", value);
+						
+					} else if (key == "preselected_charities") {
+						_iterate(value, function(k, recip_pct, idx) {
+							self.pddb.RecipientPercent.process_object(recip_pct);
+						});
+					
+					} else {
+						//#@TODO
+						self.pddb.orthogonals.log("generated input: unrecognized key: "+key+" value="+value);
+					}
+				});
 				
-				// add default recipient percent of 100% to bilumi
-				var bilumi = self.pddb.Recipient.get_or_null({ slug: "bilumi" });
-				if (bilumi) {
-					self.pddb.RecipientPercent.get_or_create({
-						recipient_id: bilumi.id
-					}, {
-						percent: 1.00
-					});
-				}
 			}, function() {
 				// after failure
-				//#@TODO log failure
 			}
 		);
 		
@@ -567,7 +573,7 @@ PDDB.prototype = {
 		// install data if not already installed.
 		
 		// NOTE: onInstall will receive data from server after this method (init_db)
-		// is called. the default recipientpercent is set there.
+		// is called.
 		
 		/////// TAGS ////////
 		this.Unsorted      = this.Tag.get_or_create({ tag: "Unsorted" })

@@ -308,6 +308,23 @@ function load_models(db, pddb) {
 		}
 	}, {
 		// class methods
+		process_object: function(r) {
+			// @param r: object from server. json already loaded
+			// contains recipient_slug and percent
+			logger("PROCESS OBJECT "+r+" "+r.recipient_slug);
+			var recipient = pddb.Recipient.get_or_null({ slug: r.recipient_slug });
+			if (recipient) {
+				var rpct = pddb.RecipientPercent.get_or_create({
+					recipient_id: recipient.id
+				}, {
+					percent: r.percent
+				});
+				logger("YES "+rpct);
+			} else {
+				//#@TODO
+				logger("DO!");
+			}
+		}
 	});
 	
 	// sitegroup has 1 tag

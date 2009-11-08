@@ -249,6 +249,30 @@ class Recipient(models.Model):
     def Initialize(klass):
         #models.signals.pre_save.connect(Recipient.set_logo_dimensions, sender=Recipient)
         models.signals.post_save.connect(Recipient.scale_logo, sender=Recipient)
+        
+        models.signals.pre_save.connect(Recipient.resize_video_html, sender=Recipient)
+    
+    @classmethod
+    def resize_video_html(klass, signal, sender, instance, **kwargs):
+        """
+        pre-save signal to make video have right size:
+        """
+        video_width_re = re.compile("width=\"\d+\"")
+        video_height_re = re.compile("height=\"\d+\"")
+        goal_width = "216" # just wide enough to get full screen button
+        goal_height = "190"
+    
+        if instance.promotional_video:
+            instance.promotional_video = video_width_re.sub("width=\"%s\"" % goal_width, 
+                                                            instance.promotional_video)
+            instance.promotional_video = video_height_re.sub("height=\"%s\"" % goal_height, 
+                                                             instance.promotional_video)
+        
+        if instance.pd_experience_video:
+            instance.pd_experience_video = video_width_re.sub("width=\"%s\"" % goal_width, 
+                                                              instance.pd_experience_video)
+            instance.pd_experience_video = video_height_re.sub("height=\"%s\"" % goal_height, 
+                                                               instance.pd_experience_video)
     
     @classmethod
     def set_logo_dimensions(klass, signal, sender, instance, **kwargs):
@@ -300,9 +324,10 @@ class Recipient(models.Model):
         """
     
     def __unicode__(self):
-        return u"%s - %s - %s" % (self.name,
-                                  self.category,
-                                  self.pd_registered())
+        return u"[%s]    %s - %s - %s" % (self.slug,
+                                          self.name,
+                                          self.category,
+                                          self.pd_registered())
 
 class RecipientUserTagging(models.Model):
     user = models.ForeignKey(RecipientUser, unique=True)

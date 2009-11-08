@@ -106,7 +106,7 @@
     <script type='application/x-javascript'
             src='chrome://ProcrasDonate/content/js/pd.js'></script>
     <script type='application/x-javascript'
-            src='chrome://ProcrasDonate/content/js/tipjoy.js'></script>
+            src='chrome://ProcrasDonate/content/js/generated_input.js'></script>
     <script type='application/x-javascript'
             src='chrome://ProcrasDonate/content/js/models.js'></script>
     <script type='application/x-javascript'

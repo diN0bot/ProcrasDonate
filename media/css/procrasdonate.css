@@ -54,7 +54,7 @@ img { -ms-interpolation-mode:bicubic; }
 
 /******** LAYOUT *******************************************/
 #wrapper {
-	width: 85em;
+	width: 95em;
 	margin: auto;
 }
 
@@ -115,6 +115,7 @@ img { -ms-interpolation-mode:bicubic; }
 /******** RIGHT COLUMN *******************************************/
 #right_column { /*text-align: left; *//*width: 9.5em;*/ }
 #right_logo { width: 9.5em; margin-bottom: 2em; }
+
 .video_block { margin-bottom: 2em; }
 .video_block img { width: 9.5em; background: black;  }
 .video_block p { margin-top: .3em; text-align: left; }
@@ -130,7 +131,7 @@ img { -ms-interpolation-mode:bicubic; }
 	text-align: center;
 	display: block;
 	padding: 0.3em 0em;
-	margin: 1em 0em;
+	margin: 0em 0em 1em 0em;
 	border-top: 0.1em dotted #BCBCBC;
 	-moz-border-radius: 0em;
 	background: #5C5C5C;
@@ -143,6 +144,15 @@ img { -ms-interpolation-mode:bicubic; }
 	color: #f9fdf4;
 	text-decoration: none;
 }
+
+/*
+#video1 {
+	width: 11.5em;
+	text-align: center;
+	margin: auto;
+	margin-bottom: 2em;
+}
+*/
 
 /*** attempt at expanding videos. divs not inserted now
  because doesn't work. large_video is always behind table,

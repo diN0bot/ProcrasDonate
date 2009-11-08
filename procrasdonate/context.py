@@ -9,10 +9,10 @@ def defaults(request):
     return frame
 
 def useful_settings():
-    return {'PDVERSION': settings.PDVERSION }
+    return {} #'PDVERSION': settings.PDVERSION }
 
 def videos():
-    r = Recipient.get_or_none(slug='procrasdonate')
+    r = Recipient.get_or_none(slug='PD')
     return {'video1': r,
             'video2': None}
 

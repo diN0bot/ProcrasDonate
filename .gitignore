@@ -10,3 +10,4 @@ env/snoopy
 env/clay
 NOTES
 *.db
+media/uploaded_img/*

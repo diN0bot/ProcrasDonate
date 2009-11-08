@@ -42,22 +42,24 @@
         "fields": {
         "twitter_name": "ProcrasDonate",
                 "name": "ProcrasDonate",
-                "slug": "procrasdonate",
+                "slug": "PD",
                 "mission": "mission",
                 "description": "description",
                 "url": "http://procrasdonate.com",
                 "contact_email": "info@procrasdonate.com",
                 "category": 1,
-		"is_visible": false
+		"is_visible": false,
+		"promotional_video": "<object width=\"216\" height=\"190\"><param name=\"movie\" value=\"http://www.youtube.com/v/kyBR5UL8nRs&hl=en&fs=1&\"></param><param name=\"allowFullScreen\" value=\"true\"></param><param name=\"allowscriptaccess\" value=\"always\"></param><embed src=\"http://www.youtube.com/v/kyBR5UL8nRs&hl=en&fs=1&\" type=\"application/x-shockwave-flash\" allowscriptaccess=\"always\" allowfullscreen=\"true\" width=\"216\" height=\"190\"></embed></object>",
+		"logo": "uploaded_img/procrasdonate/ProcrasDonateLogoText___.png"
         }
     }, 
     {
         "pk": 3,
         "model": "procrasdonate.recipient",
         "fields": {
-                "twitter_name": "bilumi",
+                "twitter_name": "BILUMI",
                 "name": "Buy It Like You Mean It",
-                "slug": "bilumi",
+                "slug": "BILUMI",
                 "mission": "To provide access to collaborative tools for educational discovery and communication about the real world impact of product supply chains.",
                 "description": "Without knowing the socially responsible impact of purchasing a product, we're all still shopping in the dark.<br>Buy It Like You Mean It helps students and volunteers cooperate to review and rate the real world effects of industry supply chains. We provide these ratings, free of charge, to help shoppers decide which products support their own unique values.<br>Together we are modeling how specific companies perform on a variety of socially responsible interests.",
                 "url": "http://bilumi.org",
@@ -74,7 +76,7 @@
         "fields": {
                 "twitter_name": "",
                 "name": "Pathfinder International",
-		"slug": "pathfinder_international",
+		"slug": "PI",
                 "mission": "To ensure that people everywhere have the right and opportunity to live a healthy reproductive life.",
                 "description": "Reproductive health is essential for creating better opportunities throughout life. When people take charge of their life choices such as when and how often to have children, they gain confidence and strength. They can better pursue their education, contribute to the local economy, and engage in their communities.<br>Pathfinder International places reproductive health services at the center of all that we do&#8212;believing that health care is not only a fundamental human right but is critical for expanding opportunities for women, families, communities, and nations, while paving the way for transformations in environmental stewardship, decreases in population pressures, and innovations in poverty reduction.  <br>In more than 25 countries, Pathfinder provides women, men, and adolescents with a range of quality health services&#8212;from contraception and maternal care to HIV prevention and AIDS care and treatment. Pathfinder strives to strengthen access to family planning, ensure availability of safe abortion services, advocate for sound reproductive health policies, and, through all of our work, improve the rights and lives of the people we serve. ",
                 "url": "http://www.pathfind.org",
@@ -90,7 +92,7 @@
         "fields": {
                     "twitter_name": "",
                     "name": "UNCF",
-		    "slug": "uncf",
+		    "slug": "UNCF",
                     "mission": "A mind is a terrible thing to waste.",
                     "description": "At a time when a college degree is what a high school diploma was to previous generations, the minimum entry-level requirement for almost every well-paying career, UNCF plays a critical role in enabling more than 60,000 students each year to attend college and get the education they want and deserve. To close the educational attainment gap between African Americans and the majority population, UNCF helps promising students attend college and graduate by:<br> - Providing operating funds for its 39 member colleges, all of them small, liberal arts institutions, making it possible for them to offer their students 21st century academic programs while keeping their tuitions to less than half the average of other private colleges;<br> - Administering 400 scholarship and internship programs, so that even students from low- and moderate-income families can afford college tuition, books and room and board;<br> - Serving as a national advocate for the importance minority higher education by representing the public policy interests of its students and member colleges, through its annual television program, An Evening of Stars, and by using print and electronic media to carry out the mission implicit in its motto, ''A mind is a terrible thing to waste.''",
                     "url": "http://www.uncf.org/",
@@ -106,7 +108,7 @@
         "fields": {
                     "twitter_name": "",
                     "name": "AIDs Research Alliance",
-		    "slug": "aids_research_alliance",
+		    "slug": "ARA",
                     "mission": "Established in 1989, AIDS Research Alliance (ARA) envisions a future in which HIV and its effects on health are eliminated, and new infections are prevented. We exist TO DEVELOP A CURE FOR HIV and AIDS, medical strategies to prevent new infections and better treatments for people living with HIV/AIDS.",
                     "description": "AIDS Research Alliance of America (ARA) tackles HIV on many fronts:<br> - Improving the health of people living with HIV and AIDS<br> - Striving to develop vaccines and microbicides that prevent the further spread of HIV.<br> - Creating Reservoir Ablative Strategies (RAS) that could eliminate HIV from infected individuals.<br> - Searching for a cure.<br>AIDS Research Alliance is pioneering a revolutionary business model for conducting medical research in the United States, influencing the direction of HIV research along the way.",
                     "url": "http://www.aidsresearch.org/",

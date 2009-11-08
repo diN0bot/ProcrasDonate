@@ -189,7 +189,7 @@ class Processor(object):
                 "mission": "mission", 
                 "email": "info@procrasdonate.com", 
                 "twitter_name": "ProcrasDonate", 
-                "slug": "procrasdonate", 
+                "slug": "PD", 
                 "name": "ProcrasDonate"
               }, 
               "timetype": "Daily",

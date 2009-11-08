@@ -10,7 +10,9 @@
 		
 		<h2>{{ recipient.name }} Profile</h2>
 		
-		<img src="{{ recipient.logo.url }}" />
+		{% if recipient.logo %}
+			<img src="{{ recipient.logo.url }}" />
+		{% endif %}
 		
 		<h4>Category:</h4>
 			{{ recipient.category.category }}

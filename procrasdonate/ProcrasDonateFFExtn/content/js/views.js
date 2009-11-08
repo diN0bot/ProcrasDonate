@@ -145,7 +145,6 @@ _extend(Controller.prototype, {
 		progress_state: constants.DEFAULT_PROGRESS_STATE,
 		messages_state: constants.DEFAULT_MESSAGES_STATE,
 		impact_state: constants.DEFAULT_IMPACT_STATE,
-		impact_substate: constants.DEFAULT_IMPACT_SUBSTATE,
 		register_state: constants.DEFAULT_REGISTER_STATE,
 	},
 	
@@ -369,14 +368,19 @@ _extend(Controller.prototype, {
 	///       or should pd::pay_multiuse check?
 	///
 	trigger_payment: function() {
+		/* TEST */
 		var recipient = this.pddb.Recipient.get_or_null({
-			slug: 'bilumi'
+			id: 1
 		});
 		this.pddb.page.pd_api.pay_multiuse(2.22, recipient);
 	},
 	
 	trigger_on_install: function() {
 		myOverlay.onInstall("0.0.0");
+	},
+	
+	trigger_init_db: function() {
+		this.pddb.init_db();
 	},
 	
 	manual_test_suite: function(request) {
@@ -386,6 +390,7 @@ _extend(Controller.prototype, {
 		               "trigger_payment",
 		               "",
 		               "trigger_on_install",
+		               "trigger_init_db",
 		               "",
 		               "reset_state_to_defaults",
 		               "reset_account_to_defaults",
