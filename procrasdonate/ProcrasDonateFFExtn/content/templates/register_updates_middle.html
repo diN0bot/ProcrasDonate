@@ -1,5 +1,7 @@
 {{ substate_menu }}
 
+<p id="error"></p>
+
 <h1>Updates, affirmations and thankyou notes</h1>
 <p>In order to help you keep track of your time management progress, our
 	system will use your preferences to provide you with weekly
@@ -31,27 +33,27 @@
 	receiving that service.</p>
 <p><input
 	type="checkbox"
-	id="a"
-	name="a" 
-	value="{{ a }}" />
+	id="weekly_affirmations"
+	name="weekly_affirmations" 
+	{% if weekly_affirmations %}checked{% endif %} />
    <span>I do not want to receive weekly affirmation emails/alerts on the 
    	progress I am making towards my goals.</span>
    </p>
 
 <p><input
 	type="checkbox"
-	id="a"
-	name="a" 
-	value="{{ a }}" />
+	id="org_thank_yous"
+	name="org_thank_yous"
+	{% if org_thank_yous %}checked{% endif %} />
    <span>I do not want to receive occasional thank you notes from the 
    		organizations that I support.</span>
    </p>
    
 <p><input
 	type="checkbox"
-	id="a"
-	name="a" 
-	value="{{ a }}" />
+	id="org_newsletters"
+	name="org_newsletters"
+	{% if org_newsletters %}checked{% endif %} />
    <span>I do not want to receive a year end newsletter from the 
    organizations that I support.</span>
    </p>
@@ -59,9 +61,9 @@
 <h2>Terms of service</h2>
 <p><input
 	type="checkbox"
-	id="a"
-	name="a" 
-	value="{{ a }}" />
+	id="tos"
+	name="tos"
+	{% if tos %}checked{% endif %} />
    <span>I have read and agree to the following Terms of Service.</span>
    </p>
 

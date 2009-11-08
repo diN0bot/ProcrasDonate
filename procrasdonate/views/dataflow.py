@@ -177,7 +177,7 @@ def return_data(request):
     print '#.'*30;
     
     xpi_builder = XpiBuilder(pathify([PROJECT_PATH, 'procrasdonate', 'ProcrasDonateFFExtn'], file_extension=True),
-                             pathify([MEDIA_ROOT, 'xpi']))
+                             "%s%s" % (MEDIA_ROOT, 'xpi'))
     return json_success({'recipients': recipients,
                          'multiuse_auths': multiuse_auths,
                          'latest_version': xpi_builder.get_version()})
@@ -186,7 +186,8 @@ def generate_xpi(request, slug):
     print "GENERATE XPI", slug
     recipient = slug != '__none__' and Recipient.get_or_none(slug=slug) or None
     xpi_builder = XpiBuilder(pathify([PROJECT_PATH, 'procrasdonate', 'ProcrasDonateFFExtn'], file_extension=True),
-                             pathify([MEDIA_ROOT, 'xpi']),
+                             "%s%s" % (MEDIA_ROOT, 'xpi'),
+                             "%s%s" % (MEDIA_ROOT, 'rdf'),
                              recipient)
     
     private_key = xpi_builder.write_input_json()

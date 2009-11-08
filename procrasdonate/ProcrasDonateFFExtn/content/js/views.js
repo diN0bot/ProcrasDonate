@@ -1749,8 +1749,11 @@ _extend(PageController.prototype, {
 			new Context({
 				substate_menu_items: substate_menu_items,
 				substate_menu: substate_menu,
-				support_pct: self.retrieve_float_for_display('support_pct', constants.DEFAULT_SUPPORT_PCT),
-				monthly_fee: self.retrieve_float_for_display('monthly_fee', constants.DEFAULT_MONTHLY_FEE),
+				email: self.prefs.get('email', constants.DEFAULT_EMAIL),
+				weekly_affirmations: _un_dbify_bool(self.prefs.get('weekly_affirmations', constants.DEFAULT_WEEKLY_AFFIRMATIONS)),
+				org_thank_yous: _un_dbify_bool(self.prefs.get('org_thank_yous', constants.DEFAULT_ORG_THANK_YOUS)),
+				org_newsletters: _un_dbify_bool(self.prefs.get('org_newsletters', constants.DEFAULT_ORG_NEWSLETTERS)),
+				tos: _un_dbify_bool(self.prefs.get('tos', constants.DEFAULT_TOS)),
 			})
 		);
 		request.jQuery("#content").html( middle );
@@ -1760,7 +1763,30 @@ _extend(PageController.prototype, {
 	},
 	
 	process_register_updates: function(request) {
-		return true
+		request.jQuery("#error").text("");
+		
+		var old_email = this.prefs.set('email', constants.DEFAULT_EMAIL);
+		var email = request.jQuery("#email").attr("value").trim();
+		
+		var weekly_affirmations = request.jQuery("#weekly_affirmations").attr("checked");
+		var org_thank_yous = request.jQuery("#org_thank_yous").attr("checked");
+		var org_newsletters = request.jQuery("#org_newsletters").attr("checked");
+		var tos = request.jQuery("#tos").attr("checked");
+		
+		this.prefs.set('email', email);
+		this.prefs.set('weekly_affirmations', _dbify_bool(weekly_affirmations));
+		this.prefs.set('org_thank_yous', _dbify_bool(org_thank_yous));
+		this.prefs.set('org_newsletters', _dbify_bool(org_newsletters));
+		this.prefs.set('tos', _dbify_bool(tos));
+		
+		if (!tos) {
+			request.jQuery("#error").text("To use our service you must agree to the terms of service by checking the Terms of Service checkbox below");
+		}
+		
+		if (old_email != email) {
+			this.pddb.page.pd_api.send_data();
+		}
+		return tos
 	},
 	
 	insert_register_payments: function(request) {

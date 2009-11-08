@@ -93,9 +93,9 @@ function install(anchor_class) {
 					var params = {
 						"ProcrasDonate, a charitable incentive for good time management": {
 							URL: xpi_url,
-							IconURL: item.attr("iconURL"),
+							IconURL: "/procrasdonate_media/img/ProcrasDonateLogo.png", //item.attr("iconURL"),
 							Hash: xpi_hash,
-							toString: function() { return this.URL; }
+							toString: function() { return "ProcrasDonate Add-On For Proud ProcrasDonators!" }
 						}
 					};
 					InstallTrigger.install( params );

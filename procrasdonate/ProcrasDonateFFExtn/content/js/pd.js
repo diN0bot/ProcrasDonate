@@ -15,6 +15,8 @@ _extend(ProcrasDonate_API.prototype, {
 	 */
 	
 	send_data: function() {
+	//#@TODO - send email, tos, weekly_affirmations, org_thank_yous, org_newsletters prefs
+	//        always, or triggered by send_data parameter when register_updates processor calls send_data?
 		var self = this;
 		var models_to_methods = {
 			"Total": "_get_totals",

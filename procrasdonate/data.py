@@ -186,19 +186,19 @@ class Recipient(models.Model):
     last_modified = models.DateField(auto_now=True)
 
     slug = models.SlugField(db_index=True)
-    name = models.CharField(max_length=128, null=True, blank=True)
+    name = models.CharField(max_length=128, null=True, blank=True, verbose_name="Organization's Name")
     category = models.ForeignKey('Category', blank=True, null=True)
-    mission = models.CharField(max_length=256, null=True, blank=True)
-    description = models.TextField(null=True, blank=True)
-    url = models.URLField(null=True, blank=True)
+    mission = models.CharField(max_length=256, null=True, blank=True, verbose_name="Charitable Mission")
+    description = models.TextField(null=True, blank=True, verbose_name="Method Toward Fulfilling Mission")
+    url = models.URLField(null=True, blank=True, verbose_name="Website")
     
     twitter_name = models.CharField(max_length=32, null=True, blank=True)
     facebook_name = models.CharField(max_length=100, null=True, blank=True)
     
     is_visible = models.BooleanField(default=True)
     
-    employers_identification_number = models.CharField(max_length=32, blank=True, null=True)
-    tax_exempt_status = models.BooleanField(default=False)
+    employers_identification_number = models.CharField(max_length=32, blank=True, null=True, verbose_name="IRS assigned EIN (Employwer Identification Number)")
+    tax_exempt_status = models.BooleanField(default=False, verbose_name="Is this charity tax exempt in the USA?")
     sponsoring_organization = models.CharField(max_length=200, blank=True, null=True)
     contact_name = models.CharField(max_length=200, blank=True, null=True)
     contact_email = models.CharField(max_length=200, blank=True, null=True)
@@ -335,6 +335,8 @@ class RecipientUserTagging(models.Model):
     
     is_confirmed = models.BooleanField(default=False)
     confirmation_code = models.CharField(max_length=255, null=True, blank=True)
+    
+    job_title = models.CharField(max_length=100, null=True, blank=True)
     
     #we've communicated with our membership base that they can use PD
     # to benefit our services using:

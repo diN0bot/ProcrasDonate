@@ -188,12 +188,17 @@ var constants = {};
 	constants.TWS_DEFAULT_DOLLARS_PER_HR = 2;
 	constants.TWS_DEFAULT_HR_PER_WEEK_GOAL = 20;
 	constants.TWS_DEFAULT_HR_PER_WEEK_MAX = 30;
-	constants.DEFAULT_SUPPORT_PCT = _prefify_float(10);
+	constants.DEFAULT_SUPPORT_PCT = _prefify_float(0.10);
 	constants.DEFAULT_MONTHLY_FEE = _prefify_float(1.00);
 	constants.DEFAULT_PAYMENT_THRESHHOLD = 10;
 	
 	constants.DEFAULT_MAX_IDLE = 10; // 3 minutes
 	constants.DEFAULT_FLASH_MAX_IDLE = 30; // 20 minutes
+	
+	constants.DEFAULT_WEEKLY_AFFIRMATIONS = _dbify_bool(false);
+	constants.DEFAULT_ORG_THANK_YOUS = _dbify_bool(false);
+	constants.DEFAULT_ORG_NEWSLETTERS = _dbify_bool(false);
+	constants.DEFAULT_TOS = _dbify_bool(false);
 	
 	// flag for whether to make payments or not--
 	// eg, if db corruption or some other error
