@@ -862,6 +862,7 @@ _extend(PageController.prototype, {
 		var middle = Template.get("settings_overview_middle").render(
 			new Context({
 				substate_menu_items: substate_menu_items,
+				constants: constants,
 				
 				estimated_time_till_reauth: {units: "months", time: 4},
 				

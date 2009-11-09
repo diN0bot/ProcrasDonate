@@ -195,9 +195,9 @@ var constants = {};
 	constants.DEFAULT_MAX_IDLE = 10; // 3 minutes
 	constants.DEFAULT_FLASH_MAX_IDLE = 30; // 20 minutes
 	
-	constants.DEFAULT_WEEKLY_AFFIRMATIONS = _dbify_bool(false);
-	constants.DEFAULT_ORG_THANK_YOUS = _dbify_bool(false);
-	constants.DEFAULT_ORG_NEWSLETTERS = _dbify_bool(false);
+	constants.DEFAULT_WEEKLY_AFFIRMATIONS = _dbify_bool(true);
+	constants.DEFAULT_ORG_THANK_YOUS = _dbify_bool(true);
+	constants.DEFAULT_ORG_NEWSLETTERS = _dbify_bool(true);
 	constants.DEFAULT_TOS = _dbify_bool(false);
 	
 	// flag for whether to make payments or not--

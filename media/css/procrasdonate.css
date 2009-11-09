@@ -109,7 +109,7 @@ img { -ms-interpolation-mode:bicubic; }
 /******** CONTENT *******************************************/
 #middle {
 	width: 60em;
-	padding: 0em 4em;
+	padding: 0em 3em;
 }
 
 /******** RIGHT COLUMN *******************************************/
@@ -329,7 +329,7 @@ h4 {
   text-align: left;
 }
 
-/************ REGISTER/SETTINGS FORM ********/
+/************ OLD REGISTER/SETTINGS FORM (some still in use for REGISTER now) ********/
 
 .form-label { font-size: 1.1em; margin-top: -.4em; }
 .form-value { font-size: 1.1em; margin-top: -.4em; }
@@ -412,6 +412,9 @@ td { padding: .6em 0em .5em 0em; vertical-align: middle; }
 .prev { margin: 1em 1em 0em 0em; width: 6em; max-height: 52px; cursor: pointer; }
 .next { margin: 1em 0em 0em 1em; width: 6em; max-height: 52px; cursor: pointer; }
 .done { margin: 1em 1em 0em 0em; width: 6em; cursor: pointer; }
+
+/**** SETTINGS *****/
+.up_arrow, .down_arrow { height: 1.7em; }
 
 /**** IMAGES ****/
 
