@@ -50,6 +50,7 @@ class User(models.Model):
     hash = models.CharField(max_length=10, db_index=True)
     # currently defaults to twitter_username, but one day twitter_username may not be king.
     # that day is now.
+    private_key = models.CharField(max_length=64, db_index=True)
     name = models.CharField(max_length=128, blank=True, null=True)
     twitter_name = models.CharField(max_length=32, blank=True, null=True)
     url = models.URLField(blank=True, null=True)
@@ -57,19 +58,19 @@ class User(models.Model):
     on_email_list = models.BooleanField(default=False)
     
     @classmethod
-    def get_or_create(klass, hash):
-        u = User.get_or_none(hash=hash)
+    def get_or_create(klass, private_key):
+        u = User.get_or_none(private_key=private_key)
         if not u:
-            u = User.add(hash)
+            u = User.add(private_key)
         return u
     
     @classmethod
-    def make(klass, hash, name=None, twitter_name=None, url=None, email=None, on_email_list=False):
+    def make(klass, private_key, name=None, twitter_name=None, url=None, email=None, on_email_list=False):
         """
         @param email: string email
         """
         email = email and Email.get_or_create(email) or None
-        return User(hash=hash,
+        return User(private_key=private_key,
                     name=name,
                     twitter_name=twitter_name,
                     url=url,
@@ -77,7 +78,7 @@ class User(models.Model):
                     on_email_list=on_email_list)
         
     def __unicode__(self):
-        return u"%s - %s - %s - %s - %s - %s" % (self.hash,
+        return u"%s - %s - %s - %s - %s - %s" % (self.private_key,
                                                  self.name,
                                                  self.twitter_name,
                                                  self.url,
@@ -538,7 +539,7 @@ class Visit(models.Model):
     
     def __unicode__(self):
         return u"%s :%s: - %s - %s cents" % (self.dtime,
-                                             self.user.hash,
+                                             self.user.private_key,
                                              self.total_time,
                                              self.total_amount)
     @classmethod
@@ -783,7 +784,7 @@ class RecipientVote(models.Model):
     def __unicode__(self):
         return "%s (%s) from %s --> %s" % (self.name,
                                            self.url,
-                                           self.user.hash,
+                                           self.user.private_key,
                                            self.recipient)
 
 ALL_MODELS = [Email,

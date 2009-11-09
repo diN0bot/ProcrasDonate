@@ -65,7 +65,9 @@ function install(anchor_class) {
 		
 	} else {
 		// NOT READY FOR INSTALL YET
-		// return not_ready_to_install();
+		return not_ready_to_install();
+
+		// when ready, comment above line so that the following code is used.
 		var item = $("."+anchor_class).slice(0,1);
 		var xpi_url = item.attr("href");
 		var xpi_hash = $.trim(item.children(".hash").text());
@@ -77,7 +79,7 @@ function install(anchor_class) {
 		if (cur_url.length >= 3 && cur_url[cur_url.length-3].trim() == "r") {
 			slug = cur_url[cur_url.length-2].trim();
 		}
-		$.post("/generate_xpi/"+slug,
+		$.post("/generate_xpi/"+slug+"/",
 				{},
 				function(data) {
 					/*var s = "";
