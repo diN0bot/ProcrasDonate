@@ -117,7 +117,7 @@ class SiteGroup(models.Model):
     host = models.CharField(max_length=128)
     # describes valid urls
     url_re = models.CharField(max_length=256, null=True, blank=True)
-    name = models.CharField(max_length=128, null=True, blank=True)
+    name = models.CharField(max_length=200, null=True, blank=True)
     
     HOST_RE = re.compile("http://([^/]+)")
     
@@ -187,14 +187,14 @@ class Recipient(models.Model):
     last_modified = models.DateField(auto_now=True)
 
     slug = models.SlugField(db_index=True)
-    name = models.CharField(max_length=128, null=True, blank=True, verbose_name="Organization's Name")
+    name = models.CharField(max_length=200, null=True, blank=True, verbose_name="Organization's Name")
     category = models.ForeignKey('Category', blank=True, null=True)
-    mission = models.CharField(max_length=256, null=True, blank=True, verbose_name="Charitable Mission")
+    mission = models.TextField(null=True, blank=True, verbose_name="Charitable Mission")
     description = models.TextField(null=True, blank=True, verbose_name="Method Toward Fulfilling Mission")
     url = models.URLField(null=True, blank=True, verbose_name="Website")
     
     twitter_name = models.CharField(max_length=32, null=True, blank=True)
-    facebook_name = models.CharField(max_length=100, null=True, blank=True)
+    facebook_name = models.CharField(max_length=50, null=True, blank=True)
     
     is_visible = models.BooleanField(default=True)
     
@@ -202,12 +202,12 @@ class Recipient(models.Model):
     tax_exempt_status = models.BooleanField(default=False, verbose_name="Is this charity tax exempt in the USA?")
     sponsoring_organization = models.CharField(max_length=200, blank=True, null=True)
     contact_name = models.CharField(max_length=200, blank=True, null=True)
-    contact_email = models.CharField(max_length=200, blank=True, null=True)
-    office_phone = models.CharField(max_length=200, blank=True, null=True)
+    contact_email = models.EmailField(blank=True, null=True)
+    office_phone = models.CharField(max_length=15, blank=True, null=True)
     mailing_address = models.CharField(max_length=200, blank=True, null=True)
-    city = models.CharField(max_length=200, blank=True, null=True)
-    state = models.CharField(max_length=200, blank=True, null=True)
-    country = models.CharField(max_length=200, default='USA')
+    city = models.CharField(max_length=100, blank=True, null=True)
+    state = models.CharField(max_length=50, blank=True, null=True)
+    country = models.CharField(max_length=100, default='USA')
     
     logo = models.ImageField(upload_to=get_image_path, blank=True, null=True)
     SCALED_MAX_HEIGHT = 100
@@ -335,7 +335,7 @@ class RecipientUserTagging(models.Model):
     recipient = models.ForeignKey(Recipient)
     
     is_confirmed = models.BooleanField(default=False)
-    confirmation_code = models.CharField(max_length=255, null=True, blank=True)
+    confirmation_code = models.CharField(max_length=33, null=True, blank=True)
     
     job_title = models.CharField(max_length=100, null=True, blank=True)
     
