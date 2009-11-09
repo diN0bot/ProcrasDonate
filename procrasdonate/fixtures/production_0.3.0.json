@@ -1,0 +1,94 @@
+[
+    {"pk": 1, "model": "procrasdonate.category", "fields": {"category": "Family Planning"}},
+    {"pk": 2, "model": "procrasdonate.category", "fields": {"category": "African-American"}},
+    {"pk": 3, "model": "procrasdonate.category", "fields": {"category": "AIDS"}},
+    {"pk": 4, "model": "procrasdonate.category", "fields": {"category": "American-Indian"}},
+    {"pk": 5, "model": "procrasdonate.category", "fields": {"category": "Asian-American"}},
+    {"pk": 6, "model": "procrasdonate.category", "fields": {"category": "Asia"}},
+    {"pk": 7, "model": "procrasdonate.category", "fields": {"category": "Blindness"}},
+    {"pk": 8, "model": "procrasdonate.category", "fields": {"category": "Cancer Research"}},
+    {"pk": 9, "model": "procrasdonate.category", "fields": {"category": "Child Protection"}},
+    {"pk": 10, "model": "procrasdonate.category", "fields": {"category": "Child Sponsorship"}},
+    {"pk": 11, "model": "procrasdonate.category", "fields": {"category": "Civil Rights"}},
+    {"pk": 12, "model": "procrasdonate.category", "fields": {"category": "Public Interest"}},
+    {"pk": 13, "model": "procrasdonate.category", "fields": {"category": "Consumer Impact"}},
+    {"pk": 14, "model": "procrasdonate.category", "fields": {"category": "Crime and Fire Prevention"}},
+    {"pk": 15, "model": "procrasdonate.category", "fields": {"category": "Disabled"}},
+    {"pk": 16, "model": "procrasdonate.category", "fields": {"category": "Drug and Alcohol Abuse"}},
+    {"pk": 17, "model": "procrasdonate.category", "fields": {"category": "Environmental Conservation"}},
+    {"pk": 18, "model": "procrasdonate.category", "fields": {"category": "Environmental Advocacy"}},
+    {"pk": 19, "model": "procrasdonate.category", "fields": {"category": "Health Research"}},
+    {"pk": 20, "model": "procrasdonate.category", "fields": {"category": "Hispanic"}},
+    {"pk": 21, "model": "procrasdonate.category", "fields": {"category": "Homeless"}},
+    {"pk": 22, "model": "procrasdonate.category", "fields": {"category": "Human Rights"}},
+    {"pk": 23, "model": "procrasdonate.category", "fields": {"category": "Disaster and Medical Relief"}},
+    {"pk": 24, "model": "procrasdonate.category", "fields": {"category": "Farming"}},
+    {"pk": 25, "model": "procrasdonate.category", "fields": {"category": "Hunger"}},
+    {"pk": 26, "model": "procrasdonate.category", "fields": {"category": "International Relief and Development"}},
+    {"pk": 27, "model": "procrasdonate.category", "fields": {"category": "Jewish Charity"}},
+    {"pk": 28, "model": "procrasdonate.category", "fields": {"category": "Literacy"}},
+    {"pk": 29, "model": "procrasdonate.category", "fields": {"category": "Mental Health"}},
+    {"pk": 30, "model": "procrasdonate.category", "fields": {"category": "Peace"}},
+    {"pk": 31, "model": "procrasdonate.category", "fields": {"category": "Population"}},
+    {"pk": 32, "model": "procrasdonate.category", "fields": {"category": "Aging"}},
+    {"pk": 33, "model": "procrasdonate.category", "fields": {"category": "Terminally Ill"}},
+    {"pk": 34, "model": "procrasdonate.category", "fields": {"category": "Veterans"}},
+    {"pk": 35, "model": "procrasdonate.category", "fields": {"category": "Women"}},
+    {"pk": 36, "model": "procrasdonate.category", "fields": {"category": "Youth"}},
+
+    {
+        "pk": 1, 
+        "model": "procrasdonate.recipient", 
+        "fields": {
+        "twitter_name": "ProcrasDonate",
+                "name": "ProcrasDonate",
+                "slug": "PD",
+                "mission": "Charitable time management",
+                "description": "Coming soon!",
+                "url": "http://procrasdonate.com",
+                "contact_email": "info@procrasdonate.com",
+                "category": 1,
+		"is_visible": false,
+		"promotional_video": "<object width=\"216\" height=\"190\"><param name=\"movie\" value=\"http://www.youtube.com/v/kyBR5UL8nRs&hl=en&fs=1&\"></param><param name=\"allowFullScreen\" value=\"true\"></param><param name=\"allowscriptaccess\" value=\"always\"></param><embed src=\"http://www.youtube.com/v/kyBR5UL8nRs&hl=en&fs=1&\" type=\"application/x-shockwave-flash\" allowscriptaccess=\"always\" allowfullscreen=\"true\" width=\"216\" height=\"190\"></embed></object>",
+		"logo": ""
+        }
+    }, 
+    {
+        "pk": 3,
+        "model": "procrasdonate.recipient",
+        "fields": {
+                "twitter_name": "BILUMI",
+                "name": "Buy It Like You Mean It",
+                "slug": "BILUMI",
+                "mission": "To provide access to collaborative tools for educational discovery and communication about the real world impact of product supply chains.",
+                "description": "Without knowing the socially responsible impact of purchasing a product, we're all still shopping in the dark.<br>Buy It Like You Mean It helps students and volunteers cooperate to review and rate the real world effects of industry supply chains. We provide these ratings, free of charge, to help shoppers decide which products support their own unique values.<br>Together we are modeling how specific companies perform on a variety of socially responsible interests.",
+                "url": "http://bilumi.org",
+                "is_visible": true,
+                "contact_email": "",
+                "category": 13,
+		"tax_exempt_status": true
+        }
+    },
+
+    {
+        "pk": 1, 
+        "model": "procrasdonate.tag", 
+        "fields": {
+            "tag": "Unsorted"
+        }
+    }, 
+    {
+        "pk": 2, 
+        "model": "procrasdonate.tag", 
+        "fields": {
+            "tag": "TimeWellSpent"
+        }
+    }, 
+    {
+        "pk": 3, 
+        "model": "procrasdonate.tag", 
+        "fields": {
+            "tag": "ProcrasDonate"
+        }
+    }
+]
