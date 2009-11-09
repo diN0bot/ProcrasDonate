@@ -112,12 +112,25 @@
 				</div>
 				
 				<div id="video2" class="video_block">
+					{% comment %}
 					<object width="220" height="190">
 						<param name="movie" value="http://www.youtube.com/v/cIppUNu1i3Y&hl=en&fs=1" />
 						<param name="allowFullScreen" value="true" />
 						<param name="allowscriptaccess" value="always" />
 						<param name="menu" value="true" />
 						<embed src="http://www.youtube.com/v/cIppUNu1i3Y&hl=en&fs=1"
+							type="application/x-shockwave-flash"
+							allowscriptaccess="always"
+							allowfullscreen="true"
+							width="220"
+							height="190" />
+					</object>
+					{% endcomment %}
+					<object width="220" height="190">
+						<param name="allowFullScreen" value="true" />
+						<param name="allowscriptaccess" value="always" />
+						<param name="menu" value="true" />
+						<embed src="{{ MEDIA_URL }}swf/LaptopIntro.swf"
 							type="application/x-shockwave-flash"
 							allowscriptaccess="always"
 							allowfullscreen="true"
