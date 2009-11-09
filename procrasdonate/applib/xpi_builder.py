@@ -68,7 +68,11 @@ function generated_input() {
         xpi_fn = pathify([self.xpi_dir, xpi_nm], file_extension=True)
         
         os.chdir(self.extn_dir)
+        print
+        print "XPI_FN", xpi_fn
+        print "EXTN_DIR", self.extn_dir
         print os.popen('zip -r %s *' % xpi_fn)
+        print
         
         xpi_url = "%s%s/%s" % (MEDIA_URL, 'xpi', xpi_nm)
         
