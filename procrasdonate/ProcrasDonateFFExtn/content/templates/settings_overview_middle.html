@@ -15,55 +15,64 @@
 
 <h2>ProcrasDonate</h2>
 <p>Weekly ProcrasDonate goal: 
-	<span class="thevalue" id="pd_hr_per_week_goal">{{ pd_hr_per_week_goal }}</span> hrs
+	<span class="thevalue" id="pd_hr_per_week_goal">{{ pd_hr_per_week_goal }}</span>
+	<span class="units">hrs</span>
 	<img class="up_arrow" src="{{ constants.MEDIA_URL }}img/UpArrow.png" />
 	<img class="down_arrow" src="{{ constants.MEDIA_URL }}img/DownArrow.png" />
 	<span class="error"></span></p>
 <p>Weekly ProcrasDonate rate:
-	$<span class="thevalue" id="pd_dollars_per_hr">{{ pd_dollars_per_hr }}</span> per hr
+	$<span class="thevalue" id="pd_dollars_per_hr">{{ pd_dollars_per_hr }}</span>
+	<span class="units">per hr</span>
 	<img class="up_arrow" src="{{ constants.MEDIA_URL }}img/UpArrow.png" />
 	<img class="down_arrow" src="{{ constants.MEDIA_URL }}img/DownArrow.png" />
 	<span class="error"></span></p>
 <p>Weekly ProcrasDonate limit:
-	<span class="thevalue" id="pd_hr_per_week_max">{{ pd_hr_per_week_max }}</span> hrs
+	<span class="thevalue" id="pd_hr_per_week_max">{{ pd_hr_per_week_max }}</span> 
+	<span class="units">hrs</span>
 	<img class="up_arrow" src="{{ constants.MEDIA_URL }}img/UpArrow.png" />
 	<img class="down_arrow" src="{{ constants.MEDIA_URL }}img/DownArrow.png" />
 	<span class="error"></span></p>
 
 <h2>TimeWellSpent</h2>
 <p>Weekly TimeWellSpent goal:
-	<span class="thevalue" id="tws_hr_per_week_goal">{{ tws_hr_per_week_goal }}</span> hrs
+	<span class="thevalue" id="tws_hr_per_week_goal">{{ tws_hr_per_week_goal }}</span>
+	<span class="units">hrs</span>
 	<img class="up_arrow" src="{{ constants.MEDIA_URL }}img/UpArrow.png" />
 	<img class="down_arrow" src="{{ constants.MEDIA_URL }}img/DownArrow.png" />
 	<span class="error"></span></p>
 <p>Weekly TimeWellSpent rate:
-	$<span class="thevalue" id="tws_dollars_per_hr">{{ tws_dollars_per_hr }}</span> per hr
+	$<span class="thevalue" id="tws_dollars_per_hr">{{ tws_dollars_per_hr }}</span>
+	<span class="units">per hr</span>
 	<img class="up_arrow" src="{{ constants.MEDIA_URL }}img/UpArrow.png" />
 	<img class="down_arrow" src="{{ constants.MEDIA_URL }}img/DownArrow.png" />
 	<span class="error"></span></p>
 <p>Weekly TimeWellSpent limit
-	<span class="thevalue" id="tws_hr_per_week_max">{{ tws_hr_per_week_max }}</span> hrs
+	<span class="thevalue" id="tws_hr_per_week_max">{{ tws_hr_per_week_max }}</span>
+	<span class="units">hrs</span>
 	<img class="up_arrow" src="{{ constants.MEDIA_URL }}img/UpArrow.png" />
 	<img class="down_arrow" src="{{ constants.MEDIA_URL }}img/DownArrow.png" />
 	<span class="error"></span></p>
 	
 <h2>Support This Service</h2>
-<p>Monthly membership fee: $<span class="thevalue" id="monthly_fee">{{ monthly_fee }}</span> per month
+<p>Monthly membership fee: $<span class="thevalue" id="monthly_fee">{{ monthly_fee }}</span> 
+	<span class="units">per month</span>
 	<img class="up_arrow" src="{{ constants.MEDIA_URL }}img/UpArrow.png" />
 	<img class="down_arrow" src="{{ constants.MEDIA_URL }}img/DownArrow.png" />
 	<span class="error"></span></p>
-<p>Per transaction percentage charge: <span class="thevalue" id="support_pct">{{ support_pct }}</span>%
+<p>Per transaction percentage charge: <span class="thevalue" id="support_pct">{{ support_pct }}</span>
+	<span class="units">%</span>
 	<img class="up_arrow" src="{{ constants.MEDIA_URL }}img/UpArrow.png" />
 	<img class="down_arrow" src="{{ constants.MEDIA_URL }}img/DownArrow.png" />
 	<span class="error"></span></p>
 
 <h2>Updates</h2>
-<p>Preferred email address: <span class="thevalue" id="email_id">{{ email }}</span></p>
-<p><input class="thevalue" type="checkbox" {% if receive_weekly_affirmations %}checked{% endif %} />
+<p>Preferred email address: <input id="email" value="{{ email }}" /></p>
+
+<p><input id="weekly_affirmations" type="checkbox" {% if weekly_affirmations %}checked{% endif %} />
 Yes, I want to receive weekly affirmation on the progress I am making towards my goals.</p>
 
-<p><input class="thevalue" type="checkbox" {% if receive_thankyous %}checked{% endif %} />
+<p><input id="org_thank_yous" type="checkbox" {% if org_thank_yous %}checked{% endif %} />
 Yes, I want to receive occasional thank you notes forwarded from the charities I support.</p>
 
-<p><input class="thevalue" type="checkbox" {% if receive_newsletters %}checked{% endif %} />
+<p><input id="org_newsletters" type="checkbox" {% if org_newsletters %}checked{% endif %} />
 Yes, I want to receive forwarded year end newsletters from the charities I support.</p>

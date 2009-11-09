@@ -864,7 +864,7 @@ _extend(PageController.prototype, {
 				substate_menu_items: substate_menu_items,
 				constants: constants,
 				
-				estimated_time_till_reauth: {units: "months", time: 4},
+				estimated_time_till_reauth: {units: "months", time: "x"},
 				
 				pd_hr_per_week_goal: self.retrieve_float_for_display("pd_hr_per_week_goal", constants.PD_DEFAULT_HR_PER_WEEK_GOAL),
 				pd_dollars_per_hr: self.retrieve_float_for_display("pd_dollars_per_hr", constants.PD_DEFAULT_DOLLARS_PER_HR),
@@ -874,13 +874,13 @@ _extend(PageController.prototype, {
 				tws_dollars_per_hr: self.retrieve_float_for_display("tws_dollars_per_hr", constants.TWS_DEFAULT_DOLLARS_PER_HR),
 				tws_hr_per_week_max: self.retrieve_float_for_display("tws_hr_per_week_max", constants.TWS_DEFAULT_HR_PER_WEEK_MAX),
 				
-				monthly_fee: 0,
+				monthly_fee: self.retrieve_float_for_display('monthly_fee', constants.DEFAULT_MONTHLY_FEE),
 				support_pct: self.retrieve_percent_for_display('support_pct', constants.DEFAULT_SUPPORT_PCT),
 				
-				email: this.prefs.get("email", constants.DEFAULT_EMAIL),
-				receive_weekly_affirmations: this.prefs.get("receive_weekly_affirmations", constants.DEFAULT_RECEIVE_WEEKLY_AFFIRMATIONS),
-				receive_thankyous: this.prefs.get("receive_thankyous", constants.DEFAULT_RECEIVE_THANKYOUS),
-				receive_newsletters: this.prefs.get("receive_newsletters", constants.DEFAULT_RECEIVE_NEWSLETTERS),
+				email: self.prefs.get('email', constants.DEFAULT_EMAIL),
+				weekly_affirmations: _un_dbify_bool(self.prefs.get('weekly_affirmations', constants.DEFAULT_WEEKLY_AFFIRMATIONS)),
+				org_thank_yous: _un_dbify_bool(self.prefs.get('org_thank_yous', constants.DEFAULT_ORG_THANK_YOUS)),
+				org_newsletters: _un_dbify_bool(self.prefs.get('org_newsletters', constants.DEFAULT_ORG_NEWSLETTERS)),
 			})
 		);
 		request.jQuery("#content").html( middle );
@@ -903,9 +903,21 @@ _extend(PageController.prototype, {
 					item.append(" "+id+" ");
 					var value = _un_prefify_float( self.prefs.get(id, null) );
 					if (value != null) {
-						var new_value = value + diff;
+						var new_value;
+						if (item.siblings(".units").text() == "%") {
+							new_value = value + (diff/100.0);
+						} else {
+							new_value = value + diff;
+						}
 						if (new_value < 0) new_value = 0.0;
-						self.prefs.set(id, _prefify_float(new_value));
+						if (item.siblings(".units").text() == "%") {
+							// toFixed returns a string not float!!
+							x = new_value.toFixed(4);
+							self.prefs.set(id, x);
+							new_value = new_value * 100.0;
+						} else {
+							self.prefs.set(id, _prefify_float(new_value));
+						}
 						item.text(new_value.toFixed(2));
 						item.siblings(".error").text("");
 					} else {
@@ -915,9 +927,16 @@ _extend(PageController.prototype, {
 		}
 		arrow_click(".up_arrow", 0.25);
 		arrow_click(".down_arrow", -0.25);
-	},
-	
-	process_settings_overview: function(request) {
+		
+		request.jQuery("input[type=checkbox]").click(function() {
+			var item = request.jQuery(this);
+			var pref = item.attr("id");
+			self.prefs.set(pref, item.attr("checked"));
+		});
+		
+		request.jQuery("#email").keyup(function() {
+			self.prefs.set('email', request.jQuery(this).attr("value"));
+		});
 	},
 	
 	/*************************************************************************/

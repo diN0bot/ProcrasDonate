@@ -52,7 +52,8 @@ function generated_input() {
         private_key = self.generate_private_key()
         
         data = [{"private_key": private_key,
-                 "preselected_charities": recip_pcts}]
+                 "preselected_charities": recip_pcts,
+                 "constants_PD_URL": DOMAIN}]
         
         json.dump(data, generated_input_f)
         

@@ -1,7 +1,7 @@
 
 function PD_ToolbarManager(pddb) {
 	this.pddb = pddb;
-	this.initialize()
+	//this.initialize()
 	//window.addEventListener("load", _bind(this, this.initialize), false);
 }
 PD_ToolbarManager.prototype = {};
@@ -12,10 +12,17 @@ _extend(PD_ToolbarManager.prototype, {
 	tws_progress_button: null,
 	// tag id, image pairs
 	images : {},
+	// this is tricky. we need to initialize *after* the chrome
+	// toolbar is set up so that we can getElementById.
+	// otherwise, the first time FF starts, the buttons are null,
+	// and thus the classify icon doesn't cycle through icons.
+	// for some reason, initializing in window init (Overlay.init)
+	// doesn't help. instead, we initialize on page load if necessary.
+	initialized : false,
 
 	/*
 	* do stuff when new browser window opens 
-	* use a settimeout to allow window to open if masterpassword is set
+	* #@TODO ?? use a settimeout to allow window to open if masterpassword is set
 	*/
 	initialize : function() {
 		var self = this;
@@ -23,9 +30,17 @@ _extend(PD_ToolbarManager.prototype, {
 		//this.removeEventListener('load', this.initialize, false);
 
 		this.classify_button = document.getElementById("PD-classify-toolbar-button");
+		if (this.classify_button) {
+			self.initialized = true;
+		} else {
+			self.initialized = false;
+			return
+		}
+		
 		this.pd_progress_button = document.getElementById("PD-progress-toolbar-button");
 		this.tws_progress_button = document.getElementById("TWS-progress-toolbar-button");
 		
+		self.images = {};
 		this.pddb.Tag.select({}, function(row) {
 			self.images[row.id] = "chrome://ProcrasDonate/skin/"+row.tag+"Icon.png";	
 		});
@@ -35,7 +50,6 @@ _extend(PD_ToolbarManager.prototype, {
 	},
 	
 	install_toolbar : function() {
-
 		// inserted toolbar button fine, but didn't persist
 		//var navToolbar = document.getElementById("nav-bar")
 		//navToolbar.insertItem("smxtra-button", null, null, false);
@@ -62,10 +76,10 @@ _extend(PD_ToolbarManager.prototype, {
 			var currentset = navbar.currentSet;
 			var b1 = currentset.indexOf("PD-classify-toolbar-button") == -1;
 			var b2 = currentset.indexOf("PD-progress-toolbar-button") == -1;
-			var b3 = currentset.indexOf("TWS-progress-toolbar-button") == -1;
+			// var b3 = currentset.indexOf("TWS-progress-toolbar-button") == -1;
 			// only called on install, not upgrade. still, let's check that
 			// no icons are present already.
-			if ( b1 && b2 && b3 ) {
+			if ( b1 && b2 /*&& b3*/ ) {
 				var set;
 				//var button_text = "PD-classify-toolbar-button,PD-progress-toolbar-button,TWS-progress-toolbar-button,urlbar-container";
 				var button_text = "PD-classify-toolbar-button,PD-progress-toolbar-button,urlbar-container";
@@ -127,7 +141,8 @@ _extend(PD_ToolbarManager.prototype, {
 	 * @param options: contains either {sitegroup, tag} or {url}
 	 */
 	updateButtons : function(options) {
-
+		if (!this.initialized) { return }
+		
 		if (this.classify_button) {
 			var sitegroup = null;
 			var tag = null;
@@ -149,6 +164,7 @@ _extend(PD_ToolbarManager.prototype, {
 			var tag_id = 0;
 			if (tag) { tag_id = tag.id; }
 			
+
 			// alter classify button
 			this.classify_button.setAttribute("image", this.images[tag_id]);
 			this.classify_button.setAttribute("label", tag.tag);
@@ -281,6 +297,8 @@ _extend(PD_ToolbarManager.prototype, {
     },
 
     onClassifyButtonCommand : function(e) {
+    	if (!this.initialized) { return }
+    	
     	var d = this.getDbRowsForLocation(_href());
     	var sitegroup = d.sitegroup;
     	var tag = d.tag;
@@ -288,12 +306,11 @@ _extend(PD_ToolbarManager.prototype, {
     	var new_tag_id = parseInt(tag.id) + 1;
 		if (new_tag_id > 3) { new_tag_id = 1; }
 		
-	if (!new_tag_id) { new_tag_id = 1; }
+		if (!new_tag_id) { new_tag_id = 1; }
 
 		// update tag
 		this.pddb.SiteGroup.set({ tag_id: new_tag_id }, { id: sitegroup.id });
 		tag = this.pddb.Tag.get_or_null({ id: new_tag_id })
-		
 		this.updateButtons({ sitegroup: sitegroup, tag: tag });
     },
     

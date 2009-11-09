@@ -1,5 +1,8 @@
 /** *********************** GLOBAL VARIABLES ********************************* */
 
+// constants.PD_URL is actually overwritten later by 
+// generated_input during install process
+
 var constants = {};
 
 (function CONSTANTS() {

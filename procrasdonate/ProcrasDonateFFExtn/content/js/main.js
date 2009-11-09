@@ -192,6 +192,11 @@ Overlay.prototype = {
 		
 		this.idleService.addIdleObserver(idle_no_flash_observer, constants.DEFAULT_MAX_IDLE);
 		this.idleService.addIdleObserver(idle_flash_observer, constants.DEFAULT_FLASH_MAX_IDLE);
+		
+		// initialize toolbar
+		// still not early enough! chrome toolbar not setup, so 
+		// document.getElementById still returns null buttons.
+		//this.url_bar_listener.toolbar_manager.initialize();
 	},
 	
 	uninstall: function(aSubject, aTopic, aData) {
@@ -272,6 +277,11 @@ Overlay.prototype = {
 		// going to display a page.
 		var msg = "Overlay.onPageLoad:: ";
 		//logger(msg);
+		
+		// initialize toolbar
+		if (!this.url_bar_listener.toolbar_manager.initialized) {
+			this.url_bar_listener.toolbar_manager.initialize();
+		}
 		
 		var unsafeWin = event.target.defaultView;
 		if (unsafeWin.wrappedJSObject)
@@ -460,6 +470,9 @@ Overlay.prototype = {
 							self.pddb.RecipientPercent.process_object(recip_pct);
 						});
 					
+					} else if (key == "constants_PD_URL") {
+						constants.PD_URL = value;
+						
 					} else {
 						//#@TODO
 						self.pddb.orthogonals.log("generated input: unrecognized key: "+key+" value="+value);

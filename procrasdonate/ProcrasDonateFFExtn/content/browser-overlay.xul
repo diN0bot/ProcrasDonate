@@ -99,14 +99,14 @@
     
     <!-- (Mostly) ProcrasDonate-specific stuff.
       -->
+	<script type='application/x-javascript'
+            src='chrome://ProcrasDonate/content/js/generated_input.js'></script>
     <script type='application/x-javascript'
             src='chrome://ProcrasDonate/content/js/settings.js'></script>
     <script type='application/x-javascript'
             src='chrome://ProcrasDonate/content/js/api.js'></script>
     <script type='application/x-javascript'
             src='chrome://ProcrasDonate/content/js/pd.js'></script>
-    <script type='application/x-javascript'
-            src='chrome://ProcrasDonate/content/js/generated_input.js'></script>
     <script type='application/x-javascript'
             src='chrome://ProcrasDonate/content/js/models.js'></script>
     <script type='application/x-javascript'
@@ -120,7 +120,15 @@
             src='chrome://ProcrasDonate/content/js/main.js'></script>
     
     <toolbarpalette id="BrowserToolbarPalette">
-        <toolbarbutton id="PD-classify-toolbar-button"
+    	<toolbar
+	    	id="pd-toolbar"
+	    	toolbarname="ProcrasDonate Toolbar"
+	    	accesskey="P"
+	    	class="chromeclass-toolbar"
+	    	context="toolbar-context-menu"
+	    	hidden="false" persist="hidden"
+	    	defaultset="PD-classify-toolbar-button,PD-progress-toolbar-button" />
+		<toolbarbutton id="PD-classify-toolbar-button"
                        autoCheck="true"
                        label="ProcrasDonating"
                        tooltiptext="Current activity: Unsorted. To re-classify this site click this icon."
@@ -135,15 +143,7 @@
                        oncommand="myOverlay.url_bar_listener.toolbar_manager.onProgressButtonPDCommand();"
                        image="chrome://ProcrasDonate/skin/IconBar0.png"
                        class="toolbarbutton-1 chromeclass-toolbar-additional"/>
-
-	<toolbarbutton id="TWS-progress-toolbar-button"
-                       autoCheck="true"
-                       label="TWS: 0"
-                       tooltiptext="Progress towards weekly TimeWellSpent goal"
-                       oncommand="myOverlay.url_bar_listener.toolbar_manager.onProgressButtonTWSCommand();"
-                       image="chrome://ProcrasDonate/skin/IconBar0.png"
-                       class="toolbarbutton-1 chromeclass-toolbar-additional"/>
-    </toolbarpalette>
+	</toolbarpalette>
     
     <menupopup id="menu_ToolsPopup">
         <menuitem label="ProcrasDonate" accesskey="a" oncommand="Overlay.doMenuSelect()"/>
