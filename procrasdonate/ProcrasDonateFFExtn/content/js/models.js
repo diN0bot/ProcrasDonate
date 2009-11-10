@@ -210,8 +210,9 @@ function load_models(db, pddb) {
 		},
 		
 		html_description: function() {
-			logger("b=<p>"+this.description.replace("\n\n", "</p><p>")+"</p>");
-			return "<p>"+this.description.replace("\n\n", "</p><p>")+"</p>"
+			//return "<p>"+this.description.replace("\n\n", "</p><p>")+"</p>"
+			// lets allow full Markdown markup
+			return (new Showdown.converter()).makeHtml(this.description)
 		}
 	}, {
 		// class methods

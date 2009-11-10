@@ -103,20 +103,18 @@ def _get(url):
 ################################################################################
 
 @login_required
-def recipient_register(request):
+def payment_registration(request):
+    recipient = request.user.get_profile().recipient
+    #substate_menu_items = _organizer_submenu(request, "public")
+
     errors = []
-    template = 'procrasdonate/recipient_organizer_pages/fps/recipient_register.html'
-    recipient = Recipient.get_or_none(slug=request.user.get_profile().recipient.slug)
-    if not recipient:
-        errors.append("No FPS Recipient found for %s. Check url." % slug)
-        return render_response(request, template, locals())   
+    template = 'procrasdonate/recipient_organizer_pages/payment_registration.html'
 
     r = FPSRecipient.get_or_none(recipient=recipient)
     if not r:
         r = FPSRecipient.add(recipient=recipient)
     
     if r.good_to_go():
-        errors.append("You have already successfully registered.")
         return render_response(request, template, locals())   
     
     action_url = AMAZON_CBUI_URL
@@ -129,16 +127,16 @@ def recipient_register(request):
                   #'maxFixedFee'       : 5.00,
                   'maxVariableFee'    : 20,
                   'returnUrl': "%s%s" % (settings.DOMAIN,
-                                         reverse('recipient_register_callback')),
+                                         reverse('payment_registration_callback')),
                   'version': settings.FPS['version']
                   }
     # add timestampe and signature
     finalize_parameters(parameters, type=CBUI_TYPE)
 
-    return render_response(request, 'procrasdonate/fps/recipient_register.html', locals())    
+    return render_response(request, template, locals())    
     
 @login_required
-def recipient_register_callback(request):
+def payment_registration_callback(request):
     """
     inserts callback response parameters into HTML for procrasdonate extension to handle
     
@@ -156,17 +154,11 @@ def recipient_register_callback(request):
     status=SR
     callerReference=h2Yij4nUqPzL
     """
+    recipient = request.user.get_profile().recipient
     errors = []
-    template = 'procrasdonate/recipient_organizer_pages/fps/recipient_register_callback.html'
-    recipient = Recipient.get_or_none(slug=request.user.get_profile().recipient.slug)
-    if not recipient:
-        errors.append("Error. No FPS Recipient found for %s. Check url." % slug)
-        return render_response(request, template, locals())
+    
     fpsr = recipient.fps_data
-    if not fpsr:
-        errors.append("Error: No FPS Recipient data found for %s." % slug)
-        return render_response(request, template, locals())
-
+    
     print "RECIP CALLBACK GET: ", request.GET
     expected_parameters = ["signature",
                            "status"]
@@ -177,15 +169,18 @@ def recipient_register_callback(request):
 
     response = extract_parameters(request, "GET", expected_parameters, optional_parameters)
     if not response['success']:
-        errors.append("Something went wrong extracting parameters from Amazon's request: %s" % response['reason'])
-        return render_response(request, template, locals())   
+        Log.Error("payment_registration_callback::Something went wrong extracting parameters from Amazon's request: %s for %s. Full request: %s" % (response['reason'],
+                                                                                                                                                    recipient.slug,
+                                                                                                                                                    request.GET))
+        return HttpResponseRedirect(reverse('payment_registration'))
     
     parameters = response['parameters']
     
     corrupted = is_corrupted(parameters, CBUI_CALLBACK_TYPE)
     if corrupted:
-        errors.append("Signature did not check out")
-        return render_response(request, template, locals())
+        Log.Error("payment_registration_callback::Signature did not check out from Amazon's request: %s. Full request: %s" % (recipient.slug,
+                                                                                                                              request.GET))
+        return HttpResponseRedirect(reverse('payment_registration'))
     
     fpsr.refund_token_id = parameters['refundTokenID']
     fpsr.token_id = parameters['tokenID']
@@ -193,10 +188,9 @@ def recipient_register_callback(request):
     fpsr.save()
     
     if fpsr.status != FPSRecipient.STATUSES['SUCCESS']:
-        errors.append("Registration failed: %s" % fpsr.status.visible)
-        
-    return render_response(request, template, locals())
-
+        Log.Error("payment_registration_callback::Payment registration failed: %s for %s. Full request: %s" % (recipient.slug,
+                                                                                                               request.GET))
+    return HttpResponseRedirect(reverse('payment_registration'))
 
 ################################################################################
 

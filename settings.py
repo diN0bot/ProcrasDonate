@@ -129,16 +129,17 @@ INSTALLED_APPS = (
     'django.contrib.admin',
 )
 
-AUTH_PROFILE_MODULE = 'procrasdonate.RecipientUserTagging'
-LOGIN_URL = '/recipient/login/'
-LOGOUT_URL = '/recipient/logout/'
-
 for app in APPS:
     INSTALLED_APPS += (
         app,
     )
 
-USE_MARKUP = False
+
+AUTH_PROFILE_MODULE = 'procrasdonate.RecipientUserTagging'
+LOGIN_URL = '/recipient/login/'
+LOGOUT_URL = '/recipient/logout/'
+
+USE_MARKUP = True
 if USE_MARKUP:
     INSTALLED_APPS += ('django.contrib.markup',)
 

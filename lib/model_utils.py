@@ -314,7 +314,7 @@ class ModelMixin(object):
 
 class TextProcessor(object):
     """
-    Static class for doing description processing.
+    Static class for doing text processing.
     """
     tags = re.compile('<[^>]*>')
     p_endstart_tags = re.compile('</p>\s*<p>')
@@ -322,19 +322,7 @@ class TextProcessor(object):
     
     links = re.compile('(https?://\S*)') # \S matches any non-whitespace character; this is equivalent to the class [^ \t\n\r\f\v].
     domain_re = re.compile('https?://([^ /]*)')
-    
-    do_resave_all = False
-    
-    @classmethod
-    def resave_all(klass, model):
-        """
-        one-time save all behaviors to remove html formatting.
-        @param model: state-enabled model
-        """
-        if DescriptionProcessor.do_resave_all:
-            for b in model.objects.raw().all():
-                b.save()
-    
+
     @classmethod
     def remove_html(klass, signal, sender, instance, **kwargs):
         """

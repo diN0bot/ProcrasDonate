@@ -49,7 +49,7 @@
                 "contact_email": "info@procrasdonate.com",
                 "category": 1,
 		"is_visible": false,
-		"promotional_video": "<object width=\"216\" height=\"190\"><param name=\"movie\" value=\"http://www.youtube.com/v/kyBR5UL8nRs&hl=en&fs=1&\"></param><param name=\"allowFullScreen\" value=\"true\"></param><param name=\"allowscriptaccess\" value=\"always\"></param><embed src=\"http://www.youtube.com/v/kyBR5UL8nRs&hl=en&fs=1&\" type=\"application/x-shockwave-flash\" allowscriptaccess=\"always\" allowfullscreen=\"true\" width=\"216\" height=\"190\"></embed></object>",
+		"promotional_video": "http://www.youtube.com/watch?v=kyBR5UL8nRs",
 		"logo": ""
         }
     }, 
@@ -61,7 +61,7 @@
                 "name": "Buy It Like You Mean It",
                 "slug": "BILUMI",
                 "mission": "To provide access to collaborative tools for educational discovery and communication about the real world impact of product supply chains.",
-                "description": "Without knowing the socially responsible impact of purchasing a product, we're all still shopping in the dark.<br>Buy It Like You Mean It helps students and volunteers cooperate to review and rate the real world effects of industry supply chains. We provide these ratings, free of charge, to help shoppers decide which products support their own unique values.<br>Together we are modeling how specific companies perform on a variety of socially responsible interests.",
+                "description": "Without knowing the socially responsible impact of purchasing a product, we're all still shopping in the dark.\n\nBuy It Like You Mean It helps students and volunteers cooperate to review and rate the real world effects of industry supply chains. We provide these ratings, free of charge, to help shoppers decide which products support their own unique values.\n\nTogether we are modeling how specific companies perform on a variety of socially responsible interests.",
                 "url": "http://bilumi.org",
                 "is_visible": true,
                 "contact_email": "",

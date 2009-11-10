@@ -13,6 +13,10 @@ $(document).ready( function() {
 	///
 	$("#comment_textarea").focus();
 	
+	$("#insert_procrasdonate_email")
+	    .attr("href", "mailto:procrasdonate@bilumi.org")
+	    .text("procrasdonate@bilumi.org");
+
 	/// move StartButtonDiv below banner on home page
 	var banner = $("#TheBanner");
 	var startnow = $("#StartButtonDiv");
@@ -65,7 +69,7 @@ function install(anchor_class) {
 		
 	} else {
 		// NOT READY FOR INSTALL YET
-		return not_ready_to_install();
+		//return not_ready_to_install();
 
 		// when ready, comment above line so that the following code is used.
 		var item = $("."+anchor_class).slice(0,1);

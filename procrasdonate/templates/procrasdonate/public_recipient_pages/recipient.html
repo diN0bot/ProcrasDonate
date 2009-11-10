@@ -15,17 +15,18 @@
 		{% endif %}
 		
 		<h4>Category:</h4>
-			{{ recipient.category.category }}
+		<p>{{ recipient.category.category }}</p>
 				
-	{% comment %}	<h3>Charity Navigator Score: {{ recipient.charity_navigator_score|default:"-" }}</h3> {% endcomment %}
+		{% comment %}
+			<h3>Charity Navigator Score: {{ recipient.charity_navigator_score|default:"-" }}</h3>
+		{% endcomment %}
 		
 		<h4>Charitable Mission:</h4>
 			{{ recipient.mission }}
 		
 		<h4>Methods Toward Fulfilling Mission:</h4>
-			{{ recipient.description }}
-		</div>
-		
+		<div>{{ recipient.description|markdown:"safe" }}</div>
+			
 		<h4>Website:</h4>
-		 {{ recipient.url }}
+		<p><a href="{{ recipient.url }}">{{ recipient.url }}</a></p>
 {% endblock %}

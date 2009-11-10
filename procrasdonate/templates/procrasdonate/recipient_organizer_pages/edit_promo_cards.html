@@ -3,4 +3,26 @@
 {% block content %}
 	<h2>Promo Cards</h2>
 	
+	<p>Email us to request customized postcards: <a href="" id="insert_procrasdonate_email"></a></p>
+	
+	<div id="postcard_big_div">
+		<img id="postcard_big" src="{{ MEDIA_URL }}img/coins_card.png" />
+	</div>
+	
+	<ul id="postcard_thumbnails">
+		<li><img class="postcard_thumbnail selected" src="{{ MEDIA_URL }}img/coins_card.png" /></li>
+		<li><img class="postcard_thumbnail" src="{{ MEDIA_URL }}img/star_card.png" /></li>
+		<li><img class="postcard_thumbnail" src="{{ MEDIA_URL }}img/parking_meter.png" /></li>
+		<li><img class="postcard_thumbnail" src="{{ MEDIA_URL }}img/noodle_girl.png" /></li>
+	</ul>
+	
+	<script type="text/javascript">
+		$(document).ready( function() {
+			$(".postcard_thumbnail").click(function() {
+				$(".postcard_thumbnail").removeClass("selected");
+				$(this).addClass("selected");
+				$("#postcard_big").attr("src", $(this).attr("src"));
+			});
+		});
+	</script>
 {% endblock %}

@@ -114,7 +114,7 @@ def register_organizer(request):
             t = loader.get_template('procrasdonate/recipient_organizer_pages/account/confirmation_email.txt')
             tagging.send_email("Welcome to ProcrasDonate! Please complete registration for %s" % tagging.recipient.name,
                                t.render(c),
-                               from_email="clay@bilumi.org")
+                               from_email="procrasdonate@bilumi.org")
             
             request.user.message_set.create(message='RecipientUser successfully registered')
             return HttpResponseRedirect(reverse('home'))
@@ -192,7 +192,7 @@ def reset_password(request):
         t = loader.get_template('procrasdonate/recipient_organizer_pages/account/reset_password_email.txt')
         tagging.send_email("Password reset for ProcrasDonate organizer for %s" % tagging.recipient.name,
                            t.render(c),
-                           from_email="clay@bilumi.org")
+                           from_email="procrasdonate@bilumi.org")
         
         email_address = tagging.user.email
         return render_response(request, 'procrasdonate/recipient_organizer_pages/account/reset_password_email_sent.html', locals())
@@ -294,12 +294,6 @@ def _organizer_submenu(request, current_slug):
     return {"menu_items": menu_items,
             "next": next,
             "prev": prev}
-
-@login_required
-def registration_help(request):
-    recipient = request.user.get_profile().recipient
-    #substate_menu_items = _organizer_submenu(request, "public")
-    return render_response(request, 'procrasdonate/recipient_organizer_pages/registration_help.html', locals())
 
 @login_required
 def edit_promo_cards(request):

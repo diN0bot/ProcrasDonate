@@ -1,0 +1,39 @@
+{% extends 'procrasdonate/base.html' %}
+
+
+{% block content %}
+	<h2>Payment Registration</h2>
+	
+	<ul class="errors">
+		{% for error in errors %}
+			<li class="error">{{ error }}</li>
+		{% endfor %}
+	</ul>
+	
+	{% if r.good_to_go %}
+		<p class="succes">Success</p>
+		<p>You are successfully authorized to receive donations 
+			through Amazon Flexible Payments Service.</p>
+	{% else %}
+		<p>In order to collect donations, you must authorize an 
+			account through Amazon Flexible Payments Service</p>
+	
+		<p>By clicking the button below, you will be directed to Amazon's Flexible Payments
+			Service website. After completing the authorization there, you will be automatically
+			redirected back here to the ProcrasDonate website.</p>
+		
+		<form action="{{ action_url }}" method="post">
+			<input type="submit" value="Authorize!" />
+			{% for name,value in parameters.items %}
+				<input
+					type="hidden"
+					name="{{ name }}"
+					value="{{ value }}"
+				/>
+			{% endfor %}
+		</form>
+	{% endif %}
+	
+	<h3>Help</h3>
+	
+{% endblock %}

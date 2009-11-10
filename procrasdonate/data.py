@@ -189,7 +189,7 @@ class Recipient(models.Model):
     slug = models.SlugField(db_index=True)
     name = models.CharField(max_length=200, null=True, blank=True, verbose_name="Organization's Name")
     category = models.ForeignKey('Category', blank=True, null=True)
-    mission = models.TextField(null=True, blank=True, verbose_name="Charitable Mission")
+    mission = models.CharField(max_length=200, null=True, blank=True, verbose_name="Charitable Mission")
     description = models.TextField(null=True, blank=True, verbose_name="Method Toward Fulfilling Mission")
     url = models.URLField(null=True, blank=True, verbose_name="Website")
     
@@ -216,8 +216,8 @@ class Recipient(models.Model):
     logo_height = models.IntegerField(default=SCALED_MAX_HEIGHT)
     logo_width = models.IntegerField(default=SCALED_MAX_WIDTH)
     
-    promotional_video = models.TextField(blank=True, null=True)
-    pd_experience_video = models.TextField(blank=True, null=True)
+    promotional_video = models.URLField(blank=True, null=True)
+    pd_experience_video = models.URLField(blank=True, null=True)
     
     charity_navigator_score = models.IntegerField(blank=True, null=True)
     
@@ -251,30 +251,24 @@ class Recipient(models.Model):
         #models.signals.pre_save.connect(Recipient.set_logo_dimensions, sender=Recipient)
         models.signals.post_save.connect(Recipient.scale_logo, sender=Recipient)
         
-        models.signals.pre_save.connect(Recipient.resize_video_html, sender=Recipient)
+        models.signals.pre_save.connect(Recipient.process_videos, sender=Recipient)
     
     @classmethod
-    def resize_video_html(klass, signal, sender, instance, **kwargs):
+    def process_videos(klass, signal, sender, instance, **kwargs):
         """
-        pre-save signal to make video have right size:
+        pre-save signal to translate youtube watch url into embedded url
+        eg, http://www.youtube.com/watch?v=kyBR5UL8nRs&feature=player_embedded
+         -> http://www.youtube.com/v/kyBR5UL8nRs&hl=en&fs=1&
         """
-        video_width_re = re.compile("width=\"\d+\"")
-        video_height_re = re.compile("height=\"\d+\"")
-        goal_width = "216" # just wide enough to get full screen button
-        goal_height = "190"
-    
-        if instance.promotional_video:
-            instance.promotional_video = video_width_re.sub("width=\"%s\"" % goal_width, 
-                                                            instance.promotional_video)
-            instance.promotional_video = video_height_re.sub("height=\"%s\"" % goal_height, 
-                                                             instance.promotional_video)
-        
-        if instance.pd_experience_video:
-            instance.pd_experience_video = video_width_re.sub("width=\"%s\"" % goal_width, 
-                                                              instance.pd_experience_video)
-            instance.pd_experience_video = video_height_re.sub("height=\"%s\"" % goal_height, 
-                                                               instance.pd_experience_video)
-    
+        # extract v parameter
+        v_re = re.compile("v=([\w\d]+)")
+        for field in ["promotional_video", "pd_experience_video"]:
+            if getattr(instance, field):
+                res = v_re.search(getattr(instance, field))
+                if res and res.groups():
+                    v = res.groups()[0]
+                    setattr(instance, field, "http://www.youtube.com/v/%s" % v)
+
     @classmethod
     def set_logo_dimensions(klass, signal, sender, instance, **kwargs):
         """

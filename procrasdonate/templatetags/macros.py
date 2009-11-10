@@ -72,9 +72,9 @@ register.tag('render_responses', do_render_responses)
 
 
 
-
-links = re.compile('(https?://\S*)') # \S matches any non-whitespace character; this is equivalent to the class [^ \t\n\r\f\v].
-twitternames = re.compile('@([\w\d]+)')
+"""
+#links = re.compile('(https?://\S*)') # \S matches any non-whitespace character; this is equivalent to the class [^ \t\n\r\f\v].
+#twitternames = re.compile('@([\w\d]+)')
 @register.filter
 @stringfilter
 def markup(text, args=None, autoescape=None):
@@ -83,14 +83,24 @@ def markup(text, args=None, autoescape=None):
     else:
         esc = lambda x: x
 
-    # 3. turn links into clickables    
+    # 1. turn links into clickables    
     #result = links.sub(r'<a href="\1">\1</a>', text).strip()
     result = text.strip()
     
-    # 3. turn @twittername to links
-    result = twitternames.sub(r'<a href="http://twitter.com/\1">\1</a>', result).strip()
-    
-    # 4. turn double enter in breaks
+    # 2.. turn @twittername to links
+    #result = twitternames.sub(r'<a href="http://twitter.com/\1">\1</a>', result).strip()
+     
+    # 4. turn bullet or number lists into ul or ol
+    # wrap all lines that begin with * or \d\. with <*l><li>...</li></*l>
+    # then remove adjacent </*l><*l>
+    lines = result.split("\n")
+    newresult = []
+    for line in lines:
+        line = line.strip()
+        if not line:
+            continue
+        
+    # 3. turn double enter in breaks
     #linebreak_re = re.compile('(%s%s+)' % (os.linesep, os.linesep))
     #result = linebreak_re.sub('</p>%s<p>' % os.linesep, result)
     linebreak_re = re.compile('(\n\s+)')
@@ -103,7 +113,7 @@ def markup(text, args=None, autoescape=None):
     
     return mark_safe(result)
 markup.needs_autoescape = True
-
+"""
 
 
 def do_time_ago(parser, token):

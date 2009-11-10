@@ -1,5 +1,5 @@
 from django.conf.urls.defaults import *
-from procrasdonate.views import dynamic_webpages, dataflow
+from procrasdonate.views import dynamic_webpages, dataflow, fps
 
 slug_re = '[\w\d_-]+'
 type_re = '[\w\d_-]+'
@@ -19,7 +19,8 @@ urlpatterns = patterns('',
     url(r'^recipient/edit/private_information/$', dynamic_webpages.edit_private_information, name='edit_private_information'),
     url(r'^recipient/edit/media/$', dynamic_webpages.edit_media, name='edit_media'),
     url(r'^recipient/edit/promo_cards/$', dynamic_webpages.edit_promo_cards, name='edit_promo_cards'),
-    url(r'^recipient/registration_help/$', dynamic_webpages.registration_help, name='registration_help'),
+    # Recipient registration page, initiates Amazon Co-Branded UI
+    url(r'^recipient/payment_registration/$', fps.payment_registration, name='payment_registration'),
     url(r'^recipient/edit/weekly_blurbs/$', dynamic_webpages.edit_weekly_blurbs, name='edit_weekly_blurbs'),
     url(r'^recipient/edit/thank_yous/$', dynamic_webpages.edit_thank_yous, name='edit_thank_yous'),
     url(r'^recipient/edit/yearly_newsletter/$', dynamic_webpages.edit_yearly_newsletter, name='edit_yearly_newsletter'),

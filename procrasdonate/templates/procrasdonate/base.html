@@ -106,26 +106,23 @@
 				
 				<div id="video1" class="video_block">
 					{% if video1 %}
-						{{ video1.promotional_video|safe }}
+						<object width="216" height="190">
+							<param name="movie" value="{{ video1.promotional_video }}" />
+							<param name="allowFullScreen" value="true" />
+							<param name="allowscriptaccess" value="always" />
+							<embed
+								src="{{ video1.promotional_video }}"
+								type="application/x-shockwave-flash"
+								allowscriptaccess="always"
+								allowfullscreen="true"
+								width="216"
+								height="190" />
+						</object>
 						<p><a href="{% url recipient video1.slug %}">{{ video1.name }}</a></p>
 					{% endif %}
 				</div>
 				
 				<div id="video2" class="video_block">
-					{% comment %}
-					<object width="220" height="190">
-						<param name="movie" value="http://www.youtube.com/v/cIppUNu1i3Y&hl=en&fs=1" />
-						<param name="allowFullScreen" value="true" />
-						<param name="allowscriptaccess" value="always" />
-						<param name="menu" value="true" />
-						<embed src="http://www.youtube.com/v/cIppUNu1i3Y&hl=en&fs=1"
-							type="application/x-shockwave-flash"
-							allowscriptaccess="always"
-							allowfullscreen="true"
-							width="220"
-							height="190" />
-					</object>
-					{% endcomment %}
 					<object width="220" height="190">
 						<param name="allowFullScreen" value="true" />
 						<param name="allowscriptaccess" value="always" />

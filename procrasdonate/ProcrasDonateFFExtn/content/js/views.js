@@ -1469,7 +1469,7 @@ _extend(PageController.prototype, {
 				var html = Template.get("recipient_with_percent_snippet").render(
 					new Context({
 						constants: constants,
-						deep_recip_pct: row
+						deep_recip_pct: row,
 					})
 				);
 				chosen_charities.push(html);
