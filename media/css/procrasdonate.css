@@ -56,6 +56,7 @@ img { -ms-interpolation-mode:bicubic; }
 #wrapper {
 	width: 95em;
 	margin: auto;
+	margin-bottom: 2em;
 }
 
 #StartButtonDiv { text-align: center; }
@@ -503,6 +504,21 @@ td { padding: .6em 0em .5em 0em; vertical-align: middle; }
 /******** RECIPIENT ORGANIZER *******************/
 .organizer_form td { text-align: left; }
 .organizer_form th { text-align: right; padding-right: 1em; }
+
+/**** RECIPIENT ORGANIZER DASHBOARD *****/
+#promotional_checklist { margin-bottom: 1em; }
+#promotional_checklist td { padding: 0em 0em 0em 1em; text-align: left; }
+#promotional_checklist_save { float: left; margin-left: 4em; } /*text-align: left didn't seem to work*/
+
+#dashboard_actions { width: 100%; margin-bottom: 1em; }
+#dashboard_actions td a {
+	background: #DDDDDD;
+	-moz-border-radius: .4em;
+	padding: .3em 1em .5em 1em;
+}
+#dashboard_actions td a:hover { background: #DDEEFF; }
+
+#contact_procrasdonate { text-align: center; }
 
 /**** RECIPIENT ORGANIZER POSTCARD PAGES *****/
 #postcard_big_div { width: 100%; padding: 2em 0em; text-align: center; background: #336699; }

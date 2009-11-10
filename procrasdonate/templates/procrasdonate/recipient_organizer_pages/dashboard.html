@@ -5,7 +5,7 @@
 {% endblock %}
 
 {% block content %}
-	<h2>(Name of Non-profit)'s Dashboard</h2>
+	<h2>{{ recipient.name }}'s Dashboard</h2>
 	
 	<h3>Metrics</h3>
 	<p>total donations received in {% now "Y" %}: ${{ recipient.yearly_aggregate.total_amount|floatformat:"2"|default:"0" }}</p>
@@ -13,22 +13,39 @@
 	<p>number of donors: {{ recipient.forever_aggregate.total_donors|floatformat:"2"|default:"0" }}</p>
 	
 	<h3>Actions</h3>
-	<ul>
-		<li><a href="{% url payment_registration %}">receive</a> donations.</li>
-		<li><a href="{% url edit_promo_cards %}">create</a> promotional cards.</li>
-		<li>Contact ProcrasDonate staff via email: <a id="insert_procrasdonate_email" href=""></a></li>
-		<li><a href="{% url edit_public_information %}">update</a> public facing profile.</li>
-		<li><a href="{% url edit_private_information %}">update</a> organizational information.</li>
-		<li><a href="{% url edit_media %}">update</a> images and video.</li>
-	{% comment %}	<li><a href="{% url edit_weekly_blurbs %}">edit weekly blurbs</a></li> {% endcomment %}
-		<li><a href="{% url edit_thank_yous %}">edit</a> thank you notes.</li>
-		<li><a href="{% url edit_yearly_newsletter %}">edit</a> year-end newsletter.</li>
-	</ul>
+	<table id="dashboard_actions">
+	<thead>
+		<tr>
+			<th>Handle Donations</th>
+			<th>Update Information</th>
+			<th>Promote</th>
+		</tr>
+	</thead>
+	<tbody>
+		<tr>
+			<td><a href="{% url payment_registration %}">Authorize to receive donations</a></td>
+			<td><a href="{% url edit_public_information %}">Public facing profile</a></td>
+			<td><a href="{% url edit_promo_cards %}">Send promotional cards</a></td>
+		</tr>
+		<tr>
+			<td></td>
+			<td><a href="{% url edit_private_information %}">Organizational information</a></td>
+			<td></td>
+		</tr>
+		<tr>
+			<td></td>
+			<td><a href="{% url edit_media %}">Images and video</a></td>
+			<td></td>
+		</tr>
+	</tbody>
+	</table>
+	
+	<p id="contact_procrasdonate">Contact ProcrasDonate staff via email: <a id="insert_procrasdonate_email" href=""></a></p>
 	
 	<div id="thin_column">
 		<h3>Yearly promotional checklist</h3>
 		<form method="post">
-			<table><tbody>
+			<table id="promotional_checklist"><tbody>
 				{% for field in checkbox_fields %}
 				<tr>
 					<td><input type="checkbox" name="{{ field.name }}" {% if field.checked %}checked {% endif %} /></td>
@@ -38,7 +55,7 @@
 				</tr>
 				{% endfor %}
 			</tbody></table>
-			<input type="submit" value="save" />
+			<input id="promotional_checklist_save" type="submit" value="save" />
 		</form>
 	</div>
 	
