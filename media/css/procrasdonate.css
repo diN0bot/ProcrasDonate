@@ -512,20 +512,20 @@ td { padding: .6em 0em .5em 0em; vertical-align: middle; }
 
 #dashboard_actions { width: 100%; margin-bottom: 1em; }
 #dashboard_actions td a {
-	background: #DDDDDD;
+	/*background: #DDDDDD;*/
 	-moz-border-radius: .4em;
 	padding: .3em 1em .5em 1em;
 }
-#dashboard_actions td a:hover { background: #DDEEFF; }
+#dashboard_actions td a:hover { /*background: #DDEEFF;*/ }
 
 #contact_procrasdonate { text-align: center; }
 
-/**** RECIPIENT ORGANIZER POSTCARD PAGES *****/
+/**** RECIPIENT ORGANIZER POSTCARDS AND PAYMENT REGISTRATION SCREENSHOTS *****/
 #postcard_big_div { width: 100%; padding: 2em 0em; text-align: center; background: #336699; }
 #postcard_big { width: 50em; }
 #postcard_thumbnails { list-style: none; padding: 0em; text-align: center; }
 #postcard_thumbnails li { display: inline; }
-#postcard_thumbnails li .postcard_thumbnail { padding: .4em; width: 8em; }
+#postcard_thumbnails li .postcard_thumbnail { padding: .4em; width: 8em; cursor: pointer; }
 #postcard_thumbnails li .selected {
 	/*border: 0.27em ridge #336699;*/
 	background: #336699;
@@ -533,3 +533,19 @@ td { padding: .6em 0em .5em 0em; vertical-align: middle; }
 }
 #postcard_prev { width: 5em; }
 #postcard_next { width: 5em; }
+
+/**** RECIPIENT ORGANIZER PAYMENT REGISTRATION SCREENSHOTS *****/
+/* reuses CSS above */
+#screenshot_big_div { width: 65em; padding: 1em; text-align: center; background: #336699; }
+#screenshot_big { width: 100%; height: 100%; }
+.screenshot_thumbnails { margin-top: 0em; }
+#screenshot_steps {
+	list-style: none;
+	padding: 0em;
+	text-align: center;
+	margin: 0em;
+	font-weight: bold;
+	color: #888888;
+}
+#screenshot_steps li { display: inline; padding: 0em 2.7em; cursor: pointer; }
+#screenshot_steps .selected { display: inline; padding: 0em 2.7em; color: #336699; }

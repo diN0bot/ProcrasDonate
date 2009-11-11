@@ -36,4 +36,46 @@
 	
 	<h3>Help</h3>
 	
+	<p>The screen shots below walk you through the authorization process on Amazon's website.</p>
+	
+	<ul id="screenshot_steps">
+		<li id="step1" class="selected">Step 1</li>
+		<li id="step2">Step 2</li>
+		<li id="step3">Step 3</li>
+		<li id="step4">Step 4</li>
+	</ul>
+	<ul id="postcard_thumbnails" class="screenshot_thumbnails">
+		<li><img class="postcard_thumbnail selected" src="{{ MEDIA_URL }}img/AmazonBizSS1.png" /></li>
+		<li><img class="postcard_thumbnail" src="{{ MEDIA_URL }}img/AmazonBizSS2.png" /></li>
+		<li><img class="postcard_thumbnail" src="{{ MEDIA_URL }}img/AmazonBizSS3.png" /></li>
+		<li><img class="postcard_thumbnail" src="{{ MEDIA_URL }}img/AmazonBizSS4.png" /></li>
+	</ul>
+	
+	<div id="screenshot_big_div">
+		<img id="screenshot_big" src="{{ MEDIA_URL }}img/AmazonBizSS1.png" />
+	</div>
+	
+	<script type="text/javascript">
+		$(document).ready( function() {
+			$(".postcard_thumbnail").click(function() {
+				$(".selected").removeClass("selected");
+				$(this).addClass("selected");
+				var src = $(this).attr("src");
+				$("#step"+src[src.length-5]).addClass("selected");
+				$("#screenshot_big").attr("src", src);
+			});
+			$("#screenshot_steps li").click(function() {
+				$(".selected").removeClass("selected");
+				$(this).addClass("selected");
+				var n = $(this).attr("id");
+				$(".postcard_thumbnail").each(function() {
+					if ($(this).attr("src") == "{{ MEDIA_URL }}img/AmazonBizSS"+n[4]+".png") {
+						$("#screenshot_big").attr("src", $(this).attr("src"));
+						$(this).addClass("selected");
+					}
+				});
+			});
+		});
+	</script>
+	
 {% endblock %}
