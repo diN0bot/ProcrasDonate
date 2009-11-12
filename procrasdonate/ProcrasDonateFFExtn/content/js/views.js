@@ -288,58 +288,37 @@ _extend(Controller.prototype, {
 	////////////////////////////// DEV TESTS //////////////////////////////////
 	
 	add_random_visits: function() {
+		var self = this;
+		
 		var test1 = this.pddb.SiteGroup.get_or_create({
-			url_re: "test1.com"
-		});
-		this.pddb.SiteGroup.set({
-			tag_id: this.pddb.ProcrasDonate.id
+			host: "test_pd.com"
 		}, {
-			url_re: "test1.com"
+			name: "test_pd.com",
+			tag_id: self.pddb.ProcrasDonate.id
 		});
 		var test2 = this.pddb.SiteGroup.get_or_create({
-			url_re: "test2.com"
-		});
-		this.pddb.SiteGroup.set({
-			tag_id: this.pddb.TimeWellSpent.id
+			host: "test_tws.com"
 		}, {
-			url_re: "test2.com"
+			name: "test_tws.com",
+			tag_id: self.pddb.TimeWellSpent.id
 		});
+		
 		var start = _start_of_day();
-		var duration = 2222;
-		var urls = ["http://test1.com/apage.html",
-		            "http://test1.com/bpage.html",
-		            "http://test1.com/apage.html",
-		            "http://test1.com/bpage.html",
-		            "http://test1.com/apage.html",
+		var duration = 1111;
+		var urls = ["http://test_pd.com/apage.html",
+		            "http://test_pd.com/bpage.html",
+		            "http://test_pd.com/apage.html",
+		            "http://test_pd.com/bpage.html",
+		            "http://test_pd.com/apage.html",
 		            
-		            "http://test2.com/cpage.html",
-		            "http://test2.com/cpage.html",
-		            "http://test2.com/cpage.html",
-		            "http://test2.com/cpage.html",
-		            "http://test2.com/cpage.html",
-		            "http://test2.com/cpage.html",
-		            /*
-		            "http://test1.com/apage.html",
-		            "http://test1.com/apage.html",
-		            "http://test1.com/apage.html",
-		            "http://test1.com/apage.html",
-		            "http://test1.com/apage.html",
-		            "http://test1.com/apage.html",
-		            "http://test1.com/apage.html",
-		            "http://test1.com/apage.html",
-		            "http://test1.com/apage.html",
-		            "http://test1.com/apage.html",
-		            "http://test1.com/apage.html",
-		            "http://test1.com/apage.html",
-		            "http://test1.com/apage.html",
-		            "http://test1.com/apage.html",
-		            "http://test1.com/apage.html",
-		            "http://test1.com/apage.html"
-		            */
-		            ];
+		            "http://test_tws.com/cpage.html",
+		            "http://test_tws.com/cpage.html",
+		            "http://test_tws.com/cpage.html",
+		            "http://test_tws.com/cpage.html",
+		            "http://test_tws.com/cpage.html",
+		            "http://test_tws.com/cpage.html"];
 		for (var i = 0; i < urls.length; i++) {
 			this.pddb.store_visit(urls[i], _dbify_date(start), duration);
-			logger("add random visits ="+start);
 			start.setMinutes( start.getMinutes() + 10 );
 		}
 	},
@@ -364,15 +343,11 @@ _extend(Controller.prototype, {
 	
 	///
 	/// Triggers payment. Does not reset payment period.
-	/// #@TODO check if authorized to make payments ?! 
-	///       or should pd::pay_multiuse check?
 	///
 	trigger_payment: function() {
-		/* TEST */
-		var recipient = this.pddb.Recipient.get_or_null({
-			id: 1
-		});
-		this.pddb.page.pd_api.pay_multiuse(2.22, recipient);
+		logger("triggering payment...");
+		this.pddb.schedule.do_make_payment();
+		logger("...payment done");
 	},
 	
 	trigger_on_install: function() {
@@ -444,7 +419,7 @@ _extend(Controller.prototype, {
 			self.pddb = new PDDB("test.0.sqlite");
 			self.pddb.init_db();
 			
-			/*testrunner.test("Test Update Totals", function() {
+			testrunner.test("Test Update Totals", function() {
 				self.pddb.tester.test_update_totals(testrunner);
 			});
 			
@@ -454,7 +429,7 @@ _extend(Controller.prototype, {
 			
 			testrunner.test("Check Payments", function() {
 				self.pddb.checker.check_payments(testrunner);
-			});*/
+			});
 			
 			/// WARNING: this uses setTimeout to test blur/focus,
 			///          idle/back, start/stop-recording....
@@ -519,11 +494,8 @@ _extend(Schedule.prototype, {
 		}
 		if ( this.is_new_week_period() ) {
 			this.do_once_weekly_tasks();
-			this.reset_week_period();
-		}
-		if ( this.is_time_to_make_payment() ) {
 			this.do_make_payment();
-			this.reset_make_payment_period();
+			this.reset_week_period();
 		}
 	},
 	
@@ -600,21 +572,13 @@ _extend(Schedule.prototype, {
 		//alert("ding! last week "+week_hr+" new week "+now+"  now  "+new Date());
 	},
 	
-	is_time_to_make_payment: function() {
-		return false
-		//return this.do_once_weekly_tasks();
-	},
-	
 	do_make_payment: function() {
-		this.pddb.page.pd_api.make_payment(function(r) {
+		/* all logic for whether to make payments is in pd_api */
+		this.pddb.page.pd_api.make_payments_if_necessary(function(r) {
 			// onload
 		}, function(r) {
 			// onerror
 		});
-	},
-	
-	reset_make_payment_period: function() {
-		
 	},
 
 });
@@ -1267,6 +1231,7 @@ _extend(PageController.prototype, {
 			datetime: _dbify_date(_end_of_week()),
 			timetype_id: self.pddb.Weekly.id
 		});
+		logger(" MY PROGRESS: pd_total_this_week:"+pd_total_this_week);
 		
 		var last_week = new Date();
 		last_week.setDate(last_week.getDate() - 7);
@@ -1276,6 +1241,7 @@ _extend(PageController.prototype, {
 			datetime: _dbify_date(last_week),
 			timetype_id: self.pddb.Weekly.id
 		});
+		logger(" MY PROGRESS: pd_total_last_week:"+pd_total_last_week);
 		
 		var pd_total = self.pddb.Total.get_or_null({
 			contenttype_id: tag_contenttype.id,
@@ -1283,6 +1249,7 @@ _extend(PageController.prototype, {
 			datetime: _dbify_date(_end_of_forever()),
 			timetype_id: self.pddb.Forever.id
 		});
+		logger(" MY PROGRESS: pd_total:"+pd_total);
 		
 		var this_week_hrs = 0.0;
 		if (pd_total_this_week) {
@@ -1809,6 +1776,25 @@ _extend(PageController.prototype, {
 		return tos
 	},
 	
+	/**
+	 * return maximum amount that would be paid at user's rate and limit
+	 * for the given min_auth_time.
+	 */
+	calculate_max_amount: function(pd_dollars_per_hr, pd_hr_per_week_max, min_auth_time) {
+		var max_per_week = pd_dollars_per_hr * pd_hr_per_week_max;
+		var total_weeks = 0;
+		if (min_auth_time.units == "months" || min_auth_time.units == "month") {
+			// 4.348 is the avg number weeks per month
+			total_weeks = min_auth_time.time * (365.25 / 12.0 / 7.0);
+		} else if (min_auth_time.units == "weeks" || min_auth_time.units == "week") {
+			total_weeks = min_auth_time.time;
+		} else if (min_auth_time.units == "years" || min_auth_time.units == "year") {
+			// 52.12 is the avg number of weeks per year
+			total_weeks = min_auth_time.time * (365.25 / 7.0);
+		}
+		return total_weeks * max_per_week;
+	},
+	
 	insert_register_payments: function(request) {
 		var self = this;
 		this.prefs.set('register_state', 'payments');
@@ -1819,18 +1805,107 @@ _extend(PageController.prototype, {
 				new Context({ substate_menu_items: substate_menu_items })
 			);
 
+		// money/time information
+		var pd_dollars_per_hr = self.retrieve_float_for_display('pd_dollars_per_hr', constants.PD_DEFAULT_DOLLARS_PER_HR);
+		var pd_hr_per_week_max = self.retrieve_float_for_display('pd_hr_per_week_max', constants.PD_DEFAULT_HR_PER_WEEK_MAX);
+		var min_auth_time = {
+			time: _un_prefify_float(self.prefs.get('min_auth_time', constants.DEFAULT_MIN_AUTH_TIME)),
+			units: self.prefs.get('min_auth_units', constants.DEFAULT_MIN_AUTH_UNITS),
+		};
+		var max_amount_paid = self.calculate_max_amount(pd_dollars_per_hr, pd_hr_per_week_max, min_auth_time);
+		
+		var multi_auth = self.pddb.FPSMultiuseAuthorization.most_recent();
+		var html = "";
+		if (multi_auth) {
+			html = Template.get("multi_auth_status").render(
+				new Context({ multi_auth: multi_auth })
+			);
+			request.jQuery(".multi_auth_status").html( html );
+		}
+			
+		// Receive updates from server
+		this.pddb.page.pd_api.request_data_updates(
+			function(recipients, multi_auths) {
+				// after success
+				var multi_auth = self.pddb.FPSMultiuseAuthorization.get_latest_success()
+				if (!multi_auth) {
+					multi_auth = self.pddb.FPSMultiuseAuthorization.most_recent();
+				}
+				var html = "";
+				if (multi_auth) {
+					html = Template.get("multi_auth_status").render(
+						new Context({ multi_auth: multi_auth })
+					);
+				}
+				request.jQuery("#multi_auth_status").html( html );
+			}, function() {
+				// after failure
+				// todo log failure?
+			}
+		);
+
+		// form parameters
+		var form_params = [
+			{ name: "global_amount_limit", value: parseInt(max_amount_paid+1) },
+			{ name: "caller_reference", value: create_caller_reference() },
+			{ name: "timestamp", value: _dbify_date(new Date()) },
+			{ name: "is_recipient_cobranding", value: true },
+			{ name: "payment_method", value: "ABT,ACH,CC" },
+			{ name: "payment_reason", value: this.prefs.get('fps_payment_reason', constants.DEFAULT_PAYMENT_REASON) },
+			{ name: "recipient_slug_list", value: "all" },
+			{ name: "version", value: this.prefs.get('fps_version', constants.DEFAULT_FPS_CBUI_VERSION) },
+			{ name: "private_key", value: this.prefs.get('private_key', constants.DEFAULT_PRIVATE_KEY) },
+		];
+
 		var middle = Template.get("register_payments_middle").render(
 				new Context({
+					constants: constants,
 					substate_menu_items: substate_menu_items,
 					substate_menu: substate_menu,
-					support_pct: self.retrieve_float_for_display('support_pct', constants.DEFAULT_SUPPORT_PCT),
-					monthly_fee: self.retrieve_float_for_display('monthly_fee', constants.DEFAULT_MONTHLY_FEE),
+					pd_dollars_per_hr: self.retrieve_float_for_display('pd_dollars_per_hr', constants.PD_DEFAULT_DOLLARS_PER_HR),
+					pd_hr_per_week_goal: self.retrieve_float_for_display('pd_hr_per_week_goal', constants.PD_DEFAULT_HR_PER_WEEK_GOAL),
+					pd_hr_per_week_max: self.retrieve_float_for_display('pd_hr_per_week_max', constants.PD_DEFAULT_HR_PER_WEEK_MAX),
+					min_auth_time: min_auth_time,
+					max_amount_paid: parseInt(max_amount_paid+1),
+					
+					multi_auth: multi_auth,
+					form_params: form_params,
+					action: constants.PD_URL + constants.AUTHORIZE_MULTIUSE_URL
 				})
 			);
 		request.jQuery("#content").html( middle );
 		
 		this.activate_substate_menu_items(request, 'payments',
 			constants.REGISTER_STATE_ENUM, constants.REGISTER_STATE_INSERTS, constants.REGISTER_STATE_PROCESSORS);
+		
+		this.activate_register_payments(request);
+	},
+	
+	activate_register_payments: function(request) {
+		var self = this;
+		request.jQuery("#min_auth_time_input").keyup(function() {
+			//#@TODO try catch parseFloat and display error
+			var time = parseFloat($(this).attr("value"));
+			if (!time) return
+			self.prefs.set('min_auth_time', _prefify_float(time));
+			
+			var pd_dollars_per_hr = self.retrieve_float_for_display('pd_dollars_per_hr', constants.PD_DEFAULT_DOLLARS_PER_HR);
+			var pd_hr_per_week_max = self.retrieve_float_for_display('pd_hr_per_week_max', constants.PD_DEFAULT_HR_PER_WEEK_MAX);
+			var min_auth_time = {
+				time: time,
+				units: self.prefs.get('min_auth_units', constants.DEFAULT_MIN_AUTH_UNITS),
+			};
+			var max_amount_paid = self.calculate_max_amount(pd_dollars_per_hr, pd_hr_per_week_max, min_auth_time);
+			
+			request.jQuery("#max_amount_paid").text(parseInt(max_amount_paid+1));
+			request.jQuery("#min_auth_time_display").text(min_auth_time.time);
+			request.jQuery("#min_auth_units_display").text(min_auth_time.units);
+		});
+		/*
+		request.jQuery(".go_to_amazon").click(function() {
+			self.pd_api.authorize_multiuse();
+			return false;
+		});*/
 	},
 	
 	process_register_payments: function(request) {

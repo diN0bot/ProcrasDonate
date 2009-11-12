@@ -98,7 +98,8 @@ class FPSMultiuseAuth(models.Model):
                 'DEVELOPER_ERROR': 'NM',
                 'RESPONSE_NOT_RECEIVED': '0',
                 'RESPONSE_ERROR': '1',
-                'CANCELLED': 'C'}
+                'CANCELLED': 'C',
+                'EXPIRED': 'EX'}
     # for database (data, friendly_name)                                                                                                                                          
     STATUS_CHOICES = (
                       (STATUSES['SUCCESS_ABT'], 'Success for Amazon account payment method',),
@@ -112,7 +113,8 @@ class FPSMultiuseAuth(models.Model):
                       (STATUSES['DEVELOPER_ERROR'], 'Developer is not registered as a third party caller to make this transaction',),
                       (STATUSES['RESPONSE_NOT_RECEIVED'], 'Request to CBUI has either not been sent or not received',),
                       (STATUSES['RESPONSE_ERROR'], 'Callback is called, but something unexpected prevents us from parsing a status',),
-                      (STATUSES['CANCELLED'], 'Token cancelled by user or expired')
+                      (STATUSES['CANCELLED'], 'Token cancelled by user'),
+                      (STATUSES['EXPIRED'], 'Token expired')
                      )
 
     user = models.ForeignKey(User)

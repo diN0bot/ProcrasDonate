@@ -54,6 +54,8 @@ var constants = {};
 	// used for development and testing
 	constants.MANUAL_TEST_SUITE_URL = '/dev/manual_test_suite/';
 	constants.AUTOMATIC_TEST_SUITE_URL = '/dev/automatic_test_suite/';
+	
+	constants.AMAZON_USER_URL = "https://payments.amazon.com";
 
 	// enumeration of settings page state
 	constants.DEFAULT_SETTINGS_STATE = "overview";
@@ -180,6 +182,7 @@ var constants = {};
 	];
 	
 	constants.DEFAULT_HASH = "nohash";
+	constants.DEFAULT_PRIVATE_KEY = "no_private_key";
 	constants.DEFAULT_USERNAME = "";
 	constants.DEFAULT_PASSWORD = "";
 	constants.DEFAULT_EMAIL = "";
@@ -195,8 +198,11 @@ var constants = {};
 	constants.DEFAULT_MONTHLY_FEE = _prefify_float(1.00);
 	constants.DEFAULT_PAYMENT_THRESHHOLD = 10;
 	
-	constants.DEFAULT_MAX_IDLE = 10; // 3 minutes
-	constants.DEFAULT_FLASH_MAX_IDLE = 30; // 20 minutes
+	constants.DEFAULT_MIN_AUTH_TIME = 12;
+	constants.DEFAULT_MIN_AUTH_UNITS = 'months';
+	
+	constants.DEFAULT_MAX_IDLE = 3*60; // 3 minutes
+	constants.DEFAULT_FLASH_MAX_IDLE = 20*60; // 20 minutes
 	
 	constants.DEFAULT_WEEKLY_AFFIRMATIONS = _dbify_bool(true);
 	constants.DEFAULT_ORG_THANK_YOUS = _dbify_bool(true);

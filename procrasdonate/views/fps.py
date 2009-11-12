@@ -221,7 +221,7 @@ def authorize_multiuse(request):
                            "recipient_slug_list",
                            "version",
                            #"timestamp",
-                           "hash"]
+                           "private_key"]
 
     response = extract_parameters(request, "POST", expected_parameters)
     if not response['success']:
@@ -229,8 +229,8 @@ def authorize_multiuse(request):
     
     # params to send back to client and use locally (database worthy)
     lower_parameters = response['parameters']
-    hash = lower_parameters['hash']
-    del lower_parameters['hash']
+    private_key = lower_parameters['private_key']
+    del lower_parameters['private_key']
     
     # params for FPS REST request
     camel_parameters = _switch_cases(response['parameters'], to_lower=False)
@@ -269,15 +269,14 @@ def authorize_multiuse(request):
     # add timestampe and signature
     finalize_parameters(camel_parameters, type=CBUI_TYPE)
     
-    full_url = "%s?%s" % (action_url,
-                          urllib.urlencode(camel_parameters))
+    full_url = "%s?%s" % (AMAZON_CBUI_URL, urllib.urlencode(camel_parameters))
     
     print 
     print "LOWER PARAMS A"
     print lower_parameters
     print
     
-    user = User.get_or_create(hash=hash)
+    user = User.get_or_create(private_key=private_key)
     multiuse = FPSMultiuseAuth.get_or_none(caller_reference=lower_parameters['caller_reference'])
     if not multiuse:
         multiuse = FPSMultiuseAuth.add(user, lower_parameters)
@@ -287,9 +286,7 @@ def authorize_multiuse(request):
     print lower_parameters
     print
     
-    return json_success({'form_html': form_html,
-                         'parameters': lower_parameters,
-                         'full_url': full_url})
+    return HttpResponseRedirect(full_url)
 
 def authorize_multiuse_callback(request, caller_reference):
     """
@@ -318,6 +315,7 @@ def authorize_multiuse_callback(request, caller_reference):
             status=CE
             callerReference=AmOYgYlAUMd6
     """
+    print request
     print "PAYMENT AUTH CALLBACK GET: ", caller_reference, json.dumps(request.GET, indent=2)
     multi_auth = FPSMultiuseAuth.get_or_none(caller_reference=caller_reference)
     
@@ -331,17 +329,20 @@ def authorize_multiuse_callback(request, caller_reference):
     
     response = extract_parameters(request, "GET", expected_parameters, optional_parameters)
     if not response['success']:
-        multi_auth.status = FPSMultiuseAuth.STATUS['RESPONSE_ERROR']
+        multi_auth.status = FPSMultiuseAuth.STATUSES['RESPONSE_ERROR']
         multi_auth.save()
         return HttpResponseRedirect(reverse('register'))
     
     parameters = response['parameters']
     print "PARAMS FROM EXTRACTOR", json.dumps(parameters, indent=2)
+    """
+    TODO
     corrupted = is_corrupted(parameters, CBUI_CALLBACK_TYPE)
     if corrupted:
         multi_auth.status = FPSMultiuseAuth.STATUS['RESPONSE_ERROR']
         multi_auth.save()
         return HttpResponseRedirect(reverse('register'))
+    """
 
     if FPSMultiuseAuth.success(parameters['status']):
         multi_auth.token_id = parameters['tokenID']
@@ -404,7 +405,7 @@ def cancel_multiuse(request):
     print
     expected_parameters = ["token_id",
                            "reason_text",
-                           "hash",
+                           "private_key",
                            "version",
                            "timestamp"]
 
@@ -433,8 +434,8 @@ def cancel_multiuse(request):
     
     # params to send back to client
     lower_parameters = response['parameters']
-    hash = lower_parameters['hash']
-    del lower_parameters['hash']
+    private_key = lower_parameters['private_key']
+    del lower_parameters['private_key']
     
     # params for FPS REST request
     camel_parameters = _switch_cases(response['parameters'], to_lower=False, cbui=False)
@@ -449,7 +450,7 @@ def cancel_multiuse(request):
     full_url = "%s?%s" % (AMAZON_FPS_API_URL,
                           urllib.urlencode(camel_parameters))
 
-    user = User.get_or_create(hash=hash)
+    user = User.get_or_create(private_key=private_key)
     FPSMultiuseCancelToken.add(user,
                                token_id=lower_parameters['token_id'],
                                reason_text=lower_parameters['reason_text'],
@@ -549,7 +550,7 @@ success!!!
                            "transaction_amount",
                            "recipient_slug",
                            "sender_token_id",
-                           "hash",
+                           "private_key",
                            "version"]
 
     response = extract_parameters(request, "POST", expected_parameters)
@@ -564,9 +565,9 @@ success!!!
     
     # params to send back to client
     lower_parameters = response['parameters']
-    hash = lower_parameters['hash']
-    del lower_parameters['hash']
-    user = User.get_or_create(hash=hash)
+    private_key = lower_parameters['private_key']
+    del lower_parameters['private_key']
+    user = User.get_or_create(private_key=private_key)
     
     rslug = lower_parameters['recipient_slug']
     recipient = Recipient.get_or_none(slug=rslug)

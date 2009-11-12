@@ -51,7 +51,7 @@ def send_email(request):
     if not request.POST:
         return json_failure("must *POST* data")
     
-    expected_parameters = ["hash",
+    expected_parameters = ["private_key",
                            "opt_in_status",
                            "email_type"]
     response = extract_parameters(request, "POST", expected_parameters)
@@ -82,7 +82,8 @@ def receive_data(request):
                      'payments'        : Processor.process_payment,
                      'requirespayments': Processor.process_requirespayment}
     
-    response = extract_parameters(request, "POST", ["hash"], datatypes)
+    expected_parameters = ["private_key"]
+    response = extract_parameters(request, "POST", expected_parameters, datatypes)
     if not response['success']:
         message = "dataflow.receive_data Failed to extract expected parameters %s from %s" % (expected_parameters,
                                                                                               request.POST)
@@ -90,11 +91,11 @@ def receive_data(request):
         return json_failure(message)
     parameters = response['parameters']
 
-    hash = parameters["hash"]
-    print "----HASH----------"
-    print json.dumps(hash, indent=2)
+    private_key = parameters["private_key"]
+    print "----private_key----------"
+    print json.dumps(private_key, indent=2)
     
-    user = User.get_or_create(hash)
+    user = User.get_or_create(private_key=private_key)
     print "----  USER ----"
     print user
     
@@ -134,7 +135,7 @@ def return_data(request):
     print "="*60
     print
     errors = []
-    expected_parameters = ["hash", "since"]
+    expected_parameters = ["private_key", "since"]
 
     response = extract_parameters(request, "GET", expected_parameters)
     if not response['success']:
@@ -146,11 +147,11 @@ def return_data(request):
     since = decode_time(since)
     print since
 
-    hash = response["parameters"]["hash"]
-    print "----HASH----------"
-    print json.dumps(hash, indent=2)
+    private_key = response["parameters"]["private_key"]
+    print "----private_key----------"
+    print json.dumps(private_key, indent=2)
     
-    user = User.get_or_create(hash)
+    user = User.get_or_create(private_key=private_key)
     print "----  USER ----"
     print user
     
@@ -177,7 +178,8 @@ def return_data(request):
     print '#.'*30;
     
     xpi_builder = XpiBuilder(pathify([PROJECT_PATH, 'procrasdonate', 'ProcrasDonateFFExtn'], file_extension=True),
-                             "%s%s" % (MEDIA_ROOT, 'xpi'))
+                             "%s%s" % (MEDIA_ROOT, 'xpi'),
+                             "%s%s" % (MEDIA_ROOT, 'rdf'))
     return json_success({'recipients': recipients,
                          'multiuse_auths': multiuse_auths,
                          'latest_version': xpi_builder.get_version()})

@@ -248,11 +248,26 @@ class Recipient(models.Model):
     
     @classmethod
     def Initialize(klass):
+        models.signals.pre_save.connect(Recipient.process_videos, sender=Recipient)
+        models.signals.pre_save.connect(Recipient.sanitize_user_input, sender=Recipient)
         #models.signals.pre_save.connect(Recipient.set_logo_dimensions, sender=Recipient)
         models.signals.post_save.connect(Recipient.scale_logo, sender=Recipient)
         
-        models.signals.pre_save.connect(Recipient.process_videos, sender=Recipient)
-    
+    @classmethod
+    def sanitize_user_input(klass, signal, sender, instance, **kwargs):
+        """
+        remove html tags
+        """
+        v_re = re.compile(r'<.*?>')
+        for field in ["name", "mission", "description",
+                      "twitter_name", "facebook_name",
+                      "employers_identification_number",
+                      "sponsoring_organization", "contact_name",
+                      "office_phone", "mailing_address",
+                      "city", "state", "country"]:
+            if getattr(instance, field):
+                setattr(instance, field, v_re.sub('', getattr(instance, field)))
+
     @classmethod
     def process_videos(klass, signal, sender, instance, **kwargs):
         """
