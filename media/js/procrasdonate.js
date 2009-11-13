@@ -69,7 +69,7 @@ function install(anchor_class) {
 		
 	} else {
 		// NOT READY FOR INSTALL YET
-		//return not_ready_to_install();
+		return not_ready_to_install();
 
 		// when ready, comment above line so that the following code is used.
 		var item = $("."+anchor_class).slice(0,1);
@@ -112,10 +112,8 @@ function install(anchor_class) {
 }
 
 function not_ready_to_install() {
-	alert("Payments through our service have been temporarily suspended because " +
-			"the third party payment service we've been using has gone out of " +
-			"business.\n\nWe are hard at work integrating with a new payment system.\n\n" +
-			"We will release this shortly.");
+    alert("Our service is currently open to select charities only.\n\nPlease email us at ProcrasDonate@bilumi.org if you represent a U.S. charity or if you'd like to be alerted of our upcoming public release (it should be available before the end of 2009).\n\nThanks!");
+
 	return false;
 }
 
