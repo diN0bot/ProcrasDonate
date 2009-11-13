@@ -511,6 +511,10 @@ function load_models(db, pddb) {
 			return this._payments(true);
 		},
 		
+		requires_payment: function() {
+			RequiresPayment.get_or_null({ total_id: this.id });
+		},
+		
 		deep_dict: function() {
 			/*
 			 * Extracts foreign keys.

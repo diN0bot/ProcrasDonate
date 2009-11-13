@@ -102,6 +102,10 @@ img { -ms-interpolation-mode:bicubic; }
 #OrganizerMenu .here_we_are { background: #7597ba; border-top: 0.1em dotted white; }
 #OrganizerMenu .here_we_are a { color: #00B0F0; }
 
+#AdminMenu { padding-bottom: 1em; }
+#AdminMenu a { color: #666666; display: block; font-size: .77em; }
+#AdminMenu a:hover { color: black; }
+	
 /*#MainMenu #learn_more_menu_item.here_we_are a { word-spacing: inherit; letter-spacing: .1em; }*/
 
 #footer { font-size: .8em; height: 5em;  font-weight: normal; margin: auto; }

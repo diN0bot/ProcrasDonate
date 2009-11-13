@@ -186,7 +186,7 @@ class Recipient(models.Model):
     """
     last_modified = models.DateField(auto_now=True)
 
-    slug = models.SlugField(db_index=True)
+    slug = models.SlugField(db_index=True, help_text="UNIQUE acronym for url. eg BILUMI in procrasdonate.com/r/BILUMI")
     name = models.CharField(max_length=200, null=True, blank=True, verbose_name="Organization's Name")
     category = models.ForeignKey('Category', blank=True, null=True)
     mission = models.CharField(max_length=200, null=True, blank=True, verbose_name="Charitable Mission")
@@ -207,7 +207,7 @@ class Recipient(models.Model):
     mailing_address = models.CharField(max_length=200, blank=True, null=True)
     city = models.CharField(max_length=100, blank=True, null=True)
     state = models.CharField(max_length=50, blank=True, null=True)
-    country = models.CharField(max_length=100, default='USA')
+    country = models.CharField(max_length=100, blank=True, null=True, default='USA')
     
     logo = models.ImageField(upload_to=get_image_path, blank=True, null=True)
     SCALED_MAX_HEIGHT = 100

@@ -439,9 +439,9 @@ _extend(Controller.prototype, {
 			///            their mouse but not click so that IDLE isn't
 			///            inadvertantly triggered in the middle of the test.
 			///            the test runs for at least 5 minute.
-			testrunner.test("Test Idle/Back-Focus/Blur Combos", function() {
-				self.pddb.tester.test_idle_focus_combos(testrunner, _bind(self, self.display_test_results));
-			});
+			/*testrunner.test("Test Idle/Back-Focus/Blur Combos", function() {
+				self.pddb.tester.test_idle_focus_combos(testrunner, self.display_test_results);
+			});*/
 		} catch(e) {
 			self.pddb.orthogonals.error(e+"\n\n"+e.stack);
 		}
@@ -453,7 +453,7 @@ _extend(Controller.prototype, {
 	
 	display_test_results: function(testrunner) {
 		var inner_display = new TestRunnerConsoleDisplay();
-		var display = new TestRunnerPDDisplay(inner_display, self.pddb);
+		var display = new TestRunnerPDDisplay(inner_display, this.pddb);
 		for (var name in testrunner.test_modules) {
 			var test_module = testrunner.test_modules[name];
 			for (var i = 0; i < test_module.test_groups.length; i++) {
