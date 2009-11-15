@@ -198,8 +198,8 @@ class Recipient(models.Model):
     
     is_visible = models.BooleanField(default=True)
     
-    employers_identification_number = models.CharField(max_length=32, blank=True, null=True, verbose_name="IRS assigned EIN (Employwer Identification Number)")
-    tax_exempt_status = models.BooleanField(default=False, verbose_name="Is this charity tax exempt in the USA?")
+    employers_identification_number = models.CharField(max_length=32, blank=True, null=True, verbose_name="IRS EIN (Employer Identification Number)")
+    tax_exempt_status = models.BooleanField(default=False, verbose_name="Check if US tax exempt organization:")
     sponsoring_organization = models.CharField(max_length=200, blank=True, null=True)
     contact_name = models.CharField(max_length=200, blank=True, null=True)
     contact_email = models.EmailField(blank=True, null=True)
@@ -216,8 +216,8 @@ class Recipient(models.Model):
     logo_height = models.IntegerField(default=SCALED_MAX_HEIGHT)
     logo_width = models.IntegerField(default=SCALED_MAX_WIDTH)
     
-    promotional_video = models.URLField(blank=True, null=True)
-    pd_experience_video = models.URLField(blank=True, null=True)
+    promotional_video = models.URLField(blank=True, null=True, help_text="A good way to attract new donors is to have your organization's video rotating through the ProcrasDonate website.  Copy the <b>full</b> website address of the Youtube video that best represents your organization and paste it here. (optional)")
+    pd_experience_video = models.URLField(blank=True, null=True, help_text="The secondary video box on our website is reserved for videos about using ProcrasDonate. If you'd like to share your organization's experience using ProcrasDonate then add that Youtube address here. (optional)")
     
     charity_navigator_score = models.IntegerField(blank=True, null=True)
     
