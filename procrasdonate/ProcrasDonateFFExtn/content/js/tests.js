@@ -43,6 +43,7 @@ _extend(PDChecks.prototype, {
 	///   corresponding Payment (same total) with 
 	///   matching amount
 	/// * else no corresponding Payment
+	/// #@TODO single requires payment per total
 	///
 	check_requires_payments: function(testrunner) {
 		var self = this;
@@ -51,11 +52,11 @@ _extend(PDChecks.prototype, {
 			var total = row.total();
 			
 			// recipient or sitegroup total only
-			testrunner.ok(!total.recipient() && !total.sitegroup(),
+			testrunner.ok(total.recipient() || total.sitegroup(),
 					"Expected RECIPIENT or SITEGROUP requires_payment, not "+total.contenttype()+" total="+total);
 			
 			// weekly total only
-			testrunner.ok(total.timetype().id == self.pddb.Weekly,
+			testrunner.ok(total.timetype().id == self.pddb.Weekly.id,
 					"Expected WEEKLY requires_payment, not "+total.timetype()+" total="+total);
 
 			// partially paid have corresponding Payment with matching amount
@@ -76,7 +77,44 @@ _extend(PDChecks.prototype, {
 		var self = this;
 		
 		self.pddb.Payment.select({}, function(row) {
+			if (_un_dbify_bool(row.sent_to_service)) {
+				// if payment is settled, there should no longer be required payments
+				// #@TODO if settled, should also have a success FPS Multiuse Pay row
+				_iterate(row.totals(), function(key, total, idx) {
+					testrunner.ok(!total.requires_payment(),
+						"Settled payment should not have a requires payment, but it does: "+total+" requires_payment: "+total.requires_payment()+" payment: "+row);
+				});
+				
+			} else if (_un_dbify_bool(row.sent_to_service)) {
+				// if payment is unsettled but sent, there should be pending required payments
+				_iterate(row.totals(), function(key, total, idx) {
+					testrunner.ok(total.requires_payment() && total.requires_payment().is_pending(),
+						"Unsettled payment should have a pending requires payment, but it does not: "+total+" requires_payment: "+total.requires_payment()+" payment: "+row);
+				});
+				
+			} else {
+				// unsettled and unsent should never happen
+				testrunner.ok(false,
+					"Unsettled and unsent payment should never happen, but it did: "+total+" payment: "+row);
+			}
 			
+			// amount paid should equal sum of all totals
+			// plus, contenttype_id and content_id should be the same for all totals
+			var sum = 0.0;
+			var contenttype_id = -1;
+			var content_id = -1;
+			_iterate(row.totals(), function(key, total, idx) {
+				sum += total.total_amount;
+				if (contenttype_id == -1) {
+					contenttype_id = total.contenttype_id;
+					content_id = total.content_id;
+				} else {
+					testrunner.equal(
+						contenttype_id,
+						total.contenttype_id,
+						"as;dlfkja;sdlfj"
+						);
+			});
 		});
 	},
 });
@@ -168,8 +206,8 @@ _extend(PDTests.prototype, {
 	//
 	visit_new_site: function(tag, seconds) {
 		var site = this.new_site(tag);
-		self.pddb.store_visit(site.url, _dbify_date(new Date()), seconds);
-		return url
+		this.pddb.store_visit(site.url, _dbify_date(new Date()), seconds);
+		return site.url
 	},
 	
 	retrieve_totals: function(testrunner, url, tag) {

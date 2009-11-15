@@ -27,7 +27,7 @@ _extend(ProcrasDonate_API.prototype, {
 		};
 		
 		var data = {
-			hash: this.prefs.get('hash', constants.DEFAULT_HASH)
+			private_key: this.prefs.get('private_key', constants.DEFAULT_PRIVATE_KEY)
 		}
 		
 		_iterate(models_to_methods, function(key, value, index) {
@@ -138,7 +138,7 @@ _extend(ProcrasDonate_API.prototype, {
 		});
 		
 		var data = {
-			hash: this.prefs.get('hash', constants.DEFAULT_HASH)
+			private_key: this.prefs.get('private_key', constants.DEFAULT_PRIVATE_KEY)
 		};
 		data[this.pddb[KlassName].table_name] = items;
 		
@@ -200,7 +200,7 @@ _extend(ProcrasDonate_API.prototype, {
 		var self = this;
 		
 		var data = {
-			hash: this.prefs.get('hash', constants.DEFAULT_HASH),
+			private_key: this.prefs.get('private_key', constants.DEFAULT_PRIVATE_KEY),
 			globalAmountLimit: this.prefs.get('global_amount_limit', constants.DEFAULT_GLOBAL_AMOUNT_LIMIT),
             creditLimit: this.prefs.get('credit_limit', constants.DEFAULT_CREDIT_LIMIT),
             version: this.prefs.get('fps_version', constants.DEFAULT_FPS_CBUI_VERSION),
@@ -233,7 +233,7 @@ _extend(ProcrasDonate_API.prototype, {
 			constants.PD_URL + constants.SEND_WELCOME_EMAIL_URL,
 			{
 				email_address: this.prefs.get('email', constants.DEFAULT_EMAIL),
-				hash: this.prefs.get('hash', constants.DEFAULT_HASH),
+				private_key: this.prefs.get('private_key', constants.DEFAULT_PRIVATE_KEY)
 			},
 			"POST",
 			function() {}
@@ -244,7 +244,7 @@ _extend(ProcrasDonate_API.prototype, {
 		
 	},
 	
-    authorize_multiuse: function(caller_reference, onsuccess, onfailure) {
+    authorize_multiuse: function(onsuccess, onfailure) {
 		var multi_auth = this.pddb.FPSMultiuseAuthorization.get_or_create({
 			caller_reference: caller_reference
 		}, {
@@ -259,7 +259,7 @@ _extend(ProcrasDonate_API.prototype, {
 
 		multi_auth = multi_auth.deep_dict();
 		var data = _extend(multi_auth, {
-			hash: this.prefs.get('hash', constants.DEFAULT_HASH),
+			private_key: this.prefs.get('private_key', constants.DEFAULT_PRIVATE_KEY),
 			version: this.prefs.get('fps_version', constants.DEFAULT_FPS_CBUI_VERSION)
 		});
 
@@ -288,7 +288,7 @@ _extend(ProcrasDonate_API.prototype, {
 			{
 				token_id: multiuse.token_id,
 				reason_text: reason_text,
-				hash: this.prefs.get('hash', constants.DEFAULT_HASH),
+				private_key: this.prefs.get('private_key', constants.DEFAULT_PRIVATE_KEY),
 				version: this.prefs.get('fps_version', constants.DEFAULT_FPS_API_VERSION),
 				timestamp: _dbify_date(new Date())
 			},
@@ -312,31 +312,66 @@ _extend(ProcrasDonate_API.prototype, {
 			}
 		);
 	},
-	
-	pay_multiuse: function(transaction_amount, recipient, after_success, after_failure) {
+
+	pay_multiuse: function(transaction_amount, recipient, requires_payments, after_success, after_failure) {
+		// 1. create FPS Multiuse Pay
+		// 2. create payment
+		// 3. link payment to all totals
+		// 4. set requires payment to pending
+		// 5. send FPS Multiuse Pay to server
 		var self = this;
 		
 		var multiauth = this.pddb.FPSMultiuseAuthorization.get_latest_success();
 		if (!multiauth || !multiauth.token_id) {
-			self.pddb.orthogonals.error("Not successfully authorized to make payments", "pay");
+			self.pddb.orthogonals.log("User is not authorized to make payments: "+multiauth, "pay");
 			return
 		}
 		
-		var pay = this.pddb.FPSMultiusePay.create({
-			timestamp: _dbify_date(new Date()),
+		var dtime = _dbify_date(new Date());
+		
+		// create fps multiuse pay
+		var fps_pay = this.pddb.FPSMultiusePay.create({
+			timestamp: dtime,
 			caller_reference: create_caller_reference(),
 			//marketplace_fixed_fee: 0,
 			marketplace_variable_fee: 10.00,
 			transaction_amount: transaction_amount,
 			recipient_slug: recipient.slug,
 			sender_token_id: multiauth.token_id,
-			
 			transaction_status: self.pddb.FPSMultiuseAuthorization.WAITING
 		});
+		
+		// create payment
+		var pay = self.pddb.Payment.create({
+			payment_service_id: self.pddb.AmazonFPS,
+			transaction_id: -1,
+			sent_to_service: _dbify_bool(true),
+			settled: _dbify_bool(false),
+			total_amount_paid: transaction_ammount,
+			amount_paid: transaction_amount,
+			amount_paid_in_fees: -1,
+			amount_paid_tax_deductibly: -1,
+			datetime: dtime
+		});
+		
+		_iterate(requires_payments, function(key, value, index) {
+			// set requires payment to pending = true
+			var total = value.total();
+			self.pddb.PaymentTotalTagging.create({
+				total_id: total.id,
+				payment_id: pay.id
+			});
+			// link payment with totals
+			self.pddb.RequiresPayment.set({
+				pending: _dbify_bool(true),
+			}, {
+				id: value.id
+			});
+		});
 
-		pay = pay.deep_dict();
-		var data = _extend(pay, {
-			hash: this.prefs.get('hash', constants.DEFAULT_HASH),
+		// send fps multiuse auth to server
+		var data = _extend(fps_pay.deep_dict(), {
+			private_key: this.prefs.get('private_key', constants.DEFAULT_PRIVATE_KEY),
 			version: this.prefs.get('fps_version', constants.DEFAULT_FPS_API_VERSION),
 			timestamp: _dbify_date(new Date())
 		});
@@ -364,29 +399,62 @@ _extend(ProcrasDonate_API.prototype, {
 			);
 	},
 	
-	make_payments: function() {
+	make_payments_if_necessary: function() {
 		var self = this;
+		
 		var prevent_payments = self.prefs.get('prevent_payments ', constants.DEFAULT_PREVENT_PAYMENTS);
 		if (prevent_payments) {
 			self.pddb.orthogonals.log("Aborted because prevent_payments flag is: "+prevent_payments, "make_payments")
 			return 
 		}
 		
-		this.pddb.RequiresPayment.select({}, function(row) {
+		var multiauth = this.pddb.FPSMultiuseAuthorization.get_latest_success();
+		if (!multiauth || !multiauth.token_id) {
+			self.pddb.orthogonals.log("User is not authorized to make payments: "+multiauth, "pay");
+			return
+		}
+		
+		// { recipient: total_amount, ...}
+		var recipient_total_amounts = {};
+		
+		//// we need these to prevent race conditions later when we
+		//// set requires payments to pending and match totals to payment.
+		//// just in case more totals and requires payments are created
+		//// in middle of computation....unlikely, but just in case......
+		// { recipient: [requires_payment, ...] , ...}
+		var recipient_requires_payments = {};
+		
+		this.pddb.RequiresPayment.select({
+			pending: _dbify_bool(false)
+		}, function(row) {
 			var total = row.total();
 			var recipient = total.recipient();
+			// #@TODO assert recipient is not null...???
+
+			// in dollars
 			var amount = parseFloat(total.total_amount) / 100.00;
-			var threshhold = self.prefs.get('payment_threshhold ', constants.DEFAULT_PAYMENT_THRESHHOLD);
-			if (recipient && amount >= threshhold) {
+			
+			var x = recipient_total_amounts[recipient];
+			if (!x) { recipient_total_amounts[recipient] = 0; }
+			recipient_total_amounts[recipient] += amount;
+			
+			var x = recipient_requires_payments[recipient];
+			if (!x) { recipient_requires_payments[recipient] = []; }
+			recipient_requires_payments[recipient].push(row);
+		});
+		
+		var threshhold = self.prefs.get('payment_threshhold ', constants.DEFAULT_PAYMENT_THRESHHOLD);
+		_iterate(recipient_total_amounts, function(key, value, index) {
+			if (key && value >= threshhold) {
 				pay_multiuse(
-						total.total_amount,
-						recipient,
-						function() {
-							// after success
-							self.pddb.RequiresPayment.del({id: row.id})
-						}, function() {
-							// after_failure
-						});
+					value,
+					key,
+					recipient_requires_payments[key],
+					function() {
+						// after success
+					}, function() {
+						// after_failure
+					});
 			}
 		});
 	},
@@ -401,7 +469,7 @@ _extend(ProcrasDonate_API.prototype, {
 			constants.PD_URL + constants.RECEIVE_DATA_URL,
 			{
 				since: 0, // self.prefs.get('since_received_data', 0);
-				hash: this.prefs.get('hash', constants.DEFAULT_HASH),
+				private_key: this.prefs.get('private_key', constants.DEFAULT_PRIVATE_KEY),
 			}, //#@TODO store time in prefs
 			"GET",
 			function(r) {

@@ -1,4 +1,4 @@
-var STORE_VISIT_LOGGING = false;
+var STORE_VISIT_LOGGING = true;
 var IDLE_LOGGING = false;
 
 var ProcrasDonate__UUID="extension@procrasdonate.com";
@@ -598,6 +598,12 @@ PDDB.prototype = {
 		this.Weekly  = this.TimeType.get_or_create({ timetype: "Weekly" });
 		this.Yearly  = this.TimeType.get_or_create({ timetype: "Yearly" });
 		this.Forever = this.TimeType.get_or_create({ timetype: "Forever" });
+		
+		////// PAYMENT SERVICES ////////
+		this.AmazonFPS = this.PaymentService.get_or_create({
+			name: "Amazon Flexible Payments Service",
+			user_url: constants.AMAZON_USER_URL
+		});
 
 		////// CONTENTTYPES ////////
 		this.content_types = {};
@@ -829,14 +835,12 @@ PDDB.prototype = {
 			});
 			if (STORE_VISIT_LOGGING) logger("store created "+site);
 		}
-		if (STORE_VISIT_LOGGING) logger("store_visit site: "+site);
 		
 		var visit = this.Visit.create({
 			site_id: site.id,
 			enter_at: start_time,
 			duration: duration
 		});
-		if (STORE_VISIT_LOGGING) logger("store_visit visit: " + visit);
 		
 		this.update_totals(site, visit);
 	},
@@ -859,11 +863,12 @@ PDDB.prototype = {
 		var timetypes = [ this.Daily, this.Weekly, this.Yearly, this.Forever ];
 		var times     = [ end_of_day, end_of_week, end_of_year, end_of_forever ];
 		
-		var pd_dollars_per_hr = this.prefs.get('pd_dollars_per_hr', constants.PD_DEFAULT_DOLLARS_PER_HR);
-		var tws_dollars_per_hr = this.prefs.get('tws_dollars_per_hr', constants.TWS_DEFAULT_DOLLARS_PER_HR);
+		var pd_dollars_per_hr = _un_prefify_float(this.prefs.get('pd_dollars_per_hr', constants.PD_DEFAULT_DOLLARS_PER_HR));
+		var tws_dollars_per_hr = _un_prefify_float(this.prefs.get('tws_dollars_per_hr', constants.TWS_DEFAULT_DOLLARS_PER_HR));
 		
-		if (STORE_VISIT_LOGGING) logger("update visit="+visit);
+		if (STORE_VISIT_LOGGING) logger("pd_dollars_per_hr="+pd_dollars_per_hr);
 		
+		// time_delta is in seconds
 		var time_delta = parseInt(visit.duration);
 		var limited_time_delta = time_delta;
 		/// A total's total_time is always aggregated on how much time a user spent
@@ -885,8 +890,9 @@ PDDB.prototype = {
 		// NOTE: pd support gets taken automatically by amazon !!
 		// amazon fee and marketplace fee to PD are automatically taken
 		// from recipient's account! so full amount is tax deductible if any part is!
-		var pd_full_amount_delta = ( limited_time_delta / (60.0*60.0) ) * parseFloat(pd_dollars_per_hr);
-		var tws_full_amount_delta = ( limited_time_delta / (60.0*60.0) ) * parseFloat(tws_dollars_per_hr);
+		// time_delta is in seconds / (60s/m * 60m/h) --> hours
+		var pd_full_amount_delta = ( limited_time_delta / (60.0*60.0) ) * pd_dollars_per_hr;
+		var tws_full_amount_delta = ( limited_time_delta / (60.0*60.0) ) * tws_dollars_per_hr;
 		
 		if (STORE_VISIT_LOGGING) logger("time_delta="+time_delta+"limited_time_delta="+limited_time_delta+" pd_dollars_per_hr="+pd_dollars_per_hr+" tws_dollars_per_hr="+tws_dollars_per_hr);
 		
@@ -897,9 +903,6 @@ PDDB.prototype = {
 		// don't need these anymore. see above note
 		var pd_rest_amount = pd_full_amount_delta - pd_skim_amount;
 		var tws_rest_amount = tws_full_amount_delta - tws_skim_amount;
-		
-		if (STORE_VISIT_LOGGING) logger(" the PD amounts: full="+pd_full_amount_delta+" skim="+pd_skim_amount+" rest="+pd_rest_amount);
-		if (STORE_VISIT_LOGGING) logger(" the TWS amounts: full="+tws_full_amount_delta+" skim="+tws_skim_amount+" rest="+tws_rest_amount);
 		
 		// abstract away whether this visit is ProcrasDonate, TimeWellSpent or Unsorted
 		var full_amount_delta = 0;
@@ -916,6 +919,8 @@ PDDB.prototype = {
 		} else if ( tag.id == this.Unsorted.id ) {
 			// no money changes hands
 		}
+		
+		if (STORE_VISIT_LOGGING) logger("tag == "+tag.tag+"\nfull_amount_delta="+full_amount_delta+" skim_amount="+skim_amount+" rest_amount="+rest_amount);
 		
 		/// array objects containing:
 		///	contenttype instance
@@ -972,7 +977,7 @@ PDDB.prototype = {
 				}
 				
 			} else {
-				this.orthogonals.error("update_totals:: not a content type we care about");
+				this.orthogonals.warn("update_totals:: not a content type we care about:"+row);
 				if (STORE_VISIT_LOGGING) logger("update_totals:: not a content type we care about");
 			}
 		});
@@ -994,7 +999,6 @@ PDDB.prototype = {
 				
 				if (STORE_VISIT_LOGGING) logger(" .....timetypes="+timetypes[i]);
 				if (STORE_VISIT_LOGGING) logger(" .....times="+times[i]);
-				if (STORE_VISIT_LOGGING) logger(" .....before.. total...");
 				var total = this.Total.get_or_create({
 					contenttype_id: contenttype.id,
 					content_id: content.id,
@@ -1004,10 +1008,10 @@ PDDB.prototype = {
 					total_time: 0,
 					total_amount: 0,
 				});
+				if (STORE_VISIT_LOGGING) logger(" .....before.. total... ="+total);
+				
 				var new_total_time = parseInt(total.total_time) + time_delta;
 				var new_total_amount = parseFloat(total.total_amount) + parseFloat(amt);
-				if (STORE_VISIT_LOGGING) logger("poiu......... time_delta="+time_delta+" new_time="+new_total_time+"   amount_delta="+amt+" new_amt="+new_total_amount);
-				if (STORE_VISIT_LOGGING) logger("poiu......... total="+total);
 				
 				this.Total.set({
 					total_time: parseInt(total.total_time) + time_delta,
@@ -1015,8 +1019,7 @@ PDDB.prototype = {
 				}, {
 					id: total.id
 				});
-				if (STORE_VISIT_LOGGING) total = this.Total.get_or_null({ id: total.id });
-				if (STORE_VISIT_LOGGING) logger("updated total="+total);
+				if (STORE_VISIT_LOGGING) logger("updated total="+this.Total.get_or_null({ id: total.id }));
 				
 				if ( requires_payment && timetypes[i].id == this.Weekly.id ) {
 					this.RequiresPayment.get_or_create({
@@ -1108,6 +1111,11 @@ Orthogonals.prototype = {
 	},
 	
 	log: function(msg, detail_type) {
+		/*try {
+			this.FAIL(); // we expect this to fail because we haven't defined a FAIL property!
+		} catch (e) {
+			logger("Orthogonals lOOOOOOOg: "+detail_type+": "+msg+"\n"+e.stack);
+		}*/
 		this._record("LOG", msg, detail_type);
 	},
 	
@@ -1120,6 +1128,7 @@ Orthogonals.prototype = {
 	},
 	
 	error: function(msg, detail_type) {
+		//logger("Orthogonal.ErRoR ("+detail_type+"): "+msg);
 		this._record("ERROR", msg, detail_type);
 		try {
 			this.FAIL(); // we expect this to fail because we haven't defined a FAIL property!

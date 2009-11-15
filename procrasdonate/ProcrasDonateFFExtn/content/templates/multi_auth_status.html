@@ -1,0 +1,25 @@
+
+<div id="multi_auth_status_updated">
+	{% if multi_auth.good_to_go %}
+		<p>Payments approved! Click "done" to complete registration.
+			You can update these settings later at any time.</p>
+	{% endif %}{% if multi_auth.error %}
+		<p>A problem occurred. Please copy/paste the error message below
+			into an email to <a href="procrasdonate@bilumi.org">
+			procrasdonate@bilumi.org</a>
+			<blockquote>error message: {{ multi_auth.caller_reference }} -  
+				{{ multi_auth.status }} {{ multi_auth.error_message }}</blockquote>
+		</p>
+	{% endif %}{% if multi_auth.expired %}
+		<p>Authorization expired</p>
+	{% endif %}{% if multi_auth.cancelled %}
+		<p>Authorization canceled</p>
+	{% endif %}{% if multi_auth.aborted %}
+		<p>Did you mean to cancel authorization? Please try again or email
+		<a href="procrasdonate@bilumi.org">procrasdonate@bilumi.org</a> 
+		for help.
+		</p>
+	{% endif %}{% if multi_auth.response_not_received %}
+		<p>Retrieving information from server...</p>
+	{% endif %}
+</div>

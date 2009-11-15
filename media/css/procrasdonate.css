@@ -102,6 +102,10 @@ img { -ms-interpolation-mode:bicubic; }
 #OrganizerMenu .here_we_are { background: #7597ba; border-top: 0.1em dotted white; }
 #OrganizerMenu .here_we_are a { color: #00B0F0; }
 
+#AdminMenu { padding-bottom: 1em; }
+#AdminMenu a { color: #666666; display: block; font-size: .77em; }
+#AdminMenu a:hover { color: black; }
+	
 /*#MainMenu #learn_more_menu_item.here_we_are a { word-spacing: inherit; letter-spacing: .1em; }*/
 
 #footer { font-size: .8em; height: 5em;  font-weight: normal; margin: auto; }
@@ -414,6 +418,18 @@ td { padding: .6em 0em .5em 0em; vertical-align: middle; }
 .next { margin: 1em 0em 0em 1em; width: 6em; max-height: 52px; cursor: pointer; }
 .done { margin: 1em 1em 0em 0em; width: 6em; cursor: pointer; }
 
+/**** REGISTER PAYMENTS ****/
+
+#go_to_amazon_button { width: 20em; margin-top: -2em; }
+#multi_auth_status_updated {
+	padding: .4em 1.2em;
+	margin: 1em auto 0em auto;
+	-moz-border-radius:.7em;
+	background:#FFF1A8;
+	color: #000000;
+	font-weight: bold;
+}
+
 /**** SETTINGS *****/
 .up_arrow, .down_arrow { height: 1.7em; }
 
@@ -512,20 +528,20 @@ td { padding: .6em 0em .5em 0em; vertical-align: middle; }
 
 #dashboard_actions { width: 100%; margin-bottom: 1em; }
 #dashboard_actions td a {
-	background: #DDDDDD;
+	/*background: #DDDDDD;*/
 	-moz-border-radius: .4em;
 	padding: .3em 1em .5em 1em;
 }
-#dashboard_actions td a:hover { background: #DDEEFF; }
+#dashboard_actions td a:hover { /*background: #DDEEFF;*/ }
 
 #contact_procrasdonate { text-align: center; }
 
-/**** RECIPIENT ORGANIZER POSTCARD PAGES *****/
+/**** RECIPIENT ORGANIZER POSTCARDS AND PAYMENT REGISTRATION SCREENSHOTS *****/
 #postcard_big_div { width: 100%; padding: 2em 0em; text-align: center; background: #336699; }
 #postcard_big { width: 50em; }
 #postcard_thumbnails { list-style: none; padding: 0em; text-align: center; }
 #postcard_thumbnails li { display: inline; }
-#postcard_thumbnails li .postcard_thumbnail { padding: .4em; width: 8em; }
+#postcard_thumbnails li .postcard_thumbnail { padding: .4em; width: 8em; cursor: pointer; }
 #postcard_thumbnails li .selected {
 	/*border: 0.27em ridge #336699;*/
 	background: #336699;
@@ -533,3 +549,19 @@ td { padding: .6em 0em .5em 0em; vertical-align: middle; }
 }
 #postcard_prev { width: 5em; }
 #postcard_next { width: 5em; }
+
+/**** RECIPIENT ORGANIZER PAYMENT REGISTRATION SCREENSHOTS *****/
+/* reuses CSS above */
+#screenshot_big_div { width: 65em; padding: 1em; text-align: center; background: #336699; }
+#screenshot_big { width: 100%; height: 100%; }
+.screenshot_thumbnails { margin-top: 0em; }
+#screenshot_steps {
+	list-style: none;
+	padding: 0em;
+	text-align: center;
+	margin: 0em;
+	font-weight: bold;
+	color: #888888;
+}
+#screenshot_steps li { display: inline; padding: 0em 2.7em; cursor: pointer; }
+#screenshot_steps .selected { display: inline; padding: 0em 2.7em; color: #336699; }

@@ -9,7 +9,7 @@ urlpatterns = patterns('',)
 
 urlpatterns += patterns('',
     (r'^admin/doc/', include('django.contrib.admindocs.urls')),
-    (r'^admin/(.*)', admin.site.root),
+    url(r'^admin/(.*)', admin.site.root, name="admin"),
     (r'^fps/', include('procrasdonate.views.fps_urls')),
     (r'', include('procrasdonate.views.static_urls')),
     (r'', include('procrasdonate.views.dynamic_urls')),

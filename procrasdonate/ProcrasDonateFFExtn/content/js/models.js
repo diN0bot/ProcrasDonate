@@ -511,6 +511,10 @@ function load_models(db, pddb) {
 			return this._payments(true);
 		},
 		
+		requires_payment: function() {
+			RequiresPayment.get_or_null({ total_id: this.id });
+		},
+		
 		deep_dict: function() {
 			/*
 			 * Extracts foreign keys.
@@ -642,7 +646,7 @@ function load_models(db, pddb) {
 	var RequiresPayment = new Model(db, "RequiresPayment", {
 		table_name: "requirespayments",
 		columns: {
-			_order: ["id", "total_id", "partially_paid"],
+			_order: ["id", "total_id", "partially_paid", "pending"],
 			
 			id: "INTEGER PRIMARY KEY",
 			total_id: "INTEGER",
@@ -804,7 +808,7 @@ function load_models(db, pddb) {
 		columns: {
 			_order: ["id", "timestamp", "caller_reference", "global_amount_limit",
 			         "is_recipient_cobranding", "payment_method", "payment_reason",
-			         "recipient_slug_list",
+			         "recipient_slug_list", "expiry",
 			         "status", "token_id", "error_message"],
 			id: "INTEGER PRIMARY KEY",
 			timestamp: "INTEGER", //"DATETIME"
@@ -814,6 +818,7 @@ function load_models(db, pddb) {
 			payment_method: "VARCHAR",
 			payment_reason: "VARCHAR",
 			recipient_slug_list: "VARCHAR",
+			expiry: "VARCHAR",
 			
 			status: "VARCHAR", // 
 			token_id: "VARCHAR",
@@ -840,7 +845,7 @@ function load_models(db, pddb) {
 		},
 		
 		error: function() {
-			return this.system_error() || this.aborted() || this.caller_error() || this.response_error() ||
+			return this.system_error() || this.caller_error() || this.response_error() ||
 				this.payment_error() || this.developer_error() || this.payment_method_error()
 		},
 		
@@ -928,36 +933,30 @@ function load_models(db, pddb) {
 				caller_reference: ma.caller_reference
 			});
 			if (!multi_auth) {
-				logger(" NO MULTI AUTH IN CLIENT TO MATCH SERVER ");
-				// we shouldn't have to create an auth.
-				// #@TODO maybe we should check for database destruction elsewhere...
-				// or backup data?
-				return null;
-			    /* shouldn't have to create ma
-	                'timestamp': self.timestamp,
-	                'payment_reason': self.payment_reason,
-	                'global_amount_limit': self.global_amount_limit,
-	                'recipient_slug_list': self.recipient_slug_list,
-	                'token_id': self.token_id,
-	                'expiry': self.expiry,
-	                'status': self.status}
-	              */
+				multi_auth = pddb.FPSMultiuseAuthorization.create({
+	                timestamp: ma.timestamp,
+	                payment_reason: ma.payment_reason,
+	                global_amount_limit: ma.global_amount_limit,
+	                recipient_slug_list: ma.recipient_slug_list,
+	                token_id: ma.token_id,
+	                expiry: ma.expiry,
+	                status: ma.status,
+	                error_message: ma.error_message,
+	                caller_reference: ma.caller_reference
+				});
+			} else {
+				pddb.FPSMultiuseAuthorization.set({
+					status: ma.status,
+					token_id: ma.token_id,
+					error_message: ma.error_message
+				}, {
+					id: multi_auth.id
+				});
+				
+				multi_auth = pddb.FPSMultiuseAuthorization.get_or_null({
+					id: multi_auth.id
+				});
 			}
-
-			var testsc = "SC";
-			logger(" about to set status "+testsc+", "+ma.status+", for id="+multi_auth.id);
-			pddb.FPSMultiuseAuthorization.set({
-				status: ma.status,
-				token_id: ma.token_id,
-				error_message: ma.error_message
-			}, {
-				id: multi_auth.id
-			});
-			
-			multi_auth = pddb.FPSMultiuseAuthorization.get_or_null({
-				id: multi_auth.id
-			});
-			
 			return multi_auth
 		}
 	});
