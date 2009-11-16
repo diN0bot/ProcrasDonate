@@ -48,7 +48,6 @@ def recipient(request, slug):
 #### ACCOUNT ###################################
 
 def login_view(request):
-    print "LOGIN"
     next = request.GET.get('next', None)
     # Light security check -- make sure redirect_to isn't garbage.                                                                                                                
     if not next or '//' in next or ' ' in next:
@@ -72,7 +71,6 @@ def login_view(request):
     return render_response(request, 'procrasdonate/recipient_organizer_pages/account/login.html', locals())
 
 def logout_view(request):
-    print "LOGOUT"
     logout(request)
     return HttpResponseRedirect(reverse('community'))
 
@@ -154,7 +152,7 @@ def confirm(request, username, confirmation_code):
                 if user.is_active:
                     login(request, user)
                     user.message_set.create(message='Registration complete!')
-                    return HttpResponseRedirect(reverse('edit_public_information'))                
+                    return HttpResponseRedirect(reverse('recipient_organizer_dashboard'))                
                 else:
                     return HttpResponseRedirect(reverse('login'))
         
@@ -234,7 +232,7 @@ def confirm_reset_password(request, username, confirmation_code):
 
 #### RECIPIENT ORGANIZER ###################################
 
-def _organizer_submenu(request, current_slug):
+def _organizer_submenu(request, current_slug, recipient):
     menu_items = []
     next = None
     prev = None
@@ -243,7 +241,11 @@ def _organizer_submenu(request, current_slug):
     _one_past_current = False
     _two_past_current = False # because can't tell the difference bw nulls
     idx = 0
-    for item in [{'name': 'Profile',
+    for item in [{'name': 'Donations',
+                  'slug': 'receive_donations',
+                  'url': reverse("payment_registration")},
+
+                  {'name': 'Profile',
                   'slug': 'public',
                   'url': reverse("edit_public_information")},
                   
@@ -253,7 +255,11 @@ def _organizer_submenu(request, current_slug):
                   
                  {'name': 'Media',
                   'slug': 'media',
-                  'url': reverse("edit_media")}]:
+                  'url': reverse("edit_media")},
+                  
+                  {'name': 'Promote',
+                  'slug': 'promote',
+                  'url': reverse("edit_promo_cards")}]:
         
         klasses = ["substate_tab"]
         if item['slug'] == current_slug:
@@ -291,20 +297,27 @@ def _organizer_submenu(request, current_slug):
         _last = menu_item
         idx += 1
     
+    show_next_and_prev = recipient.public_information_incomplete() or \
+        recipient.private_information_incomplete() or \
+        recipient.media_incomplete() or \
+        not recipient.pd_registered()
+        
     return {"menu_items": menu_items,
-            "next": next,
-            "prev": prev}
+            "next": show_next_and_prev and next or None,
+            "prev": show_next_and_prev and prev or None,
+            "no_spacers": not show_next_and_prev}
 
 @login_required
 def edit_promo_cards(request):
     recipient = request.user.get_profile().recipient
-    #substate_menu_items = _organizer_submenu(request, "public")
+    substate_menu_items = _organizer_submenu(request, "promote", recipient)
+    
     return render_response(request, 'procrasdonate/recipient_organizer_pages/edit_promo_cards.html', locals())
 
 @login_required
 def edit_public_information(request):
     recipient = request.user.get_profile().recipient
-    substate_menu_items = _organizer_submenu(request, "public")
+    substate_menu_items = _organizer_submenu(request, "public", recipient)
         
     FormKlass = get_form(Recipient, EDIT_TYPE, includes=('name',
                                                          'category',
@@ -317,7 +330,13 @@ def edit_public_information(request):
         if form.is_valid():
             form.save()
             request.user.message_set.create(message='Changes saved')
-            return HttpResponseRedirect(reverse('recipient', args=(recipient.slug,)))
+            arrow_direction = request.POST.get("arrow_direction", None)
+            if arrow_direction and arrow_direction == "prev":
+                return HttpResponseRedirect(reverse('payment_registration'))
+            elif arrow_direction and arrow_direction == "next":
+                return HttpResponseRedirect(reverse('edit_private_information'))
+            else:
+                return HttpResponseRedirect(reverse('edit_public_information'))
     else:
         form = FormKlass(instance=recipient)
 
@@ -357,27 +376,37 @@ def recipient_organizer_dashboard(request):
 @login_required
 def edit_private_information(request):
     recipient = request.user.get_profile().recipient
-    substate_menu_items = _organizer_submenu(request, "private")
+    substate_menu_items = _organizer_submenu(request, "private", recipient)
         
     FormKlass = get_form(Recipient, EDIT_TYPE, includes=('employers_identification_number',
                                                          'tax_exempt_status',
                                                          'sponsoring_organization',
-                                                         'contact_name',
-                                                         'contact_email',
                                                          'office_phone',
                                                          'mailing_address',
                                                          'city',
                                                          'state',
                                                          'country'))
+    
+    RU_FormKlass = get_form(RecipientUser, EDIT_TYPE, includes=('first_name', 'last_name', 'email'))
 
     if request.POST:
         form = FormKlass(request.POST, instance=recipient)
-        if form.is_valid():
+        ru_form = RU_FormKlass(request.POST, instance=request.user)
+        
+        if form.is_valid() and ru_form.is_valid():
             form.save()
+            ru_form.save()
             request.user.message_set.create(message='Changes saved')
-            return HttpResponseRedirect(reverse('recipient', args=(recipient.slug,)))
+            arrow_direction = request.POST.get("arrow_direction", None)
+            if arrow_direction and arrow_direction == "prev":
+                return HttpResponseRedirect(reverse('edit_public_information'))
+            elif arrow_direction and arrow_direction == "next":
+                return HttpResponseRedirect(reverse('edit_media'))
+            else:
+                return HttpResponseRedirect(reverse('edit_private_information'))
     else:
         form = FormKlass(instance=recipient)
+        ru_form = RU_FormKlass(instance=request.user)
 
     return render_response(request, 'procrasdonate/recipient_organizer_pages/edit_private_information.html', locals())
 
@@ -385,7 +414,7 @@ def edit_private_information(request):
 @login_required
 def edit_media(request):
     recipient = request.user.get_profile().recipient
-    substate_menu_items = _organizer_submenu(request, "media")
+    substate_menu_items = _organizer_submenu(request, "media", recipient)
     
     FormKlass = get_form(Recipient, EDIT_TYPE, includes=('logo',
                                                          'promotional_video',
@@ -396,7 +425,13 @@ def edit_media(request):
         if form.is_valid():
             form.save()
             request.user.message_set.create(message='Changes saved')
-            return HttpResponseRedirect(reverse('recipient', args=(recipient.slug,)))
+            arrow_direction = request.POST.get("arrow_direction", None)
+            if arrow_direction and arrow_direction == "prev":
+                return HttpResponseRedirect(reverse('edit_private_information'))
+            elif arrow_direction and arrow_direction == "next":
+                return HttpResponseRedirect(reverse('edit_promo_cards'))
+            else:
+                return HttpResponseRedirect(reverse('edit_media'))
     else:
         form = FormKlass(instance=recipient)
 

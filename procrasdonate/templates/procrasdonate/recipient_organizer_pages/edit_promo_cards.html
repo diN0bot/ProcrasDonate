@@ -1,10 +1,14 @@
 {% extends 'procrasdonate/base.html' %}
 
 {% block content %}
+	{% include 'register_submenu.html' %}
+
 	<h2>Promo Cards</h2>
 	
-	<p>Email us to request customized postcards: <a href="" id="insert_procrasdonate_email"></a></p>
-	
+	<p>Reminding your existing community that they can use ProcrasDonate to donate to {{ recipient.name }} is by far the best way to increase total donations.
+		<br>We want to help!  
+	</p><p>	Please <a href="" class="insert_procrasdonate_email">email</a> us to request custom postcards based on these designs... or if we can help out in any way.</p>
+
 	<div id="postcard_big_div">
 		<img id="postcard_big" src="{{ MEDIA_URL }}img/coins_card.png" />
 	</div>

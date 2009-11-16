@@ -118,34 +118,37 @@
 				<div id="video1" class="video_block">
 					{% if video1 %}
 						<object width="216" height="190">
-							<param name="movie" value="{{ video1.promotional_video }}" />
+							<param name="movie" value="{{ video1.video }}" />
 							<param name="allowFullScreen" value="true" />
 							<param name="allowscriptaccess" value="always" />
 							<embed
-								src="{{ video1.promotional_video }}"
+								src="{{ video1.video }}"
 								type="application/x-shockwave-flash"
 								allowscriptaccess="always"
 								allowfullscreen="true"
 								width="216"
 								height="190" />
 						</object>
-						<p><a href="{% url recipient video1.slug %}">{{ video1.name }}</a></p>
+						<p>{{ video1.caption|safe }}</p>
 					{% endif %}
 				</div>
 				
 				<div id="video2" class="video_block">
-					<object width="220" height="190">
-						<param name="allowFullScreen" value="true" />
-						<param name="allowscriptaccess" value="always" />
-						<param name="menu" value="true" />
-						<embed src="{{ MEDIA_URL }}swf/LaptopIntro.swf"
-							type="application/x-shockwave-flash"
-							allowscriptaccess="always"
-							allowfullscreen="true"
-							width="220"
-							height="190" />
-					</object>
-					<p>How ProcrasDonate Works</p>
+					{% if video2 %}
+						<object width="216" height="190">
+							<param name="movie" value="{{ video2.video }}" />
+							<param name="allowFullScreen" value="true" />
+							<param name="allowscriptaccess" value="always" />
+							<embed
+								src="{{ video2.video }}"
+								type="application/x-shockwave-flash"
+								allowscriptaccess="always"
+								allowfullscreen="true"
+								width="216"
+								height="190" />
+						</object>
+						<p>{{ video2.caption|safe }}</p>
+					{% endif %}
 				</div>
 				
 			</td>

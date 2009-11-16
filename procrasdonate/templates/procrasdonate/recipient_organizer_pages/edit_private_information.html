@@ -3,21 +3,21 @@
 {% block content %}
 	{% include 'register_submenu.html' %}
 
-	<h2>Organizational Record</h2>
+	<h2>Organizational Record - {{ recipient.name }}</h2>
 		
 	<p>Information on this page will remain <b>private</b></p>
 	
 	<p>We consider <b>you</b> our valued customer.  
-	<br>Please email us if you have any problems or concerns providing the following information.</p>
-		
-	<p>We consider blah blah</p>
-	
-	<h3>{{ recipient.name }}</h3>
+	<br>Please <a href="" class="insert_procrasdonate_email">email</a> us if you have any problems or concerns providing the following information.</p>
 
 	<form class="organizer_form" method="post">
 		<table><tbody>
+			<tr><th colspan="2" class="header">Organizer's Information</th></tr>
+			{{ ru_form }}
+			<tr><th colspan="2" class="header">Organization's Information</th></tr>
 			{{ form }}
 		</tbody></table>
+		
 		<input type="submit" value="save" />
 	</form>
 {% endblock %}

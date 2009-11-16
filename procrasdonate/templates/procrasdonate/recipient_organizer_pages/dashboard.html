@@ -12,7 +12,13 @@
 	<p>total donations received all time: ${{ recipient.forever_aggregate.total_amount|floatformat:"2"|default:"0" }}</p>
 	<p>number of donors: {{ recipient.forever_aggregate.total_donors|floatformat:"2"|default:"0" }}</p>
 	
-	<h3>Actions</h3>
+	<h3>Actions
+	{% if not recipient.pd_registered %}
+		<span class="superheader">
+			Urgent: not authorized to receive donations
+		</span>
+	{% endif %}
+	</h3>
 	<table id="dashboard_actions">
 	<thead>
 		<tr>
@@ -23,18 +29,33 @@
 	</thead>
 	<tbody>
 		<tr>
-			<td><a href="{% url payment_registration %}">Authorize to receive donations</a></td>
-			<td><a href="{% url edit_public_information %}">Public facing profile</a></td>
+			<td><a href="{% url payment_registration %}">Authorize to receive donations</a>
+				{% if not recipient.pd_registered %}
+					<span class="incomplete_action">incomplete</span>
+				{% endif %}
+			</td>
+			<td><a href="{% url edit_public_information %}">Public facing profile</a>
+				{% if recipient.public_information_incomplete %}
+					<span class="incomplete_action">incomplete</span>
+				{% endif %}
+			</td>
 			<td><a href="{% url edit_promo_cards %}">Send promotional cards</a></td>
 		</tr>
 		<tr>
 			<td></td>
-			<td><a href="{% url edit_private_information %}">Organizational information</a></td>
+			<td><a href="{% url edit_private_information %}">Organizational information</a>
+				{% if recipient.private_information_incomplete %}
+					<span class="incomplete_action">incomplete</span>
+				{% endif %}
+			</td>
 			<td></td>
 		</tr>
 		<tr>
 			<td></td>
-			<td><a href="{% url edit_media %}">Images and video</a></td>
+			<td><a href="{% url edit_media %}">Images and video</a>
+				{% if recipient.media_incomplete %}
+					<span class="incomplete_action">incomplete</span>
+				{% endif %}</td>
 			<td></td>
 		</tr>
 	</tbody>

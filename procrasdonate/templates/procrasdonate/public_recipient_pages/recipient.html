@@ -14,6 +14,35 @@
 			<img src="{{ recipient.logo.url }}" />
 		{% endif %}
 		
+		{% if recipient.promotional_video %}
+			<object width="216" height="190">
+				<param name="movie" value="{{ recipient.promotional_video }}" />
+				<param name="allowFullScreen" value="true" />
+				<param name="allowscriptaccess" value="always" />
+				<embed
+					src="{{ recipient.promotional_video }}"
+					type="application/x-shockwave-flash"
+					allowscriptaccess="always"
+					allowfullscreen="true"
+					width="216"
+					height="190" />
+			</object>
+		{% endif %}
+		{% if recipient.pd_experience_video %}
+			<object width="216" height="190">
+				<param name="movie" value="{{ recipient.pd_experience_video }}" />
+				<param name="allowFullScreen" value="true" />
+				<param name="allowscriptaccess" value="always" />
+				<embed
+					src="{{ recipient.pd_experience_video }}"
+					type="application/x-shockwave-flash"
+					allowscriptaccess="always"
+					allowfullscreen="true"
+					width="216"
+					height="190" />
+			</object>
+		{% endif %}
+		
 		<h4>Category:</h4>
 		<p>{{ recipient.category.category }}</p>
 				
@@ -21,10 +50,10 @@
 			<h3>Charity Navigator Score: {{ recipient.charity_navigator_score|default:"-" }}</h3>
 		{% endcomment %}
 		
-		<h4>Charitable Mission:</h4>
+		<h4>Mission:</h4>
 			{{ recipient.mission }}
 		
-		<h4>Methods Toward Fulfilling Mission:</h4>
+		<h4>Methods:</h4>
 		<div>{{ recipient.description|markdown:"safe" }}</div>
 			
 		<h4>Website:</h4>
