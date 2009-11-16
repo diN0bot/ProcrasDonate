@@ -5,7 +5,49 @@
 	
 	<h2>Upload your logo and video or image</h2>
 	
-	<div>{{ form.cleaned_data }}</div>
+	<div id="current_media">
+		<table><tbody>
+			<tr>
+				<th>Current Logo</th>
+				<th>Current Promotional Video</th>
+				<th>Current PD Experience Video</th>
+			</tr>
+			<tr>
+				<td>{% if recipient.logo %}<img src="{{ recipient.logo.url }}" />
+					{% else %}no logo uploaded{% endif %}</td>
+				<td>{% if recipient.promotional_video %}
+					<object width="216" height="190">
+						<param name="movie" value="{{ recipient.promotional_video }}" />
+						<param name="allowFullScreen" value="true" />
+						<param name="allowscriptaccess" value="always" />
+						<embed
+							src="{{ recipient.promotional_video }}"
+							type="application/x-shockwave-flash"
+							allowscriptaccess="always"
+							allowfullscreen="true"
+							width="216"
+							height="190" />
+					</object>
+					{% else %}no promotional video uploaded{% endif %}
+				</td>
+				<td>{% if recipient.pd_experience_video %}
+					<object width="216" height="190">
+						<param name="movie" value="{{ recipient.pd_experience_video }}" />
+						<param name="allowFullScreen" value="true" />
+						<param name="allowscriptaccess" value="always" />
+						<embed
+							src="{{ recipient.pd_experience_video }}"
+							type="application/x-shockwave-flash"
+							allowscriptaccess="always"
+							allowfullscreen="true"
+							width="216"
+							height="190" />
+					</object>
+					{% else %}no video uploaded{% endif %}
+				</td>
+			</tr>
+		</tbody></table>
+	</div>
 
 	<form class="organizer_form" method="post" enctype="multipart/form-data">
 		<table><tbody>

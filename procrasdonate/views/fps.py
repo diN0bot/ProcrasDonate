@@ -12,6 +12,8 @@ from procrasdonate.processors import *
 from procrasdonate.applib.fps import *
 from lib.xml_utils import ConvertXmlToDict
 
+from procrasdonate.views.dynamic_webpages import _organizer_submenu
+
 import settings
 import datetime, time
 import urllib, urllib2
@@ -105,7 +107,7 @@ def _get(url):
 @login_required
 def payment_registration(request):
     recipient = request.user.get_profile().recipient
-    #substate_menu_items = _organizer_submenu(request, "public")
+    substate_menu_items = _organizer_submenu(request, "receive_donations", recipient)
 
     errors = []
     template = 'procrasdonate/recipient_organizer_pages/payment_registration.html'
@@ -132,7 +134,7 @@ def payment_registration(request):
                   }
     # add timestampe and signature
     finalize_parameters(parameters, type=CBUI_TYPE)
-
+    
     return render_response(request, template, locals())    
     
 @login_required

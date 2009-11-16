@@ -33,10 +33,12 @@
 		  src="/procrasdonate_media/img/BackArrow.png" />
   {% if substate_menu_items.prev.url %}</a>{% endif %}
 {% else %}
-<img
-  id=""
-  class="prev"
-  src="/procrasdonate_media/img/Spacer.png" />
+	{% if not substate_menu_items.no_spacers %}
+	<img
+	  id=""
+	  class="prev"
+	  src="/procrasdonate_media/img/Spacer.png" />
+	{% endif %}
 {% endif %}
 
 {% if substate_menu_items.next %}
@@ -54,9 +56,11 @@
 		{% if substate_menu_items.next.url %}</a>{% endif %}
 	{% endifequal %}
 {% else %}
-<img
-  id=""
-  class="next"
-  src="/procrasdonate_media/img/Spacer.png" />
+	{% if not substate_menu_items.no_spacers %}
+	<img
+	  id=""
+	  class="next"
+	  src="/procrasdonate_media/img/Spacer.png" />
+	{% endif %}
 {% endif %}
 

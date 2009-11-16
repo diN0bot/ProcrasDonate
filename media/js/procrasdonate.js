@@ -13,9 +13,41 @@ $(document).ready( function() {
 	///
 	$("#comment_textarea").focus();
 	
-	$("#insert_procrasdonate_email")
-	    .attr("href", "mailto:procrasdonate@bilumi.org")
-	    .text("procrasdonate@bilumi.org");
+	///
+	/// Increase the size of all input text boxes
+	///
+	$("input[type=text]").attr("size", 46);
+	
+	///
+	/// On organizer registration track, we want next and prev
+	/// buttons to submit the form and then load the correct page.
+	///
+	$(".next").click(function() {
+		return _next_prev_helper("next");
+	});
+	$(".prev").click(function() {
+		return _next_prev_helper("prev");
+	});
+	function _next_prev_helper(direction) {
+		var form = $(".organizer_form");
+		if (form.length) {
+			form.append("<input type=\"hidden\" name=\"arrow_direction\" value=\""+direction+"\" />");
+			form.submit();
+			return false
+		} else {
+			return true
+		}
+	}
+	
+	///
+	/// helper for inserting email. single place to alter email; safe from spammers.
+	///
+	$("#insert_procrasdonate_email").each(function() {
+		$(this).attr("href", "mailto:procrasdonate@bilumi.org");
+		if (!$(this).text()) {
+			$(this).text("procrasdonate@bilumi.org");
+		}
+	});
 
 	/// move StartButtonDiv below banner on home page
 	var banner = $("#TheBanner");
