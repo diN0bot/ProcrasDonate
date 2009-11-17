@@ -512,7 +512,7 @@ function load_models(db, pddb) {
 		},
 		
 		requires_payment: function() {
-			RequiresPayment.get_or_null({ total_id: this.id });
+			return RequiresPayment.get_or_null({ total_id: this.id });
 		},
 		
 		deep_dict: function() {
@@ -648,7 +648,7 @@ function load_models(db, pddb) {
 			var pay = null;
 			FPSMultiusePay.select({ payment_id: self.id }, function(row) {
 				if (!pay) { pay = row; }
-			}, "-datetime");
+			}, "-timestamp");
 			return pay
 		}
 		
@@ -678,7 +678,7 @@ function load_models(db, pddb) {
 			id: "INTEGER PRIMARY KEY",
 			total_id: "INTEGER",
 			partially_paid: "INTEGER", // boolean 0=false
-			pending: "INTEGER", // boolean 0=false
+			pending: "INTEGER" // boolean 0=false
 		}
 	}, {
 		// instance methods
@@ -1023,14 +1023,14 @@ function load_models(db, pddb) {
 		}
 	}, {
 		// instance methods
-		success: function() { return this.transaction_status == FPSMultiuseAuthorization.SUCCESS },
-		pending: function() { return this.transaction_status == FPSMultiuseAuthorization.PENDING},
-		reserved: function() { return this.transaction_status == FPSMultiuseAuthorization.RESERVED },
-		refunded: function() { return this.transaction_status == FPSMultiuseAuthorization.REFUNDED },
-		refund_initiated: function() { return this.transaction_status == FPSMultiuseAuthorization.REFUND_INITIATED },
-		cancelled: function() { return this.transaction_status == FPSMultiuseAuthorization.CANCELLED },
-		error: function() { return this.transaction_status == FPSMultiuseAuthorization.ERROR },
-		failure: function() { return this.transaction_status == FPSMultiuseAuthorization.FAILURE },
+		success: function() { return this.transaction_status == FPSMultiusePay.SUCCESS },
+		pending: function() { return this.transaction_status == FPSMultiusePay.PENDING},
+		reserved: function() { return this.transaction_status == FPSMultiusePay.RESERVED },
+		refunded: function() { return this.transaction_status == FPSMultiusePay.REFUNDED },
+		refund_initiated: function() { return this.transaction_status == FPSMultiusePay.REFUND_INITIATED },
+		cancelled: function() { return this.transaction_status == FPSMultiusePay.CANCELLED },
+		error: function() { return this.transaction_status == FPSMultiusePay.ERROR },
+		failure: function() { return this.transaction_status == FPSMultiusePay.FAILURE },
 		
 		payment: function() {
 			// @returns Payment row factory (should never be null)
@@ -1113,29 +1113,37 @@ function load_models(db, pddb) {
 					error_message: p.error_message,
 					error_code: p.error_code,
 				}, {
-					caller_reference: pay.caller_reference,
+					caller_reference: p.caller_reference,
 				});
 				
 				var pay = FPSMultiusePay.get_or_null({
-					caller_reference: p.caller_reference
+					id: pay.id
 				});
 				
 				if (pay.success() || pay.refunded() || pay.cancelled()) {
-					// if success, refunded or cancelled, remove requires payment
-					// #@ TODO if refunded, do we want to do anything else,
-					// eg remove payment or mark payment as refunded???
-					_iterate(pay.payment().totals(), function(key, total, index) {
+					var payment = pay.payment();
+					// if success, refunded or cancelled:
+					//   * remove requires payment
+					//     #@ TODO if refunded, do we want to do anything else,
+					//     eg remove payment or mark payment as refunded???
+					//   * set settled to true
+					Payment.set({
+						settled: _dbify_bool(true)
+					}, {
+						id: payment.id
+					});
+					_iterate(payment.totals(), function(key, total, index) {
 						var rp = total.requires_payment();
 						if (rp) {
 							RequiresPayment.del({ id: rp.id });
 						} else {
-							self.pddb.orthogonals.warn("Requires Payment doesn't exist for a total for received FPS Multiuse Pay: "+pay+" "+" total="+total);
+							pddb.orthogonals.warn("Requires Payment doesn't exist for a total for received FPS Multiuse Pay: "+pay+" "+" total="+total);
 						}
 					});
 				}
 				
 			} else {
-				self.pddb.orthogonals.error("Recieved FPS Multiuse Pay update for FPS Multiuse Pay that does not exist! "+p);
+				pddb.orthogonals.error("Recieved FPS Multiuse Pay update for FPS Multiuse Pay that does not exist! "+p);
 				
 				/* don't know which payment to use (though could find amount and timestamp similar...
 				 * but if FPS multiuse pay was deleted, then payment and totals might be deleted, too...

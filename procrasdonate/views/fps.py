@@ -666,7 +666,7 @@ success!!!
         elif key == 'PayResponse':
             # success
             transaction_id = response_dict['PayResponse']['PayResult']['TransactionId']
-            transaction_status = response_dict['PayResponse']['PayResult']['TransactionStatus']
+            transaction_status = FPSMultiusePay.STATUSES[ response_dict['PayResponse']['PayResult']['TransactionStatus'].upper() ]
             request_id = response_dict['PayResponse']['ResponseMetadata']['RequestId']
         else:
             error_code = '?'
@@ -837,20 +837,27 @@ def ipn(request):
         parameters = response['parameters']
         
         if parameters['notificationType'] == 'TransactionStatus':
-        
+            print "TRANSACTION STATUS"
             if parameters['operation'] == 'REFUND':
+                print "REFUND"
                 pay = FPSMultiusePay.get_or_none(transaction_id=parameters['parentTransactionId'])
                 if parameters['status'] == 'INITIATED':
-                    pay.status = FPSMultiusePay.STATUSES['REFUND_INITIATED']
+                    pay.transaction_status = FPSMultiusePay.STATUSES['REFUND_INITIATED']
                 elif parameters['status'] == 'SUCCESS':
-                    pay.status = FPSMultiusePay.STATUSES['SUCCESS']
+                    pay.transaction_status = FPSMultiusePay.STATUSES['SUCCESS']
                 pay.save()
                 
             elif parameters['operation'] == 'PAY':
+                print "PAY"
                 pay = FPSMultiusePay.get_or_none(transaction_id=parameters['transactionId'])
-                if pay.status == FPSMultiusePay.STATUSES['PENDING']:
-                    pay.status = FPSMultiusePay.STATUSES[ parameters['transactionStatus'] ]
-                pay.save()
+                print pay
+                print "old status", pay.transaction_status
+                print "new status", parameters['transactionStatus']
+                print "new status thing", FPSMultiusePay.STATUSES[ parameters['transactionStatus'] ]
+                if pay.transaction_status == FPSMultiusePay.STATUSES['PENDING']:
+                    pay.transaction_status = FPSMultiusePay.STATUSES[ parameters['transactionStatus'] ]
+                    pay.save()
+                    print "new pay", pay
 
         elif parameters['notificationType'] == 'TokenCancellation':
             multiuse = FPSMultiuseAuth.get_or_none(token_id=parameters['tokenId'])

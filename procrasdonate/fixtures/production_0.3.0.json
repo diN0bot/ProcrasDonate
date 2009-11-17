@@ -46,7 +46,6 @@
                 "mission": "Charitable time management",
                 "description": "Coming soon!",
                 "url": "http://procrasdonate.com",
-                "contact_email": "info@procrasdonate.com",
                 "category": 1,
 		"is_visible": false,
 		"promotional_video": "http://www.youtube.com/watch?v=kyBR5UL8nRs",
@@ -64,7 +63,6 @@
                 "description": "Without knowing the socially responsible impact of purchasing a product, we're all still shopping in the dark.\n\nBuy It Like You Mean It helps students and volunteers cooperate to review and rate the real world effects of industry supply chains. We provide these ratings, free of charge, to help shoppers decide which products support their own unique values.\n\nTogether we are modeling how specific companies perform on a variety of socially responsible interests.",
                 "url": "http://bilumi.org",
                 "is_visible": true,
-                "contact_email": "",
                 "category": 13,
 		"tax_exempt_status": true
         }

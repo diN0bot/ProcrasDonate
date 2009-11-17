@@ -429,6 +429,18 @@ _extend(Controller.prototype, {
 		var testrunner = new TestRunner(request);
 		var self = this;
 		
+		testrunner.test("Check *REAL DATA* Requires Payments", function() {
+			self.pddb.checker.check_requires_payments(testrunner);
+		});
+		
+		testrunner.test("Check *REAL DATA* Payment Total Taggings", function() {
+			self.pddb.checker.check_payment_total_taggings(testrunner);
+		});
+		
+		testrunner.test("Check *REAL DATA* Payments", function() {
+			self.pddb.checker.check_payments(testrunner);
+		});
+		
 		var original_pddb = self.pddb;
 		
 		try {
@@ -441,6 +453,10 @@ _extend(Controller.prototype, {
 			
 			testrunner.test("Check Requires Payments", function() {
 				self.pddb.checker.check_requires_payments(testrunner);
+			});
+			
+			testrunner.test("Check Payment Total Taggings", function() {
+				self.pddb.checker.check_payment_total_taggings(testrunner);
 			});
 			
 			testrunner.test("Check Payments", function() {

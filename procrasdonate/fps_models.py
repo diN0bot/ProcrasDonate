@@ -230,9 +230,9 @@ class FPSMultiusePay(models.Model):
     
     marketplace_fixed_fee = models.CharField(max_length=32)
     marketplace_variable_fee = models.CharField(max_length=32)
-    recipient_token_id = models.CharField(max_length=32)
-    refund_token_id = models.CharField(max_length=32)
-    sender_token_id = models.CharField(max_length=32)
+    recipient_token_id = models.CharField(max_length=64)
+    refund_token_id = models.CharField(max_length=64)
+    sender_token_id = models.CharField(max_length=64)
     transaction_amount = models.CharField(max_length=32)
     
     # pay callback parameters
