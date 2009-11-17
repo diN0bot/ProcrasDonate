@@ -77,44 +77,79 @@ _extend(PDChecks.prototype, {
 		var self = this;
 		
 		self.pddb.Payment.select({}, function(row) {
-			if (_un_dbify_bool(row.sent_to_service)) {
-				// if payment is settled, there should no longer be required payments
-				// #@TODO if settled, should also have a success FPS Multiuse Pay row
+			// all payments should have:
+			//   1. sent_to_service = True
+			//   2. a FPS Multiuse Pay
+			// if payment is settled:
+			//   3. FPS Multiuse Pay should be success
+			//   4. totals should have no required payments
+			// else:
+			//   5. require payments should be pending
+			//
+			// 6. amount paid should equal sum of all totals
+			// 7. contenttype_id and content_id should be the same for all totals
+			
+			// 1. sent_to_service = True
+			testrunner.ok(row.is_sent_to_service(),
+				"All payments should have sent_to_service True: " + row);
+			
+			// 2. a FPS Multiuse Pay
+			testrunner.ok(row.fps_multiuse_pays().length > 0,
+				"All payments should have at least one FPS Multiuse Pay: " + row);
+			
+			if (row.is_settled()) {
+				// 4. totals should have no required payments
 				_iterate(row.totals(), function(key, total, idx) {
 					testrunner.ok(!total.requires_payment(),
-						"Settled payment should not have a requires payment, but it does: "+total+" requires_payment: "+total.requires_payment()+" payment: "+row);
+						"All *settled* payments should have *zero* requires payment: "+row+"; total:"+total+" requires_payment: "+total.requires_payment());
+					
 				});
-				
-			} else if (_un_dbify_bool(row.sent_to_service)) {
-				// if payment is unsettled but sent, there should be pending required payments
-				_iterate(row.totals(), function(key, total, idx) {
-					testrunner.ok(total.requires_payment() && total.requires_payment().is_pending(),
-						"Unsettled payment should have a pending requires payment, but it does not: "+total+" requires_payment: "+total.requires_payment()+" payment: "+row);
-				});
-				
+				// 3. FPS Multiuse Pay should be success
+				if (row.most_recent_fps_multiuse_pay()) {
+					testrunner.ok(row.most_recent_fps_multiuse_pay().success(),
+						"All *settled* payments should have a *success* FPS Multiuse Pay: " + row);
+				} else {
+					testrunner.ok(false,
+						"All *settled* payments should have a *most recent* FPS Multiuse Pay: " + row);
+				}
 			} else {
-				// unsettled and unsent should never happen
-				testrunner.ok(false,
-					"Unsettled and unsent payment should never happen, but it did: "+total+" payment: "+row);
+				// 5. require payments should be pending
+				_iterate(row.totals(), function(key, total, idx) {
+					if (total.requires_payment()) {
+						testrunner.ok(total.requires_payment().is_pending(),
+							"All *unsettled* payments should have a requires payment: "+row+" total: "+total+" requires_payment: "+total.requires_payment());
+					} else {
+						testrunner.ok(false,
+							"All *unsettled* payments should have a *pending* requires payment: "+row+" total: "+total+" requires_payment: "+total.requires_payment());
+					}
+				});
 			}
-			
-			// amount paid should equal sum of all totals
-			// plus, contenttype_id and content_id should be the same for all totals
+
+			// 6. amount paid should equal sum of all totals
+			// 7. contenttype_id and content_id should be the same for all totals
+			// 8. totals should all be for a recipient
 			var sum = 0.0;
 			var contenttype_id = -1;
 			var content_id = -1;
+			var recipient_contenttype = self.pddb.ContentType.get_or_none({
+				modelname: "Recipient"
+			});
 			_iterate(row.totals(), function(key, total, idx) {
-				sum += total.total_amount;
+				sum += parseFloat(total.total_amount);
 				if (contenttype_id == -1) {
 					contenttype_id = total.contenttype_id;
 					content_id = total.content_id;
 				} else {
-					testrunner.equal(
-						contenttype_id,
-						total.contenttype_id,
-						"as;dlfkja;sdlfj"
-						);
+					testrunner.equal(contenttype_id, total.contenttype_id,
+						"All payments should be for totals for the same contenttype");
+					testrunner.equal(contenttype_id, recipient_contenttype.id,
+						"All payments should be for totals for a Recipient");
+					testrunner.equal(content_id, total.content_id,
+						"All payments should be for totals for the same content");
+				}
 			});
+			testrunner.equal(sum.toFixed(2), parseFloat(row.total_amount_paid).toFixed(2),
+				"All payments' total_amount_paid should sum to the same sum of totals' total_amount");
 		});
 	},
 });

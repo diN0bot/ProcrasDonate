@@ -16,7 +16,7 @@ $(document).ready( function() {
 	///
 	/// Increase the size of all input text boxes
 	///
-	$("input[type=text]").attr("size", 46);
+	$(".organizer_form input[type=text]").attr("size", 46);
 	
 	///
 	/// On organizer registration track, we want next and prev
@@ -42,10 +42,10 @@ $(document).ready( function() {
 	///
 	/// helper for inserting email. single place to alter email; safe from spammers.
 	///
-	$("#insert_procrasdonate_email").each(function() {
+	$(".insert_procrasdonate_email").each(function() {
 		$(this).attr("href", "mailto:procrasdonate@bilumi.org");
 		if (!$(this).text()) {
-			$(this).text("procrasdonate@bilumi.org");
+			$(this).text("ProcrasDonate@bilumi.org");
 		}
 	});
 

@@ -8,3 +8,11 @@
 <div id="gauges"></div>
 
 {# see progress_explanation_snippet.html for explanation text #}
+
+<div class="progress_notes">
+	{% if includes_first_and_last_weeks %}
+		<p>Average includes first and last week until at 
+			least 3 weeks worth of data is available.</td>
+		</p>
+	{% endif %}
+</div>

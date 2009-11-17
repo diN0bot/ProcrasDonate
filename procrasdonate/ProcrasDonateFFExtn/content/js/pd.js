@@ -219,14 +219,6 @@ _extend(ProcrasDonate_API.prototype, {
 		);
 	},
 	
-	make_payment: function(onload, onerror) {
-	},
-	
-	settle_debt: function(onload, onerror) {
-		// returns JSON
-		constants.SETTLE_DEBT_URL = '/fps/user/payment/settle_debt/';
-	},
-	
 	send_welcome_email: function() {
 		logger("send welcome email: "+this.prefs.get('email', constants.DEFAULT_EMAIL))
 		this.make_request(
@@ -313,13 +305,16 @@ _extend(ProcrasDonate_API.prototype, {
 		);
 	},
 
-	pay_multiuse: function(transaction_amount, recipient, requires_payments, after_success, after_failure) {
-		// 1. create FPS Multiuse Pay
-		// 2. create payment
+	pay_multiuse: function(transaction_amount, recipient_slug, requires_payments, after_success, after_failure) {
+		// 1. create payment
+		// 2. create FPS Multiuse Pay
 		// 3. link payment to all totals
 		// 4. set requires payment to pending
 		// 5. send FPS Multiuse Pay to server
 		var self = this;
+		
+		transaction_amount = transaction_amount.toFixed(2);
+		logger("PAY MULTIUSE recip_slug="+recipient_slug);
 		
 		var multiauth = this.pddb.FPSMultiuseAuthorization.get_latest_success();
 		if (!multiauth || !multiauth.token_id) {
@@ -329,6 +324,19 @@ _extend(ProcrasDonate_API.prototype, {
 		
 		var dtime = _dbify_date(new Date());
 		
+		// create payment
+		var pay = self.pddb.Payment.create({
+			payment_service_id: self.pddb.AmazonFPS.id,
+			transaction_id: -1,
+			sent_to_service: _dbify_bool(true),
+			settled: _dbify_bool(false),
+			total_amount_paid: transaction_amount,
+			amount_paid: transaction_amount,
+			amount_paid_in_fees: -1,
+			amount_paid_tax_deductibly: -1,
+			datetime: dtime
+		});
+		
 		// create fps multiuse pay
 		var fps_pay = this.pddb.FPSMultiusePay.create({
 			timestamp: dtime,
@@ -336,22 +344,10 @@ _extend(ProcrasDonate_API.prototype, {
 			//marketplace_fixed_fee: 0,
 			marketplace_variable_fee: 10.00,
 			transaction_amount: transaction_amount,
-			recipient_slug: recipient.slug,
+			recipient_slug: recipient_slug,
 			sender_token_id: multiauth.token_id,
-			transaction_status: self.pddb.FPSMultiuseAuthorization.WAITING
-		});
-		
-		// create payment
-		var pay = self.pddb.Payment.create({
-			payment_service_id: self.pddb.AmazonFPS,
-			transaction_id: -1,
-			sent_to_service: _dbify_bool(true),
-			settled: _dbify_bool(false),
-			total_amount_paid: transaction_ammount,
-			amount_paid: transaction_amount,
-			amount_paid_in_fees: -1,
-			amount_paid_tax_deductibly: -1,
-			datetime: dtime
+			transaction_status: self.pddb.FPSMultiuseAuthorization.PENDING,
+			payment_id: pay.id
 		});
 		
 		_iterate(requires_payments, function(key, value, index) {
@@ -381,13 +377,14 @@ _extend(ProcrasDonate_API.prototype, {
 				data,
 				"POST",
 				function(r) {
-					self.pddb.orthogonals.log("Successfully paid "+transaction_amount, "pay");
-					
 					// process returned pay object
 					if (r.pay) {
 						self.pddb.FPSMultiusePay.process_object(r.pay);
+					}
+					if (r.log) {
+						self.pddb.orthogonals.log(r.log, "pay");
 					} else {
-						logger("NO R.PAY in pd.js::pay");
+						self.pddb.orthogonals.log("Successfully paid "+transaction_amount, "pay");
 					}
 					
 					if (after_success) after_success();
@@ -399,7 +396,7 @@ _extend(ProcrasDonate_API.prototype, {
 			);
 	},
 	
-	make_payments_if_necessary: function() {
+	make_payments_if_necessary: function(ignore_threshhold) {
 		var self = this;
 		
 		var prevent_payments = self.prefs.get('prevent_payments ', constants.DEFAULT_PREVENT_PAYMENTS);
@@ -414,39 +411,114 @@ _extend(ProcrasDonate_API.prototype, {
 			return
 		}
 		
-		// { recipient: total_amount, ...}
+		// retry failed payments
+		this.pddb.RequiresPayment.select({
+			pending: _dbify_bool(true)
+		}, function(row) {
+			var total = row.total();
+			// if total is not weekly, store visit did wrong thing
+			if (total.timetype_id != self.pddb.Weekly.id) {
+				self.pddb.orthogonals.warn("Total to pay is not weekly: requires_payment: "+row+" total="+total);
+				return
+			}
+			// if total hasn't ended yet, data was corrupted (shouldn't have become pending!)
+			if (_un_dbify_date(total.datetime) > new Date()) {
+				self.pddb.orthogonals.warn("Total hasn't ended but requires payment is already pending: "+row+" total="+total);
+				return
+			}
+			
+			var recipient = total.recipient();
+			// if recipient is null, this must be a site group total. ignore
+			if (!recipient) {
+				return
+			}
+			
+			// if payment failed
+			_iterate(total.payments(), function(key, payment, index) {
+				var fps = payment.most_recent_fps_multiuse_pay()
+				if (fps.error() || fps.failure()) {
+					// try again to send fps multiuse auth to server
+					var data = _extend(fps.deep_dict(), {
+						private_key: this.prefs.get('private_key', constants.DEFAULT_PRIVATE_KEY),
+						version: this.prefs.get('fps_version', constants.DEFAULT_FPS_API_VERSION),
+						timestamp: _dbify_date(new Date())
+					});
+					this._hello_operator_give_me_procrasdonate(
+						constants.PD_URL + constants.PAY_MULTIUSE_URL,
+						data,
+						"POST",
+						function(r) {
+							// process returned pay object
+							if (r.pay) {
+								self.pddb.FPSMultiusePay.process_object(r.pay);
+							}
+							if (r.log) {
+								self.pddb.orthogonals.log(r.log, "pay");
+							} else {
+								self.pddb.orthogonals.log("Successfully paid "+transaction_amount, "pay");
+							}
+						},
+						function(r) {
+							self.pddb.orthogonals.log("Failed to pay "+transaction_amount+": "+r.reason, "pay");
+						}
+					);
+				} else if (fps.pending() || fps.refund_initiated()) {
+					// still waiting. do nothing.
+				} else {
+					// unexpected fps state
+					self.pddb.orthogonals.warn("Unexpected FPS state when determining whether to retry pending requires payment: "+row+" total="+total+" payment="+payment+" fps="+fps);
+				}
+			});
+		});
+		
+		// { recipient_slug: total_amount, ...}
 		var recipient_total_amounts = {};
 		
 		//// we need these to prevent race conditions later when we
 		//// set requires payments to pending and match totals to payment.
 		//// just in case more totals and requires payments are created
 		//// in middle of computation....unlikely, but just in case......
-		// { recipient: [requires_payment, ...] , ...}
+		// { recipient_slug: [requires_payment, ...] , ...}
 		var recipient_requires_payments = {};
 		
 		this.pddb.RequiresPayment.select({
 			pending: _dbify_bool(false)
 		}, function(row) {
 			var total = row.total();
+			// if total is not weekly, store visit did wrong thing
+			if (total.timetype_id != self.pddb.Weekly.id) {
+				self.pddb.orthogonals.warn("Total to pay is not weekly: requires_payment: "+row+" total="+total);
+				return
+			}
+			// if total hasn't ended yet, ignore
+			if (_un_dbify_date(total.datetime) > new Date()) {
+				return
+			}
+			
 			var recipient = total.recipient();
-			// #@TODO assert recipient is not null...???
-
+			// if recipient is null, this must be a site group total. ignore
+			if (!recipient) {
+				return
+			}
+			
 			// in dollars
 			var amount = parseFloat(total.total_amount) / 100.00;
 			
-			var x = recipient_total_amounts[recipient];
-			if (!x) { recipient_total_amounts[recipient] = 0; }
-			recipient_total_amounts[recipient] += amount;
+			var x = recipient_total_amounts[recipient.slug];
+			if (!x) { recipient_total_amounts[recipient.slug] = 0; }
+			recipient_total_amounts[recipient.slug] += amount;
 			
-			var x = recipient_requires_payments[recipient];
-			if (!x) { recipient_requires_payments[recipient] = []; }
-			recipient_requires_payments[recipient].push(row);
+			var x = recipient_requires_payments[recipient.slug];
+			if (!x) { recipient_requires_payments[recipient.slug] = []; }
+			recipient_requires_payments[recipient.slug].push(row);
 		});
 		
 		var threshhold = self.prefs.get('payment_threshhold ', constants.DEFAULT_PAYMENT_THRESHHOLD);
+		logger("threshhold="+threshhold+" ignore="+ignore_threshhold);
 		_iterate(recipient_total_amounts, function(key, value, index) {
-			if (key && value >= threshhold) {
-				pay_multiuse(
+			logger(index+".\n key="+key+" \n value="+value);
+			if (key && (ignore_threshhold || value >= threshhold)) {
+				self.pay_multiuse(
 					value,
 					key,
 					recipient_requires_payments[key],

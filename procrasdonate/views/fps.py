@@ -478,6 +478,11 @@ def multiuse_pay(request):
     <?xml version="1.0"?>
     <Response><Errors><Error><Code>InvalidRequest</Code><Message>The request doesn't conform to the interface specification in the WSDL. Element/Parameter "http://fps.amazonaws.com/doc/2008-09-17/:recipient_token_id" in request is either invalid or is found at unexpected location</Message></Error></Errors><RequestID>744ab3b6-17c2-4ab0-ad24-28eba41a5079</RequestID></Response>
 
+or
+
+   <?xml version="1.0"?>
+<Response><Errors><Error><Code>InvalidParams</Code><Message>"recipientTokenId" has to be a valid token ID. Specified value: NONE</Message></Error></Errors><RequestID>f9f9d847-13b9-4a84-9be5-7295dae61f85</RequestID></Response>
+
 https://fps.sandbox.amazonaws.com
 RefundTokenId=R1VX241BUXNS41329VP62LVLLTNCNAHEBPIB7GKZZQ848HZFR8J56C5JZEUMEZWB
 SignatureVersion=1
@@ -640,6 +645,8 @@ success!!!
     errors = []
     error_code = None
     error_message = None
+    transaction_id = None
+    transaction_status = FPSMultiusePay.STATUSES['ERROR']
     request_id = None
     for key in response_dict:
         if key == 'Response':
@@ -651,11 +658,11 @@ success!!!
                                     'Message': 'Another error'}]},
               'RequestID': '0b80acb2-2105-4e44-acbe-6520a1cdafe6'}}
             """
-            for error in respose_dict['Response']['Errors']['Error']:
+            for error in response_dict['Response']['Errors']['Error']:
                 errors.append(error)
-                error_code = error['Code']
-                error_message = error['Message']
-            request_id = respose_dict['Response']['RequestID']
+                error_code = response_dict['Response']['Errors']['Error']['Code']
+                error_message = response_dict['Response']['Errors']['Error']['Message']
+            request_id = response_dict['Response']['RequestID']
         elif key == 'PayResponse':
             # success
             transaction_id = response_dict['PayResponse']['PayResult']['TransactionId']
@@ -666,22 +673,23 @@ success!!!
             error_message = "unknown fps.multiusepay response %s for %s" % (response_dict, full_url)
             Log.Error(error_message)
     
-    pay = FPSMultiusePay.add(user,
+    pay = FPSMultiusePay.add(user, recipient,
                              lower_parameters['caller_reference'],
                              lower_parameters['timestamp'],
                              lower_parameters['marketplace_fixed_fee'],
                              lower_parameters['marketplace_variable_fee'],
                              lower_parameters['recipient_token_id'],
-                             lower_parameters['refund_token_id'],
+                             #lower_parameters['refund_token_id'],
                              lower_parameters['sender_token_id'],
                              lower_parameters['transaction_amount'],
-                             lower_parameters['request_id'],
+                             request_id,
                              transaction_id,
-                             status,
+                             transaction_status,
                              error_message,
                              error_code)
     if errors:    
-        return json_failure("%s: %s" % (error_code, error_message))
+        return json_success({'pay': pay.deep_dict(),
+                             'log': "%s: %s" % (error_code, error_message)})
     else:
         return json_success({'pay': pay.deep_dict()})
 
@@ -778,14 +786,22 @@ def ipn(request):
         f = open("/var/sites/ProcrasDonate/log.log", 'a')
         f.write("\n\nINSTANT PAYMENT NOTE\n")
         f.write(json.dumps(request.POST, indent=2))
+        f.write("\nurl: "+urllib.urlencode(request.POST)+"\n");
         f.write("\n=============================================\n")
         f.close()
     except:
         pass
     
-    notification_type = request.POST('notificationType', None)
+    if request.POST:
+        data = request.POST
+        datatype = "POST"
+    else:
+        data = request.GET
+        datatype = "GET"
+    
+    notification_type = data.get('notificationType', None)
     if not notification_type:
-        message = "fps.ipn does not contain notificationType: %s" % (request.POST)
+        message = "fps.ipn does not contain notificationType: %s" % (data)
         Log.Warn(message)
     
     if notification_type == "TokenCancellation":
@@ -812,10 +828,10 @@ def ipn(request):
                                "statusMessage", # payment
                                "statusCode", # payment
                                "transactionStatus"] # payment
-        response = extract_parameters(request, "POST", expected_parameters, optional_parameters)
+        response = extract_parameters(request, datatype, expected_parameters, optional_parameters)
         if not response['success']:
             message = "fps.ipn Failed to extract expected parameters %s from %s" % (expected_parameters,
-                                                                                    request.POST)
+                                                                                    data)
             Log.Error(message, "AMAZON_RESPONSE")
             return json_failure(message)
         parameters = response['parameters']

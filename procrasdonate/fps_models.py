@@ -221,6 +221,8 @@ class FPSMultiusePay(models.Model):
                       (STATUSES['REFUNDED'], 'Refunded',))
 
     user = models.ForeignKey(User)
+    recipient = models.ForeignKey(Recipient)
+    
     # for auth request. good for 7 days
     caller_reference = models.CharField(max_length=28)
     # time caller_reference was created
@@ -236,7 +238,7 @@ class FPSMultiusePay(models.Model):
     # pay callback parameters
     request_id = models.CharField(max_length=64, blank=True, null=True)
     transaction_id = models.CharField(max_length=64, blank=True, null=True)
-    status = models.CharField(max_length=2, choices=STATUS_CHOICES)
+    transaction_status = models.CharField(max_length=2, choices=STATUS_CHOICES)
     error_message = models.CharField(max_length=200, blank=True, null=True)
     error_code = models.CharField(max_length=128, blank=True, null=True)
     
@@ -245,37 +247,37 @@ class FPSMultiusePay(models.Model):
         model_utils.mixin(FPSMultiusePayMixin, User)
 
     @classmethod
-    def make(klass, user,
+    def make(klass, user, recipient,
              caller_reference,
              timestamp,
              marketplace_fixed_fee,
              marketplace_variable_fee,
              recipient_token_id,
-             refund_token_id,
+             #refund_token_id,
              sender_token_id,
              transaction_amount,
              request_id,
              transaction_id,
-             status,
+             transaction_status,
              error_message,
              error_code):
-        if status == 'PENDING':
-            status = klass.STATUSES['PENDING']
+        if transaction_status == 'PENDING':
+            transaction_status = klass.STATUSES['PENDING']
         elif error_code == 'FOO':
             #status = klass.STATUSES['FOO']
             pass
-        return FPSMultiusePay(user=user,
+        return FPSMultiusePay(user=user, recipient=recipient,
                               caller_reference=caller_reference,
                               timestamp=datetime.datetime.now(),
                               marketplace_fixed_fee=marketplace_fixed_fee,
                               marketplace_variable_fee=marketplace_variable_fee,
                               recipient_token_id=recipient_token_id,
-                              refund_token_id=refund_token_id,
+                              refund_token_id=0,
                               sender_token_id=sender_token_id,
                               transaction_amount=transaction_amount,
                               request_id=request_id,
                               transaction_id=transaction_id,
-                              status=status,
+                              transaction_status=transaction_status,
                               error_message=error_message,
                               error_code=error_code)
     
@@ -285,9 +287,9 @@ class FPSMultiusePay(models.Model):
         self.save()
     
     def good_to_go(self):
-        return (self.status == FPSMultiusePay.STATUSES['SUCCESS_ABT'] or \
-                              FPSMultiusePay.STATUSES['SUCCESS_ACH'] or \
-                              FPSMultiusePay.STATUSES['SUCCESS_CC'])
+        return (self.transaction_status == FPSMultiusePay.STATUSES['SUCCESS_ABT'] or \
+                                           FPSMultiusePay.STATUSES['SUCCESS_ACH'] or \
+                                           FPSMultiusePay.STATUSES['SUCCESS_CC'])
         
     def needs_new_caller_reference(self):
         if self.good_to_go():
@@ -298,9 +300,24 @@ class FPSMultiusePay(models.Model):
             now = datetime.datetime.now()
             seven_days = datetime.timedelta(days=7)
             return now - seven_days > self.timestamp
-        
+    
+    def deep_dict(self):
+        return {'caller_reference': self.caller_reference,
+                'timestamp': "%s" % self.timestamp.ctime(),
+                'marketplace_fixed_fee': self.marketplace_fixed_fee,
+                'marketplace_variable_fee': self.marketplace_variable_fee,
+                'recipient_slug': self.recipient.slug,
+                'refund_token_id': self.refund_token_id,
+                'sender_token_id': self.sender_token_id,
+                'transaction_amount': self.transaction_amount,
+                'request_id': self.request_id,
+                'transaction_id': self.transaction_id,
+                'transaction_status': self.transaction_status,
+                'error_message': self.error_message,
+                'error_code': self.error_code}
+    
     def __unicode__(self):
-        return u"FPS Multiuse Pay status: %s" % self.get_status_display()
+        return u"FPS Multiuse Pay status: %s" % self.get_transaction_status_display()
 
 class FPSMultiusePayMixin(object):
     """ mixed into User class """

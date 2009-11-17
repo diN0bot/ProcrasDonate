@@ -484,6 +484,7 @@ td { padding: .6em 0em .5em 0em; vertical-align: middle; }
 /**** MY PROGRESS ****/
 .laptop { width: 10em; }
 #progress_explanation tr td { padding: 0em; }
+.progress_notes { margin-top: 4em; font-size: .9em; padding-left: 3em; }
 
 /**** MY IMPACT ****/
 #impact_submenu {

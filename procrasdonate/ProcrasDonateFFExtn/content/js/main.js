@@ -1,4 +1,4 @@
-var STORE_VISIT_LOGGING = true;
+var STORE_VISIT_LOGGING = false;
 var IDLE_LOGGING = false;
 
 var ProcrasDonate__UUID="extension@procrasdonate.com";
@@ -45,7 +45,7 @@ URLBarListener.prototype = {
 		// or when the user switches tabs. If you use myListener for more than one tab/window,
 		// use aProgress.DOMWindow to obtain the tab/window which triggered the change.
 		var href = aProgress.DOMWindow.location.href;
-		logger("onLocationChange:: href=" + href +" aURI="+aURI);
+		logger("onLocationChange:: href=" + href);
 		//logger(jQuery(aProgress.DOMWindow,
 		//if (aURI == "about:config")
 		//	return;
@@ -798,13 +798,11 @@ PDDB.prototype = {
 					"\n diff="+diff+
 					"\n rounded="+Math.round(diff));
 			this.prefs.set("last_start", "");
-			// cap diff at flash max...just in case...
+			// log diff if greater than flash max...just in case its a bug...
 			if (diff > constants.DEFAULT_FLASH_MAX_IDLE) {
-				this.orthogonals.warn("store_visit:: diff greater than flash max: "+diff+" start="+start+" url="+url);
-				diff = constants.DEFAULT_FLASH_MAX_IDLE + 1;
+				this.orthogonals.warn("store_visit:: diff greater than flash max: "+diff+" start="+start+"="+_un_dbify_date(start)+" url="+url);
+				//diff = constants.DEFAULT_FLASH_MAX_IDLE + 1;
 			}
-			if (IDLE_LOGGING) logger(">> stop recording "+
-					"\n diff="+diff);
 			if (diff > 0) {
 				this.store_visit(url, start, diff);
 			}
@@ -855,9 +853,10 @@ PDDB.prototype = {
 		//var pd_recipientpercent = this.RecipientPercent.get_or_null({ recipient_id: pd_recipient.id });
 		var pd_pct = _un_prefify_float(this.prefs.get('support_pct', constants.DEFAULT_SUPPORT_PCT)) / 100.0;
 		
-		var end_of_day     = _dbify_date(_end_of_day());
-		var end_of_week    = _dbify_date(_end_of_week());
-		var end_of_year    = _dbify_date(_end_of_year());
+		var enter_at = _un_dbify_date(visit.enter_at);
+		var end_of_day     = _dbify_date(_end_of_day(enter_at));
+		var end_of_week    = _dbify_date(_end_of_week(enter_at));
+		var end_of_year    = _dbify_date(_end_of_year(enter_at));
 		var end_of_forever = _end_of_forever();
 		
 		var timetypes = [ this.Daily, this.Weekly, this.Yearly, this.Forever ];
@@ -1025,7 +1024,8 @@ PDDB.prototype = {
 					this.RequiresPayment.get_or_create({
 						total_id: total.id
 					}, {
-						partially_paid: _dbify_bool(false)
+						partially_paid: _dbify_bool(false),
+						pending: _dbify_bool(false)
 					});
 				}
 			}
