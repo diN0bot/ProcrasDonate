@@ -56,15 +56,16 @@
         "pk": 3,
         "model": "procrasdonate.recipient",
         "fields": {
-                "twitter_name": "BILUMI",
+                "twitter_name": "bilumi",
                 "name": "Buy It Like You Mean It",
-                "slug": "BILUMI",
+                "slug": "bilumi",
                 "mission": "To provide access to collaborative tools for educational discovery and communication about the real world impact of product supply chains.",
                 "description": "Without knowing the socially responsible impact of purchasing a product, we're all still shopping in the dark.\n\nBuy It Like You Mean It helps students and volunteers cooperate to review and rate the real world effects of industry supply chains. We provide these ratings, free of charge, to help shoppers decide which products support their own unique values.\n\nTogether we are modeling how specific companies perform on a variety of socially responsible interests.",
                 "url": "http://bilumi.org",
                 "is_visible": true,
                 "category": 13,
-		"tax_exempt_status": true
+		"tax_exempt_status": true,
+		"promotional_video": "http://www.youtube.com/watch?v=K1J-cP3v2Jg"
         }
     },
 

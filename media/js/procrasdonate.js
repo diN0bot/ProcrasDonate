@@ -109,11 +109,11 @@ function install(anchor_class) {
 		var xpi_hash = $.trim(item.children(".hash").text());
 		
 		// get recipient slug if on recipient page
-		// /r/PD/ --> ['', 'r', 'PD', '']
+		// /PD/ --> ['', 'PD', '']
 		var cur_url = location.pathname.split("/");
 		var slug = "__none__";
-		if (cur_url.length >= 3 && cur_url[cur_url.length-3].trim() == "r") {
-			slug = cur_url[cur_url.length-2].trim();
+		if (cur_url.length >= 2 && cur_url[cur_url.length-2].trim() == "r") {
+			slug = cur_url[cur_url.length-1].trim();
 		}
 		$.post("/generate_xpi/"+slug+"/",
 				{},

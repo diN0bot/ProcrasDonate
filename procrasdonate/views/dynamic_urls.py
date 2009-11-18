@@ -12,7 +12,7 @@ urlpatterns = patterns('',
     url(r'^community/(?P<type>%s)/$' % type_re, dynamic_webpages.community_type, name='community_type'),
     
     # public recipient information and stats
-    url(r'^r/(?P<slug>%s)/$' % slug_re, dynamic_webpages.recipient, name='recipient'),
+    url(r'^(?P<slug>%s)/$' % slug_re, dynamic_webpages.recipient, name='recipient'),
     # requires login
     url(r'^recipient/dashboard/$', dynamic_webpages.recipient_organizer_dashboard, name='recipient_organizer_dashboard'),
     url(r'^recipient/edit/public_information/$', dynamic_webpages.edit_public_information, name='edit_public_information'),
