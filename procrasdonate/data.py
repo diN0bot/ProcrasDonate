@@ -186,7 +186,7 @@ class Recipient(models.Model):
     """
     last_modified = models.DateField(auto_now=True)
 
-    slug = models.SlugField(db_index=True, help_text="UNIQUE acronym for url. eg BILUMI in procrasdonate.com/r/BILUMI")
+    slug = models.SlugField(db_index=True, help_text="UNIQUE acronym for url. eg BILUMI in procrasdonate.com/BILUMI")
     name = models.CharField(max_length=200, null=True, blank=True, verbose_name="Organization's Name")
     category = models.ForeignKey('Category', blank=True, null=True)
     mission = models.CharField(max_length=200, null=True, blank=True, verbose_name="Charitable Mission")
@@ -318,6 +318,10 @@ class Recipient(models.Model):
         """
         if not instance.logo:
             return
+
+        if instance.logo.width <= Recipient.SCALED_MAX_WIDTH and instance.logo.height <= Recipient.SCALED_MAX_HEIGHT:
+            return
+        
         im = Image.open(instance.logo.path)
         #@todo: log these
         print im.info
