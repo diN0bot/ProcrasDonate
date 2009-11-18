@@ -117,6 +117,9 @@ _extend(Controller.prototype, {
 		case constants.AUTOMATIC_TEST_SUITE_URL:
 			this.automatic_test_suite(request);
 			break;
+		case constants.TIMING_TEST_SUITE_URL:
+			this.timing_test_suite(request);
+			break;
 		case constants.AUTHORIZE_PAYMENTS:
 			this.authorize_payments(request);
 			break;
@@ -303,24 +306,40 @@ _extend(Controller.prototype, {
 			tag_id: self.pddb.TimeWellSpent.id
 		});
 		
+		// add visits for last four weeks
+		// this week
 		var start = _start_of_day();
-		var duration = 1111;
-		var urls = ["http://test_pd.com/apage.html",
-		            "http://test_pd.com/bpage.html",
-		            "http://test_pd.com/apage.html",
-		            "http://test_pd.com/bpage.html",
-		            "http://test_pd.com/apage.html",
-		            
-		            "http://test_tws.com/cpage.html",
-		            "http://test_tws.com/cpage.html",
-		            "http://test_tws.com/cpage.html",
-		            "http://test_tws.com/cpage.html",
-		            "http://test_tws.com/cpage.html",
-		            "http://test_tws.com/cpage.html"];
-		for (var i = 0; i < urls.length; i++) {
-			this.pddb.store_visit(urls[i], _dbify_date(start), duration);
-			start.setMinutes( start.getMinutes() + 10 );
-		}
+		var times = [_dbify_date(start)];
+		// last week
+		start.setDate(start.getDate() - 7);
+		times.push( _dbify_date(start) );
+		// two weeks ago
+		start.setDate(start.getDate() - 7*2);
+		times.push( _dbify_date(start) );
+		// three weeks ago
+		start.setDate(start.getDate() - 7*3);
+		times.push( _dbify_date(start) );
+		
+		_iterate(times, function(key, time, index) {
+			var duration = 1000 + Math.floor(Math.random()*1000);
+			var urls = ["http://test_pd.com/apage.html",
+			            "http://test_pd.com/bpage.html",
+			            "http://test_pd.com/apage.html",
+			            "http://test_pd.com/bpage.html",
+			            "http://test_pd.com/apage.html",
+			            
+			            "http://test_tws.com/cpage.html",
+			            "http://test_tws.com/cpage.html",
+			            "http://test_tws.com/cpage.html",
+			            "http://test_tws.com/cpage.html",
+			            "http://test_tws.com/cpage.html",
+			            "http://test_tws.com/cpage.html"];
+			for (var i = 0; i < urls.length; i++) {
+				// add at least 2000 seconds to start time
+				// times the number of visits already done
+				self.pddb.store_visit(urls[i], time + i*2000, duration);
+			}
+		});
 	},
 
 	///
@@ -346,7 +365,7 @@ _extend(Controller.prototype, {
 	///
 	trigger_payment: function() {
 		logger("triggering payment...");
-		this.pddb.schedule.do_make_payment();
+		this.pddb.page.pd_api.make_payments_if_necessary(true);
 		logger("...payment done");
 	},
 	
@@ -413,6 +432,18 @@ _extend(Controller.prototype, {
 		var testrunner = new TestRunner(request);
 		var self = this;
 		
+		testrunner.test("Check *REAL DATA* Requires Payments", function() {
+			self.pddb.checker.check_requires_payments(testrunner);
+		});
+		
+		testrunner.test("Check *REAL DATA* Payment Total Taggings", function() {
+			self.pddb.checker.check_payment_total_taggings(testrunner);
+		});
+		
+		testrunner.test("Check *REAL DATA* Payments", function() {
+			self.pddb.checker.check_payments(testrunner);
+		});
+		
 		var original_pddb = self.pddb;
 		
 		try {
@@ -425,6 +456,10 @@ _extend(Controller.prototype, {
 			
 			testrunner.test("Check Requires Payments", function() {
 				self.pddb.checker.check_requires_payments(testrunner);
+			});
+			
+			testrunner.test("Check Payment Total Taggings", function() {
+				self.pddb.checker.check_payment_total_taggings(testrunner);
 			});
 			
 			testrunner.test("Check Payments", function() {
@@ -447,6 +482,49 @@ _extend(Controller.prototype, {
 		}
 		
 		self.pddb = original_pddb;
+		
+		self.display_test_results(testrunner);
+	},
+	
+	/// run TIMING tester tests (mutates db) and checker checks 
+	/// (checks db) on test database
+	/// see WARNINGS below
+	timing_test_suite: function(request) {
+		var testrunner = new TestRunner(request);
+		var self = this;
+		
+		var original_pddb = self.pddb;
+		
+		// change default max idles to 10 and 30 seconds
+		// otherwise test would take looooong time.
+		var orig_default_max_idle = constants.DEFAULT_MAX_IDLE;
+		var orig_default_flash_max_idle = constants.DEFAULT_FLASH_MAX_IDLE;
+		constants.DEFAULT_MAX_IDLE = 10;
+		constants.DEFAULT_FLASH_MAX_IDLE = 30;
+		
+		try {
+			self.pddb = new PDDB("test.0.sqlite");
+			self.pddb.init_db();
+
+			/// WARNING: this uses setTimeout to test blur/focus,
+			///          idle/back, start/stop-recording....
+			///          tests after this one should worry about interference!
+			
+			/// WARNING 2: this test requires the tester to continuous move 
+			///            their mouse but not click so that IDLE isn't
+			///            inadvertantly triggered in the middle of the test.
+			///            the test runs for at least 5 minute.
+			testrunner.test("Test Idle/Back-Focus/Blur Combos", function() {
+				self.pddb.tester.test_idle_focus_combos(testrunner, self.display_test_results);
+			});
+		} catch(e) {
+			self.pddb.orthogonals.error(e+"\n\n"+e.stack);
+		}
+		
+		self.pddb = original_pddb;
+		
+		constants.DEFAULT_MAX_IDLE = orig_default_max_idle; 
+		constants.DEFAULT_FLASH_MAX_IDLE = orig_default_flash_max_idle;
 		
 		self.display_test_results(testrunner);
 	},
@@ -553,8 +631,7 @@ _extend(Schedule.prototype, {
 	},
 	
 	do_once_weekly_tasks: function() {
-		// make payments if necessary
-		this.pddb.page.pd_api.make_payments();
+		// none yet
 	},
 	
 	reset_week_period: function() {
@@ -574,11 +651,7 @@ _extend(Schedule.prototype, {
 	
 	do_make_payment: function() {
 		/* all logic for whether to make payments is in pd_api */
-		this.pddb.page.pd_api.make_payments_if_necessary(function(r) {
-			// onload
-		}, function(r) {
-			// onerror
-		});
+		this.pddb.page.pd_api.make_payments_if_necessary(false);
 	},
 
 });
@@ -1231,25 +1304,17 @@ _extend(PageController.prototype, {
 			datetime: _dbify_date(_end_of_week()),
 			timetype_id: self.pddb.Weekly.id
 		});
-		logger(" MY PROGRESS: pd_total_this_week:"+pd_total_this_week);
 		
 		var last_week = new Date();
+		logger("TODAY is "+last_week);
 		last_week.setDate(last_week.getDate() - 7);
+		logger("LAST WEEK is "+last_week);
 		var pd_total_last_week = self.pddb.Total.get_or_null({
 			contenttype_id: tag_contenttype.id,
 			content_id: self.pddb.ProcrasDonate.id,
-			datetime: _dbify_date(last_week),
+			datetime: _dbify_date(_end_of_week(last_week)),
 			timetype_id: self.pddb.Weekly.id
 		});
-		logger(" MY PROGRESS: pd_total_last_week:"+pd_total_last_week);
-		
-		var pd_total = self.pddb.Total.get_or_null({
-			contenttype_id: tag_contenttype.id,
-			content_id: self.pddb.ProcrasDonate.id,
-			datetime: _dbify_date(_end_of_forever()),
-			timetype_id: self.pddb.Forever.id
-		});
-		logger(" MY PROGRESS: pd_total:"+pd_total);
 		
 		var this_week_hrs = 0.0;
 		if (pd_total_this_week) {
@@ -1259,9 +1324,38 @@ _extend(PageController.prototype, {
 		if (pd_total_last_week) {
 			last_week_hrs = pd_total_last_week.hours().toFixed(1)
 		}
+		var sum = 0.0;
+		var count = 0;
+		var first_week = null;
+		var last_week = null;
+		self.pddb.Total.select({
+			contenttype_id: tag_contenttype.id,
+			content_id: self.pddb.ProcrasDonate.id,
+			timetype_id: self.pddb.Weekly.id
+		}, function(row) {
+			sum += row.hours();
+			count += 1;
+			if (first_week) {
+				first_week = row;
+			} else {
+				last_week = row;
+			}
+		}, "datetime");
+		var includes_first_and_last_weeks = true;
+		if (count > 2) {
+			if (first_week) {
+				sum -= first_week.hours();
+				count -= 1;
+			}
+			if (last_week) {
+				sum -= last_week.hours();
+				count -= 1;
+			}
+			includes_first_and_last_weeks = false;
+		}
 		var total_hrs = 0.0;
-		if (pd_total) {
-			total_hrs = pd_total.hours().toFixed(1)
+		if (count) {
+			total_hrs = (sum / count).toFixed(1);
 		}
 		
 		var middle = Template.get("progress_overview_middle").render(
@@ -1270,12 +1364,13 @@ _extend(PageController.prototype, {
 				pd_this_week_hrs: this_week_hrs,
 				pd_last_week_hrs: last_week_hrs,
 				pd_total_hrs: total_hrs,
-				pd_limit: this.prefs.get("pd_hr_per_week_max", constants.DEFAULT_PD_HR_PER_WEEK_MAX)
+				pd_limit: this.prefs.get("pd_hr_per_week_max", constants.DEFAULT_PD_HR_PER_WEEK_MAX),
+				includes_first_and_last_weeks: includes_first_and_last_weeks
 			})
 		);
 		request.jQuery("#content").html( middle );
 		
-		this.insert_gauges(request, this_week_hrs, last_week_hrs, total_hrs);
+		this.insert_gauges(request, this_week_hrs, last_week_hrs, total_hrs, includes_first_and_last_weeks);
 	},
 	
 	insert_gauges: function(request, pd_this_week_hrs, pd_last_week_hrs, pd_total_hrs) {
@@ -1307,6 +1402,10 @@ _extend(PageController.prototype, {
 		data.setValue(1, 1, Math.round(pd_last_week_hrs));
 		data.setValue(2, 0, 'Average');
 		data.setValue(2, 1, Math.round(pd_total_hrs));
+		
+		logger("THIS WEEK HRS="+Math.round(pd_this_week_hrs));
+		logger("LAST WEEK HRS="+Math.round(pd_last_week_hrs));
+		logger("TOTAL WEEK HRS="+Math.round(pd_total_hrs));
 
 		var chart = new google.visualization.Gauge( request.jQuery("#gauges").get(0) );
 

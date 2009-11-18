@@ -95,9 +95,13 @@ def receive_data(request):
     print "----private_key----------"
     print json.dumps(private_key, indent=2)
     
-    user = User.get_or_create(private_key=private_key)
+    user = User.get_or_none(private_key=private_key)
     print "----  USER ----"
     print user
+    if not user:
+        message = "unknown user: %s, request=%s" % (private_key, request)
+        Log.Error(message, "unknown_user")
+        return json_failure(message)
     
     processed_count = 0
     for datatype in datatypes:
@@ -105,14 +109,12 @@ def receive_data(request):
         if datatype in parameters:
             items = json.loads(parameters[datatype])
             print "---- %s %s -------" % (len(items), datatype)
-            print json.dumps(items[:1], indent=2)
+            #print json.dumps(items[:1], indent=2)
             for item in items:
                 obj = processor_fnc[datatype](item, user)
-                #processed_count += success and 1 or 0
+                processed_count += 1
     
-    ret = json_success({"process_success_count": processed_count})
-    print "response = ", ret
-    return ret
+    return json_success({"process_success_count": processed_count})
         
     #except:
     #    return json_failure("Something unexpected happened")
@@ -151,9 +153,13 @@ def return_data(request):
     print "----private_key----------"
     print json.dumps(private_key, indent=2)
     
-    user = User.get_or_create(private_key=private_key)
+    user = User.get_or_none(private_key=private_key)
     print "----  USER ----"
     print user
+    if not user:
+        message = "unknown user: %s, request=%s" % (private_key, request)
+        Log.Error(message, "unknown_user")
+        return json_failure(message)
     
     recipients = []
     #for recipient in Recipient.objects.filter(fpsrecipient__timestamp__gte=since):
@@ -171,17 +177,22 @@ def return_data(request):
         pass
         #@TODO if not has_success, then ask Amazon for token in case pipeline completed by didn't make it back to server yet.
     
-    print '#.'*30;
-    print "RETURN DATA RETURNED"
-    print json.dumps({'recipients': recipients,
-                         'multiuse_auths': multiuse_auths}, indent=2)
-    print '#.'*30;
+    multiuse_pays = []
+    for multiuse_pay in FPSMultiusePay.objects.filter(user=user):
+        multiuse_pays.append(multiuse_pay.deep_dict())
+            
+    #print '#.'*30;
+    #print "RETURN DATA RETURNED"
+    #print json.dumps({'recipients': recipients,
+    #                     'multiuse_auths': multiuse_auths}, indent=2)
+    #print '#.'*30;
     
     xpi_builder = XpiBuilder(pathify([PROJECT_PATH, 'procrasdonate', 'ProcrasDonateFFExtn'], file_extension=True),
                              "%s%s" % (MEDIA_ROOT, 'xpi'),
                              "%s%s" % (MEDIA_ROOT, 'rdf'))
     return json_success({'recipients': recipients,
                          'multiuse_auths': multiuse_auths,
+                         'multiuse_pays': multiuse_pays,
                          'latest_version': xpi_builder.get_version()})
 
 def generate_xpi(request, slug):

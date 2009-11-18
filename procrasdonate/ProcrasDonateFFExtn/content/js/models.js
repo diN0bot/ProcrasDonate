@@ -225,7 +225,7 @@ function load_models(db, pddb) {
 			// @return: if return_row, returns created row
 		
 			last_modified = new Date(r.last_modified);
-			var recipient = pddb.Recipient.get_or_create({
+			var recipient = Recipient.get_or_create({
 				slug: r.slug
 			});
 			if (last_receive_time &&
@@ -234,10 +234,10 @@ function load_models(db, pddb) {
 				return null
 			} // else, unknown or modified recipient
 			
-			var category = pddb.Category.get_or_create({
+			var category = Category.get_or_create({
 				category: r.category
 			});
-			pddb.Recipient.set({
+			Recipient.set({
 				name: r.name,
 				category_id: category.id,
 				mission: r.mission,
@@ -253,7 +253,7 @@ function load_models(db, pddb) {
 				slug: r.slug
 			});
 			if (return_row) {
-				return pddb.Recipient.get_or_create({
+				return Recipient.get_or_create({
 					slug: r.slug
 				});
 			}
@@ -313,9 +313,9 @@ function load_models(db, pddb) {
 			// @param r: object from server. json already loaded
 			// contains recipient_slug and percent
 			logger("PROCESS OBJECT "+r+" "+r.recipient_slug);
-			var recipient = pddb.Recipient.get_or_null({ slug: r.recipient_slug });
+			var recipient = Recipient.get_or_null({ slug: r.recipient_slug });
 			if (recipient) {
-				var rpct = pddb.RecipientPercent.get_or_create({
+				var rpct = RecipientPercent.get_or_create({
 					recipient_id: recipient.id
 				}, {
 					percent: r.percent
@@ -423,7 +423,7 @@ function load_models(db, pddb) {
 		contenttype: function() {
 			// all Totals have a contenttype
 			var self = this;
-			var contenttype = pddb.ContentType.get_or_null({ id: self.contenttype_id });
+			var contenttype = ContentType.get_or_null({ id: self.contenttype_id });
 			if (!contenttype) {
 				pddb.orthogonals.error("no contenttype found for total = "+this);
 			}
@@ -493,7 +493,7 @@ function load_models(db, pddb) {
 			// @param deep_dictify: if true, returns dicts instead of row objects
 			var self = this;
 			var payments = [];
-			pddb.PaymentTotalTagging.select({ total_id: self.id }, function(row) {
+			PaymentTotalTagging.select({ total_id: self.id }, function(row) {
 				if (deep_dictify) {
 					payments.push(row.payment().deep_dict());
 				} else {
@@ -512,7 +512,7 @@ function load_models(db, pddb) {
 		},
 		
 		requires_payment: function() {
-			RequiresPayment.get_or_null({ total_id: this.id });
+			return RequiresPayment.get_or_null({ total_id: this.id });
 		},
 		
 		deep_dict: function() {
@@ -577,11 +577,19 @@ function load_models(db, pddb) {
 		payment_service: function() {
 			// all Payment have a payment_service
 			var self = this;
-			var payment_service = pddb.PaymentService.get_or_null({ id: self.payment_service_id });
+			var payment_service = PaymentService.get_or_null({ id: self.payment_service_id });
 			if (!payment_service) {
 				pddb.orthogonals.error("no payment_service found for payment = "+this);
 			}
 			return payment_service
+		},
+		
+		is_sent_to_service: function() {
+			return _un_dbify_bool(this.sent_to_service);
+		},
+		
+		is_settled: function() {
+			return _un_dbify_bool(this.settled);
 		},
 		
 		deep_dict: function() {
@@ -592,12 +600,12 @@ function load_models(db, pddb) {
 				id: this.id,
 				payment_service: this.payment_service(),
 				transaction_id: parseInt(this.transaction_id),
-				sent_to_service: _un_dbify_bool(this.sent_to_service),
-				settled: _un_dbify_bool(this.settled),
+				sent_to_service: this.is_sent_to_service(),
+				settled: this.is_settled(),
 				total_amount_paid: parseFloat(this.total_amount_paid),
 				amount_paid: parseFloat(this.amount_paid),
 				amount_paid_in_fees: parseFloat(this.amount_paid_in_fees),
-				amount_paid_tax_deductibly: parseFloatt(this.amount_paid_tax_deductibly),
+				amount_paid_tax_deductibly: parseFloat(this.amount_paid_tax_deductibly),
 				datetime: _un_dbify_date(this.datetime)
 			}
 		},
@@ -608,7 +616,7 @@ function load_models(db, pddb) {
 			// @param deep_dictify: if true, returns dicts instead of row objects
 			var self = this;
 			var totals = [];
-			pddb.PaymentTotalTagging.select({ payment_id: self.id }, function(row) {
+			PaymentTotalTagging.select({ payment_id: self.id }, function(row) {
 				if (deep_dictify) {
 					totals.push(row.total().deep_dict());
 				} else {
@@ -625,6 +633,25 @@ function load_models(db, pddb) {
 		totals_dicts: function() {
 			return this._totals(true);
 		},
+		
+		fps_multiuse_pays: function() {
+			var self = this;
+			var pays = [];
+			FPSMultiusePay.select({ payment_id: self.id }, function(row) {
+				pays.push(row);
+			});
+			return pays;
+		},
+		
+		most_recent_fps_multiuse_pay: function() {
+			var self = this;
+			var pay = null;
+			FPSMultiusePay.select({ payment_id: self.id }, function(row) {
+				if (!pay) { pay = row; }
+			}, "-timestamp");
+			return pay
+		}
+		
 	}, {
 		// class methods
 	});
@@ -651,14 +678,14 @@ function load_models(db, pddb) {
 			id: "INTEGER PRIMARY KEY",
 			total_id: "INTEGER",
 			partially_paid: "INTEGER", // boolean 0=false
-			pending: "INTEGER", // boolean 0=false
+			pending: "INTEGER" // boolean 0=false
 		}
 	}, {
 		// instance methods
 		total: function() {
 			// all RequiresPayment have a total
 			var self = this;
-			var total = pddb.Total.get_or_null({ id: self.total_id });
+			var total = Total.get_or_null({ id: self.total_id });
 			if (!total) {
 				pddb.orthogonals.error("no total found for RequiresPayment = "+this);
 			}
@@ -929,11 +956,11 @@ function load_models(db, pddb) {
 			
 			logger("multiauth process object: ");
 			_pprint(ma);
-			var multi_auth = pddb.FPSMultiuseAuthorization.get_or_null({
+			var multi_auth = FPSMultiuseAuthorization.get_or_null({
 				caller_reference: ma.caller_reference
 			});
 			if (!multi_auth) {
-				multi_auth = pddb.FPSMultiuseAuthorization.create({
+				multi_auth = FPSMultiuseAuthorization.create({
 	                timestamp: ma.timestamp,
 	                payment_reason: ma.payment_reason,
 	                global_amount_limit: ma.global_amount_limit,
@@ -945,7 +972,7 @@ function load_models(db, pddb) {
 	                caller_reference: ma.caller_reference
 				});
 			} else {
-				pddb.FPSMultiuseAuthorization.set({
+				FPSMultiuseAuthorization.set({
 					status: ma.status,
 					token_id: ma.token_id,
 					error_message: ma.error_message
@@ -953,7 +980,7 @@ function load_models(db, pddb) {
 					id: multi_auth.id
 				});
 				
-				multi_auth = pddb.FPSMultiuseAuthorization.get_or_null({
+				multi_auth = FPSMultiuseAuthorization.get_or_null({
 					id: multi_auth.id
 				});
 			}
@@ -966,7 +993,7 @@ function load_models(db, pddb) {
 		columns: {
 			_order: ["id", "timestamp", "caller_reference", "marketplace_fixed_fee",
 			         "marketplace_variable_fee", "transaction_amount", "recipient_slug",
-			         "sender_token_id",
+			         "sender_token_id", "payment_id",
 			         "caller_description", "charge_fee_to", "descriptor_policy", "sender_description",
 			         "request_id", "transaction_id",
 			         "transaction_status", "error_message", "error_code"],
@@ -976,8 +1003,9 @@ function load_models(db, pddb) {
 			marketplace_fixed_fee: "VARCHAR", // (Amount)
 			marketplace_variable_fee: "VARCHAR", // (Decimal)
 			transaction_amount: "VARCHAR", // (amount)
-			recipient_slug: "VARCHAR", 
+			recipient_slug: "VARCHAR", // server converts recipient slug to recipient token
 			sender_token_id: "VARCHAR",  // (multiuse tokenID)
+			payment_id: "INTEGER",
 			
 			/////// these get populated by server
 			caller_description: "VARCHAR",  // (160 chars)
@@ -995,12 +1023,25 @@ function load_models(db, pddb) {
 		}
 	}, {
 		// instance methods
-		success: function() { return this.transaction_status == FPSMultiuseAuthorization.SUCCESS },
-		waiting: function() { return this.transaction_status == FPSMultiuseAuthorization.WAITING},
-		refunded: function() { return this.transaction_status == FPSMultiuseAuthorization.REFUNDED },
-		cancelled: function() { return this.transaction_status == FPSMultiuseAuthorization.CANCELLED },
-		error: function() { return this.transaction_status == FPSMultiuseAuthorization.ERROR },
-
+		success: function() { return this.transaction_status == FPSMultiusePay.SUCCESS },
+		pending: function() { return this.transaction_status == FPSMultiusePay.PENDING},
+		reserved: function() { return this.transaction_status == FPSMultiusePay.RESERVED },
+		refunded: function() { return this.transaction_status == FPSMultiusePay.REFUNDED },
+		refund_initiated: function() { return this.transaction_status == FPSMultiusePay.REFUND_INITIATED },
+		cancelled: function() { return this.transaction_status == FPSMultiusePay.CANCELLED },
+		error: function() { return this.transaction_status == FPSMultiusePay.ERROR },
+		failure: function() { return this.transaction_status == FPSMultiusePay.FAILURE },
+		
+		payment: function() {
+			// @returns Payment row factory (should never be null)
+			var self = this;
+			var payment = Payment.get_or_null({ id: self.payment_id })
+			if (!payment) {
+				pddb.orthogonals.error("no payment found for FPS Multiuse Pay = "+this);
+			}
+			return payment
+		},
+		
 		deep_dict: function() {
 			return {
 				id: this.id,
@@ -1011,6 +1052,7 @@ function load_models(db, pddb) {
 				transaction_amount: this.transaction_amount,
 				recipient_slug: this.recipient_slug,
 				sender_token_id: this.sender_token_id,
+				payment: this.payment().deep_dict(),
 				
 				caller_description: this.caller_description,
 				charge_fee_to: this.charge_fee_to,
@@ -1028,12 +1070,13 @@ function load_models(db, pddb) {
 	}, {
 		// class methods
 		SUCCESS: 'S',
-		WAITING: 'W', // waiting for response from amazon
-		REFUNDED: 'R', // the transaction was refunded.... maybe this should be a refund transaction.
-		CANCELLED: 'C',
-		PENDING: 'P', // reserve request succeed
-		RESERVED: 'V',
-		FAILURE: 'F', // success
+		PENDING: 'P', // waiting for response from amazon
+		CANCELLED: 'C', // was pending, now cancelled
+		RESERVED: 'R',
+		FAILURE: 'F', // Amazon says transaction failed 
+		ERROR: 'E', // something messed up before we could even get a transaction status
+		REFUND_INITIATED: 'I',
+		REFUNDED: 'D', // the transaction was refunded.... #@TODO maybe there should be a refund transaction.
 		
 		process_object: function(p) {
 			// @param p: object from server. json already loaded
@@ -1042,30 +1085,70 @@ function load_models(db, pddb) {
 			// incoming timestampe are from self.timestamp.ctime():
 			//              Sat Sep 19 14:42:25 2009
 			// the above string can transformed to dates with new Date(ctimestr)
+			/*
+			 * {'caller_reference': self.caller_reference,
+                'timestamp': "%s" % self.timestamp.ctime(),
+                'marketplace_fixed_fee': self.marketplace_fixed_fee,
+                'marketplace_variable_fee': self.marketplace_variable_fee,
+                'recipient_slug': self.recipient_token_id,
+                'refund_token_id': self.refund_token_id,
+                'sender_token_id': self.sender_token_id,
+                'transaction_amount': self.transaction_amount,
+                'request_id': self.request_id,
+                'transaction_id': self.transaction_id,
+                'transaction_status': self.transaction_status,
+                'error_message': self.error_message,
+                'error_code': se
+			 */
 			logger("pay process object: ");
 			_pprint(pay);
 			
-			var pay = pddb.FPSMultiusePay.get_or_null({
+			var pay = FPSMultiusePay.get_or_null({
 				caller_reference: p.caller_reference
-				//#@ TODO: use timestamp as id
 			});
 			if (pay) {
-				logger("pay already exists");
-				// currently this should not occur
-				pddb.FPSMultiusePay.set({
+				FPSMultiusePay.set({
 					request_id: p.request_id,
 					transaction_status: p.transaction_status,
 					error_message: p.error_message,
 					error_code: p.error_code,
 				}, {
-					caller_reference: pay.caller_reference,
+					caller_reference: p.caller_reference,
 				});
 				
+				var pay = FPSMultiusePay.get_or_null({
+					id: pay.id
+				});
+				
+				if (pay.success() || pay.refunded() || pay.cancelled()) {
+					var payment = pay.payment();
+					// if success, refunded or cancelled:
+					//   * remove requires payment
+					//     #@ TODO if refunded, do we want to do anything else,
+					//     eg remove payment or mark payment as refunded???
+					//   * set settled to true
+					Payment.set({
+						settled: _dbify_bool(true)
+					}, {
+						id: payment.id
+					});
+					_iterate(payment.totals(), function(key, total, index) {
+						var rp = total.requires_payment();
+						if (rp) {
+							RequiresPayment.del({ id: rp.id });
+						} else {
+							pddb.orthogonals.warn("Requires Payment doesn't exist for a total for received FPS Multiuse Pay: "+pay+" "+" total="+total);
+						}
+					});
+				}
+				
 			} else {
-				logger("pay does not exist");
-				// currently this should not occur
-				return null;
-				pddb.FPSMultiusePay.create({
+				pddb.orthogonals.error("Recieved FPS Multiuse Pay update for FPS Multiuse Pay that does not exist! "+p);
+				
+				/* don't know which payment to use (though could find amount and timestamp similar...
+				 * but if FPS multiuse pay was deleted, then payment and totals might be deleted, too...
+				 * 
+				 * FPSMultiusePay.create({
 					timestamp: p.timestamp,
 					caller_description: p.caller_description,
 					caller_reference: p.caller_reference,
@@ -1073,7 +1156,7 @@ function load_models(db, pddb) {
 					descriptor_policy: p.descriptor_policy,
 					marketplace_fixed_fee: p.marketplace_fixed_fee,
 					marketplace_variable_fee: p.marketplace_variable_fee,
-					recipient_token_id: p.recipient_token_id,
+					recipient_slug: p.recipient_slug,
 					refund_token_id: p.refund_token_id,
 					sender_description: p.sender_description,
 					sender_token_id: p.sender_token_id,
@@ -1083,7 +1166,7 @@ function load_models(db, pddb) {
 					transaction_status: p.transaction_status,
 					error_message: p.error_message,
 					error_code: p.error_code,
-				});
+				});*/
 			}
 		}
 	});

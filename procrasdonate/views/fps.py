@@ -278,7 +278,14 @@ def authorize_multiuse(request):
     print lower_parameters
     print
     
-    user = User.get_or_create(private_key=private_key)
+    user = User.get_or_none(private_key=private_key)
+    print "----  USER ----"
+    print user
+    if not user:
+        message = "unknown user: %s, request=%s" % (private_key, request)
+        Log.Error(message, "unknown_user")
+        return json_failure(message)
+    
     multiuse = FPSMultiuseAuth.get_or_none(caller_reference=lower_parameters['caller_reference'])
     if not multiuse:
         multiuse = FPSMultiuseAuth.add(user, lower_parameters)
@@ -452,7 +459,14 @@ def cancel_multiuse(request):
     full_url = "%s?%s" % (AMAZON_FPS_API_URL,
                           urllib.urlencode(camel_parameters))
 
-    user = User.get_or_create(private_key=private_key)
+    user = User.get_or_none(private_key=private_key)
+    print "----  USER ----"
+    print user
+    if not user:
+        message = "unknown user: %s, request=%s" % (private_key, request)
+        Log.Error(message, "unknown_user")
+        return json_failure(message)
+    
     FPSMultiuseCancelToken.add(user,
                                token_id=lower_parameters['token_id'],
                                reason_text=lower_parameters['reason_text'],
@@ -477,6 +491,11 @@ def multiuse_pay(request):
     error response:
     <?xml version="1.0"?>
     <Response><Errors><Error><Code>InvalidRequest</Code><Message>The request doesn't conform to the interface specification in the WSDL. Element/Parameter "http://fps.amazonaws.com/doc/2008-09-17/:recipient_token_id" in request is either invalid or is found at unexpected location</Message></Error></Errors><RequestID>744ab3b6-17c2-4ab0-ad24-28eba41a5079</RequestID></Response>
+
+or
+
+   <?xml version="1.0"?>
+<Response><Errors><Error><Code>InvalidParams</Code><Message>"recipientTokenId" has to be a valid token ID. Specified value: NONE</Message></Error></Errors><RequestID>f9f9d847-13b9-4a84-9be5-7295dae61f85</RequestID></Response>
 
 https://fps.sandbox.amazonaws.com
 RefundTokenId=R1VX241BUXNS41329VP62LVLLTNCNAHEBPIB7GKZZQ848HZFR8J56C5JZEUMEZWB
@@ -569,7 +588,14 @@ success!!!
     lower_parameters = response['parameters']
     private_key = lower_parameters['private_key']
     del lower_parameters['private_key']
-    user = User.get_or_create(private_key=private_key)
+    
+    user = User.get_or_none(private_key=private_key)
+    print "----  USER ----"
+    print user
+    if not user:
+        message = "unknown user: %s, request=%s" % (private_key, request)
+        Log.Error(message, "unknown_user")
+        return json_failure(message)
     
     rslug = lower_parameters['recipient_slug']
     recipient = Recipient.get_or_none(slug=rslug)
@@ -640,6 +666,8 @@ success!!!
     errors = []
     error_code = None
     error_message = None
+    transaction_id = None
+    transaction_status = FPSMultiusePay.STATUSES['ERROR']
     request_id = None
     for key in response_dict:
         if key == 'Response':
@@ -651,37 +679,38 @@ success!!!
                                     'Message': 'Another error'}]},
               'RequestID': '0b80acb2-2105-4e44-acbe-6520a1cdafe6'}}
             """
-            for error in respose_dict['Response']['Errors']['Error']:
+            for error in response_dict['Response']['Errors']['Error']:
                 errors.append(error)
-                error_code = error['Code']
-                error_message = error['Message']
-            request_id = respose_dict['Response']['RequestID']
+                error_code = response_dict['Response']['Errors']['Error']['Code']
+                error_message = response_dict['Response']['Errors']['Error']['Message']
+            request_id = response_dict['Response']['RequestID']
         elif key == 'PayResponse':
             # success
             transaction_id = response_dict['PayResponse']['PayResult']['TransactionId']
-            transaction_status = response_dict['PayResponse']['PayResult']['TransactionStatus']
+            transaction_status = FPSMultiusePay.STATUSES[ response_dict['PayResponse']['PayResult']['TransactionStatus'].upper() ]
             request_id = response_dict['PayResponse']['ResponseMetadata']['RequestId']
         else:
             error_code = '?'
             error_message = "unknown fps.multiusepay response %s for %s" % (response_dict, full_url)
             Log.Error(error_message)
     
-    pay = FPSMultiusePay.add(user,
+    pay = FPSMultiusePay.add(user, recipient,
                              lower_parameters['caller_reference'],
                              lower_parameters['timestamp'],
                              lower_parameters['marketplace_fixed_fee'],
                              lower_parameters['marketplace_variable_fee'],
                              lower_parameters['recipient_token_id'],
-                             lower_parameters['refund_token_id'],
+                             #lower_parameters['refund_token_id'],
                              lower_parameters['sender_token_id'],
                              lower_parameters['transaction_amount'],
-                             lower_parameters['request_id'],
+                             request_id,
                              transaction_id,
-                             status,
+                             transaction_status,
                              error_message,
                              error_code)
     if errors:    
-        return json_failure("%s: %s" % (error_code, error_message))
+        return json_success({'pay': pay.deep_dict(),
+                             'log': "%s: %s" % (error_code, error_message)})
     else:
         return json_success({'pay': pay.deep_dict()})
 
@@ -778,14 +807,22 @@ def ipn(request):
         f = open("/var/sites/ProcrasDonate/log.log", 'a')
         f.write("\n\nINSTANT PAYMENT NOTE\n")
         f.write(json.dumps(request.POST, indent=2))
+        f.write("\nurl: "+urllib.urlencode(request.POST)+"\n");
         f.write("\n=============================================\n")
         f.close()
     except:
         pass
     
-    notification_type = request.POST('notificationType', None)
+    if request.POST:
+        data = request.POST
+        datatype = "POST"
+    else:
+        data = request.GET
+        datatype = "GET"
+    
+    notification_type = data.get('notificationType', None)
     if not notification_type:
-        message = "fps.ipn does not contain notificationType: %s" % (request.POST)
+        message = "fps.ipn does not contain notificationType: %s" % (data)
         Log.Warn(message)
     
     if notification_type == "TokenCancellation":
@@ -812,29 +849,36 @@ def ipn(request):
                                "statusMessage", # payment
                                "statusCode", # payment
                                "transactionStatus"] # payment
-        response = extract_parameters(request, "POST", expected_parameters, optional_parameters)
+        response = extract_parameters(request, datatype, expected_parameters, optional_parameters)
         if not response['success']:
             message = "fps.ipn Failed to extract expected parameters %s from %s" % (expected_parameters,
-                                                                                    request.POST)
+                                                                                    data)
             Log.Error(message, "AMAZON_RESPONSE")
             return json_failure(message)
         parameters = response['parameters']
         
         if parameters['notificationType'] == 'TransactionStatus':
-        
+            print "TRANSACTION STATUS"
             if parameters['operation'] == 'REFUND':
+                print "REFUND"
                 pay = FPSMultiusePay.get_or_none(transaction_id=parameters['parentTransactionId'])
                 if parameters['status'] == 'INITIATED':
-                    pay.status = FPSMultiusePay.STATUSES['REFUND_INITIATED']
+                    pay.transaction_status = FPSMultiusePay.STATUSES['REFUND_INITIATED']
                 elif parameters['status'] == 'SUCCESS':
-                    pay.status = FPSMultiusePay.STATUSES['SUCCESS']
+                    pay.transaction_status = FPSMultiusePay.STATUSES['SUCCESS']
                 pay.save()
                 
             elif parameters['operation'] == 'PAY':
+                print "PAY"
                 pay = FPSMultiusePay.get_or_none(transaction_id=parameters['transactionId'])
-                if pay.status == FPSMultiusePay.STATUSES['PENDING']:
-                    pay.status = FPSMultiusePay.STATUSES[ parameters['transactionStatus'] ]
-                pay.save()
+                print pay
+                print "old status", pay.transaction_status
+                print "new status", parameters['transactionStatus']
+                print "new status thing", FPSMultiusePay.STATUSES[ parameters['transactionStatus'] ]
+                if pay.transaction_status == FPSMultiusePay.STATUSES['PENDING']:
+                    pay.transaction_status = FPSMultiusePay.STATUSES[ parameters['transactionStatus'] ]
+                    pay.save()
+                    print "new pay", pay
 
         elif parameters['notificationType'] == 'TokenCancellation':
             multiuse = FPSMultiuseAuth.get_or_none(token_id=parameters['tokenId'])

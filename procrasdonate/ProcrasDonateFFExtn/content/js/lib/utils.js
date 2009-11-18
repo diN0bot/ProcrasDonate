@@ -67,7 +67,7 @@ logger = function(msg) {
 	now = new Date();
 	dump("\n---------"+now+"---------\n" + msg + "\n");
 	try {
-		//logger.FAIL();
+		logger.FAIL();
 	} catch (e) {
 		dump(e.stack);
 	}

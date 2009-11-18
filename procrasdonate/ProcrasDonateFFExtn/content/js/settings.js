@@ -28,7 +28,7 @@ var constants = {};
 
 	constants.COMMUNITY_URL = '/our_community';
 	constants.PRIVACY_URL = '/privacy_guarantee/';
-	constants.RECIPIENTS_URL = '/r/';
+	constants.RECIPIENTS_URL = '/';
 	
 	constants.AUTHORIZE_PAYMENTS_URL = '/fps/user/payment/authorize/';
 	constants.AUTHORIZE_PAYMENTS_CALLBACK_URL = '/fps/user/payment/authorize_callback/';
@@ -54,6 +54,7 @@ var constants = {};
 	// used for development and testing
 	constants.MANUAL_TEST_SUITE_URL = '/dev/manual_test_suite/';
 	constants.AUTOMATIC_TEST_SUITE_URL = '/dev/automatic_test_suite/';
+	constants.TIMING_TEST_SUITE_URL = '/dev/timing_test_suite/';
 	
 	constants.AMAZON_USER_URL = "https://payments.amazon.com";
 

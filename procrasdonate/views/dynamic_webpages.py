@@ -1,5 +1,5 @@
 import settings
-from lib.view_utils import render_response, HttpResponseRedirect
+from lib.view_utils import render_response, HttpResponseRedirect, HttpResponseNotFound
 from lib.json_utils import json_response
 from lib.forms import get_form, EDIT_TYPE
 from procrasdonate.models import *
@@ -42,7 +42,9 @@ def community_type(request, type):
 #### PUBLIC RECIPIENT ###################################
 
 def recipient(request, slug):
-    recipient = get_object_or_404(Recipient, slug=slug)
+    recipient = get_object_or_404(Recipient, slug__iexact=slug)
+    if recipient and recipient.slug != slug:
+        return HttpResponseRedirect(reverse('recipient', args=(recipient.slug, )))
     return render_response(request, 'procrasdonate/public_recipient_pages/recipient.html', locals())
 
 #### ACCOUNT ###################################

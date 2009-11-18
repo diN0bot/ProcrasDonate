@@ -35,14 +35,40 @@ var PDChecks = function PDChecks(prefs, pddb) {
 };
 PDChecks.prototype = {};
 _extend(PDChecks.prototype, {
+	
+	// no duplicates. that is, total<->payment link should be unique
+	check_payment_total_taggings: function(testrunner) {
+		var self = this;
+		// {payment_id: [total_id, ...], ... }
+		var links = {};
+		self.pddb.PaymentTotalTagging.select({}, function(row) {
+			var totals = links[row.payment_id];
+			if (!totals) {
+				totals = [];
+			}
+			var dupe = false;
+			_iterate(totals, function(key, total, index) {
+				if (total == row.total_id) { dupe = true; }
+			});
+			// assert no dupes
+			testrunner.ok(!dupe,
+				"PaymentTotalTagging links should be unique but found duplicate: "+row);
+
+			totals.push(row.total_id);
+			links[row.payment_id] = totals;
+		});
+	},
+	
 	///
 	/// RequiresPayments must:
 	/// * be for recipient or sitegroup totals
 	/// * be for weekly totals
-	/// * if partially paid, then there should be a 
-	///   corresponding Payment (same total) with 
-	///   matching amount
-	/// * else no corresponding Payment
+	/// * should not be partially paid (not currently allowed)
+	/// * if pending:
+	///     * should be single non-(success|cancel|refunded) Payment
+	/// * else:
+	///     * should not be a payment
+	
 	/// #@TODO single requires payment per total
 	///
 	check_requires_payments: function(testrunner) {
@@ -59,13 +85,18 @@ _extend(PDChecks.prototype, {
 			testrunner.ok(total.timetype().id == self.pddb.Weekly.id,
 					"Expected WEEKLY requires_payment, not "+total.timetype()+" total="+total);
 
-			// partially paid have corresponding Payment with matching amount
+			// not partially paid
 			if (row.is_partially_paid()) {
 				testrunner.ok(false,
-						"Partially paid RequiresPayment are not currently allowed !? "+row);
-			} else {
-				testrunner.ok(row.total().payments().length == 0,
-						"Fully unpaid requires should not have payments: "+row.total().payments());
+					"Partially paid RequiresPayment are not currently allowed !? "+row);
+			} else{
+				if (row.is_pending()) {
+					testrunner.ok(row.total().payments().length != 0,
+						"Pending RequiresPayment should have at least one payment: "+row+" total: "+row.total());
+				} else {
+					testrunner.ok(row.total().payments().length == 0,
+						"Un-Pending RequiresPayment should have no payments: "+row+" total: "+row.total()+" payments: "+row.total().payments().length);
+				}
 			}
 		});
 	},
@@ -75,46 +106,82 @@ _extend(PDChecks.prototype, {
 	///
 	check_payments: function(testrunner) {
 		var self = this;
-		
+		logger("check payments pddb="+self.pddb);
 		self.pddb.Payment.select({}, function(row) {
-			if (_un_dbify_bool(row.sent_to_service)) {
-				// if payment is settled, there should no longer be required payments
-				// #@TODO if settled, should also have a success FPS Multiuse Pay row
+			logger("found one="+row);
+			// all payments should have:
+			//   1. sent_to_service = True
+			//   2. a FPS Multiuse Pay
+			// if payment is settled:
+			//   3. FPS Multiuse Pay should be success
+			//   4. totals should have no required payments
+			// else:
+			//   5. require payments should be pending
+			//
+			// 6. amount paid should equal sum of all totals
+			// 7. contenttype_id and content_id should be the same for all totals
+			
+			// 1. sent_to_service = True
+			testrunner.ok(row.is_sent_to_service(),
+				"All payments should have sent_to_service True: " + row);
+			
+			// 2. a FPS Multiuse Pay
+			testrunner.ok(row.fps_multiuse_pays().length > 0,
+				"All payments should have at least one FPS Multiuse Pay: " + row);
+			
+			if (row.is_settled()) {
+				// 4. totals should have no required payments
 				_iterate(row.totals(), function(key, total, idx) {
 					testrunner.ok(!total.requires_payment(),
-						"Settled payment should not have a requires payment, but it does: "+total+" requires_payment: "+total.requires_payment()+" payment: "+row);
+						"All *settled* payments should have *zero* requires payment: "+row+"; total:"+total+" requires_payment: "+total.requires_payment());
+					
 				});
-				
-			} else if (_un_dbify_bool(row.sent_to_service)) {
-				// if payment is unsettled but sent, there should be pending required payments
-				_iterate(row.totals(), function(key, total, idx) {
-					testrunner.ok(total.requires_payment() && total.requires_payment().is_pending(),
-						"Unsettled payment should have a pending requires payment, but it does not: "+total+" requires_payment: "+total.requires_payment()+" payment: "+row);
-				});
-				
+				// 3. FPS Multiuse Pay should be success
+				if (row.most_recent_fps_multiuse_pay()) {
+					testrunner.ok(row.most_recent_fps_multiuse_pay().success(),
+						"All *settled* payments should have a *success* FPS Multiuse Pay: " + row);
+				} else {
+					testrunner.ok(false,
+						"All *settled* payments should have a *most recent* FPS Multiuse Pay: " + row);
+				}
 			} else {
-				// unsettled and unsent should never happen
-				testrunner.ok(false,
-					"Unsettled and unsent payment should never happen, but it did: "+total+" payment: "+row);
+				// 5. require payments should be pending
+				_iterate(row.totals(), function(key, total, idx) {
+					if (total.requires_payment()) {
+						testrunner.ok(total.requires_payment().is_pending(),
+							"All *unsettled* payments should have a requires payment: "+row+" total: "+total+" requires_payment: "+total.requires_payment());
+					} else {
+						testrunner.ok(false,
+							"All *unsettled* payments should have a *pending* requires payment: "+row+" total: "+total+" requires_payment: "+total.requires_payment());
+					}
+				});
 			}
-			
-			// amount paid should equal sum of all totals
-			// plus, contenttype_id and content_id should be the same for all totals
+
+			// 6. amount paid should equal sum of all totals
+			// 7. contenttype_id and content_id should be the same for all totals
+			// 8. totals should all be for a recipient
 			var sum = 0.0;
 			var contenttype_id = -1;
 			var content_id = -1;
+			var recipient_contenttype = self.pddb.ContentType.get_or_null({
+				modelname: "Recipient"
+			});
 			_iterate(row.totals(), function(key, total, idx) {
-				sum += total.total_amount;
+				sum += parseFloat(total.total_amount);
 				if (contenttype_id == -1) {
 					contenttype_id = total.contenttype_id;
 					content_id = total.content_id;
 				} else {
-					testrunner.equal(
-						contenttype_id,
-						total.contenttype_id,
-						"as;dlfkja;sdlfj"
-						);
+					testrunner.equals(contenttype_id, total.contenttype_id,
+						"All payments should be for totals for the same contenttype");
+					testrunner.equals(contenttype_id, recipient_contenttype.id,
+						"All payments should be for totals for a Recipient");
+					testrunner.equals(content_id, total.content_id,
+						"All payments should be for totals for the same content");
+				}
 			});
+			testrunner.equals((sum/100.0).toFixed(2), parseFloat(row.total_amount_paid).toFixed(2),
+				"All payments' total_amount_paid should sum to the same sum of totals' total_amount. sum="+sum.toFixed(2));
 		});
 	},
 });
