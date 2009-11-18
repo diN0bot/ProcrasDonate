@@ -95,9 +95,13 @@ def receive_data(request):
     print "----private_key----------"
     print json.dumps(private_key, indent=2)
     
-    user = User.get_or_create(private_key=private_key)
+    user = User.get_or_none(private_key=private_key)
     print "----  USER ----"
     print user
+    if not user:
+        message = "unknown user: %s, request=%s" % (private_key, request)
+        Log.Error(message, "unknown_user")
+        return json_failure(message)
     
     processed_count = 0
     for datatype in datatypes:
@@ -149,9 +153,13 @@ def return_data(request):
     print "----private_key----------"
     print json.dumps(private_key, indent=2)
     
-    user = User.get_or_create(private_key=private_key)
+    user = User.get_or_none(private_key=private_key)
     print "----  USER ----"
     print user
+    if not user:
+        message = "unknown user: %s, request=%s" % (private_key, request)
+        Log.Error(message, "unknown_user")
+        return json_failure(message)
     
     recipients = []
     #for recipient in Recipient.objects.filter(fpsrecipient__timestamp__gte=since):

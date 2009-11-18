@@ -117,6 +117,9 @@ _extend(Controller.prototype, {
 		case constants.AUTOMATIC_TEST_SUITE_URL:
 			this.automatic_test_suite(request);
 			break;
+		case constants.TIMING_TEST_SUITE_URL:
+			this.timing_test_suite(request);
+			break;
 		case constants.AUTHORIZE_PAYMENTS:
 			this.authorize_payments(request);
 			break;
@@ -479,6 +482,49 @@ _extend(Controller.prototype, {
 		}
 		
 		self.pddb = original_pddb;
+		
+		self.display_test_results(testrunner);
+	},
+	
+	/// run TIMING tester tests (mutates db) and checker checks 
+	/// (checks db) on test database
+	/// see WARNINGS below
+	timing_test_suite: function(request) {
+		var testrunner = new TestRunner(request);
+		var self = this;
+		
+		var original_pddb = self.pddb;
+		
+		// change default max idles to 10 and 30 seconds
+		// otherwise test would take looooong time.
+		var orig_default_max_idle = constants.DEFAULT_MAX_IDLE;
+		var orig_default_flash_max_idle = constants.DEFAULT_FLASH_MAX_IDLE;
+		constants.DEFAULT_MAX_IDLE = 10;
+		constants.DEFAULT_FLASH_MAX_IDLE = 30;
+		
+		try {
+			self.pddb = new PDDB("test.0.sqlite");
+			self.pddb.init_db();
+
+			/// WARNING: this uses setTimeout to test blur/focus,
+			///          idle/back, start/stop-recording....
+			///          tests after this one should worry about interference!
+			
+			/// WARNING 2: this test requires the tester to continuous move 
+			///            their mouse but not click so that IDLE isn't
+			///            inadvertantly triggered in the middle of the test.
+			///            the test runs for at least 5 minute.
+			testrunner.test("Test Idle/Back-Focus/Blur Combos", function() {
+				self.pddb.tester.test_idle_focus_combos(testrunner, self.display_test_results);
+			});
+		} catch(e) {
+			self.pddb.orthogonals.error(e+"\n\n"+e.stack);
+		}
+		
+		self.pddb = original_pddb;
+		
+		constants.DEFAULT_MAX_IDLE = orig_default_max_idle; 
+		constants.DEFAULT_FLASH_MAX_IDLE = orig_default_flash_max_idle;
 		
 		self.display_test_results(testrunner);
 	},

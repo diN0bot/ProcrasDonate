@@ -278,7 +278,14 @@ def authorize_multiuse(request):
     print lower_parameters
     print
     
-    user = User.get_or_create(private_key=private_key)
+    user = User.get_or_none(private_key=private_key)
+    print "----  USER ----"
+    print user
+    if not user:
+        message = "unknown user: %s, request=%s" % (private_key, request)
+        Log.Error(message, "unknown_user")
+        return json_failure(message)
+    
     multiuse = FPSMultiuseAuth.get_or_none(caller_reference=lower_parameters['caller_reference'])
     if not multiuse:
         multiuse = FPSMultiuseAuth.add(user, lower_parameters)
@@ -452,7 +459,14 @@ def cancel_multiuse(request):
     full_url = "%s?%s" % (AMAZON_FPS_API_URL,
                           urllib.urlencode(camel_parameters))
 
-    user = User.get_or_create(private_key=private_key)
+    user = User.get_or_none(private_key=private_key)
+    print "----  USER ----"
+    print user
+    if not user:
+        message = "unknown user: %s, request=%s" % (private_key, request)
+        Log.Error(message, "unknown_user")
+        return json_failure(message)
+    
     FPSMultiuseCancelToken.add(user,
                                token_id=lower_parameters['token_id'],
                                reason_text=lower_parameters['reason_text'],
@@ -574,7 +588,14 @@ success!!!
     lower_parameters = response['parameters']
     private_key = lower_parameters['private_key']
     del lower_parameters['private_key']
-    user = User.get_or_create(private_key=private_key)
+    
+    user = User.get_or_none(private_key=private_key)
+    print "----  USER ----"
+    print user
+    if not user:
+        message = "unknown user: %s, request=%s" % (private_key, request)
+        Log.Error(message, "unknown_user")
+        return json_failure(message)
     
     rslug = lower_parameters['recipient_slug']
     recipient = Recipient.get_or_none(slug=rslug)
