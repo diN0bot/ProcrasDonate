@@ -186,7 +186,7 @@ class Recipient(models.Model):
     """
     last_modified = models.DateField(auto_now=True)
 
-    slug = models.SlugField(db_index=True, help_text="UNIQUE acronym for url. eg BILUMI in procrasdonate.com/BILUMI")
+    slug = models.SlugField(db_index=True, help_text="UNIQUE acronym for url. eg bilumi in procrasdonate.com/bilumi")
     name = models.CharField(max_length=200, null=True, blank=True, verbose_name="Organization's Name")
     category = models.ForeignKey('Category', blank=True, null=True)
     mission = models.CharField(max_length=200, null=True, blank=True, verbose_name="Charitable Mission")
