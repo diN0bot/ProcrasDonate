@@ -14,3 +14,12 @@ alias xpi_it='python ${REPO}procrasdonate/applib/xpi_builder.py'
 
 ## rebuilds extension templates. you will still need to reload chrome to see changes
 alias rebuild='python ${REPO}procrasdonate/ProcrasDonateFFExtn/content/bin/build_templates.py ${REPO}procrasdonate/ProcrasDonateFFExtn/content/templates/*.html; cat ${REPO}procrasdonate/ProcrasDonateFFExtn/content/templates/*.js > ${REPO}procrasdonate/ProcrasDonateFFExtn/content/js/templates/all.js'
+
+##### SOUTH DATABASE SCHEMA AND DATA MIGRATIONS
+
+./manage.py startmigration procrasdonate XXX-migrationname-XXX --auto
+
+then run
+
+./manage.py migrate
+

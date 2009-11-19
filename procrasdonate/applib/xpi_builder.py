@@ -37,8 +37,8 @@ function generated_input() {
     return """);
         
         bilumi = None
-        if not self.recipient or self.recipient.slug != 'BILUMI':
-            bilumi = Recipient.get_or_none(slug="BILUMI")
+        if not self.recipient or self.recipient.slug != 'bilumi':
+            bilumi = Recipient.get_or_none(slug="bilumi")
         
         recip_pcts = []
         
