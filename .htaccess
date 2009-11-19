@@ -1,2 +1,6 @@
 AddType application/x-xpinstall .xpi
 AddType text/xml .rdf
+
+RewriteEngine On
+RewriteCond %{HTTPS} off
+RewriteRule (.*) https://%{HTTP_HOST}%{REQUEST_URI}
