@@ -156,6 +156,11 @@ def payment_registration_callback(request):
     status=SR
     callerReference=h2Yij4nUqPzL
     """
+    if not settings.DJANGO_SERVER and not request.is_secure():
+        message = "must secure data via HTTPS: request=%s" % request
+        Log.Error(message, "request_error")
+        return json_failure(message)
+    
     recipient = request.user.get_profile().recipient
     errors = []
     
@@ -211,6 +216,11 @@ def authorize_multiuse(request):
         parameters
         
     """
+    if not settings.DJANGO_SERVER and not request.is_secure():
+        message = "must secure data via HTTPS: request=%s" % request
+        Log.Error(message, "request_error")
+        return json_failure(message)
+    
     print
     print "AUTHORIZE_MULTIUSE"
     print json.dumps(request.POST, indent=2)
@@ -324,6 +334,11 @@ def authorize_multiuse_callback(request, caller_reference):
             status=CE
             callerReference=AmOYgYlAUMd6
     """
+    if not settings.DJANGO_SERVER and not request.is_secure():
+        message = "must secure data via HTTPS: request=%s" % request
+        Log.Error(message, "request_error")
+        return json_failure(message)
+    
     print request
     print "PAYMENT AUTH CALLBACK GET: ", caller_reference, json.dumps(request.GET, indent=2)
     multi_auth = FPSMultiuseAuth.get_or_none(caller_reference=caller_reference)
@@ -408,6 +423,11 @@ def cancel_multiuse(request):
     <CancelTokenResponse xmlns="http://fps.amazonaws.com/doc/2008-09-17/"><ResponseMetadata><RequestId>c0536599-b904-4cee-a504-5c80d7812464:0</RequestId></ResponseMetadata></CancelTokenResponse>
     
     """
+    if not settings.DJANGO_SERVER and not request.is_secure():
+        message = "must secure data via HTTPS: request=%s" % request
+        Log.Error(message, "request_error")
+        return json_failure(message)
+    
     print
     print "CANCEL MULTIUSE"
     print json.dumps(request.POST, indent=2)
@@ -559,6 +579,11 @@ success!!!
     </ResponseMetadata>
 </PayResponse>
     """
+    if not settings.DJANGO_SERVER and not request.is_secure():
+        message = "must secure data via HTTPS: request=%s" % request
+        Log.Error(message, "request_error")
+        return json_failure(message)
+    
     print
     print "CANCEL MULTIUSE"
     print json.dumps(request.POST, indent=2)
@@ -803,6 +828,11 @@ def ipn(request):
     }
 
     """
+    if not settings.DJANGO_SERVER and not request.is_secure():
+        message = "must secure data via HTTPS: request=%s" % request
+        Log.Error(message, "request_error")
+        return json_failure(message)
+    
     try:
         f = open("/var/sites/ProcrasDonate/log.log", 'a')
         f.write("\n\nINSTANT PAYMENT NOTE\n")

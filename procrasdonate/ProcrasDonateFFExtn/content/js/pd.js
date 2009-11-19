@@ -35,7 +35,7 @@ _extend(ProcrasDonate_API.prototype, {
 			data[self.pddb[key].table_name] = JSON.stringify(items);
 		});
 		
-		var url = constants.PD_URL + constants.SEND_DATA_URL;
+		var url = constants.PD_API_URL + constants.SEND_DATA_URL;
 		logger("pd.js:: send_data: ");
 		_pprint(data.totals[0]);
 		_pprint(data.totals[0].content);
@@ -145,7 +145,7 @@ _extend(ProcrasDonate_API.prototype, {
 		// serialize into json
 		var json_data = JSON.stringify(data);
 		
-		var url = constants.PD_URL + constants.SEND_DATA_URL;
+		var url = constants.PD_API_URL + constants.SEND_DATA_URL;
 		this._hello_operator_give_me_procrasdonate(
 			url,
 			{"json_data": json_data}, // must be dictionary, not json string
@@ -207,7 +207,7 @@ _extend(ProcrasDonate_API.prototype, {
             paymentReason: this.prefs.get('payment_reason', constants.DEFAULT_PAYMENT_REASON),
 		}
 		
-		var url = constants.PD_URL + constants.AUTHORIZE_PAYMENTS_URL;
+		var url = constants.PD_API_URL + constants.AUTHORIZE_PAYMENTS_URL;
 		
 		this._hello_operator_give_me_procrasdonate(
 			url,
@@ -222,7 +222,7 @@ _extend(ProcrasDonate_API.prototype, {
 	send_welcome_email: function() {
 		logger("send welcome email: "+this.prefs.get('email', constants.DEFAULT_EMAIL))
 		this.make_request(
-			constants.PD_URL + constants.SEND_WELCOME_EMAIL_URL,
+			constants.PD_API_URL + constants.SEND_WELCOME_EMAIL_URL,
 			{
 				email_address: this.prefs.get('email', constants.DEFAULT_EMAIL),
 				private_key: this.prefs.get('private_key', constants.DEFAULT_PRIVATE_KEY)
@@ -257,7 +257,7 @@ _extend(ProcrasDonate_API.prototype, {
 
 		//this.pddb.orthogonals.info("authorize_multiuse: "+JSON.stringify(multi_auth), "pd.js");
 		this._hello_operator_give_me_procrasdonate(
-			constants.PD_URL + constants.AUTHORIZE_MULTIUSE_URL,
+			constants.PD_API_URL + constants.AUTHORIZE_MULTIUSE_URL,
 			data,
 			"POST",
 			onsuccess,
@@ -276,7 +276,7 @@ _extend(ProcrasDonate_API.prototype, {
 		}
 		
 		this._hello_operator_give_me_procrasdonate(
-			constants.PD_URL + constants.CANCEL_MULTIUSE_TOKEN_URL,
+			constants.PD_API_URL + constants.CANCEL_MULTIUSE_TOKEN_URL,
 			{
 				token_id: multiuse.token_id,
 				reason_text: reason_text,
@@ -373,7 +373,7 @@ _extend(ProcrasDonate_API.prototype, {
 		});
 		
 		this._hello_operator_give_me_procrasdonate(
-				constants.PD_URL + constants.PAY_MULTIUSE_URL,
+				constants.PD_API_URL + constants.PAY_MULTIUSE_URL,
 				data,
 				"POST",
 				function(r) {
@@ -444,7 +444,7 @@ _extend(ProcrasDonate_API.prototype, {
 						timestamp: _dbify_date(new Date())
 					});
 					this._hello_operator_give_me_procrasdonate(
-						constants.PD_URL + constants.PAY_MULTIUSE_URL,
+						constants.PD_API_URL + constants.PAY_MULTIUSE_URL,
 						data,
 						"POST",
 						function(r) {
@@ -538,7 +538,7 @@ _extend(ProcrasDonate_API.prototype, {
 		var self = this;
 		var new_since = new Date();
 		this._hello_operator_give_me_procrasdonate(
-			constants.PD_URL + constants.RECEIVE_DATA_URL,
+			constants.PD_API_URL + constants.RECEIVE_DATA_URL,
 			{
 				since: 0, // self.prefs.get('since_received_data', 0);
 				private_key: this.prefs.get('private_key', constants.DEFAULT_PRIVATE_KEY),

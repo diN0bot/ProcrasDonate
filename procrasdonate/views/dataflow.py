@@ -72,8 +72,15 @@ def receive_data(request):
     handles totals, logs, userstudies, payments, requirepayments posted from extension
     """
     #try:
+    if not settings.DJANGO_SERVER and not request.is_secure():
+        message = "must secure data via HTTPS: request=%s" % request
+        Log.Error(message, "request_error")
+        return json_failure(message)
+
     if not request.POST:
-        return json_failure("must *POST* data")
+        message = "must *POST* data"
+        Log.Error(message, "request_error")
+        return json_failure(message)
     
     datatypes = ["totals", "logs", "userstudies", "payments", "requirespayments"]
     processor_fnc = {'totals'          : Processor.process_total,
@@ -92,12 +99,8 @@ def receive_data(request):
     parameters = response['parameters']
 
     private_key = parameters["private_key"]
-    print "----private_key----------"
-    print json.dumps(private_key, indent=2)
     
     user = User.get_or_none(private_key=private_key)
-    print "----  USER ----"
-    print user
     if not user:
         message = "unknown user: %s, request=%s" % (private_key, request)
         Log.Error(message, "unknown_user")
@@ -131,6 +134,11 @@ def return_data(request):
         * data for particular user
         * latest extension version
     """
+    if not settings.DJANGO_SERVER and not request.is_secure():
+        message = "must secure data via HTTPS: request=%s" % request
+        Log.Error(message, "request_error")
+        return json_failure(message)
+
     print
     print "="*60
     print "RETURN DATA";

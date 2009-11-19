@@ -1,5 +1,5 @@
 from lib.xml_utils import ConvertXmlToDict
-from settings import pathify, path, PROJECT_PATH, MEDIA_ROOT, MEDIA_URL, DOMAIN
+from settings import pathify, path, PROJECT_PATH, MEDIA_ROOT, MEDIA_URL, DOMAIN, API_DOMAIN
 
 from procrasdonate.models import Recipient
 
@@ -53,7 +53,8 @@ function generated_input() {
         
         data = [{"private_key": private_key,
                  "preselected_charities": recip_pcts,
-                 "constants_PD_URL": DOMAIN}]
+                 "constants_PD_URL": DOMAIN,
+                 "constants_PD_API_URL": API_DOMAIN}]
         
         json.dump(data, generated_input_f)
         

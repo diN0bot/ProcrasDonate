@@ -200,6 +200,7 @@ class Recipient(models.Model):
     
     employers_identification_number = models.CharField(max_length=32, blank=True, null=True, verbose_name="IRS EIN (Employer Identification Number)")
     tax_exempt_status = models.BooleanField(default=False, verbose_name="Check if US tax exempt organization:")
+    is_sponsored = models.BooleanField(default=False, verbose_name="Is sponsored by some other organization")
     sponsoring_organization = models.CharField(max_length=200, blank=True, null=True)
     office_phone = models.CharField(max_length=15, blank=True, null=True)
     mailing_address = models.CharField(max_length=200, blank=True, null=True)

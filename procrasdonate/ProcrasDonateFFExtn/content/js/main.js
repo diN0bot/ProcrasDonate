@@ -472,6 +472,9 @@ Overlay.prototype = {
 					
 					} else if (key == "constants_PD_URL") {
 						constants.PD_URL = value;
+					
+					} else if (key == "constants_PD_API_URL") {
+						constants.PD_API_URL = value;
 						
 					} else {
 						//#@TODO

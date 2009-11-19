@@ -42,7 +42,8 @@ MANAGERS = ADMINS
 
 APPS = ('procrasdonate', )
 
-DOMAIN = 'http://ProcrasDonate.com'
+DOMAIN = 'https://ProcrasDonate.com'
+API_DOMAIN = 'https://ProcrasDonate.com'
 
 # Local time zone for this installation. Choices can be found here:
 # http://www.postgresql.org/docs/8.1/static/datetime-keywords.html#DATETIME-TIMEZONE-SET-TABLE
@@ -96,6 +97,7 @@ MIDDLEWARE_CLASSES = (
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'ext.pagination.middleware.PaginationMiddleware',
     #'django.contrib.csrf.middleware.CsrfMiddleware',
+    #'lib.ssl_middleware.SSLRedirect',
 )
 for app in APPS:
     if os.path.exists(pathify([PROJECT_PATH, app, 'middleware.py'], file_extension=True)):

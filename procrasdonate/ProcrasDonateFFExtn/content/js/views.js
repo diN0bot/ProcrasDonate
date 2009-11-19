@@ -64,7 +64,7 @@ _extend(Controller.prototype, {
 		
 		this.page.default_inserts(request);
 		
-		var path = request.url.match(new RegExp("http:\/\/[^/]+(.*)"))
+		var path = request.url.match(new RegExp("https?:\/\/[^/]+(.*)"))
 		switch (path[1]) {
 		case constants.REGISTER_URL:
 			this.insert_based_on_state(
