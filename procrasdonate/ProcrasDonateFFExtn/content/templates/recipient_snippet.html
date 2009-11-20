@@ -8,6 +8,7 @@
 		{% if deep_recip_pct.recipient.is_pd_registered %}
 			<a href='{{ constants.RECIPIENTS_URL }}{{ deep_recip_pct.recipient.slug }}'>
 		{% endif %}
+			<img src="{{ recipient.logo_thumbnail }}" />
 			{{ recipient.name }}
 		{% if deep_recip_pct.recipient.is_pd_registered %}
 			</a>

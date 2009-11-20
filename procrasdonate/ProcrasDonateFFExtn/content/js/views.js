@@ -1193,7 +1193,7 @@ _extend(PageController.prototype, {
 				first_cell = table_rows[i1][0]["host"];
 			} else {
 				first_cell = "<img src=\""+
-					table_rows[i1][0]["logo"]+
+					table_rows[i1][0]["logo_thumbnail"]+
 					"\"><span>"+
 					table_rows[i1][0]["name"]+
 					"</span>";

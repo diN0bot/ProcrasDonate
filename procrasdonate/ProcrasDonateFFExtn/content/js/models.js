@@ -151,7 +151,8 @@ function load_models(db, pddb) {
 		table_name: "recipients",
 		columns: {
 			_order: ["id", "slug", "name", "category_id", "mission",
-			         "description", "url", "logo", "twitter_name", "facebook_name", 
+			         "description", "url", "logo", "logo_thumbnail",
+			         "twitter_name", "facebook_name", 
 			         "is_visible", "pd_registered", "tax_exempt_status"],
 			id: "INTEGER PRIMARY KEY",
 			slug: "VARCHAR",
@@ -161,6 +162,7 @@ function load_models(db, pddb) {
 			description: "VARCHAR",
 			url: "VARCHAR",
 			logo: "VARCHAR", // url to img uploaded onto server
+			logo_thumbnail: "VARCHAR", // url to img uploaded onto server
 			twitter_name: "VARCHAR",
 			facebook_name: "VARCHAR",
 			is_visible: "INTEGER", // boolean 0=false
@@ -201,6 +203,7 @@ function load_models(db, pddb) {
 				description: this.description,
 				url: this.url,
 				logo: this.logo,
+				logo_thumbnail: this.logo_thumbnail,
 				twitter_name: this.twitter_name,
 				facebook_name: this.facebook_name,
 				is_visible: _un_dbify_bool(this.is_visible),
@@ -244,6 +247,7 @@ function load_models(db, pddb) {
                 description: r.description,
                 url: r.url,
                 logo: r.logo,
+                logo_thumbnail: r.logo_thumbnail,
                 twitter_name: r.twitter_name,
                 facebook_name: r.facebook_name,
                 is_visible: _dbify_bool(r.is_visible),

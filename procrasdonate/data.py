@@ -12,7 +12,7 @@ import settings
 
 from django.contrib.contenttypes.models import ContentType
 
-import Image # Image = PIL
+import Image as PIL
 
 import re
 import random
@@ -209,11 +209,11 @@ class Recipient(models.Model):
     country = models.CharField(max_length=100, blank=True, null=True, default='USA')
     
     logo = models.ImageField(upload_to=get_image_path, blank=True, null=True)
-    SCALED_MAX_HEIGHT = 100
-    SCALED_MAX_WIDTH = 100
-    #### these are wrong !!!!!!!
-    logo_height = models.IntegerField(default=SCALED_MAX_HEIGHT)
-    logo_width = models.IntegerField(default=SCALED_MAX_WIDTH)
+    
+    SCALED_MAX_HEIGHT = 300
+    SCALED_MAX_WIDTH = 300
+    THUMBNAIL_MAX_HEIGHT = 50
+    THUMBNAIL_MAX_WIDTH = 50
     
     promotional_video = models.URLField(blank=True, null=True, help_text="A good way to attract new donors is to have your organization's video rotating through the ProcrasDonate website.  Copy the <b>full</b> website address of the Youtube video that best represents your organization and paste it here. (optional)")
     pd_experience_video = models.URLField(blank=True, null=True, help_text="The secondary video box on our website is reserved for videos about using ProcrasDonate. If you'd like to share your organization's experience using ProcrasDonate then add that Youtube address here. (optional)")
@@ -233,6 +233,7 @@ class Recipient(models.Model):
                 'description': self.description,
                 'url': self.url,
                 "logo": self.logo and self.logo.url or None,
+                "logo_thumbnail": self.thumbnail_url(),
                 
                 'twitter_name': self.twitter_name,
                 'facebook_name': self.facebook_name,
@@ -289,13 +290,14 @@ class Recipient(models.Model):
                     v = res.groups()[0]
                     setattr(instance, field, "http://www.youtube.com/v/%s" % v)
 
+    """
     @classmethod
-    def set_logo_dimensions(klass, signal, sender, instance, **kwargs):
-        """
+    def dimensions(klass, signal, sender, instance, **kwargs):
+        '''
         @summary: sets the *scaled* logo_height and logo_width fields based on the
             logo's original dimensions.
             Does not actually scale the logo.
-        """
+        '''
         if not instance.logo:
             return
 
@@ -311,7 +313,30 @@ class Recipient(models.Model):
         
         instance.logo_height = h
         instance.logo_width = w
- 
+    """
+    
+    def thumbnail_path(self):
+        if self.logo:
+            dot_idx = self.logo.path.rfind(".")
+            if 0 <= dot_idx < len(self.logo.path):
+                return "%s_thumbnail%s" % (self.logo.path[:dot_idx],
+                                           self.logo.path[dot_idx:])
+            else:
+                return self.logo.path + ".thumbnail"
+        else:
+            return ""
+    
+    def thumbnail_url(self):
+        if self.logo:
+            dot_idx = self.logo.url.rfind(".")
+            if 0 <= dot_idx < len(self.logo.url):
+                return "%s_thumbnail%s" % (self.logo.url[:dot_idx],
+                                           self.logo.url[dot_idx:])
+            else:
+                return self.logo.url + ".thumbnail"
+        else:
+            return ""
+    
     @classmethod
     def scale_logo(klass, signal, sender, instance, created, **kwargs):
         """
@@ -323,17 +348,19 @@ class Recipient(models.Model):
         if instance.logo.width <= Recipient.SCALED_MAX_WIDTH and instance.logo.height <= Recipient.SCALED_MAX_HEIGHT:
             return
         
-        im = Image.open(instance.logo.path)
-        #@todo: log these
-        print im.info
-        print im.format
-        print im.mode
+        im = PIL.open(instance.logo.path)
+        th = im.copy()
+        #@TODO how log here? dependencies...
+        #Log.Log("image: info=%s, format=%s, mode=%s" % (im.info, im.format, im.mode))
         if 'duration' in im.info:
-            print "animation not allowed"
+            #Log.Error("animation uploaded for logo: %s for %s" % (instance.logo.path, self.slug))
+            pass
         else:
-            #im.thumbnail((instance.logo_width, instance.logo_height), Image.ANTIALIAS)
-            im.thumbnail((Recipient.SCALED_MAX_WIDTH, Recipient.SCALED_MAX_HEIGHT), Image.ANTIALIAS)
+            im.thumbnail((Recipient.SCALED_MAX_WIDTH, Recipient.SCALED_MAX_HEIGHT), PIL.ANTIALIAS)
             im.save(instance.logo.path, im.format)
+
+            th.thumbnail((Recipient.THUMBNAIL_MAX_WIDTH, Recipient.THUMBNAIL_MAX_HEIGHT), PIL.ANTIALIAS)
+            th.save(instance.thumbnail_path(), th.format)
 
         """
         looked at but didn't use: http://www.djangosnippets.org/snippets/224/

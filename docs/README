@@ -23,3 +23,18 @@ then run
 
 ./manage.py migrate
 
+##### AMAZON FPS RATES
+
+For Transactions >= $10:
+1.5% + $.01 for ABT (stored value account balance transfer) transactions.
+2.0% + $.05 for ACH (bank) transfers.
+2.9% + $.30 for CC (credit card) transactions - volume discounts apply.
+
+For Transactions < $10:
+1.5% + $.01 for ABT transactions.
+2.0% + $.05 for ACH bank transfers.
+5.0% + $.05 for CC transactions.
+
+For ABT Transactions < $.05:
+20% of the transaction amount, with a minimum fee of $.0025. 
+        	
