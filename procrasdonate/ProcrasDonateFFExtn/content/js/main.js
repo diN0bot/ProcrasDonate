@@ -462,6 +462,7 @@ Overlay.prototype = {
 		this.url_bar_listener.toolbar_manager.install_toolbar();
 	},
 	onInstall: function(version) { // execute on first run
+		var self = this;
 		logger("Overlay.onInstall::");
 		
 		// install generated input
@@ -483,7 +484,6 @@ Overlay.prototype = {
 		// receive data from server to populate database
 		// received tables: sitegroups, categories, recipients (user can add their own eventually)
 		// after success, set default recipient percent
-		var self = this;
 		this.pddb.page.pd_api.request_data_updates(
 			function() {
 				// after success
