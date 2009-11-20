@@ -433,6 +433,29 @@ Overlay.prototype = {
 		}
 	},
 	
+	install_generated_input: function() {
+		var self = this;
+		_iterate(generated_input()[0], function(key, value, index) {
+			if (key == "private_key") {
+				self.pddb.prefs.set("private_key", value);
+			
+			} else if (key == "preselected_charities") {
+				_iterate(value, function(k, recip_pct, idx) {
+					self.pddb.RecipientPercent.process_object(recip_pct);
+				});
+			
+			} else if (key == "constants_PD_URL") {
+				constants.PD_URL = value;
+			
+			} else if (key == "constants_PD_API_URL") {
+				constants.PD_API_URL = value;
+				
+			} else {
+				self.pddb.orthogonals.log("generated input: unrecognized key: "+key+" value="+value);
+			}
+		});
+	},
+	
 	doInstall: function() { // 
 		logger("Overlay.doInstall::");
 		
@@ -440,6 +463,11 @@ Overlay.prototype = {
 	},
 	onInstall: function(version) { // execute on first run
 		logger("Overlay.onInstall::");
+		
+		// install generated input
+		// pre-selected charities will fail because recipients are unknown
+		// we need to do this now, though, so that the private_key and PD domain are set
+		self.install_generated_input();
 		
 		// The example below loads a page by opening a new tab.
 		// Useful for loading a mini tutorial
@@ -461,26 +489,8 @@ Overlay.prototype = {
 				// after success
 
 				// install generated input
-				_iterate(generated_input()[0], function(key, value, index) {
-					if (key == "private_key") {
-						self.pddb.prefs.set("private_key", value);
-						
-					} else if (key == "preselected_charities") {
-						_iterate(value, function(k, recip_pct, idx) {
-							self.pddb.RecipientPercent.process_object(recip_pct);
-						});
-					
-					} else if (key == "constants_PD_URL") {
-						constants.PD_URL = value;
-					
-					} else if (key == "constants_PD_API_URL") {
-						constants.PD_API_URL = value;
-						
-					} else {
-						//#@TODO
-						self.pddb.orthogonals.log("generated input: unrecognized key: "+key+" value="+value);
-					}
-				});
+				// pre-selected charities will now be installed
+				self.install_generated_input();
 				
 			}, function() {
 				// after failure

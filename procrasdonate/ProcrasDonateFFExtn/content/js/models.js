@@ -316,7 +316,6 @@ function load_models(db, pddb) {
 		process_object: function(r) {
 			// @param r: object from server. json already loaded
 			// contains recipient_slug and percent
-			logger("PROCESS OBJECT "+r+" "+r.recipient_slug);
 			var recipient = Recipient.get_or_null({ slug: r.recipient_slug });
 			if (recipient) {
 				var rpct = RecipientPercent.get_or_create({
@@ -324,10 +323,8 @@ function load_models(db, pddb) {
 				}, {
 					percent: r.percent
 				});
-				logger("YES "+rpct);
 			} else {
-				//#@TODO
-				logger("DO!");
+				pddb.orthogonals.log("Unable to process RecipientPercent "+r+" because unknown recipient", "dataflow");
 			}
 		}
 	});
