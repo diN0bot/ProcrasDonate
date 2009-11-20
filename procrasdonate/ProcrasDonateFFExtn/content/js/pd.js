@@ -454,6 +454,8 @@ _extend(ProcrasDonate_API.prototype, {
 		//    recipients: array of recipient rows added (new since time)
 		//    multi_auths: array of multi_auths (all)
 		var self = this;
+		self.pddb.orthogonals.log("Requesting data updates from "+(constants.PD_API_URL + constants.RECEIVE_DATA_URL), "dataflow");
+		
 		var new_since = new Date();
 		this._hello_operator_give_me_procrasdonate(
 			constants.PD_API_URL + constants.RECEIVE_DATA_URL,
@@ -478,7 +480,7 @@ _extend(ProcrasDonate_API.prototype, {
 					self.pddb.Recipient.process_object(value);
 				});
 				self.prefs.set('since_received_data', _dbify_date(new_since));
-				self.pddb.orthogonals.log("Done: "+_dbify_date(new_since), "dataflow");
+				self.pddb.orthogonals.log("Data successfully updated to "+new_since, "dataflow");
 				
 				if (after_success) {
 					after_success(recipients, multi_auths);

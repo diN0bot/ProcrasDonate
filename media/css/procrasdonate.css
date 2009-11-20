@@ -334,6 +334,12 @@ h4 {
   text-align: left;
 }
 
+.what_next {
+	margin-top: 0em;
+	padding-top: 0em;
+	text-align: center;
+}
+
 /************ OLD REGISTER/SETTINGS FORM (some still in use for REGISTER now) ********/
 
 .form-label { font-size: 1.1em; margin-top: -.4em; }

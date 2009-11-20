@@ -10,17 +10,18 @@ var constants = {};
 	 * Define all global variables here.
 	 */
 	constants.MEDIA_URL = '/procrasdonate_media/';
-	constants.PD_HOST = 'procrasdonate.com';
-	//constants.PD_URL = 'http://' + constants.PD_HOST;
-	//constants.PD_API_URL = 'https://' + constants.PD_HOST;
-	constants.PD_URL = 'http://localhost:8000';
-	constants.PD_API_URL = 'http://localhost:8000';
+	constants.PD_HOST = 'ProcrasDonate.com';
+	constants.PD_URL = 'https://' + constants.PD_HOST;
+	constants.PD_API_URL = 'https://' + constants.PD_HOST;
+	//constants.PD_URL = 'http://localhost:8000';
+	//constants.PD_API_URL = 'http://localhost:8000';
 	constants.VALID_HOSTS = ['localhost:8000', 'procrasdonate.com'];
 	
 	constants.PROCRASDONATE_URL = '/';
 	constants.REGISTER_URL = '/register/';
-	constants.HOME_URL = '/home/';
-	constants.LEARN_URL = '/learn_more/';
+	constants.HOME_URL = '/';
+	constants.COMMUNITY_URL = '/community/';
+	constants.FAQ_URL = '/faq/';
 	constants.IMPACT_URL = '/my_impact/';
 	constants.SETTINGS_URL = '/my_settings/';
 	constants.PROGRESS_URL = '/my_progress/';
