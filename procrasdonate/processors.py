@@ -59,7 +59,6 @@ class Processor(object):
         dtime         = Processor.parse_seconds(int(total['datetime']))
         
         from django.utils import simplejson as json
-        print json.dumps(total, indent=2)
             
         if 'Recipient' == total['contenttype']:
             category     = total['content']['category']

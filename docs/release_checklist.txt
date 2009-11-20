@@ -6,12 +6,11 @@ A *server* release is a particular commit of everything else:
     the enclosing Django project and procrasdonate app.
     
 Although some server releases may occur independent of an extension release, much
-of this sysytem works together. Backwards compatibility must be considered in that
+of this system works together. Backwards compatibility must be considered in that
 users will update their extensions asynchronously.
 
 @TODO : move necessary css from the server to the extension so that the
 website can be updated (mostly) separate from the extension.
-#@TODO: make procrasdonate django app and ProcrasDonate ff extn more separated and stand-alone.
 
 Every release should go through the following checklist:
 
@@ -31,17 +30,9 @@ views.js
 === procrasdonate Django app ===
 
  new template files
- * Create after_install_<v'> and after_upgrade_<v'>
+   * Create after_install_<v'> and after_upgrade_<v'>
 
  generate xpi
-   cd procrasdonate/ff_extn/ProcrasDonate; zip -r ../../../media/xpi/ProcrasDonate_<v'>.xpi *
-
- generate hash
-   sha1sum ../../../media/xpi/ProcrasDonate_0.1.2.xpi 
-
- snippets/banner.html
- * Update link to xpi
- * update hash value 
+   * xpi_it alias from command line (see README)
 
  record all changes in docs/release_changes_<v'>.txt
-

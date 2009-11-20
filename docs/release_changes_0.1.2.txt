@@ -1,3 +1,4 @@
+### incomplete ###
 
 FEATURES
  * added friendly dialogue box to xpi download from website

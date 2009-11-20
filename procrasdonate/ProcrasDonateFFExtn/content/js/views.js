@@ -578,17 +578,13 @@ _extend(Schedule.prototype, {
 	},
 	
 	is_new_24hr_period: function() {
-		/* @returns: true if it is at least 24 hrs past the last 24hr mark */
-		var two_four_hr = _un_dbify_date(this.prefs.get('last_24hr_mark', 0));
-		var now = new Date();
-		two_four_hr.setHours(two_four_hr.getHours() + 24);
-		return now > two_four_hr
+		/** @returns: true if the last marked day is over */
+		var yesterday = _un_dbify_date(this.prefs.get('last_24hr_mark', 0));
+		var start_of_yesterday = _start_of_day(yesterday);
+		var start_of_day = _start_of_day();
+		return start_of_yesterday < start_of_day
 	},
-	
-	do_first_daily_tasks: function() {
-		// first time daily ta
-	},
-	
+
 	do_once_daily_tasks: function() {
 		var self = this;
 		
@@ -600,58 +596,40 @@ _extend(Schedule.prototype, {
 				// after failure
 			});
 		
-		// run checker to log failures, db corruptions
+		// ?? run checker to log failures, db corruptions
 		
 		// Send data to server (more recent than time_last_sent_KlassName)
 		this.pddb.page.pd_api.send_data();
 	},
 	
 	reset_24hr_period: function() {
-		// reset last_24hr_mark to now
-		var two_four_hr = _un_dbify_date(this.prefs.get('last_24hr_mark', 0));
-		var new_two_four_hr = new Date();
-		new_two_four_hr.setHours(two_four_hr.getHours());
-		new_two_four_hr.setMinutes(two_four_hr.getMinutes());
-		new_two_four_hr.setSeconds(two_four_hr.getSeconds());
-		var now = new Date();
-		if ( new_two_four_hr > now ) {
-			// is this possible? is this a dire error? loopy?
-			new_two_four_hr.setDate( now.getDate() - 1 );
-		}
-		this.prefs.set('last_24hr_mark', _dbify_date( new_two_four_hr ));
-		//alert("ding! last 24hr "+two_four_hr+" new 24hr "+now+"  now  "+new Date());	
+		/** reset 24 hour cycle to start of today */
+		var start_of_day = _start_of_day();
+		this.prefs.set('last_24hr_mark', _dbify_date(start_of_day));
 	},
 	
 	is_new_week_period: function() {
-		/* @returns: true if it is at least 1 week past the last week mark */
-		var week_hr = new Date(this.prefs.get('last_week_mark', 0)*1000);
-		var now = new Date();
-		week_hr.setDate(week_hr.getDate() + 7);
-		return now > week_hr
+		/** @returns: true if the last marked week is over */
+		var last_week = _un_dbify_date(this.prefs.get('last_week_mark', 0));
+		var start_of_last_week = _start_of_week(last_week);
+		var start_of_week = _start_of_week();
+		return start_of_last_week < start_of_week
 	},
 	
 	do_once_weekly_tasks: function() {
 		// none yet
 	},
 	
-	reset_week_period: function() {
-		// reset last_week_mark to now
-		//#@TODO make this a Sunday night?
-		var week_hr = new Date(this.prefs.get('last_week_mark', 0)*1000);
-		var now = new Date();
-		now.setHours(week_hr.getHours());
-		now.setMinutes(week_hr.getMinutes());
-		now.setSeconds(week_hr.getSeconds());
-		if ( now > new Date() ) {
-			now.setDate( now.getDate() - 1 );
-		}
-		this.prefs.set('last_week_mark', Math.floor(now.getTime()/1000));
-		//alert("ding! last week "+week_hr+" new week "+now+"  now  "+new Date());
-	},
-	
 	do_make_payment: function() {
 		/* all logic for whether to make payments is in pd_api */
 		this.pddb.page.pd_api.make_payments_if_necessary(false);
+	},
+
+	reset_week_period: function() {
+		/** reset weekly cycle to start of this week */
+		//var last_week = _un_dbify_date(this.prefs.get('last_week_mark', 0));
+		var start_of_week = _start_of_week();
+		this.prefs.set('last_week_mark', _dbify_date(start_of_week));
 	},
 
 });
@@ -1147,8 +1125,7 @@ _extend(PageController.prototype, {
 				if (!thisyear[contentname]() || 
 						(lastyear && !lastyear[contentname]()) || 
 						(lastyear && thisyear[contentname]().id != lastyear[contentname]().id)) {
-					// #@TODO ERROR impossible
-					logger("IMPOSSIBLE ERROR");
+					self.pddb.orthogonals.warn("Something impossible happened on impact state "+substate+": thisyear="+thisyear+" lastyear="+lastyear);
 				}
 				
 				var thispayments = 0.0;
@@ -1939,7 +1916,6 @@ _extend(PageController.prototype, {
 				request.jQuery("#multi_auth_status").html( html );
 			}, function() {
 				// after failure
-				// todo log failure?
 			}
 		);
 
@@ -1983,8 +1959,12 @@ _extend(PageController.prototype, {
 	activate_register_payments: function(request) {
 		var self = this;
 		request.jQuery("#min_auth_time_input").keyup(function() {
-			//#@TODO try catch parseFloat and display error
-			var time = parseFloat($(this).attr("value"));
+			var time = null;
+			try {
+				time = parseFloat($(this).attr("value"));
+			} catch(e) {
+				self.pddb.orthogonals.log("activate_register_payments: user entered non-float time: "+$(this).attr("value"));
+			}
 			if (!time) return
 			self.prefs.set('min_auth_time', _prefify_float(time));
 			
@@ -2000,11 +1980,6 @@ _extend(PageController.prototype, {
 			request.jQuery("#min_auth_time_display").text(min_auth_time.time);
 			request.jQuery("#min_auth_units_display").text(min_auth_time.units);
 		});
-		/*
-		request.jQuery(".go_to_amazon").click(function() {
-			self.pd_api.authorize_multiuse();
-			return false;
-		});*/
 	},
 	
 	process_register_payments: function(request) {

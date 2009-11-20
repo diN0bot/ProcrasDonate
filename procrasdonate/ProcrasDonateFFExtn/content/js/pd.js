@@ -15,8 +15,6 @@ _extend(ProcrasDonate_API.prototype, {
 	 */
 	
 	send_data: function() {
-	//#@TODO - send email, tos, weekly_affirmations, org_thank_yous, org_newsletters prefs
-	//        always, or triggered by send_data parameter when register_updates processor calls send_data?
 		var self = this;
 		var models_to_methods = {
 			"Total": "_get_totals",
@@ -27,7 +25,8 @@ _extend(ProcrasDonate_API.prototype, {
 		};
 		
 		var data = {
-			private_key: this.prefs.get('private_key', constants.DEFAULT_PRIVATE_KEY)
+			private_key: self.prefs.get('private_key', constants.DEFAULT_PRIVATE_KEY),
+			prefs: JSON.stringify(self.prefs.get_all()),
 		}
 		
 		_iterate(models_to_methods, function(key, value, index) {
@@ -36,21 +35,20 @@ _extend(ProcrasDonate_API.prototype, {
 		});
 		
 		var url = constants.PD_API_URL + constants.SEND_DATA_URL;
-		logger("pd.js:: send_data: ");
-		_pprint(data.totals[0]);
-		_pprint(data.totals[0].content);
+		self.pddb.orthogonals.log("pd.js:: about to send data...", "dataflow");
+
 		this._hello_operator_give_me_procrasdonate(
 			url,
 			data,
 			"POST",
 			function(r) { //onsuccess
-				logger("pd.js::send_data: server says successfully processed "+r.process_success_count+" items");
+				self.pddb.orthogonals.log("pd.js::send_data: server says successfully processed "+r.process_success_count+" items", "dataflow");
 			},
 			function(r) { //onfailure
-				logger("pd.js::send_data: server says receiving data failed because "+r.reason);
+				self.pddb.orthogonals.log("pd.js::send_data: server says receiving data failed because "+r.reason, "dataflow");
 			},
 			function(r) { //onerror
-				logger("pd.js::send_data: communication error");
+				self.pddb.orthogonals.log("pd.js::send_data: communication error", "dataflow");
 			}
 		);
 	},
@@ -77,6 +75,7 @@ _extend(ProcrasDonate_API.prototype, {
 			data.push(extract_data(row));
 		});
 		
+		this.prefs.set('time_last_sent_'+KlassName, new_last_time);
 		return data;
 	},
 	
@@ -115,87 +114,6 @@ _extend(ProcrasDonate_API.prototype, {
 		});
 	},
 
-	/*
-	 * 
-	 * @requires: KlassName must have a datetime field
-	 * 
-	 * @param KlassName: eg UserStudy, Payment, Total, Log
-	 * @param selectors: eg { datetime__gte: last_time }
-	 * @param extract=data: function that takes a row and returns a dictionary representation
-	 */
-	_send_data: function(KlassName, extract_data, extra_selectors) {
-		var last_time = this.prefs.get('time_last_sent_'+KlassName, 0);
-		var new_last_time = last_time;
-	
-		var selectors = _extend({
-			datetime__gte: last_time
-		}, extra_selectors);
-		
-		var items = [];
-		this.pddb[KlassName].select(selectors, function(row) {
-			if (parseInt(row.datetime) > new_last_time) { new_last_time = parseInt(row.datetime) ; }
-			items.push(extract_data(row));
-		});
-		
-		var data = {
-			private_key: this.prefs.get('private_key', constants.DEFAULT_PRIVATE_KEY)
-		};
-		data[this.pddb[KlassName].table_name] = items;
-		
-		// serialize into json
-		var json_data = JSON.stringify(data);
-		
-		var url = constants.PD_API_URL + constants.SEND_DATA_URL;
-		this._hello_operator_give_me_procrasdonate(
-			url,
-			{"json_data": json_data}, // must be dictionary, not json string
-			"POST",
-			function(response) { //onsuccess
-				logger("pd.js::_send_data server says successfully processed "+response.process_success_count+" items");
-			},
-			function(response) { //onfailure
-				logger("pd.js::_send_data server says receiving data failed because "+response.reason);
-			},
-			function(r) { //onerror
-				logger("pd.js::_send_data communication error");
-			});
-			
-		this.prefs.set('time_last_sent_'+KlassName, new_last_time);
-	},
-
-	send_user_studies: function() {
-		this._send_data("UserStudy", function(row) {
-			return row.deep_dict();
-		});
-	},
-	
-	send_logs: function() {
-		this._send_data("Log", function(row) {
-			return row.deep_dict();
-		});
-	},
-	
-	send_payments: function() {
-		this._send_data("Payment", function(row) {
-			return row.deep_dict();
-		});
-	},
-	
-	send_requires_payments: function() {
-		this._send_data("RequiresPayment", function(row) {
-			return row.deep_dict();
-		});
-	},
-	
-	send_totals: function() {
-		var self = this;
-		this._send_data("Total", function(row) {
-			return row.deep_dict();
-		}, {
-			timetype_id: self.pddb.Daily.id
-		});
-	},
-	
 	authorize_payments: function(onsuccess, onfailure, onerror) {
 		var self = this;
 		
@@ -567,7 +485,7 @@ _extend(ProcrasDonate_API.prototype, {
 				}
 			},
 			function(r) {
-				self.pddb.orthogonals.log("Failed to received data: "+r.reason, "dataflow");
+				self.pddb.orthogonals.log("Failed to received data from : "+(constants.PD_API_URL + constants.RECEIVE_DATA_URL)+" because "+r.reason, "dataflow");
 				if (after_failure) after_failure();
 			}
 		);

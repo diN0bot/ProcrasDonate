@@ -89,7 +89,7 @@ def receive_data(request):
                      'payments'        : Processor.process_payment,
                      'requirespayments': Processor.process_requirespayment}
     
-    expected_parameters = ["private_key"]
+    expected_parameters = ["private_key", "prefs"]
     response = extract_parameters(request, "POST", expected_parameters, datatypes)
     if not response['success']:
         message = "dataflow.receive_data Failed to extract expected parameters %s from %s" % (expected_parameters,
@@ -99,12 +99,26 @@ def receive_data(request):
     parameters = response['parameters']
 
     private_key = parameters["private_key"]
-    
+     
     user = User.get_or_none(private_key=private_key)
     if not user:
         message = "unknown user: %s, request=%s" % (private_key, request)
         Log.Error(message, "unknown_user")
         return json_failure(message)
+    
+    prefs_dict = json.loads(parameters["prefs"])
+    prefs = [];
+    keys = prefs_dict.keys()
+    keys.sort()
+    for key in keys:
+        prefs.append( "%s: %s" % (key, prefs_dict[key]) )
+    
+    print "--"*20
+    print "PREFS"
+    print "\n".join(prefs)
+    print "--"*20
+    
+    Log.Log("User sent data. Here are their prefs: %s" % "\n".join(prefs), "prefs", user)
     
     processed_count = 0
     for datatype in datatypes:
@@ -139,11 +153,6 @@ def return_data(request):
         Log.Error(message, "request_error")
         return json_failure(message)
 
-    print
-    print "="*60
-    print "RETURN DATA";
-    print "="*60
-    print
     errors = []
     expected_parameters = ["private_key", "since"]
 

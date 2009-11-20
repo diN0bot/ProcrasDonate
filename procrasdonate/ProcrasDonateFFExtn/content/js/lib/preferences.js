@@ -110,6 +110,22 @@ _extend(PreferenceManager.prototype, {
 			this.pref.QueryInterface(Components.interfaces.nsIPrefBranchInternal)
 				.removeObserver(name, this.observers[watcher]);
 		}
-	}
+	},
+	
+	/** @return an array of all preference keys */
+	get_pref_keys: function() {
+		return this.pref.getChildList("", {})
+	},
+	
+	/** @return dictionary of (key, value) pairs for all preferences */
+	get_all: function() {
+		var self = this;
+		var ret = {};
+		var keys = self.get_pref_keys();
+		_iterate(keys, function(idx, key, index) {
+			ret[key] = self.get(key, "__DEFAULT__");
+		});
+		return ret
+	},
 });
 

@@ -127,21 +127,13 @@ def json_response(data):
     return HttpResponse(data, mimetype="text/javascript")
 
 def json_success(data=None):
-    print
-    print
-    print "JSON SUCCES"
-    print data
-    print
-    print
     d = {'result': 'success'}
     if data:
         d.update(data)
-    print "json_success", simplejson.dumps(d, indent=2)
     return json_response(d)
 
 def json_failure(reason=""):
     d = {'result': 'failure'}
     if reason:
         d['reason'] = reason
-    print "json_failure", simplejson.dumps(d, indent=2)
     return json_response(d)

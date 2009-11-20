@@ -5,7 +5,18 @@
 {% endblock %}
 
 {% block content %}
-	<div id="thin_column">
-		Thanks for installing ProcrasDonate!
-	</div>
+	<h1>Congratulations!</h1>			
+	
+	<h2>
+		<img src="{{ MEDIA_URL }}img/Laptop.png" class="right-image">
+		You have updated to ProcrasDonate version {{ version }}
+	</h2>
+	
+	<h2>New Features for version {{ version }}</h2>
+	{{ features }}
+	
+	<h2>Here's what's next</h2>
+	
+	{% include 'procrasdonate/extension_pages/after_install_or_upgrade/standard_text.html' %}
+	
 {% endblock %}
