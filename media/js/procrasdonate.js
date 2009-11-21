@@ -101,7 +101,7 @@ function install(anchor_class) {
 		
 	} else {
 		// NOT READY FOR INSTALL YET
-		return not_ready_to_install();
+		//return not_ready_to_install();
 
 		// when ready, comment above line so that the following code is used.
 		var item = $("."+anchor_class).slice(0,1);

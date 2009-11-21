@@ -35,6 +35,7 @@
     {"pk": 34, "model": "procrasdonate.category", "fields": {"category": "Veterans"}},
     {"pk": 35, "model": "procrasdonate.category", "fields": {"category": "Women"}},
     {"pk": 36, "model": "procrasdonate.category", "fields": {"category": "Youth"}},
+    {"pk": 37, "model": "procrasdonate.category", "fields": {"category": "Unspecified"}},
 
     {
         "pk": 1, 

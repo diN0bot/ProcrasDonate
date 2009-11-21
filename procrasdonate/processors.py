@@ -141,7 +141,7 @@ class Processor(object):
         message     = log['message']
         dtime       = Processor.parse_seconds(int(log['datetime']))
         
-        return Log.add(type, detail_type, message, user, dtime)
+        return Log.add(Log.LOG_TYPES[type], detail_type, message, user, dtime)
     
     @classmethod
     def process_userstudy(klass, userstudy, user):

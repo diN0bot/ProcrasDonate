@@ -179,16 +179,20 @@ def get_image_path(instance, filename):
         # shouldn't happen
         print "FAIL get_image_patch", instance, filename
         raise "FAIL get_image_page"
-        
+
+def get_default_category():
+    ret = Category.get_or_none(category="Unspecified")
+    return ret
+    
 class Recipient(models.Model):
     """
     Recipient of donations
     """
-    last_modified = models.DateField(auto_now=True)
+    last_modified = models.DateTimeField(auto_now=True)
 
     slug = models.SlugField(db_index=True, help_text="UNIQUE acronym for url. eg bilumi in procrasdonate.com/bilumi")
     name = models.CharField(max_length=200, null=True, blank=True, verbose_name="Organization's Name")
-    category = models.ForeignKey('Category', blank=True, null=True)
+    category = models.ForeignKey('Category', blank=True, null=True, default=get_default_category)
     mission = models.CharField(max_length=200, null=True, blank=True, verbose_name="Charitable Mission")
     description = models.TextField(null=True, blank=True, verbose_name="Method Toward Fulfilling Mission")
     url = models.URLField(null=True, blank=True, verbose_name="Website")
@@ -553,9 +557,9 @@ class Visit(models.Model):
     with the same incoming_tipjoy_transaction_id should cancel out.
     """
     # datetime visit occured (recorded in extension)
-    dtime = models.DateField()
+    dtime = models.DateTimeField()
     # datetime server received visit from extension
-    received_time = models.DateField(auto_now_add=True)
+    received_time = models.DateTimeField(auto_now_add=True)
     # time spent procrastinating in seconds. likely max is 24 (hr) * 60 (min) * 60 (s)
     total_time = models.FloatField()
     # amount donated in cents

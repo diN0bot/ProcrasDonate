@@ -12,8 +12,8 @@ class Log(models.Model):
     LOG_TYPES_LIST = ["DEBUG", "INFO", "LOG", "WARN", "ERROR"]
     log_max_len, LOG_TYPES, LOG_TYPE_CHOICES = model_utils.convert_to_choices(LOG_TYPES_LIST)
         
-    DETAIL_TYPES_LIST = ["GENERAL", "UNKNOWN", "DATA_FROM_EXTN", "AMAZON_RESPONSE"]
-    detail_max_len, DETAIL_TYPES, DETAIL_TYPE_CHOICES = model_utils.convert_to_choices(DETAIL_TYPES_LIST)
+    #DETAIL_TYPES_LIST = ["GENERAL", "UNKNOWN", "DATA_FROM_EXTN", "AMAZON_RESPONSE"]
+    #detail_max_len, DETAIL_TYPES, DETAIL_TYPE_CHOICES = model_utils.convert_to_choices(DETAIL_TYPES_LIST)
     
     #DETAIL_ERROR_LIST = ["b", "c"]
     #derror_ml, DETAIL_ERRORS, DETAIL_ERRORS_CHOICES = model_utils.convert_to_choices(DETAIL_ERROR_LIST)
@@ -25,44 +25,34 @@ class Log(models.Model):
     
     dtime = models.DateTimeField()
     log_type = models.CharField(max_length=log_max_len, choices=LOG_TYPE_CHOICES)
-    # aggregate detail lists into single list. preserves duplicates...
-    detail_type = models.CharField(max_length=detail_max_len, choices=DETAIL_TYPE_CHOICES)
+
+    detail_type = models.CharField(max_length=100, blank=True, null=True)
     message = models.TextField()
     user = models.ForeignKey(User, null=True)
     
     @classmethod
-    def Debug(klass, message, detail=None, user=None, dt=None):
+    def Debug(klass, message, detail="general", user=None, dt=None):
         return klass._add(message, Log.LOG_TYPES['DEBUG'], detail, user, dt)
     
     @classmethod
-    def Info(klass, message, detail=None, user=None, dt=None):
+    def Info(klass, message, detail="general", user=None, dt=None):
         return klass._add(message, Log.LOG_TYPES['INFO'], detail, user, dt)
         
     @classmethod
-    def Log(klass, message, detail=None, user=None, dt=None):
+    def Log(klass, message, detail="general", user=None, dt=None):
         return klass._add(message, Log.LOG_TYPES['LOG'], detail, user, dt)
     
     @classmethod
-    def Warn(klass, message, detail=None, user=None, dt=None):
+    def Warn(klass, message, detail="general", user=None, dt=None):
         return klass._add(message, Log.LOG_TYPES['WARN'], detail, user, dt)
         
     @classmethod
-    def Error(klass, message, detail=None, user=None, dt=None):
+    def Error(klass, message, detail="general", user=None, dt=None):
         return klass._add(message, Log.LOG_TYPES['ERROR'], detail, user, dt)
         
     @classmethod
-    def _add(klass, message, type, detail=None, user=None, dt=None):
-        det = None
-        if not detail:
-            det = Log.DETAIL_TYPES["GENERAL"]
-        else:
-            if detail in Log.DETAIL_TYPES:
-                det = Log.DETAIL_TYPES[detail]
-            elif detail in Log.DETAIL_TYPES.values():
-                det = detail
-            else:
-                det = Log.DETAIL_TYPES["UNKNOWN"]
-        return Log.add(type, det, message, user, dt)
+    def _add(klass, message, type, detail="general", user=None, dt=None):
+        return Log.add(type, detail, message, user, dt)
     
     @classmethod
     def make(klass, log_type, detail_type, message, user=None, dt=None):

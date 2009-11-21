@@ -23,7 +23,7 @@ class Aggregate(models.Model):
     total_amount = models.FloatField(default=0.0, db_index=True) # dollars
     total_time = models.FloatField(default=0.0, db_index=True) # hours
     total_donors = models.FloatField(default=0.0, db_index=True)
-    time = models.DateField() # end of day, week or forever
+    time = models.DateTimeField() # end of day, week or forever
     time_type = models.CharField(max_length=1, choices=TIME_TYPE_CHOICES)
     last_updated = models.DateTimeField()
     
