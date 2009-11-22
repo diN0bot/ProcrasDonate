@@ -136,11 +136,11 @@ class Processor(object):
             "datetime": "1252539581"
           }
         """
-        type        = log['type']
-        message     = log['message']
-        is_read     = log['is_read']
-        is_sent     = log['is_sent']
-        dtime       = Processor.parse_seconds(int(log['datetime']))
+        type        = report['type']
+        message     = report['message']
+        is_read     = report['is_read']
+        is_sent     = report['is_sent']
+        dtime       = Processor.parse_seconds(int(report['datetime']))
         
         return Report.add(user, message, type, is_read, is_sent, dtime)
     

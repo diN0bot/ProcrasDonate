@@ -21,7 +21,8 @@ _extend(ProcrasDonate_API.prototype, {
 		    "UserStudy": "_get_user_studies",
             "Log": "_get_logs",
             "Payment": "_get_payments",
-            "RequiresPayment": "_get_requires_payments"
+            "RequiresPayment": "_get_requires_payments",
+            "Report": "_get_reports"
 		};
 		
 		var data = {
@@ -35,7 +36,7 @@ _extend(ProcrasDonate_API.prototype, {
 		});
 		
 		var url = constants.PD_API_URL + constants.SEND_DATA_URL;
-		self.pddb.orthogonals.log("pd.js:: about to send data...", "dataflow");
+		self.pddb.orthogonals.log("pd.js:: about to send data to "+url, "dataflow");
 
 		this._hello_operator_give_me_procrasdonate(
 			url,
@@ -81,7 +82,6 @@ _extend(ProcrasDonate_API.prototype, {
 	
 	_get_user_studies: function() {
 		return this._get_data("UserStudy", function(row) {
-			logger(" inside send_user_stuides row="+row+" deepdict="+row.deep_dict());
 			return row.deep_dict();
 		});
 	},
@@ -101,6 +101,14 @@ _extend(ProcrasDonate_API.prototype, {
 	_get_requires_payments: function() {
 		var data = [];
 		this.pddb.RequiresPayment.select({}, function(row) {
+			data.push( row.deep_dict() );
+		});
+		return data;
+	},
+	
+	_get_reports: function() {
+		var data = [];
+		this.pddb.Report.select({}, function(row) {
 			data.push( row.deep_dict() );
 		});
 		return data;

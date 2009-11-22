@@ -287,6 +287,17 @@ function load_models(db, pddb) {
 		is_sent: function() {
 			return _un_dbify_bool(this.sent)
 		},
+		
+		deep_dict: function() {
+			return {
+				id: this.id,
+				datetime: this.datetime,
+				type: this.type,
+				message: this.message,
+				is_read: this.is_read(),
+				is_sent: this.is_sent()
+			}
+		}
 	}, {
 		// class methods
 		process_object: function(r) {

@@ -82,12 +82,13 @@ def receive_data(request):
         Log.Error(message, "request_error")
         return json_failure(message)
     
-    datatypes = ["totals", "logs", "userstudies", "payments", "requirespayments"]
+    datatypes = ["totals", "logs", "userstudies", "payments", "requirespayments", "reports"]
     processor_fnc = {'totals'          : Processor.process_total,
                      'logs'            : Processor.process_log,
                      'userstudies'     : Processor.process_userstudy,
                      'payments'        : Processor.process_payment,
-                     'requirespayments': Processor.process_requirespayment}
+                     'requirespayments': Processor.process_requirespayment,
+                     'reports'         : Processor.process_report}
     
     expected_parameters = ["private_key", "prefs"]
     response = extract_parameters(request, "POST", expected_parameters, datatypes)
