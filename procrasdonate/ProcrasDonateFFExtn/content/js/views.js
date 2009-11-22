@@ -21,11 +21,6 @@ _extend(Controller.prototype, {
 		for (var i = 0; i < constants.VALID_HOSTS.length; i++) {
 			var valid_host = constants.VALID_HOSTS[i];
 			if (host == valid_host) { //match(new RegExp(valid_host)))
-				//request.do_in_page(_bind(this.page, this.page.insert_settings_recipients, request));
-				//request.do_in_page(
-				//	_bind(this.page, this.page.insert_settings_donation_amounts, request));
-				//request.do_in_page(_bind(this.page, this.page.insert_settings_account, request));
-				//request.do_in_page(_bind(this, this.pd_dispatch_by_url, request));
 				return this.pd_dispatch_by_url(request);
 			}
 		}
@@ -617,7 +612,7 @@ _extend(Schedule.prototype, {
 	},
 	
 	do_once_weekly_tasks: function() {
-		// none yet
+		this.pddb.page.create_weekly_report();
 	},
 	
 	do_make_payment: function() {
@@ -1261,6 +1256,81 @@ _extend(PageController.prototype, {
 			constants.MESSAGES_STATE_ENUM, constants.MESSAGES_STATE_INSERTS);
 	},
 	
+
+	/*************************************************************************/
+	/******************************* MESSAGES ********************************/
+	
+	create_weekly_report: function() {
+		var self = this;
+		
+		if (!_un_dbify_bool(self.prefs.get('weekly_affirmations', constants.DEFAULT_WEEKLY_AFFIRMATIONS))) {
+			// user doesn't want a weekly affirmation
+			return
+		}
+		
+		var email = self.prefs.get('email', constants.DEFAULT_EMAIL);
+		var name = "";
+		if (email) {
+			name = email.substr(0, email.indexOf("@"));
+		}
+		
+		var pd_hr_per_week_goal = self.retrieve_float_for_display("pd_hr_per_week_goal", constants.PD_DEFAULT_HR_PER_WEEK_GOAL);
+		var pd_dollars_per_hr = self.retrieve_float_for_display("pd_dollars_per_hr", constants.PD_DEFAULT_DOLLARS_PER_HR);
+		var pd_hr_per_week_max = self.retrieve_float_for_display("pd_hr_per_week_max", constants.PD_DEFAULT_HR_PER_WEEK_MAX);
+		
+		var tag_contenttype = self.pddb.ContentType.get_or_null({
+			modelname: "Tag"
+		});
+		var last_week = new Date();
+		last_week.setDate(last_week.getDate() - 7);
+		
+		var start_date = _start_of_week(last_week);
+		var start_date_friendly = _friendly_date(start_date);
+		var end_date = _end_of_week(last_week);
+		var end_date_friendly = _friendly_date(end_date);
+		
+		var pd_total_last_week = self.pddb.Total.get_or_null({
+			contenttype_id: tag_contenttype.id,
+			content_id: self.pddb.ProcrasDonate.id,
+			datetime: _dbify_date(end_date),
+			timetype_id: self.pddb.Weekly.id
+		});
+		var last_week_hrs = 0.0;
+		if (pd_total_last_week) {
+			last_week_hrs = pd_total_last_week.hours().toFixed(1)
+		}
+		
+		var good_news = (last_week_hrs < pd_hr_per_week_goal)
+		
+		var pledges = [];
+		var payments = [];
+		var time_span = "first week in a row";
+		
+		var message = Template.get("weekly_report").render(
+			new Context({
+				name: name,
+				start_date: start_date_friendly,
+				end_date: end_date_friendly,
+				good_news: good_news,
+				time_span: time_span,
+				pd_hr_per_week_goal: pd_hr_per_week_goal,
+				pd_dollars_per_hr: pd_dollars_per_hr,
+				pd_hr_per_week_max: pd_hr_per_week_max,
+				last_week_hrs: last_week_hrs,
+				pledges: pledges,
+				payments: payments
+			})
+		);
+		
+		self.pddb.Report.create({
+			datetime: _dbify_date(end_date),
+			type: "weekly",
+			message: message,
+			read: _dbify_bool(false),
+			sent: _dbify_bool(false)
+		});
+	},
+	
 	/*************************************************************************/
 	/******************************* PROGRESS ********************************/
 	
@@ -1283,15 +1353,16 @@ _extend(PageController.prototype, {
 		});
 		
 		var last_week = new Date();
-		logger("TODAY is "+last_week);
 		last_week.setDate(last_week.getDate() - 7);
-		logger("LAST WEEK is "+last_week);
 		var pd_total_last_week = self.pddb.Total.get_or_null({
 			contenttype_id: tag_contenttype.id,
 			content_id: self.pddb.ProcrasDonate.id,
 			datetime: _dbify_date(_end_of_week(last_week)),
 			timetype_id: self.pddb.Weekly.id
 		});
+		
+		logger("THIS WEEK: "+_start_of_week()+"      "+_end_of_week());
+		logger("LAST WEEK: "+_start_of_week(last_week)+"      "+_end_of_week(last_week));
 		
 		var this_week_hrs = 0.0;
 		if (pd_total_this_week) {
@@ -1379,10 +1450,6 @@ _extend(PageController.prototype, {
 		data.setValue(1, 1, Math.round(pd_last_week_hrs));
 		data.setValue(2, 0, 'Average');
 		data.setValue(2, 1, Math.round(pd_total_hrs));
-		
-		logger("THIS WEEK HRS="+Math.round(pd_this_week_hrs));
-		logger("LAST WEEK HRS="+Math.round(pd_last_week_hrs));
-		logger("TOTAL WEEK HRS="+Math.round(pd_total_hrs));
 
 		var chart = new google.visualization.Gauge( request.jQuery("#gauges").get(0) );
 

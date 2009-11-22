@@ -229,6 +229,53 @@ var _change_location = function(request, url) {
 	new XPCNativeWrapper(unsafeWin, "location").location = url;
 }
 
+var _friendly_date = function(date) {
+	if (!date) {
+		date = new Date();
+	}
+	var month = "";
+	switch(date.getMonth()) {
+	case 0:
+		month = "January";
+		break
+	case 1:
+		month = "February";
+		break
+	case 2:
+		month = "March";
+		break
+	case 3:
+		month = "April";
+		break
+	case 4:
+		month = "May";
+		break
+	case 5:
+		month = "June";
+		break
+	case 6:
+		month = "July";
+		break
+	case 7:
+		month = "August";
+		break
+	case 8:
+		month = "September";
+		break
+	case 9:
+		month = "October";
+		break
+	case 10:
+		month = "November";
+		break
+	case 11:
+		month = "December";
+		break
+	}
+	
+	return month+" "+date.getDate()+", "+date.getFullYear();
+}
+
 var _start_of_day = function(date) {
 	if (!date) {
 		date = new Date();
@@ -248,8 +295,17 @@ var _start_of_week = function(date) {
 	date.setMinutes(0);
 	date.setSeconds(0);
 	date.setMilliseconds(0);
-	// first day of week. getDay should now = 0
-	date.setDate(date.getDate() - date.getDay());
+	// first day of week. getDay should now equal 1 (Monday)
+	// if day is already Monday, stay. otherwise, retreat to last Monday
+	if (date.getDay() != 1) {
+		if (date.getDay() == 0) {
+			// if sunday, then subtract 6 days
+			date.setDate(date.getDate() - 6);
+		} else {
+			// else, subtract day+1; eg, Wendesday = 3, so subtract 2 to get to Monday (1)
+			date.setDate(date.getDate() - (date.getDay()+1));
+		}
+	}
 	return date;
 }
 
@@ -287,9 +343,11 @@ var _end_of_week = function(date) {
 	date.setMinutes(23);
 	date.setSeconds(23);
 	date.setMilliseconds(23);
-	// last day of week. getDay should now = 6.
-	//#@TODO maybe we want this to be 0 for Sunday ?!?!?! see also _start_of_week
-	date.setDate(date.getDate() + (6-date.getDay()));
+	// last day of week. getDay should now equal 0 (Sunday).
+	// if already Sunday, we're good. otherwise, advance to upcoming Sunday
+	if (date.getDay() != 0) {
+		date.setDate(date.getDate() + (7-date.getDay()));
+	}
 	return date;
 }
 

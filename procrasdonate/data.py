@@ -835,6 +835,39 @@ class RecipientVote(models.Model):
                                            self.user.private_key,
                                            self.recipient)
 
+class Report(models.Model):
+    dtime = models.DateTimeField(db_index=True)
+    user = models.ForeignKey(User)
+    type = models.CharField(max_length=100)
+    message = models.TextField()
+    is_read = models.BooleanField(default=False)
+    is_sent = models.BooleanField(default=False)
+    
+    class Meta:
+        ordering = ('dtime',)
+    
+    @classmethod
+    def make(klass, user, message, type, is_read, is_sent, dtime):
+        return Report(dtime=dtime,
+                      user=user,
+                      message=message,
+                      type=type,
+                      is_read=is_read,
+                      is_sent=is_sent)
+    
+    def deep_dict(self):
+        return {'message': self.message,
+                'type': self.type,
+                'is_sent': self.is_sent,
+                'is_read': self.is_read,
+                'datetime': self.dtime.ctime()}
+        
+    def __unicode__(self):
+        return "%s (%s) %s -> %s" % (self.dtime,
+                                     self.user,
+                                     self.type,
+                                     self.message)
+
 ALL_MODELS = [Email,
               User,
               Site,
@@ -851,5 +884,6 @@ ALL_MODELS = [Email,
               RecipientPayment,
               SiteGroupTagging,
               RecipientUserTagging,
-              RecipientVote]
+              RecipientVote,
+              Report]
 

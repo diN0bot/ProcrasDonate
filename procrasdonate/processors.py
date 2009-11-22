@@ -110,7 +110,7 @@ class Processor(object):
             site = Site.get_or_create(url=url)
             
             ret = SiteVisit.add(site, dtime, total_time, total_amount, user, extn_id)
-            
+        
         elif 'Tag' == total['contenttype']:
             tagtag     = total['content']['tag']
             extn_id = int(total['content']['id'])
@@ -122,6 +122,27 @@ class Processor(object):
             ret = TagVisit.add(tag, dtime, total_time, total_amount, user, extn_id)
             
         return ret
+    
+    @classmethod
+    def process_report(klass, report, user):
+        """
+        @param user: User
+        @param report: dict of report obj, eg
+          {
+            "type": "weekly", 
+            "message": "...email content....",
+            "is_read": True, 
+            "is_sent": False,
+            "datetime": "1252539581"
+          }
+        """
+        type        = log['type']
+        message     = log['message']
+        is_read     = log['is_read']
+        is_sent     = log['is_sent']
+        dtime       = Processor.parse_seconds(int(log['datetime']))
+        
+        return Report.add(user, message, type, is_read, is_sent, dtime)
     
     @classmethod
     def process_log(klass, log, user):

@@ -264,6 +264,59 @@ function load_models(db, pddb) {
 		}
 	});
 	
+	var Report = new Model(db, "Report", {
+		table_name: "reports",
+		columns: {
+			_order: ["id", "datetime", "type", "message", "read", "sent"],
+			id: "INTEGER PRIMARY KEY",
+			datetime: "INTEGER", //"DATETIME",
+			type: "VARCHAR", // ['weekly', 'newsletter']
+			message: "VARCHAR",
+			read: "INTEGER", // bool
+			sent: "INTEGER", // bool
+		},
+		indexes: []
+	}, {
+		// instance methods
+		
+		/** read by user via our website */
+		is_read: function() {
+			return _un_dbify_bool(this.read)
+		},
+		/** emailed to user */
+		is_sent: function() {
+			return _un_dbify_bool(this.sent)
+		},
+	}, {
+		// class methods
+		process_object: function(r) {
+			// @param r: object from server. json already loaded
+			var report = Report.get_or_null({
+				datetime: r.datetime,
+				type: r.type
+			});
+			if (report) {
+				if (report.is_sent() != r.is_sent) {
+					Report.set({
+						sent: r.is_sent
+					}, {
+						id: report.id
+					});
+				}
+			} else {
+				Report.create({
+					message: r.message,
+	                type: r.type,
+	                is_sent: _dbify_bool(r.is_sent),
+	                is_read: _dbify_bool(r.is_read),
+	                datetime: _dbify_date(new Date(r.datetime))
+				});
+			}
+		},
+		
+		
+	});
+	
 	// recipient has 1 category
 	var Category = new Model(db, "Category", {
 		table_name: "categories",
@@ -1179,7 +1232,8 @@ function load_models(db, pddb) {
                  "PaymentService", "Payment", "RequiresPayment", "PaymentTotalTagging",
 				 "TimeType", "ContentType",
 				 "Log", "UserStudy",
-				 "FPSMultiuseAuthorization", "FPSMultiusePay"],
+				 "FPSMultiuseAuthorization", "FPSMultiusePay",
+				 "Report"],
         
         Site                : Site,
 		SiteGroup           : SiteGroup,
@@ -1198,7 +1252,8 @@ function load_models(db, pddb) {
 		Log                 : Log,
 		UserStudy           : UserStudy,
 		FPSMultiuseAuthorization : FPSMultiuseAuthorization,
-		FPSMultiusePay      : FPSMultiusePay
+		FPSMultiusePay      : FPSMultiusePay,
+		Report              : Report
 	};
 }
 

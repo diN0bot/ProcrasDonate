@@ -266,6 +266,13 @@ img { -ms-interpolation-mode:bicubic; }
 	border: 0.27em ridge #156451; -moz-border-radius: .4em; padding: .4em;
 }
 
+/********* FAQ PAGE ***********/
+
+#faq_toc { width: 100%; }
+#faq_toc td { padding: .2em; }
+
+/********* COMMUNITY PAGE ***********/
+
 /* #@ TODO everywhere */
 
 .icon-image { width: 1.6em; vertical-align: bottom; }

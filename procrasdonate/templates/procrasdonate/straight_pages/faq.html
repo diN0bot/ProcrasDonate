@@ -1,47 +1,32 @@
 {% extends 'procrasdonate/base.html' %}
 
 {% block content %}
+	<h2>Frequently Asked Questions</h2>
+	<table id="faq_toc">
+	<body>
+		<tr>
+			<td><a href="#benefits">How can ProcrasDonate help me?</a></td>
+			<td><a href="#how">What do I do?</a></td>
+			<td><a href="#donations">How do donations work?</a></td>
+		</tr>
+		<tr>
+			<td><a href="#privacy">Is my browsing confidential?</a></td>
+			<td><a href="#time">Is it always recording?</a></td>
+			<td><a href="#how">Will I get lots of junk mail?</a></td>
+		</tr>
+		<tr>
+			<td><a href="#why">Why was ProcrasDonate created?</a></td>
+			<td><a href="#habits">How can I procrastinate less?</a></td>
+			<td><a href="#learn">How can I find out more?</a></td>
+		</tr>
+		<tr>
+			<td><a href="#T-shirts">Can I make a suggestion?</a></td>
+			<td><a href="#changes">How do I get updates?</a></td>
+			<td><a href="#stop">How do I stop using it?</a></td>
+		</tr>
+	</tbody>
+	</table>
 	
-	<div>
-	
-		<span class="horizontal">
-			<a href="#benefits">How can ProcrasDonate help me?</a>
-		</span>
-		<span class="horizontal"> 			
-			<a href="#how">What do I do?</a>
-		</span>
-		<span class="horizontal"> 			
-			<a href="#donations">How do donations work?</a>
-		</span>	
-		<span class="horizontal"> 			
-			<a href="#privacy">Is my browsing confidential?</a>
-		</span>	
-		<span class="horizontal"> 			
-			<a href="#time">Is it always recording?</a>
-		</span>	
-		<span class="horizontal"> 			
-			<a href="#how">Will I get lots of junk mail?</a>
-		</span>	
-		<span class="horizontal"> 	
-			<a href="#why">Why was ProcrasDonate created?</a>
-		</span>
-		<span class="horizontal"> 	
-			<a href="#habits">How can I procrastinate less?</a>
-		</span>
-		<span class="horizontal"> 	
-			<a href="#learn">How can I find out more?</a>
-		</span>
-		<span class="horizontal"> 	
-			<a href="#T-shirts">Can I make a suggestion?</a>
-		</span>
-		<span class="horizontal"> 		
-			<a href="#changes">How do I get updates?</a>
-		</span>
-		<span class="horizontal"> 		
-			<a href="#stop">How do I stop using it?</a>
-		</span>
-		
-	</div>
 	<div id="HOME">
 	 
 		<h2><a name="benefits"></a>How can ProcrasDonate help me?</h2>
@@ -138,7 +123,7 @@
 		<img src="{{ MEDIA_URL }}img/ProcrasDonateShirt.png" class="small-image">		
 		<img src="{{ MEDIA_URL }}img/ProcrasDonateShirtDetail.png" class="screenshot-long">		
 		<p>Please! We want to adapt our system to meet your needs.  
-		So use our <b><a href="http://feedback.procrasdonate.com">feedback</a></b> link on the left hand of every page to tell us what you think.
+		So use our <b><a target="_blank" href="http://feedback.procrasdonate.com">feedback</a></b> link on the left hand of every page to tell us what you think.
 		We'll send you a <i>hand screened organic cotton work of art</i> as a thank you!  
 		</p>
 	
@@ -148,8 +133,13 @@
 		
 		<h2><a name="stop"></a>How do I stop using it?</h2>
 		<img src="{{ MEDIA_URL }}img/StopSign.png" class="small-image">		
-		<p>To disable or uninstall this plugin use the FireFox menu "Tools -> Adds-on". Doing so may permanently delete your browsing and donating history. 
-		</p>	
+		<p>To disable or uninstall this add-on use the FireFox menu "Tools -> Adds-on".</p>
+		<p>Disabling is like turning this add-on off. The data remains, but your surfing 
+			behavior is no longer tracked. You will also be unable to access your progress,
+			impact or settings while this add-on is disabled.</p>
+		<p>Uninstalling this add-on may permanently delete 
+			your browsing and donating history. You can still view donations by logging
+			into your Amazon payments account.</p> 
 	
 	</div>
 {% endblock %}
