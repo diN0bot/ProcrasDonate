@@ -27,7 +27,7 @@ _extend(ProcrasDonate_API.prototype, {
 		
 		var data = {
 			private_key: self.prefs.get('private_key', constants.DEFAULT_PRIVATE_KEY),
-			prefs: JSON.stringify(self.prefs.get_all()),
+			prefs: JSON.stringify([self.prefs.get_all()]),
 		}
 		
 		_iterate(models_to_methods, function(key, value, index) {

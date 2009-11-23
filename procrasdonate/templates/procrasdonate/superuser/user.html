@@ -1,0 +1,32 @@
+{% extends 'procrasdonate/base.html' %}
+
+{% block head %}
+	{{ block.super }}
+{% endblock %}
+
+{% block content %}
+	<h2>{{ user.private_key }}: {{ user.email }}</h2>
+	
+	<ul>
+		<li>Receive weekly affirmations? {{ user.weekly_affirmations }}</li>
+		<li>Receive charity thank yous? {{ user.org_thank_yous }}</li>
+		<li>Receive charity newsletters? {{ user.org_newsletters }}</li>
+	</ul>
+	
+	<h3>Most recent report</h3>
+	
+	{% for report in user.reports|slice:":1" %}
+		<p>{{ report.dtime }}: {{ report.type }}
+			(is_read = {{ report.is_read }}) (is_sent = {{ report.is_sent }})</p>
+		<pre>{{ report.message }}</pre>
+	{% endfor %}
+	
+	<h3>Logs</h3>
+	
+	<ul>
+		{% for log in user.logs|slice:":30" %}
+			<li>{{ log.dtime }}: {{ log.log_type }}, {{ log.detail_type }} - {{ log.message }}</li>
+		{% endfor %}
+	</ul>
+
+{% endblock %}

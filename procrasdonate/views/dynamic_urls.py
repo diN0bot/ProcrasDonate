@@ -28,18 +28,13 @@ urlpatterns = patterns('',
     # redirects somewhere
     url(r'^recipient/logout/$', dynamic_webpages.logout_view, name='logout'),
     
-    # register (superuser creates User and RecipientUser, sends email to organizer)
-    url(r'^recipient/register_organizer/$', dynamic_webpages.register_organizer, name="register_organizer"),
     # link for organizer to set password
     url(r'^recipient/confirm/(?P<username>%s)/(?P<confirmation_code>%s)/$' % (slug_re, code_re), dynamic_webpages.confirm, name="confirm"),
     
     # organizer forgot password. enter username or email, send email to organizer (doesn't have to be confirmed ?)
     url(r'^recipient/reset_password/$', dynamic_webpages.reset_password, name="reset_password"),
     # link for organizer to set password
-    url(r'^recipient/confirm_reset_password/(?P<username>%s)/(?P<confirmation_code>%s)/$' % (slug_re, code_re), dynamic_webpages.confirm_reset_password, name="confirm_reset_password"),
-    
-    # RecipientVote dashboard
-    url(r'^recipient/votes/$', dynamic_webpages.recipient_votes, name="recipient_votes"),
+    url(r'^recipient/confirm_reset_password/(?P<username>%s)/(?P<confirmation_code>%s)/$' % (slug_re, code_re), dynamic_webpages.confirm_reset_password, name="confirm_reset_password")
 )
 """
     

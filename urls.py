@@ -13,6 +13,8 @@ urlpatterns += patterns('',
     (r'^fps/', include('procrasdonate.views.fps_urls')),
     (r'', include('procrasdonate.views.static_urls')),
     (r'', include('procrasdonate.views.extension_urls')),
+    (r'', include('procrasdonate.views.superuser_urls')),
+    # dynamic_urls have to be last because of recipients
     (r'', include('procrasdonate.views.dynamic_urls')),
 )
 

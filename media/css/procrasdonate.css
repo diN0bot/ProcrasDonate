@@ -598,3 +598,7 @@ form input[type=submit] { margin-top: 1em; font-size: 1.3em; }
 /**** RECIPIENT ORGANIZER EDIT MEDIA *****/
 #current_media table { margin: auto; }
 #current_media table td { padding: 1em; }
+
+/**** DEV TEST SUITE *****/
+/* otherwise whole line is a link */
+#manual_test_suite p { width: 10%;}

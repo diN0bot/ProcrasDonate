@@ -1,0 +1,28 @@
+{% extends 'procrasdonate/base.html' %}
+
+{% block head %}
+	{{ block.super }}
+{% endblock %}
+
+{% block content %}
+	<h2>Users</h2>
+	
+	<ul>
+	{% for user in users %}
+		{% if user.tos %}
+			<li><a href="{% url user user.private_key %}">
+				{{ user.private_key }}: {{ user.email }}</a></li>
+		{% endif %}
+	{% endfor %}
+	</ul>
+	
+	<h3>Users that have not agreed to the Terms of Use</h3>
+	
+	<ul>
+	{% for user in users %}
+		{% if not user.tos %}
+			<li>{{ user.private_key }}: {{ user.email }}</li>
+		{% endif %}
+	{% endfor %}
+	</ul>
+{% endblock %}

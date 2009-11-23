@@ -11,7 +11,7 @@
     
     Template.compile(["<div class=\"site\">\n\t", ["var", ["inner"], []], "\n</div>\n\n"], "make_site_box");
     
-    Template.compile(["<ul>\n\t", ["for", ["action"], ["var", ["actions"], []], false, ["\n\t\t<li class=\"link\" id=\"", ["var", ["action"], []], "\">", ["var", ["action"], []], "</li>\n\t"]], "\n</ul>\n"], "manual_test_suite");
+    Template.compile(["<div id=\"manual_test_suite\">\n\t", ["for", ["action"], ["var", ["actions"], []], false, ["\n\t\t<p class=\"link\" id=\"", ["var", ["action"], []], "\">", ["var", ["action"], []], "</p>\n\t"]], "\n</div>\n"], "manual_test_suite");
     
     Template.compile(["messages all middle\n\n<ul>\n\t", ["for", ["item"], ["var", ["substate_menu_items", "menu_items"], []], false, ["\n\t\t<li id=\"", ["var", ["item", "id"], []], "\"\n\t\t\tclass=\"", ["for", ["klass"], ["var", ["item", "klasses"], []], false, [["var", ["klass"], []], " "]], "\">\n\t\t\t", ["var", ["item", "value"], []], "</li>\n\t"]], "\n</ul>\n"], "messages_all_middle");
     

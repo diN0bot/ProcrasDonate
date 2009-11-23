@@ -76,54 +76,6 @@ def logout_view(request):
     logout(request)
     return HttpResponseRedirect(reverse('community'))
 
-
-@user_passes_test(lambda u: u.is_superuser)
-def register_organizer(request):
-    RecipientUserTaggingForm = get_form(RecipientUserTagging, EDIT_TYPE, excludes=('user',
-                                                                                   'is_confirmed',
-                                                                                   'confirmation_code'))
-    RecipientUserForm = get_form(RecipientUser, EDIT_TYPE, includes=('username',
-                                                                     'first_name',
-                                                                     'last_name',
-                                                                     'email'))
-    recipients = Recipient.objects.all()
-
-    if request.POST:
-        recipient_user_tagging_form = RecipientUserTaggingForm(request.POST)
-        recipient_user_form = RecipientUserForm(request.POST)
-        
-        if recipient_user_tagging_form.is_valid() and recipient_user_form.is_valid():
-            user = recipient_user_form.save()
-            user.set_unusable_password()
-            user.is_active = False
-            user.save()
-            
-            fake_tagging = recipient_user_tagging_form.save(commit=False)
-            tagging = RecipientUserTagging.add(user, fake_tagging.recipient, require_confirmation=True) 
-            del fake_tagging
-
-            # send email for recipient user to login
-            c = Context({'user': user,
-                         'recipient': tagging.recipient,
-                         'site_url': "http://ProcrasDonate.com",
-                         'confirmation_link': "%s" % (reverse('confirm',
-                                                              args=(user.username,
-                                                                    tagging.confirmation_code))),
-                         'confirmation_code': tagging.confirmation_code,
-                         'expiration_days': 14 })
-            t = loader.get_template('procrasdonate/recipient_organizer_pages/account/confirmation_email.txt')
-            tagging.send_email("Welcome to ProcrasDonate! Please complete registration for %s" % tagging.recipient.name,
-                               t.render(c),
-                               from_email="procrasdonate@bilumi.org")
-            
-            request.user.message_set.create(message='RecipientUser successfully registered')
-            return HttpResponseRedirect(reverse('home'))
-    else:
-        recipient_user_tagging_form = RecipientUserTaggingForm()
-        recipient_user_form = RecipientUserForm()
-
-    return render_response(request, 'procrasdonate/recipient_organizer_pages/account/register.html', locals())
-
 def confirm(request, username, confirmation_code):
     logout(request)
     tagging = RecipientUserTagging.get_or_none(confirmation_code=confirmation_code)
@@ -474,10 +426,3 @@ def edit_thank_yous(request):
 def edit_yearly_newsletter(request):
     recipient = request.user.get_profile().recipient
     return render_response(request, 'procrasdonate/recipient_organizer_pages/edit_yearly_newsletter.html', locals())
-
-#### MISC ###################################
-
-@user_passes_test(lambda u: u.is_superuser)
-def recipient_votes(request):
-    recipient_votes = RecipientVote.objects.all()
-    return render_response(request, 'procrasdonate/admin/recipientvotes.html', locals())

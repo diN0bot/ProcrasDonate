@@ -165,6 +165,20 @@ class Processor(object):
         return Log.add(Log.LOG_TYPES[type], detail_type, message, user, dtime)
     
     @classmethod
+    def process_prefs(klass, pref, user):
+        if user.email != pref['email']:
+            user.email = Email.get_or_create(pref['email'])
+        if user.weekly_affirmations != pref['weekly_affirmations']:
+            user.weekly_affirmations = pref['weekly_affirmations']
+        if user.org_thank_yous != pref['org_thank_yous']:
+            user.org_thank_yous = pref['org_thank_yous']
+        if user.org_newsletters != pref['org_newsletters']:
+            user.org_newsletters = pref['org_newsletters']
+        if user.tos != pref['tos']:
+            user.tos = pref['tos']
+        user.save()
+        
+    @classmethod
     def process_userstudy(klass, userstudy, user):
         """
         @param user: User
