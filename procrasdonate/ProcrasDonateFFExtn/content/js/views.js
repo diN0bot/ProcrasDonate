@@ -561,14 +561,14 @@ function Schedule(prefs, pddb) {
 Schedule.prototype = {};
 _extend(Schedule.prototype, {
 	run: function() {
-		if ( this.is_new_24hr_period() ) {
-			this.do_once_daily_tasks();
-			this.reset_24hr_period();
-		}
 		if ( this.is_new_week_period() ) {
 			this.do_once_weekly_tasks();
 			this.do_make_payment();
 			this.reset_week_period();
+		}
+		if ( this.is_new_24hr_period() ) {
+			this.do_once_daily_tasks();
+			this.reset_24hr_period();
 		}
 	},
 	
@@ -1958,34 +1958,13 @@ _extend(PageController.prototype, {
 		var max_amount_paid = self.calculate_max_amount(pd_dollars_per_hr, pd_hr_per_week_max, min_auth_time);
 		
 		var multi_auth = self.pddb.FPSMultiuseAuthorization.most_recent();
-		var html = "";
+		var multi_auth_status = "";
 		if (multi_auth) {
-			html = Template.get("multi_auth_status").render(
+			multi_auth_status = Template.get("multi_auth_status").render(
 				new Context({ multi_auth: multi_auth })
 			);
-			request.jQuery(".multi_auth_status").html( html );
 		}
-			
-		// Receive updates from server
-		this.pddb.page.pd_api.request_data_updates(
-			function(recipients, multi_auths) {
-				// after success
-				var multi_auth = self.pddb.FPSMultiuseAuthorization.get_latest_success()
-				if (!multi_auth) {
-					multi_auth = self.pddb.FPSMultiuseAuthorization.most_recent();
-				}
-				var html = "";
-				if (multi_auth) {
-					html = Template.get("multi_auth_status").render(
-						new Context({ multi_auth: multi_auth })
-					);
-				}
-				request.jQuery("#multi_auth_status").html( html );
-			}, function() {
-				// after failure
-			}
-		);
-
+		
 		// form parameters
 		var form_params = [
 			{ name: "global_amount_limit", value: parseInt(max_amount_paid+1) },
@@ -2009,6 +1988,7 @@ _extend(PageController.prototype, {
 					pd_hr_per_week_max: self.retrieve_float_for_display('pd_hr_per_week_max', constants.PD_DEFAULT_HR_PER_WEEK_MAX),
 					min_auth_time: min_auth_time,
 					max_amount_paid: parseInt(max_amount_paid+1),
+					multi_auth_status: multi_auth_status,
 					
 					multi_auth: multi_auth,
 					form_params: form_params,
@@ -2016,6 +1996,27 @@ _extend(PageController.prototype, {
 				})
 			);
 		request.jQuery("#content").html( middle );
+		
+		// Receive updates from server
+		this.pddb.page.pd_api.request_data_updates(
+			function(recipients, multi_auths) {
+				// after success
+				var multi_auth = self.pddb.FPSMultiuseAuthorization.get_latest_success()
+				if (!multi_auth) {
+					multi_auth = self.pddb.FPSMultiuseAuthorization.most_recent();
+				}
+				var html = "";
+				if (multi_auth) {
+					html = Template.get("multi_auth_status").render(new Context({
+						multi_auth: multi_auth,
+						server_dont_know: true
+					}));
+				}
+				request.jQuery("#multi_auth_status").html( html );
+			}, function() {
+				// after failure
+			}
+		);
 		
 		this.activate_substate_menu_items(request, 'payments',
 			constants.REGISTER_STATE_ENUM, constants.REGISTER_STATE_INSERTS, constants.REGISTER_STATE_PROCESSORS);

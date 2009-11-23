@@ -20,6 +20,11 @@ from django.contrib.auth.backends import ModelBackend
 
 from django.db.models import Avg
 
+
+@user_passes_test(lambda u: u.is_superuser)
+def dashboard(request):
+    return render_response(request, 'procrasdonate/superuser/dashboard.html', locals())
+
 @user_passes_test(lambda u: u.is_superuser)
 def users(request):
     users = User.objects.all()
@@ -80,4 +85,23 @@ def register_organizer(request):
 @user_passes_test(lambda u: u.is_superuser)
 def recipient_votes(request):
     recipient_votes = RecipientVote.objects.all()
+    recipients = Recipient.objects.all()
     return render_response(request, 'procrasdonate/superuser/recipientvotes.html', locals())
+
+@user_passes_test(lambda u: u.is_superuser)
+def link_vote(request, vote_id, recipient_slug):
+    rvote = RecipientVote.get_or_none(id=vote_id)
+    if rvote:
+        if recipient_slug == "None":
+            recipient = None
+            message = "Successfully unlinked vote %s" % rvote.name
+        else:
+            recipient = Recipient.get_or_none(slug=recipient_slug)
+            message = "Successfully linked vote %s to recipient %s" % (rvote.name, recipient.name)
+        rvote.recipient = recipient
+        rvote.save()
+        request.user.message_set.create(message=message)
+    else:
+        request.user.message_set.create(message='Error: could not find recipient vote %s' % vote_id)
+    return HttpResponseRedirect(reverse('recipient_votes'))
+

@@ -11,7 +11,7 @@
 	{% for user in users %}
 		{% if user.tos %}
 			<li><a href="{% url user user.private_key %}">
-				{{ user.private_key }}: {{ user.email }}</a></li>
+				{{ user.private_key }}: {{ user.email|default:"no email" }}</a></li>
 		{% endif %}
 	{% endfor %}
 	</ul>
@@ -21,7 +21,8 @@
 	<ul>
 	{% for user in users %}
 		{% if not user.tos %}
-			<li>{{ user.private_key }}: {{ user.email }}</li>
+			<li><a href="{% url user user.private_key %}">
+				{{ user.private_key }}: {{ user.email|default:"no email" }}</a></li>
 		{% endif %}
 	{% endfor %}
 	</ul>

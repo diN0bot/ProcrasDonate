@@ -817,6 +817,10 @@ class RecipientVote(models.Model):
         ordering = ('url', 'name')
     
     @classmethod
+    def Initialize(klass):
+        model_utils.mixin(RecipientVoteMixin, User)
+        
+    @classmethod
     def make(klass, name, user, url=None, recipient=None):
         return RecipientVote(name=name,
                              url=url,
@@ -828,6 +832,14 @@ class RecipientVote(models.Model):
                                            self.url,
                                            self.user.private_key,
                                            self.recipient)
+
+
+class RecipientVoteMixin(object):
+    """ mixed into User class """
+    
+    @property
+    def recipient_votes(self):
+        return RecipientVote.objects.filter(user=self)
 
 class Report(models.Model):
     dtime = models.DateTimeField(db_index=True)

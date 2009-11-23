@@ -20,6 +20,12 @@
 		for help.
 		</p>
 	{% endif %}{% if multi_auth.response_not_received %}
-		<p>Retrieving information from server...</p>
+		{% if server_dont_know %}
+			<p>Hmmm...incomplete authorization. Please try again or email
+			<a href="procrasdonate@bilumi.org">procrasdonate@bilumi.org</a> 
+			for help.</p>
+		{% else %}
+			<p>Retrieving information from server...</p>
+		{% endif %}
 	{% endif %}
 </div>

@@ -54,7 +54,8 @@ def _calculateRFC210HMAC(string):
     return base64.encodestring(hmac.new(FPS['secretKey'], string, sha).digest()).strip()
 
 def _getStringToSign(parameters, type):
-    #print "_getStringToSign", type
+    print
+    print "_getStringToSign", type
     keys = parameters.keys()
     # sort must be case insensitive (even though parameters are case sensitive for amazon)
     keys.sort(upcase_compare)
@@ -63,26 +64,35 @@ def _getStringToSign(parameters, type):
         ret = "/cobranded-ui/actions/start?"
         for key in keys:
             #ret += "%s=%s&" % (key, parameters[key])
-            #print "KEY=", key, "VALUE=", parameters[key]
-            #print "KEY=", urllib.quote(key), "VALUE=", urllib.quote("%s" % parameters[key]).replace("/", "%2F")
+            print "KEY=", key, "VALUE=", parameters[key]
+            print "KEY=", urllib.quote(key), "VALUE=", urllib.quote("%s" % parameters[key]).replace("/", "%2F")
             ret += "%s=%s&" % (urllib.quote(key), urllib.quote("%s" % parameters[key]).replace("/", "%2F"))
         ret = ret[:-1]
-    
+            
     else:
         ret = ""
         for key in keys:
             ret += "%s%s" % (key, parameters[key])
-
-    #print "SIG = ", ret
+            
     return ret
 
 def get_signature(parameters, type):
     x = _calculateRFC210HMAC( _getStringToSign(parameters, type) )
+    print "sig", x
     return x
 
 def finalize_parameters(parameters, type):
+    parameters["signatureVersion"] = "1"
+    parameters["signatureMethod"] = "HmacSHA1"
+    
     #parameters['Timestamp'] = getNowTimeStamp()
-    parameters[SIGNAME[type]] = get_signature(parameters, type)
+    #parameters[SIGNAME[type]] = get_signature(parameters, type)
+    get_signature(parameters, type)
+    
+    print
+    print "XXXXXXXXX"
+    print get_pipeline_signature(parameters)
+    parameters[SIGNAME[type]] = get_pipeline_signature(parameters)
     
 def is_corrupted(parameters, type):
     """

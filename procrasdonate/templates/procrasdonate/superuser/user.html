@@ -16,10 +16,22 @@
 	<h3>Most recent report</h3>
 	
 	{% for report in user.reports|slice:":1" %}
-		<p>{{ report.dtime }}: {{ report.type }}
-			(is_read = {{ report.is_read }}) (is_sent = {{ report.is_sent }})</p>
+		<p>{{ report.dtime }}: <strong>{{ report.type }}</strong>
+			({% if report.is_read %}read{% else %}unread{% endif %})
+			({% if report.is_sent %}sent{% else %}unsent{% endif %})
 		<pre>{{ report.message }}</pre>
 	{% endfor %}
+	
+	<h3>Recipient Votes</h3>
+	
+	<ul>
+		{% for rvote in user.recipient_votes %}
+			<li>{{ rvote.name }}: 
+				{% if rvote.url %}<a href="{{ rvote.url }}">{{ rvote.url }}</a>{% endif %}
+				{% if rvote.recipient %}--> linked to {{ rvote.recipient }}
+				{% else %}X not linked to any recipient{% endif %}</li>
+		{% endfor %}
+	</ul>
 	
 	<h3>Logs</h3>
 	

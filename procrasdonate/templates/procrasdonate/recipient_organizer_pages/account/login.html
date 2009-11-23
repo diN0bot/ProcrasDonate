@@ -1,20 +1,21 @@
 {% extends 'procrasdonate/base.html' %}
 
 {% block content %}
-	<div id="thin_column">
-		<h3>Login</h3>
-		<form method="post">
-			<table><tbody>
-				<tr>
-					<td><label>Username: </label></td>
-					<td><input type="text" name="username" /></td>
-				</tr>
-				<tr>
-					<td><label>Password: </label></td>
-					<td><input type="password" name="password" /></td>
-				</tr>
-			</tbody></table>
-			<input type="submit" value="Login" />
-		</form>
-	</div>
+	
+	<p>Organizers are the representatives of the charities that ProcrasDonate works with.</p>
+	
+	<h3>Login</h3>
+	<form method="post">
+		<table><tbody>
+			<tr>
+				<td><label>Username: </label></td>
+				<td><input type="text" name="username" /></td>
+			</tr>
+			<tr>
+				<td><label>Password: </label></td>
+				<td><input type="password" name="password" /></td>
+			</tr>
+		</tbody></table>
+		<input type="submit" value="Login" />
+	</form>
 {% endblock %}
