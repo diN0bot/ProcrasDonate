@@ -443,7 +443,7 @@ Overlay.prototype = {
 				}
 			
 			} else if (key == "preselected_charities") {
-				if (set_preselected_charities && self.pddb.prefs.exists("set_preselected_charities")) {
+				if (set_preselected_charities && !self.pddb.prefs.exists("set_preselected_charities")) {
 					self.pddb.prefs.set("set_preselected_charities", true);
 					_iterate(value, function(k, recip_pct, idx) {
 						self.pddb.RecipientPercent.process_object(recip_pct);
