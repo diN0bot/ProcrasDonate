@@ -438,7 +438,7 @@ Overlay.prototype = {
 		var self = this;
 		_iterate(generated_input()[0], function(key, value, index) {
 			if (key == "private_key") {
-				if (!self.pddb.prefs.exists("private_key") {
+				if (!self.pddb.prefs.exists("private_key")) {
 					self.pddb.prefs.set("private_key", value);
 				}
 			
