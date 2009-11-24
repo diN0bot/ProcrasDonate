@@ -933,6 +933,7 @@ function load_models(db, pddb) {
 		expired: function() { return this.status == FPSMultiuseAuthorization.EXPIRED },
 		
 		good_to_go: function() {
+			// todo check expiry--- see code in views::months_before_reauth
 			return this.success_abt() || this.success_ach() || this.success_cc()
 		},
 		

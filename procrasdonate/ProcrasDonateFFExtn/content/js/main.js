@@ -116,9 +116,6 @@ Overlay.prototype = {
 	init: function() {
 		var self = this;
 	
-		//logger([window, document, gBrowser]);
-		logger("Overlay.init()");
-		
 		this.pddb = new PDDB("procrasdonate.0.sqlite");
 		this.pddb.init_db();
 		

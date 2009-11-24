@@ -862,19 +862,71 @@ _extend(PageController.prototype, {
 	/*************************************************************************/
 	/******************************* SETTINGS ********************************/
 
+	/**
+	 * @return {
+	 *     currently_authorized: bool, // True if currently authorized to make payments
+	 *     authorization_expired: bool, // True if was authorized but expired
+	 *     months: int 
+	 * }
+	 * months is number of months until reauthorization is necessary, 
+	 * or 0 if expired or not authorized
+	 */
+	months_before_reauth: function() {
+		var self = this;
+		var currently_authorized = false;
+		var authorization_expired = false;
+		var months = 0;
+		var multi_auth = this.pddb.FPSMultiuseAuthorization.most_recent();
+		if (multi_auth) {
+			if (multi_auth.good_to_go()) {
+				currently_authorized = true;
+				if (multi_auth.expiry && multi_auth.expiry.split("/").length == 2) {
+					var expiry = multi_auth.expiry.split("/");
+					var exp_year = parseInt(expiry[1]);
+					var exp_month = parseInt(expiry[1]);
+					var now = new Date();
+					var now_year = now.getFullYear();
+					var now_month = now.getMonth() + 1;
+					if (exp_year < now_year ||
+							(exp_year == now_year && exp_month <= now_month)) {
+						authorization_expired = true;
+						currently_authorized = true;
+					} else {
+						months = ((exp_year - now_year)*12 + (exp_month - now_month)) + " months";
+					}
+				} else {
+					months = "unknown"
+				}
+			} else if (multi_auth.expired()) {
+				authorization_expired = true;
+				months = "Authorization has expired. Please re-authorize (coming soon)";
+			}
+		} else {
+			months = "Not autohrized yet. Please authorize (coming soon)";
+		}
+		return {
+			currently_authorized: currently_authorized,
+			authorization_expired: authorization_expired,
+			months: months
+		}
+	},
+	
 	insert_settings_overview: function(request) {
 		var self = this;
 		this.prefs.set('settings_state', 'overview');
 		
 		var substate_menu_items = this.make_substate_menu_items('overview',
 			constants.SETTINGS_STATE_ENUM, constants.SETTINGS_STATE_TAB_NAMES);
-
+		
+		
+		var estimated_months_before_reauth = this.months_before_reauth();
+		
 		var middle = Template.get("settings_overview_middle").render(
 			new Context({
 				substate_menu_items: substate_menu_items,
 				constants: constants,
 				
-				estimated_time_till_reauth: {units: "months", time: "x"},
+				estimated_months_before_reauth: estimated_months_before_reauth,
 				
 				pd_hr_per_week_goal: self.retrieve_float_for_display("pd_hr_per_week_goal", constants.PD_DEFAULT_HR_PER_WEEK_GOAL),
 				pd_dollars_per_hr: self.retrieve_float_for_display("pd_dollars_per_hr", constants.PD_DEFAULT_DOLLARS_PER_HR),
