@@ -438,10 +438,13 @@ Overlay.prototype = {
 		var self = this;
 		_iterate(generated_input()[0], function(key, value, index) {
 			if (key == "private_key") {
-				self.pddb.prefs.set("private_key", value);
+				if (!self.pddb.prefs.exists("private_key") {
+					self.pddb.prefs.set("private_key", value);
+				}
 			
 			} else if (key == "preselected_charities") {
-				if (set_preselected_charities) {
+				if (set_preselected_charities && self.pddb.prefs.exists("set_preselected_charities")) {
+					self.pddb.prefs.set("set_preselected_charities", true);
 					_iterate(value, function(k, recip_pct, idx) {
 						self.pddb.RecipientPercent.process_object(recip_pct);
 					});
