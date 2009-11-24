@@ -187,7 +187,7 @@ def payment_registration_callback(request):
     if corrupted:
         Log.Error("payment_registration_callback::Signature did not check out from Amazon's request: %s. Full request: %s" % (recipient.slug,
                                                                                                                               request.GET))
-        return HttpResponseRedirect(reverse('payment_registration'))
+        #return HttpResponseRedirect(reverse('payment_registration'))
     
     fpsr.refund_token_id = parameters['refundTokenID']
     fpsr.token_id = parameters['tokenID']
