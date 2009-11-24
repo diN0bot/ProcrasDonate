@@ -1,0 +1,24 @@
+{% extends 'procrasdonate/base.html' %}
+
+{% block head %}
+	{{ block.super }}
+{% endblock %}
+
+{% block content %}
+	<h2>Superuser Dashbaord: {{ user.username }}</h2>
+	
+	<p><a href="{% url admin "" %}">Django Admin</a></li></p>
+	
+	<h3>Organizer Registration Steps</h3>
+	<ol>
+		<li><a href="{% url admin "procrasdonate/recipient/add/" %}">Create Recipient</a></li>
+		<li><a href="{% url register_organizer %}">Create Organizer</a></li>
+	</ol>
+	
+	<h3>User Reports, Logs and Votes</h3>
+	<p><a href="{% url users %}">Users</a></p>
+	
+	<h3>Link Votes to Recipient</h3>
+	<p><a href="{% url recipient_votes %}">Recipient Votes</a></p>
+	
+{% endblock %}

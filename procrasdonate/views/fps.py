@@ -221,10 +221,6 @@ def authorize_multiuse(request):
         Log.Error(message, "request_error")
         return json_failure(message)
     
-    print
-    print "AUTHORIZE_MULTIUSE"
-    print json.dumps(request.POST, indent=2)
-    print
     errors = []
     expected_parameters = ["caller_reference",
                            "payment_reason",
@@ -246,10 +242,6 @@ def authorize_multiuse(request):
     
     # params for FPS REST request
     camel_parameters = _switch_cases(response['parameters'], to_lower=False)
-    print
-    print "CAMEL PARAMS"
-    print camel_parameters
-    print
     
     recipients = []
     if camel_parameters['recipient_slug_list'] == "all":
@@ -279,18 +271,20 @@ def authorize_multiuse(request):
                            })
 
     # add timestampe and signature
+    print "PRE FINALIZE"
+    for x in camel_parameters:
+        print x,"=",camel_parameters[x]
     finalize_parameters(camel_parameters, type=CBUI_TYPE)
+    print "POST FINALIZE"
+    for x in camel_parameters:
+        print x,"=",camel_parameters[x]
     
     full_url = "%s?%s" % (AMAZON_CBUI_URL, urllib.urlencode(camel_parameters))
-    
-    print 
-    print "LOWER PARAMS A"
-    print lower_parameters
+    print
+    print "FULL_URL", full_url
     print
     
     user = User.get_or_none(private_key=private_key)
-    print "----  USER ----"
-    print user
     if not user:
         message = "unknown user: %s, request=%s" % (private_key, request)
         Log.Error(message, "unknown_user")
@@ -299,11 +293,6 @@ def authorize_multiuse(request):
     multiuse = FPSMultiuseAuth.get_or_none(caller_reference=lower_parameters['caller_reference'])
     if not multiuse:
         multiuse = FPSMultiuseAuth.add(user, lower_parameters)
-    
-    print 
-    print "LOWER PARAMS"
-    print lower_parameters
-    print
     
     return HttpResponseRedirect(full_url)
 

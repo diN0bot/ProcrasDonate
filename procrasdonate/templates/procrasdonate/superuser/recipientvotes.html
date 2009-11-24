@@ -1,0 +1,47 @@
+{% extends 'procrasdonate/base.html' %}
+
+{% block head %}
+	{{ block.super }}
+{% endblock %}
+
+{% block content %}
+	<h2>Recipient Votes</h2>
+
+	<ul>
+	{% for rvote in recipient_votes %}
+		<li>{{ rvote.name }}: 
+			{% if rvote.url %}
+				<a href="{{ rvote.url }}">{{ rvote.url }}</a>
+			{% endif %}
+			
+			{% if rvote.recipient %}
+				{{ rvote.recipient.name }}
+			{% else %}
+				not linked to any recipient
+			{% endif %}
+			
+			<select id="{{ rvote.id }}">
+				<option value="None" {% if not rvote.recipient %}selected{% endif %}>
+						-------
+				</option>
+				{% for recipient in recipients %}
+					<option value="{{ recipient.slug }}"
+						{% ifequal rvote.recipient.slug recipient.slug %}selected{% endifequal %}>
+							{{ recipient.name }}
+					</option>
+				{% endfor %}
+			</select>	
+		</li>
+	{% endfor %}
+	</ul>
+	
+	<script type="text/javascript">
+		$(document).ready(function() {
+			$("select").change(function() {
+				var vote_id = $(this).attr("id");
+				var recipient_slug = $(this).attr("value");
+				location.href = "/recipient/link_vote/"+vote_id+"/"+recipient_slug+"/";
+			});
+		});
+	</script>
+{% endblock %}

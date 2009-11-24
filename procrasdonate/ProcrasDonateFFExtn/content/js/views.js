@@ -21,11 +21,6 @@ _extend(Controller.prototype, {
 		for (var i = 0; i < constants.VALID_HOSTS.length; i++) {
 			var valid_host = constants.VALID_HOSTS[i];
 			if (host == valid_host) { //match(new RegExp(valid_host)))
-				//request.do_in_page(_bind(this.page, this.page.insert_settings_recipients, request));
-				//request.do_in_page(
-				//	_bind(this.page, this.page.insert_settings_donation_amounts, request));
-				//request.do_in_page(_bind(this.page, this.page.insert_settings_account, request));
-				//request.do_in_page(_bind(this, this.pd_dispatch_by_url, request));
 				return this.pd_dispatch_by_url(request);
 			}
 		}
@@ -566,14 +561,14 @@ function Schedule(prefs, pddb) {
 Schedule.prototype = {};
 _extend(Schedule.prototype, {
 	run: function() {
-		if ( this.is_new_24hr_period() ) {
-			this.do_once_daily_tasks();
-			this.reset_24hr_period();
-		}
 		if ( this.is_new_week_period() ) {
 			this.do_once_weekly_tasks();
 			this.do_make_payment();
 			this.reset_week_period();
+		}
+		if ( this.is_new_24hr_period() ) {
+			this.do_once_daily_tasks();
+			this.reset_24hr_period();
 		}
 	},
 	
@@ -617,7 +612,7 @@ _extend(Schedule.prototype, {
 	},
 	
 	do_once_weekly_tasks: function() {
-		// none yet
+		this.pddb.page.create_weekly_report();
 	},
 	
 	do_make_payment: function() {
@@ -867,19 +862,71 @@ _extend(PageController.prototype, {
 	/*************************************************************************/
 	/******************************* SETTINGS ********************************/
 
+	/**
+	 * @return {
+	 *     currently_authorized: bool, // True if currently authorized to make payments
+	 *     authorization_expired: bool, // True if was authorized but expired
+	 *     months: int 
+	 * }
+	 * months is number of months until reauthorization is necessary, 
+	 * or 0 if expired or not authorized
+	 */
+	months_before_reauth: function() {
+		var self = this;
+		var currently_authorized = false;
+		var authorization_expired = false;
+		var months = 0;
+		var multi_auth = this.pddb.FPSMultiuseAuthorization.most_recent();
+		if (multi_auth) {
+			if (multi_auth.good_to_go()) {
+				currently_authorized = true;
+				if (multi_auth.expiry && multi_auth.expiry.split("/").length == 2) {
+					var expiry = multi_auth.expiry.split("/");
+					var exp_year = parseInt(expiry[1]);
+					var exp_month = parseInt(expiry[1]);
+					var now = new Date();
+					var now_year = now.getFullYear();
+					var now_month = now.getMonth() + 1;
+					if (exp_year < now_year ||
+							(exp_year == now_year && exp_month <= now_month)) {
+						authorization_expired = true;
+						currently_authorized = true;
+					} else {
+						months = ((exp_year - now_year)*12 + (exp_month - now_month)) + " months";
+					}
+				} else {
+					months = "unknown"
+				}
+			} else if (multi_auth.expired()) {
+				authorization_expired = true;
+				months = "Authorization has expired. Please re-authorize (coming soon)";
+			}
+		} else {
+			months = "Not autohrized yet. Please authorize (coming soon)";
+		}
+		return {
+			currently_authorized: currently_authorized,
+			authorization_expired: authorization_expired,
+			months: months
+		}
+	},
+	
 	insert_settings_overview: function(request) {
 		var self = this;
 		this.prefs.set('settings_state', 'overview');
 		
 		var substate_menu_items = this.make_substate_menu_items('overview',
 			constants.SETTINGS_STATE_ENUM, constants.SETTINGS_STATE_TAB_NAMES);
-
+		
+		
+		var estimated_months_before_reauth = this.months_before_reauth();
+		
 		var middle = Template.get("settings_overview_middle").render(
 			new Context({
 				substate_menu_items: substate_menu_items,
 				constants: constants,
 				
-				estimated_time_till_reauth: {units: "months", time: "x"},
+				estimated_months_before_reauth: estimated_months_before_reauth,
 				
 				pd_hr_per_week_goal: self.retrieve_float_for_display("pd_hr_per_week_goal", constants.PD_DEFAULT_HR_PER_WEEK_GOAL),
 				pd_dollars_per_hr: self.retrieve_float_for_display("pd_dollars_per_hr", constants.PD_DEFAULT_DOLLARS_PER_HR),
@@ -1261,6 +1308,81 @@ _extend(PageController.prototype, {
 			constants.MESSAGES_STATE_ENUM, constants.MESSAGES_STATE_INSERTS);
 	},
 	
+
+	/*************************************************************************/
+	/******************************* MESSAGES ********************************/
+	
+	create_weekly_report: function() {
+		var self = this;
+		
+		if (!_un_dbify_bool(self.prefs.get('weekly_affirmations', constants.DEFAULT_WEEKLY_AFFIRMATIONS))) {
+			// user doesn't want a weekly affirmation
+			return
+		}
+		
+		var email = self.prefs.get('email', constants.DEFAULT_EMAIL);
+		var name = "";
+		if (email) {
+			name = email.substr(0, email.indexOf("@"));
+		}
+		
+		var pd_hr_per_week_goal = self.retrieve_float_for_display("pd_hr_per_week_goal", constants.PD_DEFAULT_HR_PER_WEEK_GOAL);
+		var pd_dollars_per_hr = self.retrieve_float_for_display("pd_dollars_per_hr", constants.PD_DEFAULT_DOLLARS_PER_HR);
+		var pd_hr_per_week_max = self.retrieve_float_for_display("pd_hr_per_week_max", constants.PD_DEFAULT_HR_PER_WEEK_MAX);
+		
+		var tag_contenttype = self.pddb.ContentType.get_or_null({
+			modelname: "Tag"
+		});
+		var last_week = new Date();
+		last_week.setDate(last_week.getDate() - 7);
+		
+		var start_date = _start_of_week(last_week);
+		var start_date_friendly = _friendly_date(start_date);
+		var end_date = _end_of_week(last_week);
+		var end_date_friendly = _friendly_date(end_date);
+		
+		var pd_total_last_week = self.pddb.Total.get_or_null({
+			contenttype_id: tag_contenttype.id,
+			content_id: self.pddb.ProcrasDonate.id,
+			datetime: _dbify_date(end_date),
+			timetype_id: self.pddb.Weekly.id
+		});
+		var last_week_hrs = 0.0;
+		if (pd_total_last_week) {
+			last_week_hrs = pd_total_last_week.hours().toFixed(1)
+		}
+		
+		var good_news = (last_week_hrs < pd_hr_per_week_goal)
+		
+		var pledges = [];
+		var payments = [];
+		var time_span = "first week in a row";
+		
+		var message = Template.get("weekly_report").render(
+			new Context({
+				name: name,
+				start_date: start_date_friendly,
+				end_date: end_date_friendly,
+				good_news: good_news,
+				time_span: time_span,
+				pd_hr_per_week_goal: pd_hr_per_week_goal,
+				pd_dollars_per_hr: pd_dollars_per_hr,
+				pd_hr_per_week_max: pd_hr_per_week_max,
+				last_week_hrs: last_week_hrs,
+				pledges: pledges,
+				payments: payments
+			})
+		);
+		
+		self.pddb.Report.create({
+			datetime: _dbify_date(end_date),
+			type: "weekly",
+			message: message,
+			read: _dbify_bool(false),
+			sent: _dbify_bool(false)
+		});
+	},
+	
 	/*************************************************************************/
 	/******************************* PROGRESS ********************************/
 	
@@ -1283,15 +1405,16 @@ _extend(PageController.prototype, {
 		});
 		
 		var last_week = new Date();
-		logger("TODAY is "+last_week);
 		last_week.setDate(last_week.getDate() - 7);
-		logger("LAST WEEK is "+last_week);
 		var pd_total_last_week = self.pddb.Total.get_or_null({
 			contenttype_id: tag_contenttype.id,
 			content_id: self.pddb.ProcrasDonate.id,
 			datetime: _dbify_date(_end_of_week(last_week)),
 			timetype_id: self.pddb.Weekly.id
 		});
+		
+		logger("THIS WEEK: "+_start_of_week()+"      "+_end_of_week());
+		logger("LAST WEEK: "+_start_of_week(last_week)+"      "+_end_of_week(last_week));
 		
 		var this_week_hrs = 0.0;
 		if (pd_total_this_week) {
@@ -1379,10 +1502,6 @@ _extend(PageController.prototype, {
 		data.setValue(1, 1, Math.round(pd_last_week_hrs));
 		data.setValue(2, 0, 'Average');
 		data.setValue(2, 1, Math.round(pd_total_hrs));
-		
-		logger("THIS WEEK HRS="+Math.round(pd_this_week_hrs));
-		logger("LAST WEEK HRS="+Math.round(pd_last_week_hrs));
-		logger("TOTAL WEEK HRS="+Math.round(pd_total_hrs));
 
 		var chart = new google.visualization.Gauge( request.jQuery("#gauges").get(0) );
 
@@ -1891,34 +2010,13 @@ _extend(PageController.prototype, {
 		var max_amount_paid = self.calculate_max_amount(pd_dollars_per_hr, pd_hr_per_week_max, min_auth_time);
 		
 		var multi_auth = self.pddb.FPSMultiuseAuthorization.most_recent();
-		var html = "";
+		var multi_auth_status = "";
 		if (multi_auth) {
-			html = Template.get("multi_auth_status").render(
+			multi_auth_status = Template.get("multi_auth_status").render(
 				new Context({ multi_auth: multi_auth })
 			);
-			request.jQuery(".multi_auth_status").html( html );
 		}
-			
-		// Receive updates from server
-		this.pddb.page.pd_api.request_data_updates(
-			function(recipients, multi_auths) {
-				// after success
-				var multi_auth = self.pddb.FPSMultiuseAuthorization.get_latest_success()
-				if (!multi_auth) {
-					multi_auth = self.pddb.FPSMultiuseAuthorization.most_recent();
-				}
-				var html = "";
-				if (multi_auth) {
-					html = Template.get("multi_auth_status").render(
-						new Context({ multi_auth: multi_auth })
-					);
-				}
-				request.jQuery("#multi_auth_status").html( html );
-			}, function() {
-				// after failure
-			}
-		);
-
+		
 		// form parameters
 		var form_params = [
 			{ name: "global_amount_limit", value: parseInt(max_amount_paid+1) },
@@ -1942,6 +2040,7 @@ _extend(PageController.prototype, {
 					pd_hr_per_week_max: self.retrieve_float_for_display('pd_hr_per_week_max', constants.PD_DEFAULT_HR_PER_WEEK_MAX),
 					min_auth_time: min_auth_time,
 					max_amount_paid: parseInt(max_amount_paid+1),
+					multi_auth_status: multi_auth_status,
 					
 					multi_auth: multi_auth,
 					form_params: form_params,
@@ -1949,6 +2048,27 @@ _extend(PageController.prototype, {
 				})
 			);
 		request.jQuery("#content").html( middle );
+		
+		// Receive updates from server
+		this.pddb.page.pd_api.request_data_updates(
+			function(recipients, multi_auths) {
+				// after success
+				var multi_auth = self.pddb.FPSMultiuseAuthorization.get_latest_success()
+				if (!multi_auth) {
+					multi_auth = self.pddb.FPSMultiuseAuthorization.most_recent();
+				}
+				var html = "";
+				if (multi_auth) {
+					html = Template.get("multi_auth_status").render(new Context({
+						multi_auth: multi_auth,
+						server_dont_know: true
+					}));
+				}
+				request.jQuery("#multi_auth_status").html( html );
+			}, function() {
+				// after failure
+			}
+		);
 		
 		this.activate_substate_menu_items(request, 'payments',
 			constants.REGISTER_STATE_ENUM, constants.REGISTER_STATE_INSERTS, constants.REGISTER_STATE_PROCESSORS);

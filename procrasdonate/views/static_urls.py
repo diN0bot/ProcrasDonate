@@ -8,7 +8,6 @@ urlpatterns = patterns('',
 
 urlpatterns += patterns('django.views.generic.simple',
     url(r'^$', 'direct_to_template',             {'template': 'procrasdonate/straight_pages/home.html'}, name='home'),
-    url(r'^start_now/$', 'direct_to_template',             {'template': 'procrasdonate/straight_pages/start_now.html'}, name='start_now'),
     url(r'^about_us/$', 'direct_to_template',    {'template': 'procrasdonate/straight_pages/about_us.html'}, name='about_us'),
     url(r'^faq/$', 'direct_to_template',         {'template': 'procrasdonate/straight_pages/faq.html'}, name='faq'),
     url(r'^intro_video/$', 'direct_to_template', {'template': 'procrasdonate/straight_pages/about_us.html'}, name='intro_video'),

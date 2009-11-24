@@ -1,0 +1,26 @@
+Hi {{ name }},
+
+Here is your ProcrasDonate affirmation for {{ start_date }} to {{ end_date }}
+{% if good_news %}
+Congratulations! You ProcrasDonated less than your goal of {{ pd_hr_per_week_goal }} hours. Keep up the good work!
+{% else %}
+What happened? You ProcrasDonated more than your goal of {{ pd_hr_per_week_goal }} hours. We know you can improve! Try working up to your current goal with smaller steps.
+{% endif %}
+{% if pledges %}
+This week you pledged:
+{% for pledge in pledges %}
+    ${{ pledge.amount }} to {{ pledge.charity }}
+{% endfor %}
+{% else %}
+This week you made no pledges to any charity.
+{% endif %}
+{% if payments %}
+This week you turned pledges into donations!!
+{% for payment in payments %}
+    ${{ payment.amount }} to {{ payment.charity }}
+{% endfor %}
+{% else %}
+This week you made no actual payments.
+{% endif %}
+Best Regards,
+ProcrasDonate team

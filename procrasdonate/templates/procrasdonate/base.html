@@ -54,7 +54,7 @@
 					<div {% ifequal selected "home" %}class="here_we_are"{% endifequal %} id='home_menu_item'><a href="{% url home %}">Home</a></div>
 					<div {% ifequal selected "community" %}class="here_we_are"{% endifequal %} id='community_menu_item'><a href="{% url community %}">Community</a></div>
 					<div {% ifequal selected "faq" %}class="here_we_are"{% endifequal %} id='faq_menu_item'><a href="{% url faq %}">FAQ</a></div>
-					<div id='blog_menu_item'><a href="http://procrasdonate.wordpress.com">Blog</a></div>
+					<div id='about_us_menu_item'><a href="{% url about_us %}">About Us</a></div> 
 				</div>
 				
 				<div id="OrganizerMenu" class="menu">
@@ -65,24 +65,20 @@
 					<div id='logout_menu_item'>
 						<a href="{% url logout %}">Logout</a>
 					{% else %}
-						<a href="{% url login %}">Login</a>
+						<a href="{% url login %}">Organizers</a>
 					{% endif %}
 					</div>
 				</div>
-				
+
+				<div id="footer">
+					<a target="_blank" href="http://feedback.procrasdonate.com">feedback</a>
+				</div>
+								
 				{% if request.user.is_superuser %}
 					<div id="AdminMenu">
-						<a href="{% url admin "" %}">Admin</a>
-						<a href="{% url admin "procrasdonate/recipient/add/" %}">Create Recipient</a>
-						<a href="{% url register_organizer %}">Create Organizer</a>
+						<a href="{% url superuser_dashboard %}">Admin</a>
 					</div>
 				{% endif %}
-				
-				<div id="footer">
-					<a href="{% url faq %}#why">about us</a> | 
-					<a href="http://feedback.procrasdonate.com">feedback</a>
-					<div class="copyright">&copy; '09 ProcrasDonate</div> 
-				</div>
 			
 			</td>
 			
@@ -115,6 +111,12 @@
 				
 				<img id="right_logo" alt="" src="{{ MEDIA_URL }}img/LaptopLogo.png">
 				
+				<p class="video_label">
+					<span class="video_intro_label"> 
+						Spotlight On:<br>
+					</span>
+					{{ video1.caption|safe }}
+				</p>
 				<div id="video1" class="video_block">
 					{% if video1 %}
 						<object width="216" height="190">
@@ -129,10 +131,10 @@
 								width="216"
 								height="190" />
 						</object>
-						<p>{{ video1.caption|safe }}</p>
+						
 					{% endif %}
 				</div>
-				
+				<p class="video_label">{{ video2.caption|safe }}</p>
 				<div id="video2" class="video_block">
 					{% if video2 %}
 						<object width="216" height="190">
@@ -147,10 +149,11 @@
 								width="216"
 								height="190" />
 						</object>
-						<p>{{ video2.caption|safe }}</p>
 					{% endif %}
 				</div>
-				
+				<div id="footer">
+					<div class="copyright">&copy; '09 ProcrasDonate</div> 
+				</div>
 			</td>
 		</tr>
 		</tbody>

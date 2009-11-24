@@ -110,7 +110,7 @@ class Processor(object):
             site = Site.get_or_create(url=url)
             
             ret = SiteVisit.add(site, dtime, total_time, total_amount, user, extn_id)
-            
+        
         elif 'Tag' == total['contenttype']:
             tagtag     = total['content']['tag']
             extn_id = int(total['content']['id'])
@@ -122,6 +122,27 @@ class Processor(object):
             ret = TagVisit.add(tag, dtime, total_time, total_amount, user, extn_id)
             
         return ret
+    
+    @classmethod
+    def process_report(klass, report, user):
+        """
+        @param user: User
+        @param report: dict of report obj, eg
+          {
+            "type": "weekly", 
+            "message": "...email content....",
+            "is_read": True, 
+            "is_sent": False,
+            "datetime": "1252539581"
+          }
+        """
+        type        = report['type']
+        message     = report['message']
+        is_read     = report['is_read']
+        is_sent     = report['is_sent']
+        dtime       = Processor.parse_seconds(int(report['datetime']))
+        
+        return Report.add(user, message, type, is_read, is_sent, dtime)
     
     @classmethod
     def process_log(klass, log, user):
@@ -143,6 +164,20 @@ class Processor(object):
         
         return Log.add(Log.LOG_TYPES[type], detail_type, message, user, dtime)
     
+    @classmethod
+    def process_prefs(klass, pref, user):
+        if user.email != pref['email']:
+            user.email = Email.get_or_create(pref['email'])
+        if user.weekly_affirmations != pref['weekly_affirmations']:
+            user.weekly_affirmations = pref['weekly_affirmations']
+        if user.org_thank_yous != pref['org_thank_yous']:
+            user.org_thank_yous = pref['org_thank_yous']
+        if user.org_newsletters != pref['org_newsletters']:
+            user.org_newsletters = pref['org_newsletters']
+        if user.tos != pref['tos']:
+            user.tos = pref['tos']
+        user.save()
+        
     @classmethod
     def process_userstudy(klass, userstudy, user):
         """

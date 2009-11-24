@@ -55,6 +55,10 @@ class Log(models.Model):
         return Log.add(type, detail, message, user, dt)
     
     @classmethod
+    def Initialize(klass):
+        model_utils.mixin(LogMixin, User)
+        
+    @classmethod
     def make(klass, log_type, detail_type, message, user=None, dt=None):
         if not dt:
             dt = datetime.datetime.now()
@@ -62,6 +66,15 @@ class Log(models.Model):
         
     def __unicode__(self):
         return u"%s (%s): %s" % (self.log_type, self.detail_type, self.message)
+
+
+class LogMixin(object):
+    """ mixed into User class """
+    
+    @property
+    def logs(self):
+        return Log.objects.filter(user=self).order_by('-dtime')
+
 
 class UserStudy(models.Model):
     """
