@@ -173,9 +173,9 @@ class FPSMultiuseAuth(models.Model):
     
     @classmethod
     def success(klass, status):
-        return (status == klass.STATUSES['SUCCESS_ABT'] or \
-                          klass.STATUSES['SUCCESS_ACH'] or \
-                          klass.STATUSES['SUCCESS_CC'])
+        return (status == klass.STATUSES['SUCCESS_ABT'] or 
+                status == klass.STATUSES['SUCCESS_ACH'] or 
+                status == klass.STATUSES['SUCCESS_CC'])
         
     def needs_new_caller_reference(self):
         if self.good_to_go():
