@@ -81,8 +81,8 @@ function generated_input() {
         xpi_file = open(xpi_fn, 'rb')
         xpi_hash = "sha1:%s" % hashlib.sha1(xpi_file.read()).hexdigest()
         xpi_file.close()
-        
-        self.update_udpates_rdf(xpi_url, xpi_hash)
+
+        self.update_updates_rdf(xpi_url, xpi_hash)
         
         return (xpi_url, xpi_hash)
     
@@ -100,7 +100,6 @@ function generated_input() {
         return self._get_version(self.update_dir, 'update.rdf')
     
     def _get_version(self, dir, name):
-        print "GET VERSION", dir, name
         rdf_fn = pathify([dir, name], file_extension=True)
         rdf_f = open(rdf_fn, 'r')
         rdf = rdf_f.read()
@@ -124,7 +123,7 @@ function generated_input() {
             print d[a][b][u1][u2][u3][u4].keys()
             return d[a][b][u1][u2][u3][u4][u5]
 
-    def update_udpates_rdf(self, xpi_url, xpi_hash):
+    def update_updates_rdf(self, xpi_url, xpi_hash):
         current_version = self.get_version()
         update_version = self.get_update_version()
         
@@ -151,6 +150,14 @@ function generated_input() {
                 for line in write_lines:
                     write_rdf_f.write(line)
                 write_rdf_f.close()
+        else:
+            print
+            print "$"*80
+            print "              WARNING !!! WARNING !!! WARNING !!!"
+            print "BBBbbbuurrRRRRPPP!!! BBBBBbbbururrrRPPPPP!!! -- Update file is already at same version"
+            print "              WARNING !!! WARNING !!! WARNING !!!"
+            print "$"*80
+            print
             
 if __name__ == "__main__":
     xpi_builder = XpiBuilder(pathify([PROJECT_PATH, 'procrasdonate', 'ProcrasDonateFFExtn'], file_extension=True),
