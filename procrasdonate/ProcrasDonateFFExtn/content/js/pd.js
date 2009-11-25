@@ -440,9 +440,9 @@ _extend(ProcrasDonate_API.prototype, {
 		});
 		
 		var threshhold = self.prefs.get('payment_threshhold ', constants.DEFAULT_PAYMENT_THRESHHOLD);
-		logger("threshhold="+threshhold+" ignore="+ignore_threshhold);
+		//logger("threshhold="+threshhold+" ignore="+ignore_threshhold);
 		_iterate(recipient_total_amounts, function(key, value, index) {
-			logger(index+".\n key="+key+" \n value="+value);
+			//logger(index+".\n key="+key+" \n value="+value);
 			if (key && (ignore_threshhold || value >= threshhold)) {
 				self.pay_multiuse(
 					value,
@@ -475,9 +475,6 @@ _extend(ProcrasDonate_API.prototype, {
 			function(r) {
 				self.pddb.orthogonals.log("Successfully received data", "dataflow");
 				
-				var recipients = [];
-				var multi_auths = [];
-				
 				_iterate(r.multiuse_auths, function(key, value, index) {
 					self.pddb.FPSMultiuseAuthorization.process_object(value);
 				});
@@ -489,9 +486,8 @@ _extend(ProcrasDonate_API.prototype, {
 				});
 				self.prefs.set('since_received_data', _dbify_date(new_since));
 				self.pddb.orthogonals.log("Data successfully updated to "+new_since, "dataflow");
-				
 				if (after_success) {
-					after_success(recipients, multi_auths);
+					after_success();
 				}
 			},
 			function(r) {
@@ -517,7 +513,6 @@ _extend(ProcrasDonate_API.prototype, {
 			function(r) {
 				try {
 					var response = eval("("+r.responseText+")");
-					
 					if (response.result == "success") {
 						if (onsuccess) {
 							onsuccess(response);
@@ -528,7 +523,7 @@ _extend(ProcrasDonate_API.prototype, {
 						}
 					}
 				} catch (e) {
-					logger("EXCEPTION: pd.js::RETURNED: "+r+"  "+e.stack);
+					logger("EXCEPTION: pd.js::RETURNED: "+r+"  e.stack: "+e.stack+"\n\n");
 				}
 			},
 			onerror

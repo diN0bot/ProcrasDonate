@@ -13,6 +13,21 @@
 <p>Estimated time until payment re-authorization is needed: 
 {{ estimated_months_before_reauth.months }}</p>
 
+<h3>Selected Charities</h3>
+{% for rpct in recipient_percents %}
+<p>
+	{{ rpct.display_percent }}% of every hour spent ProcrasDonation goes to
+	{% if rpct.recipient.is_pd_registered %}
+		<a href="/{{ rpct.recipient.slug }}/">
+	{% endif %}
+		{{ rpct.recipient.name }}
+	{% if rpct.recipient.is_pd_registered %}
+		</a>
+	{% endif %}
+</p>
+{% endfor %}
+<p><a class="choose_charities" href="{{ constants.REGISTER_URL }}">Change selections</a></p>
+
 <h3>ProcrasDonate</h3>
 <p>Weekly ProcrasDonate goal: 
 	<span class="thevalue" id="pd_hr_per_week_goal">{{ pd_hr_per_week_goal }}</span>

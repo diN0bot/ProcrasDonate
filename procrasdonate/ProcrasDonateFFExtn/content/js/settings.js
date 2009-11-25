@@ -161,19 +161,19 @@ var constants = {};
 		'content', 
 		'support', 
 		'updates', 
-		'payments',
-		'done'
+		'payments'/*,
+		'done'*/
 	];
 	constants.REGISTER_STATE_TAB_NAMES = [
-		'Incentive', 'Charities', 'Content', 'Support', 'Updates', 'Payments', 'XXX'];
+		'Incentive', 'Charities', 'Content', 'Support', 'Updates', 'Payments'/*, 'XXX'*/];
 	constants.REGISTER_STATE_INSERTS = [
 		"insert_register_incentive", 
 		"insert_register_charities", 
 		"insert_register_content", 
 		"insert_register_support", 
 		"insert_register_updates",
-		"insert_register_payments",
-		"insert_register_done"
+		"insert_register_payments"/*,
+		"insert_register_done"*/
 	];
 	constants.REGISTER_STATE_PROCESSORS = [
 		"process_register_incentive", 
@@ -181,8 +181,8 @@ var constants = {};
 		"process_register_content", 
 		"process_register_support", 
 		"process_register_updates",
-		"process_register_payments",
-		"process_register_done"
+		"process_register_payments"/*,
+		"process_register_done"*/
 	];
 	
 	constants.DEFAULT_HASH = "nohash";

@@ -1,5 +1,20 @@
 {{ substate_menu }}
 
+<form method="post" action="{{ action }}">
+	{% for param in form_params %}
+		<input
+			type="hidden"
+			name="{{ param.name }}"
+			value="{{ param.value }}"
+			class="{{ param.name }}" />
+	{% endfor %}
+	<input
+		type="image"
+		class="go_to_amazon_button"
+		src="{{ constants.MEDIA_URL }}img/GoAmazonButton.png"
+		id="top_go_to_amazon_button" />
+</form>
+
 <div id="multi_auth_status">
 	{{ multi_auth_status }}
 </div>
@@ -39,11 +54,15 @@
 	
 		<form method="post" action="{{ action }}">
 			{% for param in form_params %}
-				<input type="hidden" name="{{ param.name }}" value="{{ param.value }}" />
+				<input
+					type="hidden"
+					name="{{ param.name }}"
+					value="{{ param.value }}"
+					class="{{ param.name }}" />
 			{% endfor %}
 			<input
 				type="image"
-				id="go_to_amazon_button"
+				class="go_to_amazon_button"
 				src="{{ constants.MEDIA_URL }}img/GoAmazonButton.png" />
 		</form>
 {% endif %}

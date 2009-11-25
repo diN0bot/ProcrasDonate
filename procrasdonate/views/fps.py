@@ -126,8 +126,8 @@ def payment_registration(request):
                   'websiteDescription': settings.FPS['websiteDescription'],
                   'pipelineName'      : "Recipient",
                   'recipientPaysFee'  : "True",
-                  #'maxFixedFee'       : 5.00,
-                  'maxVariableFee'    : 20,
+                  #'maxFixedFee'       : settings.FPS['maxFixedFee'],
+                  'maxVariableFee'    : settings.FPS['maxVariableFee'],
                   'returnUrl': "%s%s" % (settings.DOMAIN,
                                          reverse('payment_registration_callback')),
                   'version': settings.FPS['version']

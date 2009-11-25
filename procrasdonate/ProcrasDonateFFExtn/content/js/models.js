@@ -228,7 +228,7 @@ function load_models(db, pddb) {
 			// @return: if return_row, returns created row
 		
 			last_modified = new Date(r.last_modified);
-			var recipient = Recipient.get_or_create({
+			var recipient = Recipient.get_or_null({
 				slug: r.slug
 			});
 			if (last_receive_time &&
@@ -658,9 +658,6 @@ function load_models(db, pddb) {
 		},
 		
 		deep_dict: function() {
-			// #@TODO do this instead of listing all fields??
-			//var ret = this.prototype.deep_dict()
-			// return _extend(ret, {})
 			return {
 				id: this.id,
 				payment_service: this.payment_service(),
@@ -933,8 +930,7 @@ function load_models(db, pddb) {
 		expired: function() { return this.status == FPSMultiuseAuthorization.EXPIRED },
 		
 		good_to_go: function() {
-			// todo check expiry--- see code in views::months_before_reauth
-			return this.success_abt() || this.success_ach() || this.success_cc()
+			return this.success_abt() || this.success_ach() || this.success_cc();
 		},
 		
 		error: function() {
@@ -1027,7 +1023,7 @@ function load_models(db, pddb) {
 			});
 			if (!multi_auth) {
 				multi_auth = FPSMultiuseAuthorization.create({
-	                timestamp: ma.timestamp,
+	                timestamp: _dbify_date(new Date(ma.timestamp)),
 	                payment_reason: ma.payment_reason,
 	                global_amount_limit: ma.global_amount_limit,
 	                recipient_slug_list: ma.recipient_slug_list,

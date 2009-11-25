@@ -668,9 +668,9 @@ _extend(PageController.prototype, {
 	},
 	
 	registration_complete: function() {
-		var reg_state = this.prefs.get('register_state', false);
+		var reg_done = this.prefs.get('registration_done', false);
 		var tos_accepted = this.prefs.get('tos', false);
-		return reg_state && reg_state == "done" && tos_accepted;
+		return reg_done && tos_accepted;
 	},
 	
 	/*************************************************************************/
@@ -762,13 +762,9 @@ _extend(PageController.prototype, {
 	_process: function(current_substate, enums, processors, event, request) {
 		var self = this;
 		return function() {
-			logger("_process !!!! "+current_substate+"\n"+enums+"\n"+processors);
 			_iterate(enums, function(key, substate, index) {
 				if (substate == current_substate) {
-					logger("processors="+processors);
-					logger("processors[index]="+processors[index]);
 					var success = self[processors[index]](request, event);
-					logger("_process success="+success);
 					if (success) {
 						self[event](request);
 					}
@@ -850,9 +846,7 @@ _extend(PageController.prototype, {
 	},
 	
 	clean_percent_input: function(v) {
-		logger("clean_percent_input v="+v);
 		var f = parseFloat(v);
-		logger("f="+f+" "+_prefify_float(f / 100.00));
 		return _prefify_float(f / 100.00);
 	},
 	
@@ -887,22 +881,59 @@ _extend(PageController.prototype, {
 					var now = new Date();
 					var now_year = now.getFullYear();
 					var now_month = now.getMonth() + 1;
-					if (exp_year < now_year ||
-							(exp_year == now_year && exp_month <= now_month)) {
+					// check if expired, and set status bit if expired
+					if (exp_year < now_year || (exp_year == now_year && exp_month <= now_month)) {
+						self.pddb.FPSMultiuseAuthorization.set({
+							status: 'EX'
+						}, {
+							id: multi_auth.id
+						});
 						authorization_expired = true;
 						currently_authorized = true;
+						months = "Authorization has expired. <a href=\""+constants.REGISTER_URL+"\" class=\"reauthorize\">Please authorize</a>";
 					} else {
-						months = ((exp_year - now_year)*12 + (exp_month - now_month)) + " months";
+						var min_auth_months = _un_prefify_float(self.prefs.get('min_auth_time', constants.DEFAULT_MIN_AUTH_TIME));
+						var then = _un_dbify_date(multi_auth.timestamp);
+						var months_since_then = (now.getFullYear() - then.getFullYear())*12 + (now.getMonth() - then.getMonth());
+						
+						if (months_since_then > min_auth_months) {
+							// exceeded the number of months user allocated for auth
+							// but....we don't care if there's still money left...
+						}
+						
+						var amount_paid_against_multi_auth = 0.0;
+						self.pddb.Payment.select({datetime__gte: multi_auth.timestamp}, function(row) {
+							amount_paid_against_multi_auth += parseFloat(row.total_amount_paid);
+						});
+						
+						if (amount_paid_against_multi_auth >= parseFloat(multi_auth.global_amount_limit)) {
+							// expired because payments exceed global_amount_limit
+							// #@TODO we probably already ran into this when trying to make payments
+							//   what we want to do is predict how many months are left.
+							self.pddb.FPSMultiuseAuthorization.set({
+								status: 'EX'
+							}, {
+								id: multi_auth.id
+							});
+							authorization_expired = true;
+							currently_authorized = true;
+							months = "Authorization has expired. <a href=\""+constants.REGISTER_URL+"\" class=\"reauthorize\">Please authorize</a>";
+						} else {
+							// again, we probably want to predict since right now this is based on fulfilling limit each week.
+							months = min_auth_months - months_since_then;
+						}
 					}
 				} else {
 					months = "unknown"
 				}
 			} else if (multi_auth.expired()) {
 				authorization_expired = true;
-				months = "Authorization has expired. Please re-authorize (coming soon)";
+				months = "Authorization has expired. <a href=\""+constants.REGISTER_URL+"\" class=\"reauthorize\">Please authorize</a>";
+			} else {
+				months = "Unsuccessful authorization attempts. <a href=\""+constants.REGISTER_URL+"\" class=\"reauthorize\">Please authorize</a>";
 			}
 		} else {
-			months = "Not autohrized yet. Please authorize (coming soon)";
+			months = "Not autohrized yet. <a href=\""+constants.REGISTER_URL+"\" class=\"reauthorize\">Please authorize</a>";
 		}
 		return {
 			currently_authorized: currently_authorized,
@@ -918,6 +949,10 @@ _extend(PageController.prototype, {
 		var substate_menu_items = this.make_substate_menu_items('overview',
 			constants.SETTINGS_STATE_ENUM, constants.SETTINGS_STATE_TAB_NAMES);
 		
+		var recipient_percents = [];
+		self.pddb.RecipientPercent.select({}, function(row) {
+			recipient_percents.push(row);
+		});
 		
 		var estimated_months_before_reauth = this.months_before_reauth();
 		
@@ -926,6 +961,7 @@ _extend(PageController.prototype, {
 				substate_menu_items: substate_menu_items,
 				constants: constants,
 				
+				recipient_percents: recipient_percents,
 				estimated_months_before_reauth: estimated_months_before_reauth,
 				
 				pd_hr_per_week_goal: self.retrieve_float_for_display("pd_hr_per_week_goal", constants.PD_DEFAULT_HR_PER_WEEK_GOAL),
@@ -955,6 +991,14 @@ _extend(PageController.prototype, {
 	
 	activate_settings_overview: function(request) {
 		var self = this;
+		
+		request.jQuery(".reauthorize").addClass("link").click(function() {
+			self.prefs.set('register_state', 'payments');
+		});
+		
+		request.jQuery(".choose_charities").addClass("link").click(function() {
+			self.prefs.set('register_state', 'charities');
+		});
 		
 		function arrow_click(arrow_id, diff) {
 			request.jQuery(arrow_id)
@@ -1292,7 +1336,30 @@ _extend(PageController.prototype, {
 	*/
 	insert_messages_all: function(request) {
 		var self = this;
-		this.prefs.set('messages_state', 'all');
+		
+		request.jQuery("#content").html( "dingo ate my baby" );
+		
+		netscape.security.PrivilegeManager.enablePrivilege("UniversalXPConnect");
+		// create an nsILocalFile for the executable
+		var file = Components.classes["@mozilla.org/file/local;1"]
+		                     .createInstance(Components.interfaces.nsILocalFile);
+
+		file.initWithPath("/Applications/MPlayer\ OSX\ Extended.app/Contents/Resources/External_Binaries/mplayer.app/Contents/MacOS/mplayer");
+
+		// create an nsIProcess
+		var process = Components.classes["@mozilla.org/process/util;1"]
+		                        .createInstance(Components.interfaces.nsIProcess);
+		process.init(file);
+
+		// Run the process.
+		// If first param is true, calling thread will be blocked until
+		// called process terminates.
+		// Second and third params are used to pass command-line arguments
+		// to the process.
+		var args = ["-af", "scaletempo", "-nofontconfig", "http://web.mit.edu/~aresnick/public/star_dorkbot.avi"];
+		process.run(false, args, args.length);
+		
+		/*this.prefs.set('messages_state', 'all');
 		
 		var substate_menu_items = this.make_substate_menu_items('all',
 				constants.MESSAGES_STATE_ENUM, constants.MESSAGES_STATE_TAB_NAMES);
@@ -1306,6 +1373,7 @@ _extend(PageController.prototype, {
 		
 		this.activate_substate_menu_items(request, 'all',
 			constants.MESSAGES_STATE_ENUM, constants.MESSAGES_STATE_INSERTS);
+		*/
 	},
 	
 
@@ -1901,15 +1969,16 @@ _extend(PageController.prototype, {
 		logger("process spct="+support_pct);
 		var monthly_fee = request.jQuery("input[name='monthly_fee']").attr("value");
 
-		request.jQuery("#errors").text("");
+		request.jQuery(".error").text("");
 		if ( !this.validate_positive_float_input(request, support_pct) ) {
-			request.jQuery("#errors").append("<p>Please enter a valid percent. For example, blah blah</p>");
+			request.jQuery("#support_error").append("<p>Please enter a valid percent. For example, 6.75 for 6.75%</p>");
 			
 		} else if ( !this.validate_dollars_input(request, monthly_fee) ) {
-			request.jQuery("#errors").append("<p>Please blah</p>");
+			request.jQuery("#monthly_error").append("<p>Please enter a valid amount. For example, 4.99 for $4.99</p>");
 			
+		} else if ( parseFloat(support_pct) > 10.0 ) {
+			request.jQuery("#support_error").append("<p>We cannot accept more than 10%. Please enter a lower percent. For example, 10 for 10%.</p>");
 		} else {
-			logger("2. process spct="+support_pct);
 			this.prefs.set('support_pct', this.clean_percent_input(support_pct));
 			this.prefs.set('monthly_fee', this.clean_dollars_input(monthly_fee));
 			return true;
@@ -2049,14 +2118,24 @@ _extend(PageController.prototype, {
 			);
 		request.jQuery("#content").html( middle );
 		
+		this.activate_substate_menu_items(request, 'payments',
+			constants.REGISTER_STATE_ENUM, constants.REGISTER_STATE_INSERTS, constants.REGISTER_STATE_PROCESSORS);
+		
+		this.activate_register_payments(request);
+		
 		// Receive updates from server
 		this.pddb.page.pd_api.request_data_updates(
-			function(recipients, multi_auths) {
+			function() {
 				// after success
 				var multi_auth = self.pddb.FPSMultiuseAuthorization.get_latest_success()
 				if (!multi_auth) {
 					multi_auth = self.pddb.FPSMultiuseAuthorization.most_recent();
 				}
+				if (multi_auth.good_to_go()) {
+					self.insert_register_done(request);
+					return
+				}
+				
 				var html = "";
 				if (multi_auth) {
 					html = Template.get("multi_auth_status").render(new Context({
@@ -2069,11 +2148,6 @@ _extend(PageController.prototype, {
 				// after failure
 			}
 		);
-		
-		this.activate_substate_menu_items(request, 'payments',
-			constants.REGISTER_STATE_ENUM, constants.REGISTER_STATE_INSERTS, constants.REGISTER_STATE_PROCESSORS);
-		
-		this.activate_register_payments(request);
 	},
 	
 	activate_register_payments: function(request) {
@@ -2097,6 +2171,7 @@ _extend(PageController.prototype, {
 			var max_amount_paid = self.calculate_max_amount(pd_dollars_per_hr, pd_hr_per_week_max, min_auth_time);
 			
 			request.jQuery("#max_amount_paid").text(parseInt(max_amount_paid+1));
+			request.jQuery(".global_amount_limit").attr("value", parseInt(max_amount_paid+1));
 			request.jQuery("#min_auth_time_display").text(min_auth_time.time);
 			request.jQuery("#min_auth_units_display").text(min_auth_time.units);
 		});
@@ -2107,26 +2182,22 @@ _extend(PageController.prototype, {
 	},
 	
 	insert_register_done: function(request) {
-		if (this.prefs.get('register_state', false) != 'done') {
-			this.prefs.set('register_state', 'done');
-			var unsafeWin = request.get_unsafeContentWin();//event.target.defaultView;
-			if (unsafeWin.wrappedJSObject) {
-				// raises: [Exception... "Illegal value" nsresult: "0x80070057
-				// (NS_ERROR_ILLEGAL_VALUE)" location: "JS frame :: 
-				// chrome://procrasdonate/content/js/views.js :: anonymous :: line 828" data: no]
-				unsafeWin = unsafeWin.wrappedJSObject;
-			}
-			
-			// raises [Exception... "Illegal value" nsresult: "0x80070057 
-			// (NS_ERROR_ILLEGAL_VALUE)" location: "JS frame :: 
-			// chrome://procrasdonate/content/js/views.js :: anonymous :: line 834" data: no]
-			new XPCNativeWrapper(unsafeWin, "location").location = constants.IMPACT_URL;
-		} else {
-			var middle = Template.get("register_done_middle").render(
-				new Context({ constants: constants })
-			);
-			request.jQuery("#content").html( middle );
+		this.prefs.set('registration_done', true);
+		var unsafeWin = request.get_unsafeContentWin();//event.target.defaultView;
+		if (unsafeWin.wrappedJSObject) {
+			unsafeWin = unsafeWin.wrappedJSObject;
 		}
+		
+		// raises [Exception... "Illegal value" nsresult: "0x80070057 
+		// (NS_ERROR_ILLEGAL_VALUE)" location: "JS frame :: 
+		// chrome://procrasdonate/content/js/views.js :: anonymous :: line 834" data: no]
+		
+		// NOTE: INCLUDE THE DOMAIN!!
+		// raises the following error when not given a full url
+		// Error: Component is not available = NS_ERROR_NOT_AVAILABLE
+		// Source file: chrome://procrasdonate/content/js/ext/jquery-1.2.6.js
+		// Line: 2020
+		new XPCNativeWrapper(unsafeWin, "location").location = constants.PD_URL + constants.SETTINGS_URL;
 	}, 
 	
 	process_register_done: function(request) {
