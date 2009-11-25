@@ -127,37 +127,29 @@ function generated_input() {
         current_version = self.get_version()
         update_version = self.get_update_version()
         
-        if update_version != current_version:
-            if self.recipient:
-                # not generic, so generate generic xpi recursively.
-                # update.rdf will be updated from there
-                xpi_builder = XpiBuilder(self.extn_dir, self.xpi_dir, self.update_dir)
-                print xpi_builder.write_input_json()
-                (xpi_url, xpi_hash) = xpi_builder.build_xpi()
-            else:
-                # generic xpi, so update the update.rdf!
-                rdf_fn = pathify([self.update_dir, 'update.rdf'], file_extension=True)
-                read_rdf_f = open(rdf_fn, 'r')
-                write_lines = []
-                for line in read_rdf_f.readlines():
-                    line = VERSION_RE.sub("\g<1>%s\g<3>" % current_version, line)
-                    line = XPI_URL_RE.sub("\g<1>%s%s\g<3>" % (DOMAIN, xpi_url), line)
-                    line = XPI_HASH_RE.sub("\g<1>%s\g<3>" % xpi_hash, line)
-                    write_lines.append(line)
-                
-                read_rdf_f.close()
-                write_rdf_f = open(rdf_fn, 'w')
-                for line in write_lines:
-                    write_rdf_f.write(line)
-                write_rdf_f.close()
+        #if update_version != current_version:
+        if self.recipient:
+            # not generic, so generate generic xpi recursively.
+            # update.rdf will be updated from there
+            xpi_builder = XpiBuilder(self.extn_dir, self.xpi_dir, self.update_dir)
+            print xpi_builder.write_input_json()
+            (xpi_url, xpi_hash) = xpi_builder.build_xpi()
         else:
-            print
-            print "$"*80
-            print "              WARNING !!! WARNING !!! WARNING !!!"
-            print "BBBbbbuurrRRRRPPP!!! BBBBBbbbururrrRPPPPP!!! -- Update file is already at same version"
-            print "              WARNING !!! WARNING !!! WARNING !!!"
-            print "$"*80
-            print
+            # generic xpi, so update the update.rdf!
+            rdf_fn = pathify([self.update_dir, 'update.rdf'], file_extension=True)
+            read_rdf_f = open(rdf_fn, 'r')
+            write_lines = []
+            for line in read_rdf_f.readlines():
+                line = VERSION_RE.sub("\g<1>%s\g<3>" % current_version, line)
+                line = XPI_URL_RE.sub("\g<1>%s%s\g<3>" % (DOMAIN, xpi_url), line)
+                line = XPI_HASH_RE.sub("\g<1>%s\g<3>" % xpi_hash, line)
+                write_lines.append(line)
+                
+            read_rdf_f.close()
+            write_rdf_f = open(rdf_fn, 'w')
+            for line in write_lines:
+                write_rdf_f.write(line)
+            write_rdf_f.close()
             
 if __name__ == "__main__":
     xpi_builder = XpiBuilder(pathify([PROJECT_PATH, 'procrasdonate', 'ProcrasDonateFFExtn'], file_extension=True),
