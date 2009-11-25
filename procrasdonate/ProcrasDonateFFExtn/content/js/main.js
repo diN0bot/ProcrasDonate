@@ -201,23 +201,37 @@ Overlay.prototype = {
 	},
 	
 	uninstall: function(aSubject, aTopic, aData) {
+		/*
+		 * uninstall app, including:
+		 *     delete database
+		 *     delete preferences
+		 *     remove toolbar icons
+		 *     sends logs to pd server
+		 *     opens feedback tab
+		 */
+		var self = this;
 		try {
 			var item = aSubject.QueryInterface(Ci.nsIUpdateItem);
 			if (item.id != ProcrasDonate__UUID) {
 				return;
 			}
+			
 			if (aData == "item-uninstalled") {
-				// this works
-				gBrowser.selectedTab = gBrowser.addTab(constants.FEEDBACK_URL);
+				this.pddb.orthogonals.log("uninstall ProcrasDonate", "extn_sys");
+				this.pddb.page.pd_api.send_data();
 				
-				Prefs.setBoolPref("firstrun",true);
-				////// this does not work. prefs are still present in about:config
-				try {
-				// Remove all properties that were installed by our extension
-				Prefs.deleteBranch("");
-				this.pddb.prefs.deleteBranch("");
-				// @TODO delete database? archive as separate file?
-				} catch (e) {}
+				// opens feedback tab
+				gBrowser.selectedTab = gBrowser.addTab(constants.FEEDBACK_URL);
+
+				// delete all preferences
+				self.pddb.prefs.remove(self.pddb.prefs.prefix);
+
+				// delete database
+				_iterate(self.pddb.models, function(key, value, index) {
+					if (key != "_order") {
+						value.drop_table();
+					}
+				});
 				
 				// remove toolbar items
 				this.url_bar_listener.toolbar_manager.uninstall_toolbar();
@@ -469,7 +483,7 @@ Overlay.prototype = {
 	},
 	onInstall: function(version) { // execute on first run
 		var self = this;
-		logger("Overlay.onInstall::");
+		this.pddb.orthogonals.log("install ProcrasDonate version "+version, "extn_sys");
 		
 		// The example below loads a page by opening a new tab.
 		// Useful for loading a mini tutorial
@@ -510,7 +524,8 @@ Overlay.prototype = {
 		logger("Overlay.doUpgrade::");
 	},
 	onUpgrade: function(version) { // execute after each new version (upgrade)
-		logger("Overlay.onUpgrade::");
+		this.pddb.orthogonals.log("upgrade ProcrasDonate to version "+version, "extn_sys");
+		
 		// initialize new state (initialize_state initializes state if necessary.
 		for (var i = 0; i < this.page_controllers.length; i++) {
 			this.page_controllers[i].initialize_state();

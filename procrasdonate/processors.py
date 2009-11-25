@@ -166,17 +166,15 @@ class Processor(object):
     
     @classmethod
     def process_prefs(klass, pref, user):
-        if user.email != pref['email']:
-            user.email = Email.get_or_create(pref['email'])
-        if user.weekly_affirmations != pref['weekly_affirmations']:
-            user.weekly_affirmations = pref['weekly_affirmations']
-        if user.org_thank_yous != pref['org_thank_yous']:
-            user.org_thank_yous = pref['org_thank_yous']
-        if user.org_newsletters != pref['org_newsletters']:
-            user.org_newsletters = pref['org_newsletters']
-        if user.tos != pref['tos']:
-            user.tos = pref['tos']
-        user.save()
+        changed = False
+        for field in ['email', 'weekly_affirmations', 'org_thank_yous', 'org_newsletters', 'tos']:
+            if not field in pref:
+                Log.add(Log.LOG_TYPES['LOG'], 'missing_pref', "%s not in %s" % (field, pref), user)
+            elif getattr(user, field) != pref[field]:
+                setattr(user, field, pref[field])
+                changed = True
+        if changed:
+            user.save()
         
     @classmethod
     def process_userstudy(klass, userstudy, user):

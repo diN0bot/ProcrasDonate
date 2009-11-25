@@ -573,11 +573,6 @@ success!!!
         Log.Error(message, "request_error")
         return json_failure(message)
     
-    print
-    print "CANCEL MULTIUSE"
-    print json.dumps(request.POST, indent=2)
-    print
-    
     expected_parameters = ["timestamp",
                            "caller_reference",
                            "marketplace_fixed_fee",
@@ -593,10 +588,6 @@ success!!!
         return json_failure("Something went wrong extracting parameters: %s" % response['reason'])
 
     response['parameters']['timestamp'] = time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime())
-    print
-    print "TIMESTAMP gmt"
-    print  response['parameters']['timestamp']
-    print
     
     # params to send back to client
     lower_parameters = response['parameters']
@@ -604,8 +595,6 @@ success!!!
     del lower_parameters['private_key']
     
     user = User.get_or_none(private_key=private_key)
-    print "----  USER ----"
-    print user
     if not user:
         message = "unknown user: %s, request=%s" % (private_key, request)
         Log.Error(message, "unknown_user")
@@ -639,11 +628,6 @@ success!!!
     camel_parameters['MarketplaceFixedFee.CurrencyCode'] =  'USD'
     del camel_parameters['MarketplaceFixedFee']
     
-    print
-    print "CAMEL"
-    print json.dumps(camel_parameters, indent=2)
-    print
-
     camel_parameters.update({'Action': 'Pay',
                              'AWSAccessKeyId': settings.FPS['callerKey'],
                              'SignatureVersion': 1,
@@ -654,13 +638,7 @@ success!!!
     full_url = "%s?%s" % (AMAZON_FPS_API_URL,
                           urllib.urlencode(camel_parameters))
 
-    print
-    print "FULL URL"
-    print full_url
     content = _get(full_url)
-    print
-    print "CONTENT"
-    print content
     
     xmlns_re = re.compile(' xmlns="http://fps.amazonaws.com/doc/[\d-]+/"')
     version_re = re.compile(' xmlns="http://fps.amazonaws.com/doc/([\d-]+)/"')
@@ -723,9 +701,12 @@ success!!!
                              error_message,
                              error_code)
     if errors:    
+        print {'pay': pay.deep_dict(),
+               'log': "%s: %s" % (error_code, error_message)}
         return json_success({'pay': pay.deep_dict(),
                              'log': "%s: %s" % (error_code, error_message)})
     else:
+        print {'pay': pay.deep_dict()}
         return json_success({'pay': pay.deep_dict()})
 
 def ipn(request):
