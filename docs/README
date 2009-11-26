@@ -40,6 +40,7 @@ For ABT Transactions < $.05:
 
 ##### LOG KINDS
 
+prefs - user prefs (sent with every send_data)
 dataflow - sending and receiving data with pd
 extn_sys - install, upgrade, uninstall
 extn_views - every visit to a view

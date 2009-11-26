@@ -3,6 +3,8 @@ import re
 
 from procrasdonate.models import *
 
+from django.utils import simplejson as json
+
 class Processor(object):
     
     # should match time format of
@@ -166,12 +168,16 @@ class Processor(object):
     
     @classmethod
     def process_prefs(klass, pref, user):
+        Log.add(Log.LOG_TYPES["LOG"], "prefs", json.dumps(pref, indent=2), user)
         changed = False
         for field in ['email', 'weekly_affirmations', 'org_thank_yous', 'org_newsletters', 'tos']:
             if not field in pref:
                 Log.add(Log.LOG_TYPES['LOG'], 'missing_pref', "%s not in %s" % (field, pref), user)
             elif getattr(user, field) != pref[field]:
-                setattr(user, field, pref[field])
+                if field == 'email':
+                    user.field = Email.get_or_create(pref['email'])
+                else:
+                    setattr(user, field, pref[field])
                 changed = True
         if changed:
             user.save()

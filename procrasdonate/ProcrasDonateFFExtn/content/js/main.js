@@ -107,6 +107,10 @@ function Overlay() {
  	window.addEventListener("load", _bind(this, this.init), false);
 	window.addEventListener("unload", _bind(this, this.uninit), false);
 	
+	// we need this flag because we don't want to uninstall before
+	// the user has a chance to cancel.
+	this._uninstall = false;
+	
 	// #@TODO use change listener to automatically save user input ?? (in activate fns)
 };
 
@@ -169,9 +173,9 @@ Overlay.prototype = {
 		this.pddb.prefs.set("ff_focus_timer_started", false);
 		
 		// setup uninstall observer
-		this.observerService = Cc['@mozilla.org/observer-service;1'].
-			getService(Ci.nsIObserverService);
-		this.observerService.addObserver({ observe: self.uninstall }, "em-action-requested", false);
+		this.observerService = Cc['@mozilla.org/observer-service;1'].getService(Components.interfaces.nsIObserverService);
+		this.observerService.addObserver({ observe: _bind(self, self.uninstall) }, "em-action-requested", false);
+		this.observerService.addObserver({ observe: _bind(self, self.uninstall) }, "quit-application-granted", false);
 		
 		// add listeners for idle times
 		// we want to listen for 3 minutes and 20 minutes.
@@ -200,46 +204,94 @@ Overlay.prototype = {
 		//this.url_bar_listener.toolbar_manager.initialize();
 	},
 	
-	uninstall: function(aSubject, aTopic, aData) {
+	uninstall: function(subject, topic, data) {
 		/*
-		 * uninstall app, including:
-		 *     delete database
-		 *     delete preferences
-		 *     remove toolbar icons
-		 *     sends logs to pd server
-		 *     opens feedback tab
+		 * the tricky thing is that there are a few different kinds of uninstall events
+		 * https://developer.mozilla.org/en/Observer_Notifications
+		 * 	 
+		 *   TOPIC: em-action-requested
+		 *      DATA:
+		 *      	item-uninstalled
+		 *      	item-cancel-action (eg, cancel uninstall)
+		 *      	item-enabled
+		 *      	item-disabled
+		 *      
+		 *   TOPIC: quit-application-granted (observers have agreed to shutdown app<-FF)
+		 *   
+		 * when item-uninstalled or item-cancel-action is called, we set or unset a flag.
+		 * when quit-application-granted is called, we call do_uninstall if flag is set
 		 */
 		var self = this;
-		try {
-			var item = aSubject.QueryInterface(Ci.nsIUpdateItem);
-			if (item.id != ProcrasDonate__UUID) {
+		
+		if (topic == "em-action-requested") {
+			// this gets called for every uninstall, so we need to check
+			// that the request is for ProcrasDonate
+			subject.QueryInterface(Components.interfaces.nsIUpdateItem);
+			if (subject.id != ProcrasDonate__UUID) {
 				return;
 			}
 			
-			if (aData == "item-uninstalled") {
-				this.pddb.orthogonals.log("uninstall ProcrasDonate", "extn_sys");
-				this.pddb.page.pd_api.send_data();
-				
-				// opens feedback tab
-				gBrowser.selectedTab = gBrowser.addTab(constants.FEEDBACK_URL);
-
-				// delete all preferences
-				self.pddb.prefs.remove(self.pddb.prefs.prefix);
-
-				// delete database
-				_iterate(self.pddb.models, function(key, value, index) {
-					if (key != "_order") {
-						value.drop_table();
-					}
-				});
-				
-				// remove toolbar items
-				this.url_bar_listener.toolbar_manager.uninstall_toolbar();
+			if (data == "item-uninstalled") {
+				self.pddb.orthogonals.log("uninstall requested", "extn_sys");
+				self._uninstall = true;
+			} else if (data == "item-cancel-action") {
+				self.pddb.orthogonals.log("uninstall cancelled", "extn_sys");
+				self._uninstall = false;
 			}
-		} catch (e) {
+			
+		} else if (topic == "quit-application-granted") {
+			if (self._uninstall) {
+				self.do_uninstall();
+				self.unregister();
+			}
 		}
 	},
 	
+	/*
+	 * uninstall app, including:
+	 *     delete database
+	 *     delete preferences
+	 *     remove toolbar icons
+	 *     sends logs to pd server
+	 *     opens feedback tab
+	 */
+	do_uninstall: function() {
+		var self = this;
+		
+		// send logs to pd server
+		self.pddb.orthogonals.log("doing uninstall...", "extn_sys");
+		self.pddb.page.pd_api.send_data();
+		
+		// opens feedback tab
+		gBrowser.selectedTab = gBrowser.addTab(constants.PD_URL + constants.FEEDBACK_URL);
+
+		// delete all preferences
+		// note that three prefs are not deleted....probably
+		// caused by focus/blur timeout?
+		self.pddb.prefs.remove("");
+
+		// delete database (or rather, drop all the tables)
+		_iterate(self.pddb.models, function(key, value, index) {
+			logger("key = "+key+" value = "+value);
+			if (key != "_order") {
+				value.drop_table();
+			}
+		});
+		
+		// remove toolbar items
+		self.url_bar_listener.toolbar_manager.uninstall_toolbar();
+	},
+	
+	/*
+	 * unregister all the listeners
+	 */
+	unregister: function() {
+		//#@TODO
+	},
+
+	/**
+	 * called on every window close
+	 */
 	uninit: function() {
 		var self = this;
 
