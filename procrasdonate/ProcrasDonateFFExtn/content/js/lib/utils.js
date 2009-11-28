@@ -14,6 +14,7 @@ var _load_URL = function(aUrl){
 	//eval(str);
 };
 
+/* umm.... this doesn't get used anywhere i guess */
 var _include = function(filename) {
 	logger("loading " + filename + "...");
 	try {
@@ -67,7 +68,7 @@ logger = function(msg) {
 	now = new Date();
 	dump("\n---------"+now+"---------\n" + msg + "\n");
 	try {
-		logger.FAIL();
+		//logger.FAIL();
 	} catch (e) {
 		dump(e.stack);
 	}
@@ -80,7 +81,15 @@ var _print = function(msg) {
 var _pprint = function(object, msg) {
 	var str = msg || "";
 	for (var prop in object) {
-		str += prop+"="+object[prop]+", ";
+		str += prop+"="+object[prop]+"\n";
+	}
+	logger(str);
+}
+
+var _pprint_keys = function(object, msg) {
+	var str = msg || "";
+	for (var prop in object) {
+		str += prop+"\n";
 	}
 	logger(str);
 }

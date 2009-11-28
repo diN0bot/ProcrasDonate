@@ -1866,25 +1866,23 @@ _extend(PageController.prototype, {
 	process_register_charities: function(request) {
 		var self = this;
 		var ret = true;
-		request.jQuery("input").each( function() {
+		request.jQuery(".recipient_percent input").each( function() {
 			var percent = request.jQuery(this).attr("value");
 			try {
 				percent = parseFloat(percent) / 100.0;
 				if (percent < 0.0) {
-					request.jQuery("#errors").append("<p>Please enter a percent greater than 0");
-					logger(" process_recipients says please enter a percent greater than 0");
+					request.jQuery("#errors").append("<p>Please enter a percent greater than 0</p>");
 					ret = false;
 				}
 			} catch(e) {
-				request.jQuery("#errors").append("<p>Please enter a number, such as 22</p>");
-				logger(" process_recipients says please enter a number");
+				request.jQuery("#errors").append("<p>Please enter a number, such as 5.24 for 5.24%</p>");
 				ret = false;
 			}
 			var recipient_id = request.jQuery(this).parent().siblings(".recipient_id").text();
-			logger("process_recipients:: rid="+recipient_id+" pct="+percent);
-			self.pddb.RecipientPercent.set({ percent: percent }, { recipient_id: recipient_id });
+			if (ret && percent && recipient_id) {
+				self.pddb.RecipientPercent.set({ percent: percent }, { recipient_id: recipient_id });
+			}
 		});
-		logger(" process_recipients says okiedokie");
 		return ret;
 	},
 	
@@ -1959,14 +1957,52 @@ _extend(PageController.prototype, {
 		);
 		request.jQuery("#content").html( middle );
 		
+		this.activate_register_support(request);
+		
 		this.activate_substate_menu_items(request, 'support',
 			constants.REGISTER_STATE_ENUM, constants.REGISTER_STATE_INSERTS, constants.REGISTER_STATE_PROCESSORS);
+	},
+	
+	activate_register_support: function(request) {
+		/*logger("JQUERY VIEW NORMAL");
+		var keys = [];
+		for (var k in request.jQuery) { keys.push(k); }
+		_pprint(keys);
+		
+		var jq = request.jQuery;
+		
+		logger("JQUERY VIEW VAR");
+		var keys = [];
+		for (var k in jq) { keys.push(k); }
+		_pprint(keys);
+		
+		jQuery_UI(request);
+		
+		var jq = _bind(request, request.jQuery);
+		
+		logger("JQUERY VIEW BIND");
+		var keys = [];
+		for (var k in jq) { keys.push(k); }
+		_pprint(keys);*/
+		
+		var jq = request.add_jQuery_ui();
+		//var jq = requestjQuery;
+		//jq("#monthly_fee").effect("bounce");
+		//jq("#monthly_fee_slider").slider({ handle: ".ui-slider-handle" });
+		//jq("#monthly_fee_slider").slider();
+		//jq("#frame_for_slider").append("<div id=\"monthly_fee_slider\"></div>");
+		//jq("#monthly_fee_slider").slider();
+		
+		//jQuery_UI(jq);
+		
+		//var handle = $("<div class=\"ui-slider-handle\"></div>")
+		//request.jQuery("#monthly_fee_slider").append(handle);
+		//jq("#monthly_fee_slider").slider({ handle: handle });
 	},
 	
 	process_register_support: function(request) {
 		var self = this;
 		var support_pct = request.jQuery("input[name='support_pct']").attr("value");
-		logger("process spct="+support_pct);
 		var monthly_fee = request.jQuery("input[name='monthly_fee']").attr("value");
 
 		request.jQuery(".error").text("");

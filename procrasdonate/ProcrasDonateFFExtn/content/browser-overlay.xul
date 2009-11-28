@@ -14,10 +14,9 @@
     <script type='application/x-javascript' 
             src='chrome://ProcrasDonate/content/js/ext/jquery-1.2.6.js'></script>
 
-<!--
     <script type='application/x-javascript' 
-            src='chrome://ProcrasDonate/content/js/ext/jquery-ui-1.6.custom.min.js'></script>
--->
+            src='chrome://ProcrasDonate/content/js/ext/jquery.ui.all.1.6.js'></script>
+
     <script type='application/x-javascript' 
             src='chrome://ProcrasDonate/content/js/ext/json2.js'></script>
 

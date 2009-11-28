@@ -31,7 +31,22 @@ _extend(PageRequest.prototype, {
 			return "other";
 	},
 	
+	add_jQuery_ui: function() {
+		var self = this;
+		// the jQuery referenced inside here refers to the object loaded by the jQuery library
+		var jq = function(selector, context) {
+			return jQuery.fn.init(selector, context || self.get_document());
+		};
+		jQuery.extend(jq, jQuery);
+		jQuery_UI(jq)
+		//jQuery_UI(function() { return self.jQuery.apply(self, Array.prototype.slice.apply(arguments, [0])) });
+		jq("#frame_for_slider").append("<div id=\"monthly_fee_slider\"></div>");
+		jq("#monthly_fee_slider").slider();
+		return jq
+	},
+	
 	jQuery: (function() {
+		// the jQuery referenced inside here refers to the object loaded by the jQuery library
 		var jq = function(selector, context) {
 			//logger("request.jQuery(): " + selector + this.event);
 			return jQuery.fn.init(selector, context || this.get_document());
