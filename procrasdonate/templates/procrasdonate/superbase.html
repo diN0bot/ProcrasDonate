@@ -30,11 +30,12 @@
 
 	<body>
 		<div id="top_bar">
-			<img id="laptop_logo" alt="" src="{{ MEDIA_URL }}img/LaptopIconElated.png">
-			<img id="pd_line_cartoon" alt="" src="{{ MEDIA_URL }}img/PDLineCartoonHeaderSmall.png">
-			<img id="download_top_button" alt="" src="{{ MEDIA_URL }}img/DownloadTopButton.png">
+			<div id="top_bar_content">
+				<img id="laptop_logo" alt="" src="{{ MEDIA_URL }}img/LaptopIconElated.png"></img>
+				<img id="pd_line_cartoon" alt="" src="{{ MEDIA_URL }}img/PDLineCartoonHeaderSmall.png"></img>
+				<img id="download_top_button" alt="" src="{{ MEDIA_URL }}img/DownloadTopButton.png"></img>
+			</div>
 		</div>
-		
 		<div id="home_OrganizerMenu" class="menu">
 			<div {% ifequal selected "dashboard" %}class="here_we_are"{% endifequal %}>
 			{% if request.user.is_authenticated %}

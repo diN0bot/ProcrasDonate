@@ -2,15 +2,15 @@
 
 {% block supermiddle %}
 <div id="middle_focus" class="center_column">
-	<h2 id="slogan_line1" class="slogan">Your charitable incentive to procrastinate less</h2>
-	<h2 id="slogan_line2" class="slogan">Now availabe for Firefox</h2>
+	<h2 id="slogan_line1" class="slogan">Your charitable incentive to procrastinate less.
+	<br> Now available for Firefox...</h2>
 
 	<table id="video_and_message">
 	<tbody>
 		<tr>
 			<td>
 			<div id="big_video" class="video_block">
-				<object width="400" height="300">
+				<object width="444" height="333">
 					<param name="movie" value="{{ big_video }}" />
 					<param name="allowFullScreen" value="true" />
 					<param name="allowscriptaccess" value="always" />
@@ -19,18 +19,20 @@
 						type="application/x-shockwave-flash"
 						allowscriptaccess="always"
 						allowfullscreen="true"
-						width="400"
+						width="444"
 						height="300" />
 				</object>
 			</div>
 			</td>
 			<td>
-				<div id="focus_slogans">
-					<div id="focus_slogan_line1">Waste an hour?</div>
-					<div id="focus_slogan_line2">Make a Donation</div>
-					<div id="focus_slogan_line3">Make time for your life</div>
-					<div id="focus_slogan_line4">FEEL GOOD</div>
-					<img id="download" alt="" src="{{ MEDIA_URL }}img/Download.png">
+				<div class="focus_slogans">
+					<div>
+						<div id="focus_slogan_line1"><h1>Waste an hour?</h1></div>
+						<div id="focus_slogan_line2"><h1>Make a Donation.</h1></div>
+						<img id="download" alt="" src="{{ MEDIA_URL }}img/Download.png">
+						<div id="focus_slogan_line4"><h1>Get More Done.</h1></div>
+						
+					</div>	
 				</div>
 			</td>
 		</tr>

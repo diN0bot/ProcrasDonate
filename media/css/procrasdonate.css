@@ -55,13 +55,14 @@ img { -ms-interpolation-mode:bicubic; }
 .message, .messages, #message, #messagees { }
 
 /******** GENERAL LAYOUT *******************************************/
-#top_bar { background: #E4E4E4; padding-top: 1em; }
-#laptop_logo { width: 9em; margin-bottom: -3em; }
-#pd_line_cartoon { width: 34em; margin: 0em 2.5em -.5em 0em; }
-#download_top_button { width: 10em; }
+#top_bar { background: #E4E4E4; padding-top: .6em; }
+#top_bar_content { width: 66em; margin: auto; }
+#laptop_logo { width: 9em; margin-bottom: -3.2em; float: left; }
+#pd_line_cartoon { width: 34em; margin: 0 11em -0.473em 0; }
+#download_top_button { width: 10em; text-align: right; }
 
 .center_column {
-	width: 58em;
+	width: 66em;
 	margin: auto;
 }
 
@@ -129,10 +130,6 @@ img { -ms-interpolation-mode:bicubic; }
 /******** VIDEOS *******************************************/
 
 .video_block {
-	-moz-border-radius: .4em; 
-	background: #908248;
-	border: 0.34em ridge #E5C130;
-	margin-bottom: 2.5em;
 }
 .video_block img { width: 9.5em; background: black;  }
 
@@ -213,35 +210,33 @@ img { -ms-interpolation-mode:bicubic; }
 }
 
 /******** HOME PAGE *******************************************/
-#video_and_message { margin-top: 2em; }
-#video_and_message td { vertical-align: top; padding: 0em; margin: 0em; }
+#video_and_message { margin-top: 2em; text-align: left; width: 100%; }
+#video_and_message td { vertical-align: top; margin: 0em; }
 .slogan {
-	font-size: 1em;
+	font-size: 1.2em;
 	color: #AAAAAA;
 	font-variant: small-caps;
-	margin: 0em;
+	margin-bottom: -1em;
+	margin-left: 9em;
 	padding: 0em;
 	border: none;
-	text-align: center;
+	text-align: left;
 	letter-spacing: .15em;
 }
 #slogan_line1 { margin-top: .8em; }
 #slogan_line2 { margin-top: .1em; }
 
-#big_video { margin: 0em; }
+#big_video { }
 
-#focus_slogans {
+#focus_slogan_line2 {margin-top:-1.4em; }
+
+.focus_slogans {
 	text-align: center;
-	margin-left: 3em;
 	font-weight: bold;
 	line-height: 3em;
-	letter-spacing: -.2em;
+	letter-spacing: -0.03em;
 }
-#focus_slogans div { margin-bottom: .8em; }
-#focus_slogan_line1 { font-size: 2.5em; }
-#focus_slogan_line2 { font-size: 2.5em; }
-#focus_slogan_line3 { font-size: 1.8em; }
-#focus_slogan_line4 { font-size: 2.5em; }
+.focus_slogans div { margin-bottom: 1.4em; }
 #download { width: 20em; }
 
 #community {
@@ -363,6 +358,17 @@ img { -ms-interpolation-mode:bicubic; }
 /* goes with register charity page stuff that is commented out
 .new_recipient { color: #797979; }
 #new_recipient_website { margin-right: 1em; }*/
+
+/*** h1 used on home page for selling points. ***/
+
+h1 {
+  /*clear: both;*/
+  font-family: Helvetica,Jamrul,sans-serif;
+  font-size: 3em;
+  color: black;
+  font-weight: bold;
+  letter-spacing: .03em;
+}
 
 /*** h2 used as section headers for FAQ, etc. ***/
 
