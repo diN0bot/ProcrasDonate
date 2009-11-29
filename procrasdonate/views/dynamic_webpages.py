@@ -20,6 +20,12 @@ from django.contrib.auth.backends import ModelBackend
 
 from django.db.models import Avg
 
+#### HOME ###################################
+
+def home(request):
+    big_video = "%sswf/LaptopIntro.swf" % settings.MEDIA_URL
+    return render_response(request, 'procrasdonate/home.html', locals())
+
 #### COMMUNITY ###################################
 
 def community(request):

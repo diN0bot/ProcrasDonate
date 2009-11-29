@@ -1,0 +1,130 @@
+{% extends 'procrasdonate/superbase.html' %}
+
+{% block supermiddle %}
+<div id="middle_focus" class="center_column">
+	<h2 id="slogan_line1" class="slogan">Your charitable incentive to procrastinate less</h2>
+	<h2 id="slogan_line2" class="slogan">Now availabe for Firefox</h2>
+
+	<table id="video_and_message">
+	<tbody>
+		<tr>
+			<td>
+			<div id="big_video" class="video_block">
+				<object width="400" height="300">
+					<param name="movie" value="{{ big_video }}" />
+					<param name="allowFullScreen" value="true" />
+					<param name="allowscriptaccess" value="always" />
+					<embed
+						src="{{ big_video }}"
+						type="application/x-shockwave-flash"
+						allowscriptaccess="always"
+						allowfullscreen="true"
+						width="400"
+						height="300" />
+				</object>
+			</div>
+			</td>
+			<td>
+				<div id="focus_slogans">
+					<div id="focus_slogan_line1">Waste an hour?</div>
+					<div id="focus_slogan_line2">Make a Donation</div>
+					<div id="focus_slogan_line3">Make time for your life</div>
+					<div id="focus_slogan_line4">FEEL GOOD</div>
+					<img id="download" alt="" src="{{ MEDIA_URL }}img/Download.png">
+				</div>
+			</td>
+		</tr>
+	</tbody>
+	</table>
+
+	<table id="community">
+	<tbody>
+	<tr>
+		<td id="community_left">${{ total_amount|default:"0" }} raised for {{ total_recipients|default:"0" }} charities</td> 
+		<td id="community_center">{{ total_hours|default:"0" }} hours saved</td>
+		<td id="community_right">{{ total_users|default:"0" }} goals met</td>
+	</tr>
+	</tbody>
+	</table>
+</div>
+	
+<div id="charities_bar">
+	<div class="center_column">
+		<img id="charities_bar_info" src="{{ MEDIA_URL }}img/DownloadTopButton.png">
+		
+		<div id="charities">
+			<img id="charity_A" class="charity_logo" src="{{ MEDIA_URL }}img/ProcrasDonateLogoSmall.png">
+			<img id="charity_B" class="charity_logo" src="{{ MEDIA_URL }}img/ProcrasDonateLogoSmall.png">
+			<img id="charity_C" class="charity_logo" src="{{ MEDIA_URL }}img/ProcrasDonateLogoSmall.png">
+			<img id="charity_D" class="charity_logo" src="{{ MEDIA_URL }}img/ProcrasDonateLogoSmall.png">
+			<img id="charity_E" class="charity_logo" src="{{ MEDIA_URL }}img/ProcrasDonateLogoSmall.png">
+			<img id="charity_F" class="charity_logo" src="{{ MEDIA_URL }}img/ProcrasDonateLogoSmall.png">
+		</div>
+	</div>
+</div>
+	
+<div id="more_information" class="center_column">
+	
+	<div id="extra_home_navigation">
+		<div id="home_menu">
+			<div {% ifequal selected "faq" %}class="here_we_are"{% endifequal %} id='faq_menu_item'><a href="{% url faq %}">FAQ</a></div>
+			<div id='about_us_menu_item'><a href="{% url about_us %}">About Us</a></div>
+			<div {% ifequal selected "community" %}class="here_we_are"{% endifequal %} id='community_menu_item'><a href="{% url community %}">Charities</a></div>
+		</div>
+		<img id="my_progress_screenshot" src="{{ MEDIA_URL }}img/MyProgressPreview_cropped.png" />
+	</div>
+	
+	<div id="HOME">
+
+		<h2><a name="why"></a>Feel Good About Your Time Online{% comment %} &nbsp;
+			<span class="superheader">
+				{% include 'procrasdonate/straight_pages/snippets/start_now.html' %}
+			</span>{% endcomment %}
+		</h2>
+		<img src="{{ MEDIA_URL }}img/Calendar.png" class="small-image">		
+		<img src="{{ MEDIA_URL }}img/ScreenshotUnsorted.png" class="screenshot-long">		
+		<p>
+		<p><b>Sort</b> websites into 
+			<img src="{{ MEDIA_URL }}img/ToolbarImages/ProcrasDonateIcon.png" class="text-image">		
+			<i>ProcrasDonation</i> or
+			<img src="{{ MEDIA_URL }}img/ToolbarImages/TimeWellSpentIcon.png" class="text-image">		
+			<i>TimeWellSpent</i>.
+		</p>
+		<p> 
+		It's as <b>easy</b> as clicking the 
+			<img src="{{ MEDIA_URL }}img/ToolbarImages/UnsortedIcon.png" class="text-image">		
+			sorting button that will appear at the top of your web browser
+		</p>
+	
+		<h2><a name="goals"></a>Keep Track of Weekly Goals</h2>
+		<img src="{{ MEDIA_URL }}img/HourGlass.png" class="small-image ">	
+				<img src="{{ MEDIA_URL }}img/ScreenshotProgressBar.png" class="screenshot-long">		
+		<p>Set <b>goals</b> and watch your
+			<img src="{{ MEDIA_URL }}img/ToolbarImages/IconBar40.png" class="lower-image text-image">		
+			<i>procrastination meter</i> fill up throughout the week.  
+		</p>
+		<p>	When you see <b>red</b> bars you've wasted more time than you wanted to.
+		</p>
+		<h2><a name="what"></a>ProcrasDonate: <span class="subheader">Your charitable incentive</span></h2>
+		<img src="{{ MEDIA_URL }}img/ProcrasDonateLogoNoText.png" class="small-image">		
+		<img src="{{ MEDIA_URL }}img/ScreenshotPD.png" class="screenshot-long">		
+		
+		<p>
+		Need an incentive?  
+		What if you could donate <b>real</b> money to a good cause every time you spent an hour noodling around online?
+		</p>
+		<p>	
+		ProcrasDonate helps you use your <b>existing</b> Amazon account to create whatever charitable incentive is right for you.  
+		</p>
+	
+		<h2><a name="quality"></a>Time Well Spent: <span class="subheader">Support Quality Content</span></h2>
+		<img src="{{ MEDIA_URL }}img/ThumbsUp.png" class="small-image">		
+		<img src="{{ MEDIA_URL }}img/ScreenshotTWS.png" class="screenshot-long">		
+		<p>You can also donate <b>directly</b> to websites you've marked as <i>TimeWellSpent</i> whenever you are using them.
+		</p>
+		<p>	Together we can support websites that are keeping quality internet content <b>freely</b> available.
+		</p>	
+		
+	</div>
+</div>
+{% endblock %}

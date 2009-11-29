@@ -6,6 +6,9 @@ type_re = '[\w\d_-]+'
 code_re = '[\w\d]+'
 
 urlpatterns = patterns('',
+    # home page
+    url(r'^$', dynamic_webpages.home, name='home'),
+
     # overall portal
     url(r'^community/$', dynamic_webpages.community, name='community'),
     # sub type (category or tag) rankings

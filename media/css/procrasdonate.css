@@ -54,12 +54,19 @@ img { -ms-interpolation-mode:bicubic; }
 .success, #success { color: green; text-align: center; }
 .message, .messages, #message, #messagees { }
 
-/******** LAYOUT *******************************************/
-#wrapper {
-	width: 85em;
+/******** GENERAL LAYOUT *******************************************/
+#top_bar { background: #E4E4E4; padding-top: 1em; }
+#laptop_logo { width: 9em; margin-bottom: -3em; }
+#pd_line_cartoon { width: 34em; margin: 0em 2.5em -.5em 0em; }
+#download_top_button { width: 10em; }
+
+.center_column {
+	width: 58em;
 	margin: auto;
-	margin-bottom: 2em;
-	margin-top: 1em;
+}
+
+/******** BASE LAYOUT *******************************************/
+#wrapper {
 }
 
 #StartButtonDiv { text-align: center; }
@@ -69,8 +76,7 @@ img { -ms-interpolation-mode:bicubic; }
 #LayoutTable tr td { vertical-align: top; }
 
 /******** LEFT COLUMN *******************************************/
-#left_column { width: 10em; }
-#left_logo { width: 8.4em; margin-bottom: 2em; }
+#left_column { padding-top: 5em; }
 #left_column .menu {
 	-moz-border-radius: .4em; 
 	font-size: 1.2em;
@@ -117,21 +123,18 @@ img { -ms-interpolation-mode:bicubic; }
 /******** CONTENT *******************************************/
 #middle {
 	width: 50em;
-	padding: 0em 3em;
+	padding: 0em 4em;
 }
 
-/******** RIGHT COLUMN *******************************************/
-#right_column { /*text-align: left; *//*width: 9.5em;*/ }
-#right_logo { width: 9.5em; margin-bottom: 1.8em; }
-
-.video_block { margin-bottom: 2.5em;}
-.video_block img { width: 9.5em; background: black;  }
+/******** VIDEOS *******************************************/
 
 .video_block {
 	-moz-border-radius: .4em; 
 	background: #908248;
 	border: 0.34em ridge #E5C130;
+	margin-bottom: 2.5em;
 }
+.video_block img { width: 9.5em; background: black;  }
 
 .video_label {
 	text-decoration: none;
@@ -185,14 +188,7 @@ img { -ms-interpolation-mode:bicubic; }
 	margin-top: 9em;
 }
 
-/******** ABOVE LAYOUTTABLE STUFF (header, messages) *******************************************/
-.above_layout_table {
-	padding: .5em;
-	border: 1px solid #AAAAAA;
-	margin: .5em;
-	-moz-border-radius: .5em;
-	margin-bottom: 0em;
-}
+/******** MESSAGES *******************************************/
 #brwoser_message p, #brwoser_message ol { margin: 0em; }
 
 #user_messages {
@@ -215,7 +211,109 @@ img { -ms-interpolation-mode:bicubic; }
 #user_messages .message {
 	text-align: center;
 }
-/******** BELOW LAYOUTTABLE STUFF (nothing) *******************************************/
+
+/******** HOME PAGE *******************************************/
+#video_and_message { margin-top: 2em; }
+#video_and_message td { vertical-align: top; padding: 0em; margin: 0em; }
+.slogan {
+	font-size: 1em;
+	color: #AAAAAA;
+	font-variant: small-caps;
+	margin: 0em;
+	padding: 0em;
+	border: none;
+	text-align: center;
+	letter-spacing: .15em;
+}
+#slogan_line1 { margin-top: .8em; }
+#slogan_line2 { margin-top: .1em; }
+
+#big_video { margin: 0em; }
+
+#focus_slogans {
+	text-align: center;
+	margin-left: 3em;
+	font-weight: bold;
+	line-height: 3em;
+	letter-spacing: -.2em;
+}
+#focus_slogans div { margin-bottom: .8em; }
+#focus_slogan_line1 { font-size: 2.5em; }
+#focus_slogan_line2 { font-size: 2.5em; }
+#focus_slogan_line3 { font-size: 1.8em; }
+#focus_slogan_line4 { font-size: 2.5em; }
+#download { width: 20em; }
+
+#community {
+	width: 100%;
+	font-size: 1.4em;
+	font-weight: bold;
+	color: #AAAAAA;
+	margin: 0em;
+	padding: 0em;
+}
+#community td { vertical-align: top; }
+#community_left { text-align: left; }
+#community_center { text-align: center; }
+#community_right { text-align: right; }
+
+#charities_bar {
+	background: #AAAAAA;
+	padding: 1em 0em .8em 0em;
+	margin-top: 1em;
+}
+#charities_bar_info {
+	width: 18em;
+	height: 4em;
+}
+#charities { display: inline; }
+#charities .charity_logo {
+	border: 2px solid white;
+	background: white;
+	margin: 0em .3em;
+	width: 5em;
+	height: 4em;
+}
+
+#home_OrganizerMenu { float: right; }
+
+#extra_home_navigation {
+	float: right;
+	margin-top: 1.5em;
+	margin-left: 1em;
+}
+#home_menu { padding: .4em; }
+#home_menu div {
+	display: inline;
+	font-weight: bold;
+	padding: 0em 1em;
+}
+#my_progress_screenshot {
+	width: 20em;
+	margin: 0em .5em .5em .5em;
+	background: #E4E4E4;
+	border: 1px solid #E4E4E4;
+}
+
+#HOME { margin-left: 5em; }
+#HOME h2:first-child { margin-top: 0em; }
+#TheBanner {}
+#logo_banner { width: 38em; }
+#firefox_addon_one_liner { border:medium none; }
+#firefox_addon_one_liner span {
+  color:#999999;
+  font-size:0.7em;
+  font-variant:normal;
+  letter-spacing:normal;
+}
+.superheader { color: #669933; font-size: .8em; vertical-align: top; }
+.subheader { color: #669933; font-size: .8em; }
+
+.small-image { width: 3.3em; float: left; margin-left: -4.1em; margin-top: -2.6em; }
+.screenshot-long { width: 15em; float: right; margin-right: 1em; margin-left: 1em; margin-top: .5em;
+	border: 0.27em ridge #156451; -moz-border-radius: .4em; padding: .6em .4em;
+}
+
 
 /******** EXTENSION CSS (#@TODO move to extension)*******************************************/
 
@@ -242,26 +340,6 @@ img { -ms-interpolation-mode:bicubic; }
 
 .Right {text-align: right; }	
 .Left {text-align: left; }
-
-/********* HOME PAGE ***********/
-
-#HOME { margin-left: 5em; }
-#TheBanner {}
-#logo_banner { width: 38em; }
-#firefox_addon_one_liner { border:medium none; }
-#firefox_addon_one_liner span {
-  color:#999999;
-  font-size:0.7em;
-  font-variant:normal;
-  letter-spacing:normal;
-}
-.superheader { color: #669933; font-size: .8em; vertical-align: top; }
-.subheader { color: #669933; font-size: .8em; }
-
-.small-image { width: 3.3em; float: left; margin-left: -4.1em; margin-top: -2.6em; }
-.screenshot-long { width: 15em; float: right; margin-right: 1em; margin-left: 1em; margin-top: .5em;
-	border: 0.27em ridge #156451; -moz-border-radius: .4em; padding: .6em .4em;
-}
 
 /********* FAQ PAGE ***********/
 
