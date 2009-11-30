@@ -73,7 +73,20 @@
 			<div id='about_us_menu_item'><a href="{% url about_us %}">About Us</a></div>
 			<div {% ifequal selected "community" %}class="here_we_are"{% endifequal %} id='community_menu_item'><a href="{% url community %}">Charities</a></div>
 		</div>
+		
 		<img id="my_progress_screenshot" src="{{ MEDIA_URL }}img/MyProgressPreview_cropped.png" />
+		
+		<div id="blog_posts">
+			<h3><a href="{{ blog_posts.feed.link }}">{# {{ blog_posts.feed.title }} #}Mindful Moments</a></h3>
+			{% for post in blog_posts.entries|slice:":3" %}
+			<div class="blog_post">
+				<h4><a href="{{ post.link }}">{{ post.title }}</a></h4>
+				<p>{{ post.summary|safe }}
+					<span><a href="{{ post.comments }}">comments</a></span>
+				</p>
+			</div>
+			{% endfor %}
+		</div>
 	</div>
 	
 	<div id="HOME">

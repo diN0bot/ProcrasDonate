@@ -5,7 +5,7 @@ from lib.forms import get_form, EDIT_TYPE
 from procrasdonate.models import *
 
 import urllib, urllib2
-from django.utils import simplejson
+from django.utils import simplejson as json
 
 from django.core.urlresolvers import reverse
 
@@ -19,11 +19,13 @@ from django.contrib.auth.forms import SetPasswordForm
 from django.contrib.auth.backends import ModelBackend
 
 from django.db.models import Avg
+from ext import feedparser
 
 #### HOME ###################################
 
 def home(request):
     big_video = "%sswf/LaptopIntro.swf" % settings.MEDIA_URL
+    blog_posts = feedparser.parse("http://procrastinateless.wordpress.com/feed/")
     return render_response(request, 'procrasdonate/home.html', locals())
 
 #### COMMUNITY ###################################
