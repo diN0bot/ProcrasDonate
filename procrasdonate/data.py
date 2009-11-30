@@ -344,6 +344,10 @@ class Recipient(models.Model):
             return
 
         if instance.logo.width <= Recipient.SCALED_MAX_WIDTH and instance.logo.height <= Recipient.SCALED_MAX_HEIGHT:
+            im = PIL.open(instance.logo.path)
+            th = im.copy()
+            th.thumbnail((Recipient.THUMBNAIL_MAX_WIDTH, Recipient.THUMBNAIL_MAX_HEIGHT), PIL.ANTIALIAS)
+            th.save(instance.thumbnail_path(), th.format)
             return
         
         im = PIL.open(instance.logo.path)

@@ -1,0 +1,19 @@
+{% extends 'procrasdonate/base.html' %}
+
+{% block content %}
+	<h2>Downloading ProcrasDonate...</h2>
+	<p>You should see a yellow bar at the top of the page. Click allow.</p>
+	<p>If nothing happens, click the download button below.</p>
+	<img
+		id="download"
+		alt=""
+		src="{{ MEDIA_URL }}img/Download.png"
+		id="download_top_button"
+		class="link"
+		onclick="return install('install_anchor');" />
+	<script type="text/javascript">
+		$(function() {
+			$("#download").click();
+		});
+	</script>
+{% endblock %}

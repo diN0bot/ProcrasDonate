@@ -260,17 +260,17 @@ img { -ms-interpolation-mode:bicubic; }
 	margin-top: 1em;
 }
 #charities_bar_info {
-	width: 18em;
-	height: 4em;
+	color: white;
+	display: inline;
+	font-size: 2em;
 }
 #charities { display: inline; }
 #charities .charity_logo {
 	border: 2px solid white;
 	background: white;
 	margin: 0em .3em;
-	width: 5em;
-	height: 4em;
 }
+#charities div.charity_logo { width: 50px; display: inline; }
 
 #more_information { clear: both; }
 

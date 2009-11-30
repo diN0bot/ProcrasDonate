@@ -26,6 +26,8 @@ from ext import feedparser
 def home(request):
     big_video = "%sswf/LaptopIntro.swf" % settings.MEDIA_URL
     blog_posts = feedparser.parse("http://procrastinateless.wordpress.com/feed/")
+    pd = Recipient.get_or_none(slug="PD")
+    bilumi = Recipient.get_or_none(slug="bilumi")
     return render_response(request, 'procrasdonate/home.html', locals())
 
 #### COMMUNITY ###################################

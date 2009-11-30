@@ -31,9 +31,14 @@
 	<body>
 		<div id="top_bar">
 			<div id="top_bar_content">
-				<img id="laptop_logo" alt="" src="{{ MEDIA_URL }}img/LaptopIconElated.png"></img>
-				<img id="pd_line_cartoon" alt="" src="{{ MEDIA_URL }}img/PDLineCartoonHeaderSmall.png"></img>
-				<img id="download_top_button" alt="" src="{{ MEDIA_URL }}img/DownloadTopButton.png"></img>
+				<a href="{% url home %}"><img id="laptop_logo" alt="" src="{{ MEDIA_URL }}img/LaptopIconElated.png" /></a>
+				<img id="pd_line_cartoon" alt="" src="{{ MEDIA_URL }}img/PDLineCartoonHeaderSmall.png" />
+				<img
+					id="download_top_button"
+					alt=""
+					class="link"
+					src="{{ MEDIA_URL }}img/DownloadTopButton.png"
+					onclick="return install('install_anchor');" />
 			</div>
 		</div>
 		<div id="home_OrganizerMenu" class="menu">

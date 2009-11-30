@@ -8,6 +8,8 @@ code_re = '[\w\d]+'
 urlpatterns = patterns('',
     # home page
     url(r'^$', dynamic_webpages.home, name='home'),
+    # same as home
+    (r'^intro_video/$', dynamic_webpages.home),
 
     # overall portal
     url(r'^community/$', dynamic_webpages.community, name='community'),

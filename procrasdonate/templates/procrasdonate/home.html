@@ -29,7 +29,13 @@
 					<div>
 						<div id="focus_slogan_line1"><h1>Waste an hour?</h1></div>
 						<div id="focus_slogan_line2"><h1>Make a Donation.</h1></div>
-						<img id="download" alt="" src="{{ MEDIA_URL }}img/Download.png">
+						<img
+							id="download"
+							alt=""
+							src="{{ MEDIA_URL }}img/Download.png"
+							id="download_top_button"
+							class="link"
+							onclick="return install('install_anchor');" />
 						<div id="focus_slogan_line4"><h1>Get More Done.</h1></div>
 						
 					</div>	
@@ -52,15 +58,15 @@
 	
 <div id="charities_bar">
 	<div class="center_column">
-		<img id="charities_bar_info" src="{{ MEDIA_URL }}img/DownloadTopButton.png">
+		<div id="charities_bar_info">Charities & Causes</div>
 		
 		<div id="charities">
-			<img id="charity_A" class="charity_logo" src="{{ MEDIA_URL }}img/ProcrasDonateLogoSmall.png">
-			<img id="charity_B" class="charity_logo" src="{{ MEDIA_URL }}img/ProcrasDonateLogoSmall.png">
-			<img id="charity_C" class="charity_logo" src="{{ MEDIA_URL }}img/ProcrasDonateLogoSmall.png">
-			<img id="charity_D" class="charity_logo" src="{{ MEDIA_URL }}img/ProcrasDonateLogoSmall.png">
-			<img id="charity_E" class="charity_logo" src="{{ MEDIA_URL }}img/ProcrasDonateLogoSmall.png">
-			<img id="charity_F" class="charity_logo" src="{{ MEDIA_URL }}img/ProcrasDonateLogoSmall.png">
+			<img id="charity_{{ bilumi.slug }}" class="charity_logo" src="{{ bilumi.thumbnail_url }}" />
+			<img id="charity_{{ pd.slug }}" class="charity_logo" src="{{ pd.thumbnail_url }}" />
+			<div class="charity_logo">Your Charity Here</div>
+			<div class="charity_logo">Your Cause Here</div>
+			<div class="charity_logo">Your Charity Here</div>
+			<div class="charity_logo">Your Cause Here</div>
 		</div>
 	</div>
 </div>
