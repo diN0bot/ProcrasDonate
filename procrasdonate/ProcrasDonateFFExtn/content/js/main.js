@@ -335,7 +335,6 @@ Overlay.prototype = {
 			if (response)
 				return response;
 		}
-		//logger("done");
 		return null;
 	},
 	
@@ -502,30 +501,24 @@ Overlay.prototype = {
 	
 	install_generated_input: function(set_preselected_charities) {
 		var self = this;
-		_iterate(generated_input()[0], function(key, value, index) {
-			if (key == "private_key") {
-				if (!self.pddb.prefs.exists("private_key")) {
-					self.pddb.prefs.set("private_key", value);
-				}
-			
-			} else if (key == "preselected_charities") {
-				if (set_preselected_charities && !self.pddb.prefs.exists("set_preselected_charities")) {
-					self.pddb.prefs.set("set_preselected_charities", true);
-					_iterate(value, function(k, recip_pct, idx) {
-						self.pddb.RecipientPercent.process_object(recip_pct);
-					});
-				}
-			
-			} else if (key == "constants_PD_URL") {
-				constants.PD_URL = value;
-			
-			} else if (key == "constants_PD_API_URL") {
-				constants.PD_API_URL = value;
-				
-			} else {
-				self.pddb.orthogonals.log("generated input: unrecognized key: "+key+" value="+value);
+		var data = generated_input()[0];
+		
+		constants.PD_URL = data.constants_PD_URL;
+		constants.PD_API_URL = data.constants_PD_API_URL;
+		
+		if (!data.is_update) {
+			if (!self.pddb.prefs.exists("private_key")) {
+				// just in case
+				self.pddb.prefs.set("private_key", data.private_key);
 			}
-		});
+			
+			if (set_preselected_charities && !self.pddb.prefs.exists("set_preselected_charities")) {
+				self.pddb.prefs.set("set_preselected_charities", true);
+				_iterate(value, function(k, recip_pct, idx) {
+					self.pddb.RecipientPercent.process_object(recip_pct);
+				});
+			}
+		}
 	},
 	
 	doInstall: function() { // 

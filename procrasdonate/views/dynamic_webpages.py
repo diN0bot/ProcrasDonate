@@ -84,7 +84,7 @@ def login_view(request):
 
 def logout_view(request):
     logout(request)
-    return HttpResponseRedirect(reverse('community'))
+    return HttpResponseRedirect(reverse('home'))
 
 def confirm(request, username, confirmation_code):
     logout(request)

@@ -55,11 +55,10 @@ img { -ms-interpolation-mode:bicubic; }
 .message, .messages, #message, #messagees { }
 
 /******** GENERAL LAYOUT *******************************************/
-#top_bar { background: #E4E4E4; padding-top: .6em; }
-#top_bar_content { width: 66em; margin: auto; }
-#laptop_logo { width: 9em; margin-bottom: -3.2em; float: left; }
-#pd_line_cartoon { width: 34em; margin: 0 11em -0.473em 0; }
-#download_top_button { width: 10em; text-align: right; }
+#top_bar { background: #E4E4E4; padding-top: .6em; text-align: left; }
+#laptop_logo { width: 9em; margin-bottom: -3.2em; }
+#pd_line_cartoon { width: 34em; margin: 0 12.2em -0.473em 0; }
+#download_top_button { width: 10em; }
 
 .center_column {
 	width: 66em;
@@ -75,34 +74,35 @@ img { -ms-interpolation-mode:bicubic; }
 #StartButtonDiv { text-align: center; }
 #StartButton { width: 13em; margin-bottom: 0em; }
 
-#LayoutTable { margin: 0em; padding: 0em; }
+#LayoutTable { margin: 0em; padding: 0em; width: 100%; }
 #LayoutTable tr td { vertical-align: top; }
 
 /******** LEFT COLUMN *******************************************/
-#left_column { padding-top: 5em; }
-#left_column .menu {
+#left_column { padding-top: 5em; min-width: 10em; max-width: 10em; }
+
+.menu {
 	-moz-border-radius: .4em; 
 	font-size: 1.2em;
 	margin-bottom: 2em;
 }
-#left_column .menu div {
+.menu div {
 	display: block;
 	padding: 0.3em 0em;
 	margin: 1em 0em;
 	border-top: 0.1em dotted #EFEBA4;
 	-moz-border-radius: 0em;
 }
-#left_column .menu div a {
+.menu div a {
 	font-variant: small-caps; letter-spacing: .1em; text-decoration: none; color: #f9fdf4;
 }
-#left_column .menu .here_we_are a {
+.menu .here_we_are a {
 	text-decoration: none; letter-spacing: .15em; word-spacing: .3em; 
 }
 
 #ExtensionMenu { background: #669a40; border: 0.34em ridge #9abe7f; }
 #ExtensionMenu div { background: #55963e; border-top: 0.1em dotted #DBBF75;  }
 #ExtensionMenu .here_we_are { background: #91bc7d; border-top: 0.1em dotted white; }
-#ExtensionMenu .here_we_are a { color: #669933; }
+#ExtensionMenu .here_we_are a { color: #0A224D; }
 
 #MainMenu { background: #bb8230; border: 0.34em ridge #8A4304; }
 #MainMenu div { background: #b47925; border-top: 0.1em dotted #DBBF75;  }
@@ -125,8 +125,9 @@ img { -ms-interpolation-mode:bicubic; }
 
 /******** CONTENT *******************************************/
 #middle {
-	width: 50em;
-	padding: 0em 4em;
+	min-width: 50em;
+	max-width: 50em;
+	padding: 0em 0em 0em 4em;
 }
 
 /******** VIDEOS *******************************************/
@@ -239,7 +240,10 @@ img { -ms-interpolation-mode:bicubic; }
 	letter-spacing: -0.03em;
 }
 .focus_slogans div { margin-bottom: 1.4em; }
+#download_wrapper { text-align: center; }
 #download { width: 20em; }
+/* inserted by extension on splash page */
+#download_wrapper #ExtensionMenu { margin: 3em 0em 0em 6.7em; width: 8.4em; font-weight: normal; line-height: 1.2em; }
 
 #community {
 	width: 100%;
@@ -263,18 +267,22 @@ img { -ms-interpolation-mode:bicubic; }
 	color: white;
 	display: inline;
 	font-size: 2em;
+	font-family: georgia;
+	font-variant: small-caps;
 }
 #charities { display: inline; }
 #charities .charity_logo {
 	border: 2px solid white;
 	background: white;
-	margin: 0em .3em;
+	margin: 0em .5em;
 }
 #charities div.charity_logo { width: 50px; display: inline; }
 
 #more_information { clear: both; }
 
-#home_OrganizerMenu { float: right; }
+#top_OrganizerMenu { float: right; font-size: .9em; text-align: right; }
+#top_OrganizerMenu div.here_we_are { background: #336699; padding: .3em 1em; }
+#top_OrganizerMenu div.here_we_are a { color: #FFFFFF; text-decoration: none; }
 
 #extra_home_navigation {
 	float: right;
@@ -491,11 +499,13 @@ td { padding: .6em 0em .5em 0em; vertical-align: middle; }
 .tabs .selected { background: white; border-bottom: none; padding-bottom: .1em; }
 
 #site_classifications { clear: both; width: 100%; }
-#site_classifications .column { width: 31%; vertical-align: top; float: left; 
+#site_classifications .column { width: 32%; vertical-align: top; float: left; 
 	background: #f7edb4; border: 0.25em ridge #c76631; -moz-border-radius: .4em;
 	text-align: center;
 }
 #site_classifications .title { font-weight: bold; padding: 1em .5em .5em .5em; }
+/*#procrasdonate_col.column { text-align: right; }
+#timewellspent_col.column { text-align: left; }*/
 
 .site { background: #FBFBDE; border-top: 0.1em dotted #ffffff; -moz-border-radius: 0em; 
 	padding: .5em; margin: .2em; 

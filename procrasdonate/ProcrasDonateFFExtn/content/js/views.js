@@ -102,9 +102,11 @@ _extend(Controller.prototype, {
 				constants.MESSAGES_STATE_INSERTS);
 			break;
 		case constants.AUTHORIZE_PAYMENTS_CALLBACK_URL:
-			this.authorize_payments_callback(request);
 			break;
 		case constants.HOME_URL:
+			this.page.handle_home_url(request);
+			break;
+		case constants.SPLASH_URL:
 			break;
 		case constants.MANUAL_TEST_SUITE_URL:
 			this.manual_test_suite(request);
@@ -130,8 +132,6 @@ _extend(Controller.prototype, {
 		 * Insert data into matching webpage
 		 *    (localhost:8000 or procrasdonate.com)
 		 * See constants.PD_HOST in global constants at top of page.
-		 * 
-		 * @SNOOPY here for developer grep purposes
 		 */
 		var url = _href();
 		//var host = _host(href);
@@ -211,7 +211,6 @@ _extend(Controller.prototype, {
 	},
 	
 	ACCOUNT_DEFAULTS: {
-		hash: constants.DEFAULT_HASH,
 		twitter_username: constants.DEFAULT_USERNAME,
 		twitter_password: constants.DEFAULT_PASSWORD,
 		email: constants.DEFAULT_EMAIL,
@@ -246,22 +245,8 @@ _extend(Controller.prototype, {
 			if (!self.prefs.get(name, ''))
 				return self.prefs.set(name, value);
 		});
-		
-		if (this.prefs.get('hash', constants.DEFAULT_HASH) == constants.DEFAULT_HASH) {
-			this.set_user_hash();
-		}
 	},
-	
-	set_user_hash: function() {
-		// construct user hash
-		var monsterbet = "abcdefghijklmnopqrstuvwxyzABCEFGHIJKLMNOPQRSTUVXYZ0123456789";
-		var hash = [];
-		for (var i = 0; i < 22; i++) {
-			hash.push( monsterbet[Math.floor(Math.random()*62)] );
-		}
-		this.prefs.set('hash', hash.join(''));
-	},
-	
+
 	reset_account_to_defaults: function() {
 		/*
 		 * Overwrite existing data (if any) with account defaults
@@ -536,21 +521,6 @@ _extend(Controller.prototype, {
 			}
 		}
 		display.test_done(testrunner);
-	},
-	
-	authorize_payments_callback: function(request) {
-		var self = this;
-		var result = {};
-		//var status = "";
-		//var refundTokenID = "";
-		//var tokenID = "";
-		//var callerReference = "";
-		request.jQuery("#parameters .parameter").each(function() {
-			var key = request.jQuery(this).children(".key").text();
-			var value = request.jQuery(this).children(".value").text();
-			result[key] = value;
-		});
-		this.prefs.set('authorize_payments_status', status);
 	}
 });
 
@@ -642,18 +612,28 @@ PageController.prototype = {};
 _extend(PageController.prototype, {
 	
 	default_inserts: function(request) {
+	
 		// add private menu items
-		request.jQuery("#MainMenu").before(
-			["<div id=\"ExtensionMenu\" class=\"menu\">",
-			 "    <div id=\"progress_menu_item\"><a href=\""+
-			 	constants.PROGRESS_URL+"\">My Progress</a></div>",
-			 "    <div id=\"impact_menu_item\"><a href=\""+
-			 	constants.IMPACT_URL+"\">My Impact</a></div>",
-			 //"    <div id=\"messages_menu_item\"><a href=\""+
-			// 	constants.MESSAGES_URL+"\">My Messages</a></div>",
-			 "    <div id=\"settings_menu_item\"><a href=\""+
-			 	constants.SETTINGS_URL+"\">My Settings</a></div>",
-			 "</div>"].join("\n"));
+		var private_menu = ["<div id=\"ExtensionMenu\" class=\"menu\">",
+		       			 	"    <div id=\"progress_menu_item\"><a href=\""+
+		       			 	constants.PROGRESS_URL+"\">My Progress</a></div>",
+		       			 	"    <div id=\"impact_menu_item\"><a href=\""+
+		       			 	constants.IMPACT_URL+"\">My Impact</a></div>",
+		       			 	// "    <div id=\"messages_menu_item\"><a href=\""+
+		       			 	// constants.MESSAGES_URL+"\">My Messages</a></div>",
+		       			 	"    <div id=\"settings_menu_item\"><a href=\""+
+		       			 	constants.SETTINGS_URL+"\">My Settings</a></div>",
+		       			 	"</div>"].join("\n");
+		
+		if (request.jQuery("#MainMenu").length > 0) {
+			// insert above Main Menu in left column
+			request.jQuery("#MainMenu").before( private_menu );
+		} else {
+			// replace splash page's download button
+			request.jQuery("#download_wrapper").html( private_menu );
+			request.jQuery("#focus_slogan_line1").remove();
+			request.jQuery("#focus_slogan_line2").remove();
+		}
 	
 		if (!this.registration_complete()) {
 			request.jQuery("#settings_menu_item")
@@ -663,8 +643,8 @@ _extend(PageController.prototype, {
 					.text("Not Done Registering");
 		}
 		
-		// remove start
-		request.jQuery("#StartButtonDiv").remove();
+		// remove top download button
+		request.jQuery("#download_top_button").remove();
 	},
 	
 	registration_complete: function() {
@@ -853,6 +833,18 @@ _extend(PageController.prototype, {
 	validate_string: function(v) {
 		return v && v != ''
 	},
+
+	/*************************************************************************/
+	/******************************* MISC VIEWS ********************************/
+
+	handle_home_url: function(request) {
+		var unsafeWin = request.get_unsafeContentWin();//event.target.defaultView;
+		if (unsafeWin.wrappedJSObject) {
+			unsafeWin = unsafeWin.wrappedJSObject;
+		}
+		new XPCNativeWrapper(unsafeWin, "location").location = constants.PD_URL + constants.PROGRESS_URL;	
+	},
+
 	/*************************************************************************/
 	/******************************* SETTINGS ********************************/
 
@@ -1538,6 +1530,10 @@ _extend(PageController.prototype, {
 		);
 		request.jQuery("#content").html( middle );
 		
+		request.jQuery("#content").after(this.site_classifications_middle(request));
+			
+		this.activate_site_classifications_middle(request);
+		
 		this.insert_gauges(request, this_week_hrs, last_week_hrs, total_hrs, includes_first_and_last_weeks);
 	},
 	
@@ -1615,6 +1611,138 @@ _extend(PageController.prototype, {
 			})
 		);
 		request.jQuery("#gauges").after( explanation );
+	},
+	
+	site_classifications_middle: function(request) {
+		var self = this;
+		
+		var procrasdonate_text = "";
+		var timewellspent_text = "";
+		var unsorted_text = "";
+		
+		this.pddb.SiteGroup.select({
+			tag_id: self.pddb.ProcrasDonate.id
+		}, function(row) {
+			procrasdonate_text += self.make_site_box(
+				request,
+				row.host,
+				row.host,
+				"procrasdonate"
+			);
+		});
+		
+		this.pddb.SiteGroup.select({
+			tag_id: self.pddb.TimeWellSpent.id
+		}, function(row) {
+			timewellspent_text += self.make_site_box(
+				request,
+				row.host,
+				row.host,
+				"timewellspent"
+			);
+		});
+		
+		this.pddb.SiteGroup.select({
+			tag_id: self.pddb.Unsorted.id
+		}, function(row) {
+			unsorted_text += self.make_site_box(
+				request,
+				row.host,
+				row.host,
+				"unsorted"
+			);
+		});
+		
+		var context = new Context({
+			timewellspent_text: timewellspent_text,
+			procrasdonate_text: procrasdonate_text,
+			unsorted_text: unsorted_text,
+			constants: constants,
+		});
+		return Template.get("site_classifications_middle").render(context);
+	},
+	
+	make_site_box: function(request, /*sitegroup_id,*/ name, url, tag) {
+		var wrapper_template = null;
+		switch(tag) {
+		case "unsorted":
+			wrapper_template = "unsorted_wrap";
+			break;
+		case "timewellspent":
+			wrapper_template = "timewellspent_wrap";
+			break;
+		case "procrasdonate":
+			wrapper_template = "procrasdonate_wrap";
+			break;
+		default:
+			throw new Error("Invalid tag, " + tag + ", in make_site_box");
+		}
+		
+		name = name.replace(/__/g, '/').replace(/\_/g,'.');
+		
+		var n = "<span class='name'><a href=\"http://"+ url +"\">" + name + "</a></span>";
+			//"<span class='sitegroup_id' id='s>" + sitegroup_id + "</span>"
+		
+		var text = Template.get(wrapper_template).render(new Context({
+			inner: n,
+			//sitegroup_id: sitegroup_id,
+			constants: constants,
+		}));
+		var context = new Context({
+			inner: text,
+			constants: constants,
+		});
+		return Template.get("make_site_box").render(context);
+	},
+	
+	activate_site_classifications_middle: function(request) {
+		var self = this;
+		//if ( this.prefs.get('site_classifications_settings_activated', false) ) {
+			
+			var f = function(elem, tag, db_tag) {
+				elem.unbind("click");
+				
+				var site_name = elem.siblings(".name").text();
+				elem.parent().fadeOut("slow", function() { 
+					request.jQuery(this).remove();
+				});
+				
+				var new_elem = request.jQuery(
+					self.make_site_box(request, site_name, site_name, tag)
+				);
+				
+				request.jQuery("#"+tag+"_col .title")
+					.after(new_elem)
+					.next().hide().fadeIn("slow");
+				
+				new_elem.children(".move_to_timewellspent").click( function() {
+					f(request.jQuery(this), "timewellspent", self.pddb.TimeWellSpent);
+				});
+				new_elem.children(".move_to_unsorted").click( function() {
+					f(request.jQuery(this), "unsorted", self.pddb.Unsorted);
+				});
+				new_elem.children(".move_to_procrasdonate").click( function() {
+					f(request.jQuery(this), "procrasdonate", self.pddb.ProcrasDonate);
+				});
+				
+				// alter data in db
+				self.pddb.SiteGroup.set({
+					tag_id: db_tag.id
+				}, {
+					host: site_name
+				});
+			};
+			request.jQuery(".move_to_timewellspent").click( function() {
+				f(request.jQuery(this), "timewellspent", self.pddb.TimeWellSpent);
+			});
+			request.jQuery(".move_to_unsorted").click( function() {
+				f(request.jQuery(this), "unsorted", self.pddb.Unsorted);
+			});
+			request.jQuery(".move_to_procrasdonate").click( function() {
+				f(request.jQuery(this), "procrasdonate", self.pddb.ProcrasDonate);
+			});
+			this.prefs.set('site_classifications_settings_activated', false);
+		//}
 	},
 	
 	/*************************************************************************/
@@ -1985,7 +2113,7 @@ _extend(PageController.prototype, {
 		for (var k in jq) { keys.push(k); }
 		_pprint(keys);*/
 		
-		var jq = request.add_jQuery_ui();
+		//var jq = request.add_jQuery_ui();
 		//var jq = requestjQuery;
 		//jq("#monthly_fee").effect("bounce");
 		//jq("#monthly_fee_slider").slider({ handle: ".ui-slider-handle" });

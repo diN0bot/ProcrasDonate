@@ -232,7 +232,7 @@ function load_models(db, pddb) {
 				slug: r.slug
 			});
 			if (last_receive_time &&
-					last_receive_time > new Date(last_modified) &&
+					last_receive_time > last_modified &&
 					recipient) {
 				return null
 			} // else, unknown or modified recipient
@@ -240,22 +240,42 @@ function load_models(db, pddb) {
 			var category = Category.get_or_create({
 				category: r.category
 			});
-			Recipient.set({
-				name: r.name,
-				category_id: category.id,
-				mission: r.mission,
-                description: r.description,
-                url: r.url,
-                logo: r.logo,
-                logo_thumbnail: r.logo_thumbnail,
-                twitter_name: r.twitter_name,
-                facebook_name: r.facebook_name,
-                is_visible: _dbify_bool(r.is_visible),
-                pd_registered: _dbify_bool(r.pd_registered),
-                tax_exempt_status: _dbify_bool(r.tax_exempt_status),
-			}, {
-				slug: r.slug
-			});
+			
+			if (recipient) {
+				Recipient.set({
+					name: r.name,
+					category_id: category.id,
+					mission: r.mission,
+	                description: r.description,
+	                url: r.url,
+	                logo: r.logo,
+	                logo_thumbnail: r.logo_thumbnail,
+	                twitter_name: r.twitter_name,
+	                facebook_name: r.facebook_name,
+	                is_visible: _dbify_bool(r.is_visible),
+	                pd_registered: _dbify_bool(r.pd_registered),
+	                tax_exempt_status: _dbify_bool(r.tax_exempt_status),
+				}, {
+					slug: r.slug
+				});
+			} else {
+				Recipient.create({
+					slug: r.slug,
+					name: r.name,
+					category_id: category.id,
+					mission: r.mission,
+	                description: r.description,
+	                url: r.url,
+	                logo: r.logo,
+	                logo_thumbnail: r.logo_thumbnail,
+	                twitter_name: r.twitter_name,
+	                facebook_name: r.facebook_name,
+	                is_visible: _dbify_bool(r.is_visible),
+	                pd_registered: _dbify_bool(r.pd_registered),
+	                tax_exempt_status: _dbify_bool(r.tax_exempt_status),
+				});
+			}
+			
 			if (return_row) {
 				return Recipient.get_or_create({
 					slug: r.slug

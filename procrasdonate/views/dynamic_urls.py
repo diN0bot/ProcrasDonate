@@ -9,7 +9,10 @@ urlpatterns = patterns('',
     # home page
     url(r'^$', dynamic_webpages.home, name='home'),
     # same as home
-    (r'^intro_video/$', dynamic_webpages.home),
+    url(r'^intro_video/$', dynamic_webpages.home, name='intro_video'),
+    # same as home. extension automatically forwards "/" to "/my_progress/"
+    # 'home page actually refers to splash for now.
+    url(r'^splash/$', dynamic_webpages.home, name='splash'),
 
     # overall portal
     url(r'^community/$', dynamic_webpages.community, name='community'),

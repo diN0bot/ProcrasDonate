@@ -112,8 +112,8 @@ function install(anchor_class) {
 		// /PD/ --> ['', 'PD', '']
 		var cur_url = location.pathname.split("/");
 		var slug = "__none__";
-		if (cur_url.length >= 2 && cur_url[cur_url.length-2].trim() == "r") {
-			slug = cur_url[cur_url.length-1].trim();
+		if (cur_url.length >= 2) {
+			slug = cur_url[1].trim();
 		}
 		$.post("/generate_xpi/"+slug+"/",
 				{},

@@ -20,6 +20,7 @@ var constants = {};
 	constants.PROCRASDONATE_URL = '/';
 	constants.REGISTER_URL = '/register/';
 	constants.HOME_URL = '/';
+	constants.SPLASH_URL = '/splash/';
 	constants.COMMUNITY_URL = '/community/';
 	constants.FAQ_URL = '/faq/';
 	constants.IMPACT_URL = '/my_impact/';

@@ -24,7 +24,7 @@ class XpiBuilder(object):
         print xpi_dir
         print update_dir
     
-    def write_input_json(self):
+    def write_input_json(self, is_update=False):
         generated_input_fn = pathify([self.extn_dir, 'content', 'js', 'generated_input.js'],
                                      file_extension=True)
         generated_input_f = open(generated_input_fn, 'w')
@@ -36,27 +36,32 @@ class XpiBuilder(object):
 function generated_input() {
     return """);
         
-        bilumi = None
-        if not self.recipient or self.recipient.slug != 'bilumi':
-            bilumi = Recipient.get_or_none(slug="bilumi")
+        data = {"constants_PD_URL": DOMAIN,
+                 "constants_PD_API_URL": API_DOMAIN,
+                 "is_update": is_update}
         
-        recip_pcts = []
+        private_key = "__no_private_key_for_update__"
         
-        if self.recipient:
-            recip_pcts.append({"recipient_slug": self.recipient.slug,
-                               "percent": 1.0})
-        if bilumi:
-            recip_pcts.append({"recipient_slug": bilumi.slug,
-                               "percent": 0.0})
+        if not is_update:
+            bilumi = None
+            if not self.recipient or self.recipient.slug != 'bilumi':
+                bilumi = Recipient.get_or_none(slug="bilumi")
+            
+            recip_pcts = []
+            
+            if self.recipient:
+                recip_pcts.append({"recipient_slug": self.recipient.slug,
+                                   "percent": 1.0})
+            if bilumi:
+                recip_pcts.append({"recipient_slug": bilumi.slug,
+                                   "percent": 0.0})
+            
+            private_key = self.generate_private_key()
+            
+            data["private_key"] = private_key
+            data["preselected_charities"] = recip_pcts
         
-        private_key = self.generate_private_key()
-        
-        data = [{"private_key": private_key,
-                 "preselected_charities": recip_pcts,
-                 "constants_PD_URL": DOMAIN,
-                 "constants_PD_API_URL": API_DOMAIN}]
-        
-        json.dump(data, generated_input_f)
+        json.dump([data], generated_input_f)
         
         generated_input_f.write("""
 }
@@ -64,9 +69,16 @@ function generated_input() {
         generated_input_f.close()
         return private_key
     
-    def build_xpi(self):
-        xpi_nm = 'ProcrasDonate_%s_%s.xpi' % (self.recipient and self.recipient.slug or "Generic",
-                                              self.get_version()) 
+    def build_xpi(self, is_update=False):
+        if is_update:
+            name = "Update"
+        elif self.recipient:
+            name = self.recipient.slug
+        else:
+            name = "Generic"
+        print "THE NAME", name, self.recipient
+            
+        xpi_nm = 'ProcrasDonate_%s_%s.xpi' % (name, self.get_version()) 
         xpi_fn = pathify([self.xpi_dir, xpi_nm], file_extension=True)
         
         os.chdir(self.extn_dir)
@@ -82,7 +94,8 @@ function generated_input() {
         xpi_hash = "sha1:%s" % hashlib.sha1(xpi_file.read()).hexdigest()
         xpi_file.close()
 
-        self.update_updates_rdf(xpi_url, xpi_hash)
+        if is_update:
+            self.update_updates_rdf(xpi_url, xpi_hash)
         
         return (xpi_url, xpi_hash)
     
@@ -127,34 +140,25 @@ function generated_input() {
         current_version = self.get_version()
         update_version = self.get_update_version()
         
-        #if update_version != current_version:
-        if self.recipient:
-            # not generic, so generate generic xpi recursively.
-            # update.rdf will be updated from there
-            xpi_builder = XpiBuilder(self.extn_dir, self.xpi_dir, self.update_dir)
-            print xpi_builder.write_input_json()
-            (xpi_url, xpi_hash) = xpi_builder.build_xpi()
-        else:
-            # generic xpi, so update the update.rdf!
-            rdf_fn = pathify([self.update_dir, 'update.rdf'], file_extension=True)
-            read_rdf_f = open(rdf_fn, 'r')
-            write_lines = []
-            for line in read_rdf_f.readlines():
-                line = VERSION_RE.sub("\g<1>%s\g<3>" % current_version, line)
-                line = XPI_URL_RE.sub("\g<1>%s%s\g<3>" % (DOMAIN, xpi_url), line)
-                line = XPI_HASH_RE.sub("\g<1>%s\g<3>" % xpi_hash, line)
-                write_lines.append(line)
-                
-            read_rdf_f.close()
-            write_rdf_f = open(rdf_fn, 'w')
-            for line in write_lines:
-                write_rdf_f.write(line)
-            write_rdf_f.close()
+        rdf_fn = pathify([self.update_dir, 'update.rdf'], file_extension=True)
+        read_rdf_f = open(rdf_fn, 'r')
+        write_lines = []
+        for line in read_rdf_f.readlines():
+            line = VERSION_RE.sub("\g<1>%s\g<3>" % current_version, line)
+            line = XPI_URL_RE.sub("\g<1>%s%s\g<3>" % (DOMAIN, xpi_url), line)
+            line = XPI_HASH_RE.sub("\g<1>%s\g<3>" % xpi_hash, line)
+            write_lines.append(line)
+            
+        read_rdf_f.close()
+        write_rdf_f = open(rdf_fn, 'w')
+        for line in write_lines:
+            write_rdf_f.write(line)
+        write_rdf_f.close()
             
 if __name__ == "__main__":
     xpi_builder = XpiBuilder(pathify([PROJECT_PATH, 'procrasdonate', 'ProcrasDonateFFExtn'], file_extension=True),
                              "%s%s" % (MEDIA_ROOT, 'xpi'),
                              "%s%s" % (MEDIA_ROOT, 'rdf'))
     
-    print xpi_builder.write_input_json()
-    print xpi_builder.build_xpi()
+    print xpi_builder.write_input_json(is_update=True)
+    print xpi_builder.build_xpi(is_update=True)

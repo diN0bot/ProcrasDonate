@@ -2,6 +2,7 @@
 
 {% block supermiddle %}
 <div id="middle_focus" class="center_column">
+	
 	<h2 id="slogan_line1" class="slogan">Your charitable incentive to procrastinate less.
 	<br> Now available for Firefox...</h2>
 
@@ -29,13 +30,12 @@
 					<div>
 						<div id="focus_slogan_line1"><h1>Waste an hour?</h1></div>
 						<div id="focus_slogan_line2"><h1>Make a Donation.</h1></div>
-						<img
+						<div id="download_wrapper"><img
 							id="download"
 							alt=""
 							src="{{ MEDIA_URL }}img/Download.png"
-							id="download_top_button"
 							class="link"
-							onclick="return install('install_anchor');" />
+							onclick="return install('install_anchor');" /></div>
 						<div id="focus_slogan_line4"><h1>Get More Done.</h1></div>
 						
 					</div>	
@@ -45,6 +45,7 @@
 	</tbody>
 	</table>
 
+	<a href="{% url community %}">
 	<table id="community">
 	<tbody>
 	<tr>
@@ -54,6 +55,7 @@
 	</tr>
 	</tbody>
 	</table>
+	</a>
 </div>
 	
 <div id="charities_bar">
@@ -61,12 +63,25 @@
 		<div id="charities_bar_info">Charities & Causes</div>
 		
 		<div id="charities">
-			<img id="charity_{{ bilumi.slug }}" class="charity_logo" src="{{ bilumi.thumbnail_url }}" />
-			<img id="charity_{{ pd.slug }}" class="charity_logo" src="{{ pd.thumbnail_url }}" />
-			<div class="charity_logo">Your Charity Here</div>
-			<div class="charity_logo">Your Cause Here</div>
-			<div class="charity_logo">Your Charity Here</div>
-			<div class="charity_logo">Your Cause Here</div>
+			<a href="{% url recipient bilumi.slug %}">
+				<img id="charity_{{ bilumi.slug }}" class="charity_logo" src="{{ bilumi.thumbnail_url }}" />
+			</a>
+			<a href="{% url recipient pd.slug %}">
+				<img id="charity_{{ pd.slug }}" class="charity_logo" src="{{ pd.thumbnail_url }}" />
+			</a>
+			
+			<a href="">
+				<img width="60" id="charity_placeholder_A" class="charity_logo" src="{{ MEDIA_URL }}img/CharityPlaceholder.png" />
+			</a>
+			<a href="">
+				<img width="60" id="charity_placeholder_B" class="charity_logo" src="{{ MEDIA_URL }}img/CharityPlaceholder.png" />
+			</a>
+			<a href="">
+				<img width="60" id="charity_placeholder_C" class="charity_logo" src="{{ MEDIA_URL }}img/CharityPlaceholder.png" />
+			</a>
+			<a href="">
+				<img width="60" id="charity_placeholder_D" class="charity_logo" src="{{ MEDIA_URL }}img/CharityPlaceholder.png" />
+			</a>
 		</div>
 	</div>
 </div>
@@ -75,9 +90,9 @@
 	
 	<div id="extra_home_navigation">
 		<div id="home_menu">
-			<div {% ifequal selected "faq" %}class="here_we_are"{% endifequal %} id='faq_menu_item'><a href="{% url faq %}">FAQ</a></div>
+			<div id='faq_menu_item'><a href="{% url faq %}">FAQ</a></div>
 			<div id='about_us_menu_item'><a href="{% url about_us %}">About Us</a></div>
-			<div {% ifequal selected "community" %}class="here_we_are"{% endifequal %} id='community_menu_item'><a href="{% url community %}">Charities</a></div>
+			<div id='community_menu_item'><a href="http://feedback.procrasdonate.com">Feedback</a></div>
 		</div>
 		
 		<img id="my_progress_screenshot" src="{{ MEDIA_URL }}img/MyProgressPreview_cropped.png" />
@@ -87,8 +102,9 @@
 			{% for post in blog_posts.entries|slice:":3" %}
 			<div class="blog_post">
 				<h4><a href="{{ post.link }}">{{ post.title }}</a></h4>
-				<p>{{ post.summary|safe }}
-					<span><a href="{{ post.comments }}">comments</a></span>
+				<p>{{ post.summary|truncatewords:28|safe }}
+					<span><a href="{{ post.link }}">read more</a></span>
+					{# <span><a href="{{ post.comments }}">comments</a></span> #}
 				</p>
 			</div>
 			{% endfor %}

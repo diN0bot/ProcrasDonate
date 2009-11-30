@@ -170,7 +170,7 @@ def return_data(request):
     #for recipient in Recipient.objects.filter(fpsrecipient__timestamp__gte=since):
     for recipient in Recipient.objects.all():
         recipients.append(recipient.deep_dict())
-        
+
     multiuse_auths = []
     has_success = False
     for multiuse_auth in FPSMultiuseAuth.objects.filter(user=user):
@@ -201,18 +201,17 @@ def return_data(request):
                          'latest_version': xpi_builder.get_version()})
 
 def generate_xpi(request, slug):
-    print "GENERATE XPI", slug
     recipient = slug != '__none__' and Recipient.get_or_none(slug=slug) or None
     xpi_builder = XpiBuilder(pathify([PROJECT_PATH, 'procrasdonate', 'ProcrasDonateFFExtn'], file_extension=True),
                              "%s%s" % (MEDIA_ROOT, 'xpi'),
                              "%s%s" % (MEDIA_ROOT, 'rdf'),
                              recipient)
     
-    private_key = xpi_builder.write_input_json()
+    private_key = xpi_builder.write_input_json(is_update=False)
     user = User.add(private_key)
     Log.Log("Built XPI for download", detail="usage", user=user)
     
-    (xpi_url, xpi_hash) = xpi_builder.build_xpi()
+    (xpi_url, xpi_hash) = xpi_builder.build_xpi(is_update=False)
     return json_success({'xpi_url': xpi_url,
                          'xpi_hash': xpi_hash})
 

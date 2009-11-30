@@ -470,7 +470,7 @@ _extend(ProcrasDonate_API.prototype, {
 			{
 				since: 0, // self.prefs.get('since_received_data', 0);
 				private_key: this.prefs.get('private_key', constants.DEFAULT_PRIVATE_KEY),
-			}, //#@TODO store time in prefs
+			},
 			"GET",
 			function(r) {
 				self.pddb.orthogonals.log("Successfully received data", "dataflow");
@@ -485,7 +485,7 @@ _extend(ProcrasDonate_API.prototype, {
 					self.pddb.Recipient.process_object(value);
 				});
 				self.prefs.set('since_received_data', _dbify_date(new_since));
-				self.pddb.orthogonals.log("Data successfully updated to "+new_since, "dataflow");
+				self.pddb.orthogonals.log("Data successfully updated on "+new_since, "dataflow");
 				if (after_success) {
 					after_success();
 				}
