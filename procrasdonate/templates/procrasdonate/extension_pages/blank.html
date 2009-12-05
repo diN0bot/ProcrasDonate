@@ -1,14 +1,20 @@
 {% extends 'procrasdonate/base.html' %}
 
 {% block content %}
-	<h2>Oops</h2>
-	<p>the ProcrasDonate Firefox add-on is supposed to insert content here 
-		from the data stored on your computer :-(</p>
+	<h2>Processing...</h2>
+	<p>The ProcrasDonate extension, inserts content into this page
+		based on data stored on your computer.</p> 
 	
-	<p>If you'd like to tell us about the problem, please use the 
+	<p>If you're reading this then either you haven't installed
+		the extension yet (click the download button at the top of this page!)
+		or something went wrong.</p>
+	
+	<p>You can report the problem or ask us questions on the
 		<a href="http://feedback.procrasdonate.com">Feedback page</a>
-		or send us an email at <a href="" class="insert_procrasdonate_email"></a></p>
+		or by sending us an email at <a href="" class="insert_procrasdonate_email"></a>.</p>
 
 	<p>We appreciate your feedback and will do our best to fix the
-		problem and release an update shortly.</p>	
+		problem and release an update shortly.</p>
+		
+	<img src="{{ MEDIA_URL }}img/laptophappy.png" />	
 {% endblock %}

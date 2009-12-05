@@ -1,0 +1,22 @@
+
+<div id="progress_submenu" class="extn_submenu">
+{# ROW 1 #}
+	<ul>
+	{% for item in substate_menu_items.menu_items %}
+		<li class="{{ item.id }} link {% for klass in item.klasses %}{{ klass }} {% endfor %}">
+			<img src="{{ item.img }}" />
+		</li>
+	{% endfor %}
+	</ul>
+	
+{# ROW 2 #}
+	<ul class="menu_text">
+	{% for item in substate_menu_items.menu_items %}
+		<li class="{{ item.id }} link {% for klass in item.klasses %}{{ klass }} {% endfor %}">
+			{% if item.url %}<a href="{{ item.url }}">{% endif %}
+				{{ item.value }}
+			{% if item.url %}</a>{% endif %}
+		</li>
+	{% endfor %}
+	</ul>
+</div>

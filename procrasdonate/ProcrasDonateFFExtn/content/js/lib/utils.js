@@ -285,6 +285,22 @@ var _friendly_date = function(date) {
 	return month+" "+date.getDate()+", "+date.getFullYear();
 }
 
+var _friendly_datetime = function(date) {
+	if (!date) {
+		date = new Date();
+	}
+	var hour = "";
+	var minute = "";
+	var second = "";
+	if (date.getHours() < 10) { hour += "0"; }
+	hour += date.getHours();
+	if (date.getMinutes() < 10) { minute += "0"; }
+	minute += date.getMinutes();
+	if (date.getSeconds() < 10) { second += "0"; }
+	second += date.getSeconds();
+	return _friendly_date(date) + ", " + hour + ":" + minute + ":" + second;
+}
+
 var _start_of_day = function(date) {
 	if (!date) {
 		date = new Date();

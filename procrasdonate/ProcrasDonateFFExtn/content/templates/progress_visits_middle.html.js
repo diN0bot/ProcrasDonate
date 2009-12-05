@@ -1,0 +1,3 @@
+
+    Template.compile(["<h2>My Progress</h2>\n\n", ["var", ["substate_menu"], []], "\n\n<h3>Website Visits</h3>\n\n<ol>\n\t", ["for", ["visit"], ["var", ["visits"], []], false, ["\n\t<li>\n\t\t<a href=\"", ["var", ["visit", "site", "url"], []], "\">", ["var", ["visit", "site", "url"], []], "</a>\n\t\t", ["var", ["visit", "enter_at_display"], []], " - \n\t\t", ["var", ["visit", "duration_display"], []], "\n\t</li>\n\t"]], "\n</ol>"], "progress_visits_middle");
+    

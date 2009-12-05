@@ -1,0 +1,3 @@
+
+    Template.compile(["<h2>My Progress</h2>\n\n", ["var", ["substate_menu"], []], "\n\n<h3>ProcrasDonation Comparison</h3>\n\n<p>Hours that I ProcrasDonated:</p>\n\n", "\n<div id=\"gauges\"></div>\n\n", "\n\n<div class=\"progress_notes\">\n\t", ["if", [[false, ["var", ["includes_first_and_last_weeks"], []]]], 1, ["\n\t\t<p>Average includes first and last week until at \n\t\t\tleast 3 weeks worth of data is available.</td>\n\t\t</p>\n\t"], []], "\n</div>"], "progress_gauges_middle");
+    

@@ -1,4 +1,6 @@
-/** *********************** GLOBAL VARIABLES ********************************* */
+/**
+ * Define all global variables here.
+ */
 
 // constants.PD_URL is actually overwritten later by 
 // generated_input during install process
@@ -6,9 +8,15 @@
 var constants = {};
 
 (function CONSTANTS() {
-	/*
-	 * Define all global variables here.
-	 */
+	constants.STORE_VISIT_LOGGING = false;
+	constants.IDLE_LOGGING = false;
+
+	// from https://developer.mozilla.org/En/Code_snippets:On_page_load
+	constants.STATE_START = Components.interfaces.nsIWebProgressListener.STATE_START;
+	constants.STATE_STOP = Components.interfaces.nsIWebProgressListener.STATE_STOP;
+
+	constants.ProcrasDonate__UUID="extension@procrasdonate.com";
+
 	constants.MEDIA_URL = '/procrasdonate_media/';
 	constants.PD_HOST = 'ProcrasDonate.com';
 	constants.PD_URL = 'https://' + constants.PD_HOST;
@@ -95,17 +103,24 @@ var constants = {};
 	];
 
 	// enumeration of progress page state
-	constants.DEFAULT_PROGRESS_STATE = "overview";
+	constants.DEFAULT_PROGRESS_STATE = "gauges";
 	constants.PROGRESS_STATE_ENUM = [
-		"overview", 
+		"gauges", "classifications", "visits"
 	];
 	constants.PROGRESS_STATE_TAB_NAMES = [
-		"XXX"
+		"Gauges", "Classifications", "Visits"
 	];
 	constants.PROGRESS_STATE_INSERTS = [
-		"insert_progress_overview",
+		"insert_progress_gauges",
+		"insert_progress_classifications",
+		"insert_progress_visits"
 	];
-	
+	constants.PROGRESS_STATE_IMAGES = [
+		{ past: "coins_card.png", selected: "DollarRocket.png" },
+		{ past: "FireWall.png", selected: "DollarRocket.png" },
+		{ past: "FourHeads.png", selected: "DollarRocket.png" },
+   	];
+
 	// enumeration of messages page state
 	constants.DEFAULT_MESSAGES_STATE = "all";
 	constants.MESSAGES_STATE_ENUM = [

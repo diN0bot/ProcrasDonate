@@ -1,17 +1,16 @@
 
-//var constants = CONSTANTS();
-
-// Controller
-// * handles 'views' for browser-generated ProcrasDonate.com pages
-var Controller = function(prefs, pddb) {
-	this.prefs = prefs;
+/**
+ * handles 'views' for browser-generated ProcrasDonate.com pages
+ * @param prefs
+ * @param pddb
+ * @return
+ */
+var Controller = function(pddb, prefs, pd_api) {
 	this.pddb = pddb;
-	this.page = new PageController(this.prefs, this.pddb);
+	this.prefs = prefs;
+	this.pd_api = pd_api;
+	this.page = new PageController(this.pddb, this.prefs, this.pd_api);
 };
-
-//function $(selector, context) {
-//	return jQuery(selector, document.defaultView);
-//}
 
 Controller.prototype = {};
 _extend(Controller.prototype, {
@@ -86,6 +85,7 @@ _extend(Controller.prototype, {
 				constants.IMPACT_STATE_INSERTS);
 			break;
 		case constants.PROGRESS_URL:
+			logger("location chagned to PROGRESS_URL");
 			this.insert_based_on_state(
 				request,
 				'progress', 
@@ -101,28 +101,27 @@ _extend(Controller.prototype, {
 				constants.MESSAGES_STATE_ENUM, 
 				constants.MESSAGES_STATE_INSERTS);
 			break;
-		case constants.AUTHORIZE_PAYMENTS_CALLBACK_URL:
-			break;
 		case constants.HOME_URL:
 			this.page.handle_home_url(request);
 			break;
 		case constants.SPLASH_URL:
 			break;
 		case constants.MANUAL_TEST_SUITE_URL:
-			this.manual_test_suite(request);
+			this.page.manual_test_suite(request);
 			break;
 		case constants.AUTOMATIC_TEST_SUITE_URL:
-			this.automatic_test_suite(request);
+			this.page.automatic_test_suite(request);
 			break;
 		case constants.TIMING_TEST_SUITE_URL:
-			this.timing_test_suite(request);
+			this.page.timing_test_suite(request);
 			break;
 		case constants.AUTHORIZE_PAYMENTS:
-			this.authorize_payments(request);
+			break;
+		case constants.AUTHORIZE_PAYMENTS_CALLBACK_URL:
 			break;
 		default:
 			return false;
-			//logger("Invalid ProcrasDonate URL: " + request.url);
+			//logger("Unknown ProcrasDonate URL: " + request.url);
 		}
 		return true;
 	},
@@ -267,346 +266,23 @@ _extend(Controller.prototype, {
 			self.prefs.set(name, value);
 		});
 	},
-	
-	////////////////////////////// DEV TESTS //////////////////////////////////
-	
-	add_random_visits: function() {
-		var self = this;
-		
-		var test1 = this.pddb.SiteGroup.get_or_create({
-			host: "test_pd.com"
-		}, {
-			name: "test_pd.com",
-			tag_id: self.pddb.ProcrasDonate.id
-		});
-		var test2 = this.pddb.SiteGroup.get_or_create({
-			host: "test_tws.com"
-		}, {
-			name: "test_tws.com",
-			tag_id: self.pddb.TimeWellSpent.id
-		});
-		
-		// add visits for last four weeks
-		// this week
-		var start = _start_of_day();
-		var times = [_dbify_date(start)];
-		// last week
-		start.setDate(start.getDate() - 7);
-		times.push( _dbify_date(start) );
-		// two weeks ago
-		start.setDate(start.getDate() - 7*2);
-		times.push( _dbify_date(start) );
-		// three weeks ago
-		start.setDate(start.getDate() - 7*3);
-		times.push( _dbify_date(start) );
-		
-		_iterate(times, function(key, time, index) {
-			var duration = 1000 + Math.floor(Math.random()*1000);
-			var urls = ["http://test_pd.com/apage.html",
-			            "http://test_pd.com/bpage.html",
-			            "http://test_pd.com/apage.html",
-			            "http://test_pd.com/bpage.html",
-			            "http://test_pd.com/apage.html",
-			            
-			            "http://test_tws.com/cpage.html",
-			            "http://test_tws.com/cpage.html",
-			            "http://test_tws.com/cpage.html",
-			            "http://test_tws.com/cpage.html",
-			            "http://test_tws.com/cpage.html",
-			            "http://test_tws.com/cpage.html"];
-			for (var i = 0; i < urls.length; i++) {
-				// add at least 2000 seconds to start time
-				// times the number of visits already done
-				self.pddb.store_visit(urls[i], time + i*2000, duration);
-			}
-		});
-	},
-
-	///
-	/// Triggers daily cycle. Does not reset 24hr period state.
-	///
-	trigger_daily_cycle: function() {
-		logger("triggering daily cycle...");
-		this.pddb.schedule.do_once_daily_tasks();
-		logger("...daily cycle done");
-	},
-	
-	///
-	/// Triggers weekly cycle. Does not reset weekly period state.
-	///
-	trigger_weekly_cycle: function() {
-		logger("triggering weekly cycle...");
-		this.pddb.schedule.do_once_weekly_tasks();
-		logger("...weekly cycle done");
-	},
-	
-	///
-	/// Triggers payment. Does not reset payment period.
-	///
-	trigger_payment: function() {
-		logger("triggering payment...");
-		this.pddb.page.pd_api.make_payments_if_necessary(true);
-		logger("...payment done");
-	},
-	
-	trigger_on_install: function() {
-		myOverlay.onInstall("0.0.0");
-	},
-	
-	trigger_init_db: function() {
-		this.pddb.init_db();
-	},
-	
-	manual_test_suite: function(request) {
-		var actions = ["trigger_daily_cycle",
-		               "trigger_weekly_cycle",
-		               "",
-		               "trigger_payment",
-		               "",
-		               "trigger_on_install",
-		               "trigger_init_db",
-		               "",
-		               "reset_state_to_defaults",
-		               "reset_account_to_defaults",
-		               "initialize_state",
-		               "add_random_visits"];
-		var html = Template.get("manual_test_suite").render(new Context({
-			actions: actions
-		}));
-		request.jQuery("#content").append( html );
-
-		var self = this;
-		for (var i = 0; i < actions.length; i++) {
-			var action = actions[i];
-			request.jQuery("#"+action).click(
-				// closure to call self[action].
-				// extra function needed to provide appropriate 'this'
-				(function(a) { return function() {
-					self[a]();
-				}})(action)
-				//// the above code is complicated to remember, anyway.
-				//self._self_fn(action);
-			);
-		}
-	},
-	
-	///
-	/// wanted to use this instead of above, but kept getting errors on
-	///     self._self_fn(action)
-	/// said missing closing ")" ?!
-	/// wanted to use apply so could be used for _proceed as well
-	///
-	_self_fn: function(fnname) {
-		var self = this;
-		return function() {
-			//self[fnname].apply(self, args);
-			//self[fname](request);
-			//self[event](request);
-			logger("inside _self_fn for "+fnname);
-		};
-	},
-
-	/// run tester tests (mutates db) and checker checks 
-	/// (checks db) on test database
-	automatic_test_suite: function(request) {
-		var testrunner = new TestRunner(request);
-		var self = this;
-		
-		testrunner.test("Check *REAL DATA* Requires Payments", function() {
-			self.pddb.checker.check_requires_payments(testrunner);
-		});
-		
-		testrunner.test("Check *REAL DATA* Payment Total Taggings", function() {
-			self.pddb.checker.check_payment_total_taggings(testrunner);
-		});
-		
-		testrunner.test("Check *REAL DATA* Payments", function() {
-			self.pddb.checker.check_payments(testrunner);
-		});
-		
-		var original_pddb = self.pddb;
-		
-		try {
-			self.pddb = new PDDB("test.0.sqlite");
-			self.pddb.init_db();
-			
-			testrunner.test("Test Update Totals", function() {
-				self.pddb.tester.test_update_totals(testrunner);
-			});
-			
-			testrunner.test("Check Requires Payments", function() {
-				self.pddb.checker.check_requires_payments(testrunner);
-			});
-			
-			testrunner.test("Check Payment Total Taggings", function() {
-				self.pddb.checker.check_payment_total_taggings(testrunner);
-			});
-			
-			testrunner.test("Check Payments", function() {
-				self.pddb.checker.check_payments(testrunner);
-			});
-			
-			/// WARNING: this uses setTimeout to test blur/focus,
-			///          idle/back, start/stop-recording....
-			///          tests after this one should worry about interference!
-			
-			/// WARNING 2: this test requires the tester to continuous move 
-			///            their mouse but not click so that IDLE isn't
-			///            inadvertantly triggered in the middle of the test.
-			///            the test runs for at least 5 minute.
-			/*testrunner.test("Test Idle/Back-Focus/Blur Combos", function() {
-				self.pddb.tester.test_idle_focus_combos(testrunner, self.display_test_results);
-			});*/
-		} catch(e) {
-			self.pddb.orthogonals.error(e+"\n\n"+e.stack);
-		}
-		
-		self.pddb = original_pddb;
-		
-		self.display_test_results(testrunner);
-	},
-	
-	/// run TIMING tester tests (mutates db) and checker checks 
-	/// (checks db) on test database
-	/// see WARNINGS below
-	timing_test_suite: function(request) {
-		var testrunner = new TestRunner(request);
-		var self = this;
-		
-		var original_pddb = self.pddb;
-		
-		// change default max idles to 10 and 30 seconds
-		// otherwise test would take looooong time.
-		var orig_default_max_idle = constants.DEFAULT_MAX_IDLE;
-		var orig_default_flash_max_idle = constants.DEFAULT_FLASH_MAX_IDLE;
-		constants.DEFAULT_MAX_IDLE = 10;
-		constants.DEFAULT_FLASH_MAX_IDLE = 30;
-		
-		try {
-			self.pddb = new PDDB("test.0.sqlite");
-			self.pddb.init_db();
-
-			/// WARNING: this uses setTimeout to test blur/focus,
-			///          idle/back, start/stop-recording....
-			///          tests after this one should worry about interference!
-			
-			/// WARNING 2: this test requires the tester to continuous move 
-			///            their mouse but not click so that IDLE isn't
-			///            inadvertantly triggered in the middle of the test.
-			///            the test runs for at least 5 minute.
-			testrunner.test("Test Idle/Back-Focus/Blur Combos", function() {
-				self.pddb.tester.test_idle_focus_combos(testrunner, self.display_test_results);
-			});
-		} catch(e) {
-			self.pddb.orthogonals.error(e+"\n\n"+e.stack);
-		}
-		
-		self.pddb = original_pddb;
-		
-		constants.DEFAULT_MAX_IDLE = orig_default_max_idle; 
-		constants.DEFAULT_FLASH_MAX_IDLE = orig_default_flash_max_idle;
-		
-		self.display_test_results(testrunner);
-	},
-	
-	display_test_results: function(testrunner) {
-		var inner_display = new TestRunnerConsoleDisplay();
-		var display = new TestRunnerPDDisplay(inner_display, this.pddb);
-		for (var name in testrunner.test_modules) {
-			var test_module = testrunner.test_modules[name];
-			for (var i = 0; i < test_module.test_groups.length; i++) {
-				var testgroup = test_module.test_groups[i];
-				
-				display.display_testgroup_result(testrunner, testgroup);
-			}
-		}
-		display.test_done(testrunner);
-	}
 });
 
-function Schedule(prefs, pddb) {
-	this.prefs = prefs;
+/**
+ * views
+ * 
+ * @param pddb
+ * @param prefs
+ * @return
+ */
+function PageController(pddb, prefs, pd_api) {
 	this.pddb = pddb;
-}
-Schedule.prototype = {};
-_extend(Schedule.prototype, {
-	run: function() {
-		if ( this.is_new_week_period() ) {
-			this.do_once_weekly_tasks();
-			this.do_make_payment();
-			this.reset_week_period();
-		}
-		if ( this.is_new_24hr_period() ) {
-			this.do_once_daily_tasks();
-			this.reset_24hr_period();
-		}
-	},
-	
-	is_new_24hr_period: function() {
-		/** @returns: true if the last marked day is over */
-		var yesterday = _un_dbify_date(this.prefs.get('last_24hr_mark', 0));
-		var start_of_yesterday = _start_of_day(yesterday);
-		var start_of_day = _start_of_day();
-		return start_of_yesterday < start_of_day
-	},
-
-	do_once_daily_tasks: function() {
-		var self = this;
-		
-		// Receive updates from server
-		this.pddb.page.pd_api.request_data_updates(
-			function() {
-				// after success
-			}, function() {
-				// after failure
-			});
-		
-		// ?? run checker to log failures, db corruptions
-		
-		// Send data to server (more recent than time_last_sent_KlassName)
-		this.pddb.page.pd_api.send_data();
-	},
-	
-	reset_24hr_period: function() {
-		/** reset 24 hour cycle to start of today */
-		var start_of_day = _start_of_day();
-		this.prefs.set('last_24hr_mark', _dbify_date(start_of_day));
-	},
-	
-	is_new_week_period: function() {
-		/** @returns: true if the last marked week is over */
-		var last_week = _un_dbify_date(this.prefs.get('last_week_mark', 0));
-		var start_of_last_week = _start_of_week(last_week);
-		var start_of_week = _start_of_week();
-		return start_of_last_week < start_of_week
-	},
-	
-	do_once_weekly_tasks: function() {
-		this.pddb.page.create_weekly_report();
-	},
-	
-	do_make_payment: function() {
-		/* all logic for whether to make payments is in pd_api */
-		this.pddb.page.pd_api.make_payments_if_necessary(false);
-	},
-
-	reset_week_period: function() {
-		/** reset weekly cycle to start of this week */
-		//var last_week = _un_dbify_date(this.prefs.get('last_week_mark', 0));
-		var start_of_week = _start_of_week();
-		this.prefs.set('last_week_mark', _dbify_date(start_of_week));
-	},
-
-});
-
-
-/********** HTML INSERTION FUNCTIONS AND HELPERS ***************/
-
-function PageController(prefs, pddb) {
 	this.prefs = prefs;
-	this.pddb = pddb;
-	//this.tipjoy = new TipJoy_API(this.prefs, this.pddb);
-	this.pd_api = new ProcrasDonate_API(this.prefs, this.pddb);
+	this.pd_api = pd_api;
+	
+	// for dev testing. eventually, schedule could contain state so that
+	// the real scheduler and the dev scheduler diverged (eg, shorter (mutable) cycles)
+	this.schedule = new Schedule(pddb, prefs, pd_api);
 }
 PageController.prototype = {};
 _extend(PageController.prototype, {
@@ -657,6 +333,7 @@ _extend(PageController.prototype, {
 	/***************************** VIEW UTILS ********************************/
 	
 	/*
+	 * @param: images: may be undefined
 	 * @return: dictionary of:
 	 * 		menu_items: list of (id, klasses, value) tuples for substate menu
 	 *          id is "substate_tab_"+enums[index]
@@ -665,7 +342,7 @@ _extend(PageController.prototype, {
 	 *      next: tuple of next tab or null
 	 *      prev: tuple of prev tab or null
 	 */
-	make_substate_menu_items: function(current_substate, enums, tab_names) {
+	make_substate_menu_items: function(current_substate, enums, tab_names, images) {
 		var menu_items = [];
 		var prev = null;
 		var next = null;
@@ -686,11 +363,36 @@ _extend(PageController.prototype, {
 			
 			var img = "";
 			var bar = "";
-			if (!_one_past_current) {
-				img = constants.MEDIA_URL+"img/StepCircle"+(index+1)+"Done.png";
+			if (enums[index] == current_substate) {
+				if (images) {
+					if (images[index].selected) {
+						img = constants.MEDIA_URL+"img/"+images[index].selected;
+					} else {
+						img = constants.MEDIA_URL+"img/"+images[index].past;
+					}
+				} else {
+					img = constants.MEDIA_URL+"img/StepCircle"+(index+1)+"Done.png";
+				}
 				bar = constants.MEDIA_URL+"img/Dash.png";
+				
+			} else if (!_one_past_current) {
+				if (images) {
+					img = constants.MEDIA_URL+"img/"+images[index].past;
+				} else {
+					img = constants.MEDIA_URL+"img/StepCircle"+(index+1)+"Done.png";
+				}
+				bar = constants.MEDIA_URL+"img/Dash.png";
+				
 			} else {
-				img = constants.MEDIA_URL+"img/StepCircle"+(index+1)+".png";
+				if (images) {
+					if (images[index].future) {
+						img = constants.MEDIA_URL+"img/"+images[index].future;
+					} else {
+						img = constants.MEDIA_URL+"img/"+images[index].past;
+					}
+				} else {
+					img = constants.MEDIA_URL+"img/StepCircle"+(index+1)+".png";
+				}
 				bar = constants.MEDIA_URL+"img/DashGreen.png";
 			}
 				
@@ -728,11 +430,11 @@ _extend(PageController.prototype, {
 		var self = this;
 		_iterate(enums, function(key, substate, index) {
 			if (processors) {
-				request.jQuery("#substate_tab_"+substate).click(
+				request.jQuery("#substate_tab_"+substate+", .substate_tab_"+substate).click(
 					self._process(current_substate, enums, processors, inserts[index], request)
 				);
 			} else {
-				request.jQuery("#substate_tab_"+substate).click(
+				request.jQuery("#substate_tab_"+substate+", .substate_tab_"+substate).click(
 					self._proceed(inserts[index], request)
 				);
 			}
@@ -838,6 +540,7 @@ _extend(PageController.prototype, {
 	/******************************* MISC VIEWS ********************************/
 
 	handle_home_url: function(request) {
+		logger("handle home url");
 		var unsafeWin = request.get_unsafeContentWin();//event.target.defaultView;
 		if (unsafeWin.wrappedJSObject) {
 			unsafeWin = unsafeWin.wrappedJSObject;
@@ -1446,13 +1149,17 @@ _extend(PageController.prototype, {
 	/*************************************************************************/
 	/******************************* PROGRESS ********************************/
 	
-	insert_progress_overview: function(request) {
+	insert_progress_gauges: function(request) {
 		var self = this;
-		this.prefs.set('progress_state', 'overview');
+		this.prefs.set('progress_state', 'gauges');
 
-		// currently, there is no progress submenu
-		var substate_menu_items = this.make_substate_menu_items('overview',
-			constants.PROGRESS_STATE_ENUM, constants.PROGRESS_STATE_TAB_NAMES);	
+		var substate_menu_items = this.make_substate_menu_items('gauges',
+			constants.PROGRESS_STATE_ENUM,
+			constants.PROGRESS_STATE_TAB_NAMES,
+			constants.PROGRESS_STATE_IMAGES);
+		var substate_menu = Template.get("progress_submenu").render(
+			new Context({ substate_menu_items: substate_menu_items })
+		);
 		
 		var tag_contenttype = self.pddb.ContentType.get_or_null({
 			modelname: "Tag"
@@ -1464,17 +1171,14 @@ _extend(PageController.prototype, {
 			timetype_id: self.pddb.Weekly.id
 		});
 		
-		var last_week = new Date();
-		last_week.setDate(last_week.getDate() - 7);
+		var last_week_date = new Date();
+		last_week_date.setDate(last_week_date.getDate() - 7);
 		var pd_total_last_week = self.pddb.Total.get_or_null({
 			contenttype_id: tag_contenttype.id,
 			content_id: self.pddb.ProcrasDonate.id,
-			datetime: _dbify_date(_end_of_week(last_week)),
+			datetime: _dbify_date(_end_of_week(last_week_date)),
 			timetype_id: self.pddb.Weekly.id
 		});
-		
-		logger("THIS WEEK: "+_start_of_week()+"      "+_end_of_week());
-		logger("LAST WEEK: "+_start_of_week(last_week)+"      "+_end_of_week(last_week));
 		
 		var this_week_hrs = 0.0;
 		if (pd_total_this_week) {
@@ -1518,9 +1222,18 @@ _extend(PageController.prototype, {
 			total_hrs = (sum / count).toFixed(1);
 		}
 		
-		var middle = Template.get("progress_overview_middle").render(
+		self.pddb.orthogonals.log("User visited progress page."+
+			"\nthis week = "+_start_of_week()+" --- "+_end_of_week()+
+			"\nlast week = "+_start_of_week(last_week_date)+" --- "+_end_of_week(last_week_date)+
+			"\nthis_week_hrs = "+this_week_hrs+
+			"\nlast_week_hrs = "+last_week_hrs+
+			"\ntotal_hrs = "+total_hrs+
+			"\npd_limit = "+this.prefs.get("pd_hr_per_week_max", constants.DEFAULT_PD_HR_PER_WEEK_MAX)+
+			"\nincludes_first_and_last_weeks = "+includes_first_and_last_weeks);
+		
+		var middle = Template.get("progress_gauges_middle").render(
 			new Context({
-				substate_menu_items: substate_menu_items,
+				substate_menu: substate_menu,
 				pd_this_week_hrs: this_week_hrs,
 				pd_last_week_hrs: last_week_hrs,
 				pd_total_hrs: total_hrs,
@@ -1530,9 +1243,8 @@ _extend(PageController.prototype, {
 		);
 		request.jQuery("#content").html( middle );
 		
-		request.jQuery("#content").after(this.site_classifications_middle(request));
-			
-		this.activate_site_classifications_middle(request);
+		this.activate_substate_menu_items(request, 'gauges',
+				constants.PROGRESS_STATE_ENUM, constants.PROGRESS_STATE_INSERTS, constants.PROGRESS_STATE_PROCESSORS);
 		
 		this.insert_gauges(request, this_week_hrs, last_week_hrs, total_hrs, includes_first_and_last_weeks);
 	},
@@ -1613,9 +1325,18 @@ _extend(PageController.prototype, {
 		request.jQuery("#gauges").after( explanation );
 	},
 	
-	site_classifications_middle: function(request) {
+	insert_progress_classifications: function(request) {
 		var self = this;
-		
+		this.prefs.set('progress_state', 'classifications');
+
+		var substate_menu_items = this.make_substate_menu_items('classifications',
+			constants.PROGRESS_STATE_ENUM,
+			constants.PROGRESS_STATE_TAB_NAMES,
+			constants.PROGRESS_STATE_IMAGES);
+		var substate_menu = Template.get("progress_submenu").render(
+				new Context({ substate_menu_items: substate_menu_items })
+			);
+	
 		var procrasdonate_text = "";
 		var timewellspent_text = "";
 		var unsorted_text = "";
@@ -1653,13 +1374,21 @@ _extend(PageController.prototype, {
 			);
 		});
 		
-		var context = new Context({
-			timewellspent_text: timewellspent_text,
-			procrasdonate_text: procrasdonate_text,
-			unsorted_text: unsorted_text,
-			constants: constants,
-		});
-		return Template.get("site_classifications_middle").render(context);
+		var middle = Template.get("progress_classifications_middle").render(
+			new Context({
+				substate_menu: substate_menu,
+				constants: constants,
+				timewellspent_text: timewellspent_text,
+				procrasdonate_text: procrasdonate_text,
+				unsorted_text: unsorted_text,
+			})
+		);
+		request.jQuery("#content").html( middle );
+		
+		this.activate_substate_menu_items(request, 'classifications',
+			constants.PROGRESS_STATE_ENUM, constants.PROGRESS_STATE_INSERTS, constants.PROGRESS_STATE_PROCESSORS);
+		
+		this.activate_site_classifications_middle(request);
 	},
 	
 	make_site_box: function(request, /*sitegroup_id,*/ name, url, tag) {
@@ -1745,6 +1474,37 @@ _extend(PageController.prototype, {
 		//}
 	},
 	
+	insert_progress_visits: function(request) {
+		var self = this;
+		this.prefs.set('progress_state', 'visits');
+
+		var substate_menu_items = this.make_substate_menu_items('visits',
+			constants.PROGRESS_STATE_ENUM,
+			constants.PROGRESS_STATE_TAB_NAMES,
+			constants.PROGRESS_STATE_IMAGES);
+		var substate_menu = Template.get("progress_submenu").render(
+				new Context({ substate_menu_items: substate_menu_items })
+			);
+		
+		var visits = [];
+		this.pddb.Visit.select({ enter_at__gte: _dbify_date(_start_of_day()) }, function(row) {
+			visits.push(row);
+		}, "-enter_at");
+		
+		var middle = Template.get("progress_visits_middle").render(
+			new Context({
+				substate_menu: substate_menu,
+				constants: constants,
+				visits: visits//.slice(0, 100)
+			})
+		);
+		request.jQuery("#content").html( middle );
+		
+		this.activate_substate_menu_items(request, 'visits',
+			constants.PROGRESS_STATE_ENUM, constants.PROGRESS_STATE_INSERTS, constants.PROGRESS_STATE_PROCESSORS);
+		
+	},
+	
 	/*************************************************************************/
 	/******************************* REGISTER ********************************/
 	
@@ -1755,7 +1515,10 @@ _extend(PageController.prototype, {
 		var substate_menu_items = this.make_substate_menu_items('incentive',
 				constants.REGISTER_STATE_ENUM, constants.REGISTER_STATE_TAB_NAMES);
 		var substate_menu = Template.get("register_submenu").render(
-				new Context({ substate_menu_items: substate_menu_items })
+				new Context({
+					substate_menu_items: substate_menu_items,
+					submenu_id: "register_track"
+				})
 			);
 		
 		var middle = Template.get("register_incentive_middle").render(
@@ -1770,11 +1533,10 @@ _extend(PageController.prototype, {
 		request.jQuery("#content").html( middle );
 		
 		this.activate_substate_menu_items(request, 'incentive',
-			constants.REGISTER_STATE_ENUM, constants.REGISTER_STATE_INSERTS, constants.REGISTER_STATE_PROCESSORS);
+				constants.REGISTER_STATE_ENUM, constants.REGISTER_STATE_INSERTS, constants.REGISTER_STATE_PROCESSORS);
 	},
 	
 	process_register_incentive: function(request) {
-		logger("process_register_incentive");
 		var self = this;
 		var pd_dollars_per_hr = request.jQuery("input[name='pd_dollars_per_hr']").attr("value");
 		var pd_hr_per_week_goal = request.jQuery("input[name='pd_hr_per_week_goal']").attr("value");
@@ -1794,11 +1556,9 @@ _extend(PageController.prototype, {
 			request.jQuery("#max_error").text("You maximum hours cannot be less than your goal");
 
 		} else {
-			logger("333333333 "+this.prefs.get('pd_hr_per_week_goal', "banana")+"     "+pd_hr_per_week_goal+"-----"+this.clean_hours_input(pd_hr_per_week_goal));
 			this.prefs.set('pd_dollars_per_hr', this.clean_dollars_input(pd_dollars_per_hr));
 			this.prefs.set('pd_hr_per_week_goal', this.clean_hours_input(pd_hr_per_week_goal));
 			this.prefs.set('pd_hr_per_week_max', this.clean_hours_input(pd_hr_per_week_max));
-			logger("777777777 "+this.prefs.get('pd_hr_per_week_goal', "banana"));
 			return true;
 		}
 		return false;
@@ -1811,8 +1571,11 @@ _extend(PageController.prototype, {
 		var substate_menu_items = this.make_substate_menu_items('charities',
 				constants.REGISTER_STATE_ENUM, constants.REGISTER_STATE_TAB_NAMES);
 		var substate_menu = Template.get("register_submenu").render(
-				new Context({ substate_menu_items: substate_menu_items })
-			);
+			new Context({
+				substate_menu_items: substate_menu_items,
+				submenu_id: "register_track"
+			})
+		);
 		
 		var categories = [];
 		this.pddb.Category.select({}, function(row) {
@@ -1882,19 +1645,15 @@ _extend(PageController.prototype, {
 		// activate recipient suggestion
 		request.jQuery("#new_recipient_submit").click(function() {
 			var value = request.jQuery("#new_recipient_name").attr("value").trim();
-			logger("value:"+value+".");
 			if (!value || value == "") return
 			
 			var slug = slugify(value);
-			logger("slug:"+slug+"."+(!slug)+" "+(slug==""));
 			if (!slug || slug == "") {
 				slug = "blank_" + parseInt(Math.random()*10000)
-				logger("new slug:"+slug+".");
 			}
 			// ensure unique slug
 			if (self.pddb.Recipient.get_or_null({ slug: slug })) {
 				slug = slug + "_" + parseInt(Math.random()*10000);
-				logger("2new slug:"+slug+".");
 			}
 			// create User Created category if necessary
 			var category = self.pddb.Category.get_or_create({ category: "User Created" });
@@ -2021,8 +1780,11 @@ _extend(PageController.prototype, {
 		var substate_menu_items = this.make_substate_menu_items('content',
 				constants.REGISTER_STATE_ENUM, constants.REGISTER_STATE_TAB_NAMES);
 		var substate_menu = Template.get("register_submenu").render(
-				new Context({ substate_menu_items: substate_menu_items })
-			);
+			new Context({
+				substate_menu_items: substate_menu_items,
+				submenu_id: "register_track"
+			})
+		);
 		
 		var middle = Template.get("register_content_middle").render(
 			new Context({
@@ -2072,8 +1834,11 @@ _extend(PageController.prototype, {
 		var substate_menu_items = this.make_substate_menu_items('support',
 				constants.REGISTER_STATE_ENUM, constants.REGISTER_STATE_TAB_NAMES);
 		var substate_menu = Template.get("register_submenu").render(
-				new Context({ substate_menu_items: substate_menu_items })
-			);
+			new Context({
+				substate_menu_items: substate_menu_items,
+				submenu_id: "register_track"
+			})
+		);
 		
 		var middle = Template.get("register_support_middle").render(
 			new Context({
@@ -2113,13 +1878,18 @@ _extend(PageController.prototype, {
 		for (var k in jq) { keys.push(k); }
 		_pprint(keys);*/
 		
-		//var jq = request.add_jQuery_ui();
 		//var jq = requestjQuery;
 		//jq("#monthly_fee").effect("bounce");
 		//jq("#monthly_fee_slider").slider({ handle: ".ui-slider-handle" });
 		//jq("#monthly_fee_slider").slider();
 		//jq("#frame_for_slider").append("<div id=\"monthly_fee_slider\"></div>");
-		//jq("#monthly_fee_slider").slider();
+
+		//////////////////////////////////////////////////////////////////
+		var jq = request.add_jQuery_ui();
+		jq("#monthly_fee_slider").slider();
+		//////////////////////////////////////////////////////////////////
+		
+		//var slider = new Slider(request.jQuery);
 		
 		//jQuery_UI(jq);
 		
@@ -2157,8 +1927,11 @@ _extend(PageController.prototype, {
 		var substate_menu_items = this.make_substate_menu_items('updates',
 				constants.REGISTER_STATE_ENUM, constants.REGISTER_STATE_TAB_NAMES);
 		var substate_menu = Template.get("register_submenu").render(
-				new Context({ substate_menu_items: substate_menu_items })
-			);
+			new Context({
+				substate_menu_items: substate_menu_items,
+				submenu_id: "register_track"
+			})
+		);
 		
 		var middle = Template.get("register_updates_middle").render(
 			new Context({
@@ -2199,7 +1972,7 @@ _extend(PageController.prototype, {
 		}
 		
 		if (old_email != email) {
-			this.pddb.page.pd_api.send_data();
+			this.pd_api.send_data();
 		}
 		return tos
 	},
@@ -2288,7 +2061,7 @@ _extend(PageController.prototype, {
 		this.activate_register_payments(request);
 		
 		// Receive updates from server
-		this.pddb.page.pd_api.request_data_updates(
+		this.pd_api.request_data_updates(
 			function() {
 				// after success
 				var multi_auth = self.pddb.FPSMultiuseAuthorization.get_latest_success()
@@ -2366,5 +2139,343 @@ _extend(PageController.prototype, {
 	
 	process_register_done: function(request) {
 		return true
+	},
+	
+	/*************************************************************************/
+	/************************** TESTS AND CHECKS *****************************/
+	
+	add_random_visits: function() {
+		var self = this;
+		
+		var test1 = this.pddb.SiteGroup.get_or_create({
+			host: "test_pd.com"
+		}, {
+			name: "test_pd.com",
+			tag_id: self.pddb.ProcrasDonate.id
+		});
+		var test2 = this.pddb.SiteGroup.get_or_create({
+			host: "test_tws.com"
+		}, {
+			name: "test_tws.com",
+			tag_id: self.pddb.TimeWellSpent.id
+		});
+		
+		// add visits for last four weeks
+		// this week
+		var start = _start_of_day();
+		var times = [_dbify_date(start)];
+		// last week
+		start.setDate(start.getDate() - 7);
+		times.push( _dbify_date(start) );
+		// two weeks ago
+		start.setDate(start.getDate() - 7*2);
+		times.push( _dbify_date(start) );
+		// three weeks ago
+		start.setDate(start.getDate() - 7*3);
+		times.push( _dbify_date(start) );
+		
+		_iterate(times, function(key, time, index) {
+			var duration = 1000 + Math.floor(Math.random()*1000);
+			var urls = ["http://test_pd.com/apage.html",
+			            "http://test_pd.com/bpage.html",
+			            "http://test_pd.com/apage.html",
+			            "http://test_pd.com/bpage.html",
+			            "http://test_pd.com/apage.html",
+			            
+			            "http://test_tws.com/cpage.html",
+			            "http://test_tws.com/cpage.html",
+			            "http://test_tws.com/cpage.html",
+			            "http://test_tws.com/cpage.html",
+			            "http://test_tws.com/cpage.html",
+			            "http://test_tws.com/cpage.html"];
+			for (var i = 0; i < urls.length; i++) {
+				// add at least 2000 seconds to start time
+				// times the number of visits already done
+				self.pddb.store_visit(urls[i], time + i*2000, duration);
+			}
+		});
+	},
+
+	///
+	/// Triggers daily cycle. Does not reset 24hr period state.
+	///
+	trigger_daily_cycle: function() {
+		logger("triggering daily cycle...");
+		this.pddb.schedule.do_once_daily_tasks();
+		logger("...daily cycle done");
+	},
+	
+	///
+	/// Triggers weekly cycle. Does not reset weekly period state.
+	///
+	trigger_weekly_cycle: function() {
+		logger("triggering weekly cycle...");
+		this.pddb.schedule.do_once_weekly_tasks();
+		logger("...weekly cycle done");
+	},
+	
+	///
+	/// Triggers payment. Does not reset payment period.
+	///
+	trigger_payment: function() {
+		logger("triggering payment...");
+		this.pd_api.make_payments_if_necessary(true);
+		logger("...payment done");
+	},
+	
+	trigger_on_install: function() {
+		myOverlay.onInstall("0.0.0");
+	},
+	
+	trigger_init_db: function() {
+		this.pddb.init_db();
+	},
+	
+	manual_test_suite: function(request) {
+		var actions = ["trigger_daily_cycle",
+		               "trigger_weekly_cycle",
+		               "",
+		               "trigger_payment",
+		               "",
+		               "trigger_on_install",
+		               "trigger_init_db",
+		               "",
+		               "reset_state_to_defaults",
+		               "reset_account_to_defaults",
+		               "initialize_state",
+		               "add_random_visits"];
+		var html = Template.get("manual_test_suite").render(new Context({
+			actions: actions
+		}));
+		request.jQuery("#content").append( html );
+
+		var self = this;
+		for (var i = 0; i < actions.length; i++) {
+			var action = actions[i];
+			request.jQuery("#"+action).click(
+				// closure to call self[action].
+				// extra function needed to provide appropriate 'this'
+				(function(a) { return function() {
+					self[a]();
+				}})(action)
+				//// the above code is complicated to remember, anyway.
+				//self._self_fn(action);
+			);
+		}
+	},
+	
+	///
+	/// wanted to use this instead of above, but kept getting errors on
+	///     self._self_fn(action)
+	/// said missing closing ")" ?!
+	/// wanted to use apply so could be used for _proceed as well
+	///
+	_self_fn: function(fnname) {
+		var self = this;
+		return function() {
+			//self[fnname].apply(self, args);
+			//self[fname](request);
+			//self[event](request);
+			logger("inside _self_fn for "+fnname);
+		};
+	},
+
+	/// run tester tests (mutates db) and checker checks 
+	/// (checks db) on test database
+	automatic_test_suite: function(request) {
+		var tester = new PDTests(this.pddb, this.prefs);
+		var checker = new PDChecks(this.pddb, this.prefs);
+		
+		var testrunner = new TestRunner(request);
+		var self = this;
+		
+		testrunner.test("Check *REAL DATA* Requires Payments", function() {
+			checker.check_requires_payments(testrunner);
+		});
+		
+		testrunner.test("Check *REAL DATA* Payment Total Taggings", function() {
+			checker.check_payment_total_taggings(testrunner);
+		});
+		
+		testrunner.test("Check *REAL DATA* Payments", function() {
+			checker.check_payments(testrunner);
+		});
+		
+		var original_pddb = self.pddb;
+		
+		try {
+			self.pddb = new PDDB("test.0.sqlite");
+			self.pddb.init_db();
+			
+			testrunner.test("Test Update Totals", function() {
+				tester.test_update_totals(testrunner);
+			});
+			
+			testrunner.test("Check Requires Payments", function() {
+				checker.check_requires_payments(testrunner);
+			});
+			
+			testrunner.test("Check Payment Total Taggings", function() {
+				checker.check_payment_total_taggings(testrunner);
+			});
+			
+			testrunner.test("Check Payments", function() {
+				checker.check_payments(testrunner);
+			});
+			
+			/// WARNING: this uses setTimeout to test blur/focus,
+			///          idle/back, start/stop-recording....
+			///          tests after this one should worry about interference!
+			
+			/// WARNING 2: this test requires the tester to continuous move 
+			///            their mouse but not click so that IDLE isn't
+			///            inadvertantly triggered in the middle of the test.
+			///            the test runs for at least 5 minute.
+			/*testrunner.test("Test Idle/Back-Focus/Blur Combos", function() {
+				self.pddb.tester.test_idle_focus_combos(testrunner, self.display_test_results);
+			});*/
+		} catch(e) {
+			self.pddb.orthogonals.error(e+"\n\n"+e.stack);
+		}
+		
+		self.pddb = original_pddb;
+		
+		self.display_test_results(testrunner);
+	},
+	
+	/// run TIMING tester tests (mutates db) and checker checks 
+	/// (checks db) on test database
+	/// see WARNINGS below
+	timing_test_suite: function(request) {
+		var tester = new PDTests(this.pddb, this.prefs);
+		var checker = new PDChecks(this.pddb, this.prefs);
+		
+		var testrunner = new TestRunner(request);
+		var self = this;
+		
+		var original_pddb = self.pddb;
+		
+		// change default max idles to 10 and 30 seconds
+		// otherwise test would take looooong time.
+		var orig_default_max_idle = constants.DEFAULT_MAX_IDLE;
+		var orig_default_flash_max_idle = constants.DEFAULT_FLASH_MAX_IDLE;
+		constants.DEFAULT_MAX_IDLE = 10;
+		constants.DEFAULT_FLASH_MAX_IDLE = 30;
+		
+		try {
+			self.pddb = new PDDB("test.0.sqlite");
+			self.pddb.init_db();
+
+			/// WARNING: this uses setTimeout to test blur/focus,
+			///          idle/back, start/stop-recording....
+			///          tests after this one should worry about interference!
+			
+			/// WARNING 2: this test requires the tester to continuous move 
+			///            their mouse but not click so that IDLE isn't
+			///            inadvertantly triggered in the middle of the test.
+			///            the test runs for at least 5 minute.
+			testrunner.test("Test Idle/Back-Focus/Blur Combos", function() {
+				tester.test_idle_focus_combos(testrunner, self.display_test_results);
+			});
+		} catch(e) {
+			self.pddb.orthogonals.error(e+"\n\n"+e.stack);
+		}
+		
+		self.pddb = original_pddb;
+		
+		constants.DEFAULT_MAX_IDLE = orig_default_max_idle; 
+		constants.DEFAULT_FLASH_MAX_IDLE = orig_default_flash_max_idle;
+		
+		self.display_test_results(testrunner);
+	},
+	
+	display_test_results: function(testrunner) {
+		var inner_display = new TestRunnerConsoleDisplay();
+		var display = new TestRunnerPDDisplay(inner_display, this.pddb);
+		for (var name in testrunner.test_modules) {
+			var test_module = testrunner.test_modules[name];
+			for (var i = 0; i < test_module.test_groups.length; i++) {
+				var testgroup = test_module.test_groups[i];
+				
+				display.display_testgroup_result(testrunner, testgroup);
+			}
+		}
+		display.test_done(testrunner);
 	}
+});
+
+function Schedule(pddb, prefs, pd_api) {
+	this.pddb = pddb;
+	this.prefs = prefs;
+	this.pd_api = pd_api;
+}
+Schedule.prototype = {};
+_extend(Schedule.prototype, {
+	run: function() {
+		if ( this.is_new_week_period() ) {
+			this.do_once_weekly_tasks();
+			this.do_make_payment();
+			this.reset_week_period();
+		}
+		if ( this.is_new_24hr_period() ) {
+			this.do_once_daily_tasks();
+			this.reset_24hr_period();
+		}
+	},
+	
+	is_new_24hr_period: function() {
+		/** @returns: true if the last marked day is over */
+		var yesterday = _un_dbify_date(this.prefs.get('last_24hr_mark', 0));
+		var start_of_yesterday = _start_of_day(yesterday);
+		var start_of_day = _start_of_day();
+		return start_of_yesterday < start_of_day
+	},
+
+	do_once_daily_tasks: function() {
+		var self = this;
+		
+		// Receive updates from server
+		this.pd_api.request_data_updates(
+			function() {
+				// after success
+			}, function() {
+				// after failure
+			});
+		
+		// ?? run checker to log failures, db corruptions
+		
+		// Send data to server (more recent than time_last_sent_KlassName)
+		this.pd_api.send_data();
+	},
+	
+	reset_24hr_period: function() {
+		/** reset 24 hour cycle to start of today */
+		var start_of_day = _start_of_day();
+		this.prefs.set('last_24hr_mark', _dbify_date(start_of_day));
+	},
+	
+	is_new_week_period: function() {
+		/** @returns: true if the last marked week is over */
+		var last_week = _un_dbify_date(this.prefs.get('last_week_mark', 0));
+		var start_of_last_week = _start_of_week(last_week);
+		var start_of_week = _start_of_week();
+		return start_of_last_week < start_of_week
+	},
+	
+	do_once_weekly_tasks: function() {
+		this.pddb.page.create_weekly_report();
+	},
+	
+	do_make_payment: function() {
+		/* all logic for whether to make payments is in pd_api */
+		this.pd_api.make_payments_if_necessary(false);
+	},
+
+	reset_week_period: function() {
+		/** reset weekly cycle to start of this week */
+		//var last_week = _un_dbify_date(this.prefs.get('last_week_mark', 0));
+		var start_of_week = _start_of_week();
+		this.prefs.set('last_week_mark', _dbify_date(start_of_week));
+	},
+
 });

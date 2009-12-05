@@ -113,7 +113,7 @@ function install(anchor_class) {
 		var cur_url = location.pathname.split("/");
 		var slug = "__none__";
 		if (cur_url.length >= 2) {
-			slug = cur_url[1].trim();
+			slug = $.trim(cur_url[1]);
 		}
 		$.post("/generate_xpi/"+slug+"/",
 				{},
