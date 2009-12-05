@@ -17,18 +17,18 @@
    dark brown text (was 330000)
    yellow chart background f7edb4
    beige highlight for accounting FBFBDE
+   body bg fbfbfa
 */
 
 /******** GENERAL LOOK AND FEEL *******************************************/
 
 body {
-	/*background-image: url("/procrasdonate_media/img/StripeBG.png");*/
-	background: white;			
+	background: #fbfbfa;			
 	color: #330000;
 	margin: 0em;
 	padding: 0em;
 	font-family:Verdana, Arial, Helvetica, sans-serif;
-	font-size:12px;
+	font-size:12.2px;
 	text-align: center;
 }
 
@@ -41,7 +41,7 @@ a img { border: none; }
 
 img { -ms-interpolation-mode:bicubic; }
 .img_link { text-decoration: none; cursor: pointer; }
-.text-image {height: 1.9em; vertical-align: bottom; }
+.text-image {height: 1.65em; vertical-align: bottom; }
 .lower-image { margin-bottom: -.25em; }
 
 .paragraph_list li { margin-top: 1em; }
@@ -55,9 +55,9 @@ img { -ms-interpolation-mode:bicubic; }
 .message, .messages, #message, #messagees { }
 
 /******** GENERAL LAYOUT *******************************************/
-#top_bar { background: #E4E4E4; padding-top: .6em; text-align: left; }
+#top_bar { background: #E4E4E4; padding-top: .6em; text-align: left; border-bottom: 0.2em solid #dbdada }
 #laptop_logo { width: 9em; margin-bottom: -3.2em; }
-#pd_line_cartoon { width: 34em; margin: 0 12.2em -0.473em 0; }
+#pd_line_cartoon { width: 37em; margin: 0 9.2em -0.473em 0; }
 #download_top_button { width: 10em; }
 
 .center_column {
@@ -232,26 +232,29 @@ img { -ms-interpolation-mode:bicubic; }
 #big_video { }
 
 #focus_slogan_line2 {margin-top:-1.4em; }
+#focus_slogan_line3 {margin-top:1.4em; font-size:1.1em;}
+#focus_image {height: 3.4em; margin-top:1em; padding: 0 .8em;}
 
 .focus_slogans {
 	text-align: center;
 	font-weight: bold;
-	line-height: 3em;
 	letter-spacing: -0.03em;
+	margin-top: -2.7em;
 }
-.focus_slogans div { margin-bottom: 1.4em; }
+.focus_slogans div { }
+#left-side-info {margin-bottom: .5em; margin-top: .5em; margin-left: -7em; }
 #download_wrapper { text-align: center; }
-#download { width: 20em; }
+#download { width: 23em; }
 /* inserted by extension on splash page */
 #download_wrapper #ExtensionMenu { margin: 3em 0em 0em 6.7em; width: 8.4em; font-weight: normal; line-height: 1.2em; }
 
 #community {
 	width: 100%;
-	font-size: 1.4em;
-	font-weight: bold;
+	font-size: 1.5em;
 	color: #AAAAAA;
 	margin: 0em;
 	padding: 0em;
+	letter-spacing: .02em;
 }
 #community td { vertical-align: top; }
 #community_left { text-align: left; }
@@ -260,22 +263,26 @@ img { -ms-interpolation-mode:bicubic; }
 
 #charities_bar {
 	background: #AAAAAA;
-	padding: 1em 0em .8em 0em;
+	padding: 0.6em 0 1em;
+	border-top: 0.2em solid #bebdac;
 	margin-top: 1em;
 }
 #charities_bar_info {
 	color: white;
 	display: inline;
-	font-size: 2em;
+	font-size: 1.8em;
+	vertical-align: top;
 	font-family: georgia;
-	font-variant: small-caps;
+	letter-spacing: .09em;
 }
+#charities_bar_table { width: 100%; }
+#charities_bar_subtext { font-size: .59em; margin-left: -.4em}
 #charities { display: inline; }
 #charities .charity_logo {
-	border: 2px solid white;
-	background: white;
-	margin: 0em .5em;
+	float: right; margin-right: 1em; margin-left: 1em; margin-top: .3em;
+	border: 0.25em groove #bbba93; padding: 0em 0em;
 }
+
 #charities div.charity_logo { width: 50px; display: inline; }
 
 #more_information { clear: both; }
@@ -286,12 +293,11 @@ img { -ms-interpolation-mode:bicubic; }
 
 #extra_home_navigation {
 	float: right;
-	margin-top: 1.5em;
+	margin-top: 1.8em;
 	margin-left: 1em;
 	text-align: center;
-	padding: 0em .5em;
+	padding: 0 .7em .6em .7em;
 	background: #EEEEEE;
-	border-left: 1px solid #E5E5E5;
 }
 #home_menu { padding: .4em; }
 #home_menu div {
@@ -306,7 +312,8 @@ img { -ms-interpolation-mode:bicubic; }
 	margin-top: 1em;
 }
 
-#blog_posts { width: 20em; }
+#blog_posts { width: 20em;	background: white;
+}
 #blog_posts h3 {
 	margin: 1em 0em 0em 0em;
 	padding: 1em 0em .1em 0em;
@@ -316,17 +323,17 @@ img { -ms-interpolation-mode:bicubic; }
 }
 #blog_posts h3 a { text-decoration: none; }
 .blog_post h4 {
-	margin: 1em 0em 0em;
+	margin: .7em 0em .5em 1.5em;
 	padding: 0em;
 	font-size: 1.1em;
-	text-align: center;
+	text-align: left;
 }
-.blog_post h4 a { text-decoration: none; }
+.blog_post h4 a { text-decoration: none;}
 .blog_post p { padding: 0em; margin: 0em; }
 
 
 
-#HOME { margin-left: 5em; }
+#HOME { margin-left: 5.3em; }
 #HOME h2:first-child { margin-top: 0em; }
 #TheBanner {}
 #logo_banner { width: 38em; }
@@ -340,8 +347,8 @@ img { -ms-interpolation-mode:bicubic; }
 .superheader { color: #669933; font-size: .8em; vertical-align: top; }
 .subheader { color: #669933; font-size: .8em; }
 
-.small-image { width: 3.3em; float: left; margin-left: -4.1em; margin-top: -2.6em; }
-.screenshot-long { width: 15em; float: right; margin-right: 1em; margin-left: 1em; margin-top: .5em;
+.small-image { width: 3.9em; float: left; margin-left: -5.6em; margin-top: -2.6em; }
+.screenshot-long { width: 13.5em; float: right; margin-right: 1em; margin-left: 1em; margin-top: .45em;
 	border: 0.27em ridge #156451; -moz-border-radius: .4em; padding: .6em .4em;
 }
 
@@ -473,7 +480,7 @@ h4 {
 
 .help { color: #777777; }
 .summaryhelp { float: left; padding: .5em 0em 0em .5em; color: #777777; }
-td { padding: .6em 0em .5em 0em; vertical-align: middle; }
+td { vertical-align: middle; }
 
 .label { padding-right: 0em; }
 
@@ -535,7 +542,7 @@ td { padding: .6em 0em .5em 0em; vertical-align: middle; }
 .Move_Site_Arrow { width: 1.2em; vertical-align: bottom; margin-bottom: -.25em; padding: 0 .5em 0 .5em; }
 
 /**** REGISTER ****/
-#register_track ul { text-align: center; list-style-type: none; margin: 0em; padding: 0em; }
+#register_track ul { text-align: center; list-style-type: none; margin-left: -2em; padding: 0em; }
 #register_track ul li { text-align: center; display: inline; }
 #register_track .bar { vertical-align: bottom; }
 #register_track .bar img { width: 2.5em; margin-bottom: .1em; margin: auto -.9em; }
@@ -546,9 +553,9 @@ td { padding: .6em 0em .5em 0em; vertical-align: middle; }
 #register_track .menu_text .past { color: green; }
 #register_track .menu_text .future { color: #330000; }
 
-.prev { margin: 1em 1em 0em 0em; width: 6em; max-height: 52px; cursor: pointer; }
-.next { margin: 1em 0em 0em 1em; width: 6em; max-height: 52px; cursor: pointer; }
-.done { margin: 1em 1em 0em 0em; width: 6em; cursor: pointer; }
+.prev { margin: 1em 1em 0em -2em; width: 6em; max-height: 52px; cursor: pointer; }
+.next { margin: 1em 0em 0em -1em; width: 6em; max-height: 52px; cursor: pointer; }
+.done { margin: 1em 1em 0em -2em; width: 6em; cursor: pointer; }
 
 /**** REGISTER PAYMENTS ****/
 

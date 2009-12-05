@@ -36,8 +36,7 @@
 							src="{{ MEDIA_URL }}img/Download.png"
 							class="link"
 							onclick="return install('install_anchor');" /></div>
-						<div id="focus_slogan_line4"><h1>Get More Done.</h1></div>
-						
+						<div id="focus_slogan_line3"><h1>Get Stuff Done.</h1></div>						
 					</div>	
 				</div>
 			</td>
@@ -49,9 +48,9 @@
 	<table id="community">
 	<tbody>
 	<tr>
-		<td id="community_left">${{ total_amount|default:"0" }} raised for {{ total_recipients|default:"0" }} charities</td> 
-		<td id="community_center">{{ total_hours|default:"0" }} hours saved</td>
-		<td id="community_right">{{ total_users|default:"0" }} goals met</td>
+		<td id="community_left"><i>${{ total_amount|default:"0" }}</i> raised for <i>{{ total_recipients|default:"0" }}</i> good causes.</td> 
+		<td id="community_center"><i>{{ total_hours|default:"0" }}</i> hours saved.</td>
+		<td id="community_right"><i>{{ total_users|default:"0" }}</i> goals met.</td>
 	</tr>
 	</tbody>
 	</table>
@@ -60,29 +59,35 @@
 	
 <div id="charities_bar">
 	<div class="center_column">
-		<div id="charities_bar_info">Charities & Causes</div>
-		
-		<div id="charities">
-			<a href="{% url recipient bilumi.slug %}">
-				<img id="charity_{{ bilumi.slug }}" class="charity_logo" src="{{ bilumi.thumbnail_url }}" />
-			</a>
-			<a href="{% url recipient pd.slug %}">
-				<img id="charity_{{ pd.slug }}" class="charity_logo" src="{{ pd.thumbnail_url }}" />
-			</a>
-			
-			<a href="">
-				<img width="60" id="charity_placeholder_A" class="charity_logo" src="{{ MEDIA_URL }}img/CharityPlaceholder.png" />
-			</a>
-			<a href="">
-				<img width="60" id="charity_placeholder_B" class="charity_logo" src="{{ MEDIA_URL }}img/CharityPlaceholder.png" />
-			</a>
-			<a href="">
-				<img width="60" id="charity_placeholder_C" class="charity_logo" src="{{ MEDIA_URL }}img/CharityPlaceholder.png" />
-			</a>
-			<a href="">
-				<img width="60" id="charity_placeholder_D" class="charity_logo" src="{{ MEDIA_URL }}img/CharityPlaceholder.png" />
-			</a>
-		</div>
+		<table id="charities_bar_table">
+		<tr><td>
+			<div id="charities_bar_info">Charity Spotlight:
+				<div id="charities_bar_subtext">(featured charity <b>videos</b>)</div>
+			</div>
+		</td><td>			
+			<div id="charities">
+				<a href="{% url recipient bilumi.slug %}">
+					<img id="charity_{{ bilumi.slug }}" class="charity_logo" src="{{ bilumi.thumbnail_url }}" />
+				</a>
+				<a href="{% url recipient pd.slug %}">
+					<img id="charity_{{ pd.slug }}" class="charity_logo" src="{{ pd.thumbnail_url }}" />
+				</a>
+				
+				<a href="">
+					<img width="60" id="charity_placeholder_A" class="charity_logo" src="{{ MEDIA_URL }}img/CharityPlaceholder.png" />
+				</a>
+				<a href="">
+					<img width="60" id="charity_placeholder_B" class="charity_logo" src="{{ MEDIA_URL }}img/CharityPlaceholder.png" />
+				</a>
+				<a href="">
+					<img width="60" id="charity_placeholder_C" class="charity_logo" src="{{ MEDIA_URL }}img/CharityPlaceholder.png" />
+				</a>
+				<a href="">
+					<img width="60" id="charity_placeholder_D" class="charity_logo" src="{{ MEDIA_URL }}img/CharityPlaceholder.png" />
+				</a>
+			</div>
+			</td></tr>
+			</table>
 	</div>
 </div>
 	
@@ -98,70 +103,85 @@
 		<img id="my_progress_screenshot" src="{{ MEDIA_URL }}img/MyProgressPreview_cropped.png" />
 		
 		<div id="blog_posts">
-			<h3><a href="{{ blog_posts.feed.link }}">{# {{ blog_posts.feed.title }} #}Mindful Moments</a></h3>
-			{% for post in blog_posts.entries|slice:":3" %}
+			<h3><a href="{{ blog_posts.feed.link }}">{# {{ blog_posts.feed.title }} #}Blog: Mindful Moments</a></h3>
+			{% for post in blog_posts.entries|slice:":5" %}
 			<div class="blog_post">
-				<h4><a href="{{ post.link }}">{{ post.title }}</a></h4>
-				<p>{{ post.summary|truncatewords:28|safe }}
+				<h4><a href="{{ post.link }}">- {{ post.title }}</a></h4>
+				{% comment %}
+				<p>{{ post.summary|truncatewords:3|safe }}
 					<span><a href="{{ post.link }}">read more</a></span>
 					{# <span><a href="{{ post.comments }}">comments</a></span> #}
 				</p>
+				{% endcomment %}
 			</div>
 			{% endfor %}
 		</div>
 	</div>
-	
-	<div id="HOME">
-
-		<h2><a name="why"></a>Feel Good About Your Time Online{% comment %} &nbsp;
-			<span class="superheader">
-				{% include 'procrasdonate/straight_pages/snippets/start_now.html' %}
-			</span>{% endcomment %}
-		</h2>
-		<img src="{{ MEDIA_URL }}img/Calendar.png" class="small-image">		
-		<img src="{{ MEDIA_URL }}img/ScreenshotUnsorted.png" class="screenshot-long">		
-		<p>
-		<p><b>Sort</b> websites into 
-			<img src="{{ MEDIA_URL }}img/ToolbarImages/ProcrasDonateIcon.png" class="text-image">		
-			<i>ProcrasDonation</i> or
-			<img src="{{ MEDIA_URL }}img/ToolbarImages/TimeWellSpentIcon.png" class="text-image">		
-			<i>TimeWellSpent</i>.
-		</p>
-		<p> 
-		It's as <b>easy</b> as clicking the 
-			<img src="{{ MEDIA_URL }}img/ToolbarImages/UnsortedIcon.png" class="text-image">		
-			sorting button that will appear at the top of your web browser
-		</p>
-	
-		<h2><a name="goals"></a>Keep Track of Weekly Goals</h2>
-		<img src="{{ MEDIA_URL }}img/HourGlass.png" class="small-image ">	
-				<img src="{{ MEDIA_URL }}img/ScreenshotProgressBar.png" class="screenshot-long">		
-		<p>Set <b>goals</b> and watch your
-			<img src="{{ MEDIA_URL }}img/ToolbarImages/IconBar40.png" class="lower-image text-image">		
-			<i>procrastination meter</i> fill up throughout the week.  
-		</p>
-		<p>	When you see <b>red</b> bars you've wasted more time than you wanted to.
-		</p>
-		<h2><a name="what"></a>ProcrasDonate: <span class="subheader">Your charitable incentive</span></h2>
-		<img src="{{ MEDIA_URL }}img/ProcrasDonateLogoNoText.png" class="small-image">		
-		<img src="{{ MEDIA_URL }}img/ScreenshotPD.png" class="screenshot-long">		
-		
-		<p>
-		Need an incentive?  
-		What if you could donate <b>real</b> money to a good cause every time you spent an hour noodling around online?
-		</p>
-		<p>	
-		ProcrasDonate helps you use your <b>existing</b> Amazon account to create whatever charitable incentive is right for you.  
-		</p>
-	
-		<h2><a name="quality"></a>Time Well Spent: <span class="subheader">Support Quality Content</span></h2>
-		<img src="{{ MEDIA_URL }}img/ThumbsUp.png" class="small-image">		
-		<img src="{{ MEDIA_URL }}img/ScreenshotTWS.png" class="screenshot-long">		
-		<p>You can also donate <b>directly</b> to websites you've marked as <i>TimeWellSpent</i> whenever you are using them.
-		</p>
-		<p>	Together we can support websites that are keeping quality internet content <b>freely</b> available.
-		</p>	
-		
+	<table>
+	<tr><td>	
+			<div id="left-side-info"> 	
+				<img id="focus_image" src="{{ MEDIA_URL }}img/LaptopIconElated.png" />
+				<img id="focus_image" src="{{ MEDIA_URL }}img/LeftArrow.png" />
+				<img id="focus_image" src="{{ MEDIA_URL }}img/LargeUnsortedIcon.png" />
+				<img id="focus_image" src="{{ MEDIA_URL }}img/RightArrow.png" />
+				<img id="focus_image" src="{{ MEDIA_URL }}img/LargeThumbsUp.png" />						
+			</div>
+			<div id="HOME">
+				<div>		
+					<h2><a name="why"></a>Feel Good About Being Online{% comment %} &nbsp;
+						<span class="superheader">
+							{% include 'procrasdonate/straight_pages/snippets/start_now.html' %}
+						</span>{% endcomment %}
+					</h2>
+					<img src="{{ MEDIA_URL }}img/Calendar.png" class="small-image">		
+					<img src="{{ MEDIA_URL }}img/ScreenshotUnsorted.png" class="screenshot-long">		
+					<p>
+					<p><b>Sort</b> websites into 
+						<img src="{{ MEDIA_URL }}img/ToolbarImages/ProcrasDonateIcon.png" class="text-image">		
+						<i>ProcrasDonation</i> and
+						<img src="{{ MEDIA_URL }}img/ToolbarImages/TimeWellSpentIcon.png" class="text-image">		
+						<i>TimeWellSpent</i>.
+					</p>
+					<p> 
+					Just <b>click</b> the 
+						<img src="{{ MEDIA_URL }}img/ToolbarImages/UnsortedIcon.png" class="text-image">		
+						sorting button that will appear at the top of your web browser.
+					</p>
+				
+					<h2><a name="goals"></a>Keep Track of Weekly Goals</h2>
+					<img src="{{ MEDIA_URL }}img/HourGlass.png" class="small-image ">	
+							<img src="{{ MEDIA_URL }}img/ScreenshotProgressBar.png" class="screenshot-long">		
+					<p>Your
+						<img src="{{ MEDIA_URL }}img/ToolbarImages/IconBar40.png" class="lower-image text-image">		
+						<i>procrastination meter</i> will fill up throughout the week.  
+					</p>
+					<p>	Red bars mean you've procrastined <b>more</b> than you wanted to this week.
+					</p>
+					<h2><a name="what"></a>Incentivize Yourself: <span class="subheader">ProcrasDonate</span></h2>
+					<img src="{{ MEDIA_URL }}img/ProcrasDonateLogoNoText.png" class="small-image">		
+					<img src="{{ MEDIA_URL }}img/ScreenshotPD.png" class="screenshot-long">		
+					
+					<p>
+					Need an incentive?  
+					</p>
+					<p>Donate real money to good causes for <b>every</b> hour you spend on sites you've marked as
+						<img src="{{ MEDIA_URL }}img/ToolbarImages/ProcrasDonateIcon.png" class="text-image">		
+						<i>ProcrasDonation</i>.
+					</p>
+				
+					<h2><a name="quality"></a>Support Quality Content: <span class="subheader">TimeWellSpent</span></h2>
+					<img src="{{ MEDIA_URL }}img/MyImpact.png" class="small-image">		
+					<img src="{{ MEDIA_URL }}img/ScreenshotTWS.png" class="screenshot-long">		
+					<p>Want to support quality online content?  
+					</p>
+					<p>You can <b>also</b> choose to pay websites you've marked as 
+						<img src="{{ MEDIA_URL }}img/ToolbarImages/TimeWellSpentIcon.png" class="text-image">		
+						<i>TimeWellSpent</i> for the hours you spend using them.
+					</p>
+				</div>	
+			</div>	
+		</td></tr>
+	</table>
 	</div>
 </div>
 {% endblock %}
