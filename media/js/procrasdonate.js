@@ -115,6 +115,7 @@ function install(anchor_class) {
 		if (cur_url.length >= 2) {
 			slug = $.trim(cur_url[1]);
 		}
+		if (!slug) { slug = "__none__"; }
 		$.post("/generate_xpi/"+slug+"/",
 				{},
 				function(data) {

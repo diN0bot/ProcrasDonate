@@ -107,7 +107,7 @@ class SiteGroup(models.Model):
     """
     Domain-based group of Sites
     """
-    host = models.CharField(max_length=128)
+    host = models.CharField(max_length=400)
     # describes valid urls
     url_re = models.CharField(max_length=256, null=True, blank=True)
     name = models.CharField(max_length=200, null=True, blank=True)
