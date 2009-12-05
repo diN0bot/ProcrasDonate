@@ -9,10 +9,9 @@
  *  have periodic callback anyway (rather than rely on sleep/wake)
  *  in order to catch bad shutdowns and hangups.
  */
-var InitListener = function InitListener(post_init_callback) {
+var InitListener = function InitListener() {
 	this.VERSION = -1;
 	
-	this.post_init_callback = post_init_callback;
 	this.register();
 };
 InitListener.prototype = {};
@@ -84,9 +83,6 @@ _extend(InitListener.prototype, {
 
 		// do install, update if necessary
 		this.checkVersion();
-		
-		this.post_init_callback(this);
-		this.post_init_callback = null;
 		
 		// remove listener (load only happens once anyway)
 		window.removeEventListener("load", function(event) { self.init(event); }, false);

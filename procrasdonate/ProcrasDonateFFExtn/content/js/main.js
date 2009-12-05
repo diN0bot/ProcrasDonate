@@ -9,19 +9,10 @@ function Overlay() {
 
 	this.toolbar_manager = {};
 	
-	// InitListener takes a post init callback argument.
-	// Overlay needs a toolbar_manager field for the xul overlay toolbar function calls.
-	var self = this;
-	this.init_listener = new InitListener(_bind(self, self.init_callback));
+	this.init_listener = new InitListener();
 };
 
 Overlay.prototype = {
-	init_callback: function(init_listener) {
-		_pprint_keys(this.toolbar_manager, " INIT CALLBACK --before-- ");
-		this.toolbar_manager = init_listener.toolbar_manager;
-		_pprint_keys(this.toolbar_manager, " INIT CALLBACK --after-- ");
-		_pprint_keys(this, " THIS ");
-	}
 };
 
 var PDDB = function PDDB(db_filename) {

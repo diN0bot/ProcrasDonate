@@ -66,7 +66,7 @@ function load_models(db, pddb) {
 			var site = this.get_or_null({url__eq: url});
 			if (!site) {
 				var host = _host(url);
-				var sitegroup = this.SiteGroup.get_or_create({
+				var sitegroup = SiteGroup.get_or_create({
 					host: host
 				}, {
 					name: host,
