@@ -84,7 +84,7 @@ class Site(models.Model):
     This is not a website that someone simple visited, 
     but rather a content provider that someone paid to visit.
     """
-    url = models.URLField()
+    url = models.URLField(max_length=400)
     sitegroup = models.ForeignKey('SiteGroup')
     
     @classmethod
@@ -107,7 +107,7 @@ class SiteGroup(models.Model):
     """
     Domain-based group of Sites
     """
-    host = models.CharField(max_length=128)
+    host = models.CharField(max_length=400)
     # describes valid urls
     url_re = models.CharField(max_length=256, null=True, blank=True)
     name = models.CharField(max_length=200, null=True, blank=True)
@@ -519,6 +519,9 @@ class SiteGroupTagging(models.Model):
         return SiteGroupTagging(tag=tag,
                                 sitegroup=sitegroup,
                                 user=user)
+    
+    def __unicode__(self):
+        return "%s: %s -> %s" % (user, tag, sitegroup)
 
 class Category(models.Model):
     """

@@ -1,0 +1,15 @@
+<h2>My Progress</h2>
+
+{{ substate_menu }}
+
+<h3>Website Visits</h3>
+
+<ol>
+	{% for visit in visits %}
+	<li>
+		<a href="{{ visit.site.url }}">{{ visit.site.url }}</a>
+		{{ visit.enter_at_display }} - 
+		{{ visit.duration_display }}
+	</li>
+	{% endfor %}
+</ol>

@@ -1,9 +1,11 @@
-<div id="register_track">
+<div id="{{ submenu_id }}" class="extn_submenu">
 {# ROW 1 #}
 	<ul>
 	{% for item in substate_menu_items.menu_items %}
 		<li class="{% for klass in item.klasses %}{{ klass }} {% endfor %}">
-			<img src="{{ item.img }}" />
+			{% if item.url %}<a href="{{ item.url }}">{% endif %}
+				<img src="{{ item.img }}" />
+			{% if item.url %}</a>{% endif %}
 		</li>
 		<li class="bar">
 			{% if not forloop.last %}

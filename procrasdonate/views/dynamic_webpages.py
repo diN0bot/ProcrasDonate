@@ -275,13 +275,15 @@ def _organizer_submenu(request, current_slug, recipient):
 def edit_promo_cards(request):
     recipient = request.user.get_profile().recipient
     substate_menu_items = _organizer_submenu(request, "promote", recipient)
-    
+    submenu_id = "organizer_submenu"
     return render_response(request, 'procrasdonate/recipient_organizer_pages/edit_promo_cards.html', locals())
 
 @login_required
 def edit_public_information(request):
+    print settings.TEMPLATE_DIRS
     recipient = request.user.get_profile().recipient
     substate_menu_items = _organizer_submenu(request, "public", recipient)
+    submenu_id = "organizer_submenu"
         
     FormKlass = get_form(Recipient, EDIT_TYPE, includes=('name',
                                                          'category',
@@ -341,7 +343,8 @@ def recipient_organizer_dashboard(request):
 def edit_private_information(request):
     recipient = request.user.get_profile().recipient
     substate_menu_items = _organizer_submenu(request, "private", recipient)
-        
+    submenu_id = "organizer_submenu"
+    
     FormKlass = get_form(Recipient, EDIT_TYPE, includes=('employers_identification_number',
                                                          'tax_exempt_status',
                                                          'sponsoring_organization',
@@ -379,6 +382,7 @@ def edit_private_information(request):
 def edit_media(request):
     recipient = request.user.get_profile().recipient
     substate_menu_items = _organizer_submenu(request, "media", recipient)
+    submenu_id = "organizer_submenu"
     
     FormKlass = get_form(Recipient, EDIT_TYPE, includes=('logo',
                                                          'promotional_video',

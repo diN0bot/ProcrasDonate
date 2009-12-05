@@ -1,0 +1,13 @@
+== TEMPLATE HIERARCHY ==
+
+     superbase
+        /\
+       /  \
+      /    \
+   home   base
+           /|\
+          / | \
+         /  |  \
+     [all other server templates]
+
+home is the splashy front page

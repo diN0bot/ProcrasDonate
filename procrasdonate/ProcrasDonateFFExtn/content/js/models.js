@@ -462,6 +462,32 @@ function load_models(db, pddb) {
 			return site
 		},
 		
+		enter_at_display: function() {
+			return _friendly_datetime(_un_dbify_date(this.enter_at));
+		},
+		
+		duration_display: function() {
+			var s = parseInt(this.duration);
+			var hrs = Math.floor(s / 3600);
+			var mins = Math.floor((s % 3600) / 60);
+			var secs = (s % 3600) % 60;
+			var ret = "";
+			if (hrs > 0) {
+				var d = (s / 3600).toFixed(1);
+				if (d > 1.0) { ret = d + " hrs"; }
+				else { ret = d + " hr"; }
+			} else if (mins > 0) {
+				if (mins < 10) { ret += "0"; }
+				ret += mins + " m, ";
+				if (secs < 10) { ret += "0"; }
+				ret += secs + " s";
+			} else {
+				if (secs > 1) { ret += secs + " secs"; }
+				else { ret += secs + " sec"; }
+			}
+			return ret;
+		},
+		
 		deep_dict: function() {
 			return {
 				id: this.id,
@@ -1035,9 +1061,6 @@ function load_models(db, pddb) {
 			// the above string can transformed to dates with new Date(ctimestr)
 			//
 			// not this, which is "%s" % self.timestamp -->2009-09-19 14:38:03.799905
-			
-			logger("multiauth process object: ");
-			_pprint(ma);
 			var multi_auth = FPSMultiuseAuthorization.get_or_null({
 				caller_reference: ma.caller_reference
 			});

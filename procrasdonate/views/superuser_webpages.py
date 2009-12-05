@@ -36,6 +36,16 @@ def user(request, private_key):
     return render_response(request, 'procrasdonate/superuser/user.html', locals())
 
 @user_passes_test(lambda u: u.is_superuser)
+def resend_register_organizer_email(request):
+    recipient_user_taggings = RecipientUserTagging.objects.filter(is_confirmed=False)
+    
+@user_passes_test(lambda u: u.is_superuser)
+def do_resend_register_organizer_email(request, recipient_username):
+    user = RecipientUser.objects.get(username=recipient_username)
+    tagging = user.get_profile()
+
+
+@user_passes_test(lambda u: u.is_superuser)
 def register_organizer(request):
     RecipientUserTaggingForm = get_form(RecipientUserTagging, EDIT_TYPE, excludes=('user',
                                                                                    'is_confirmed',

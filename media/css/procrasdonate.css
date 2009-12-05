@@ -541,17 +541,17 @@ td { vertical-align: middle; }
 
 .Move_Site_Arrow { width: 1.2em; vertical-align: bottom; margin-bottom: -.25em; padding: 0 .5em 0 .5em; }
 
-/**** REGISTER ****/
-#register_track ul { text-align: center; list-style-type: none; margin-left: -2em; padding: 0em; }
-#register_track ul li { text-align: center; display: inline; }
-#register_track .bar { vertical-align: bottom; }
-#register_track .bar img { width: 2.5em; margin-bottom: .1em; margin: auto -.9em; }
+/**** EXTENSION SUBMENU ****/
+.extn_submenu ul { text-align: center; list-style-type: none; margin: 0em 0em 0em-2em; padding: 0em; }
+.extn_submenu ul li { text-align: center; display: inline; }
+.extn_submenu .bar { vertical-align: bottom; }
+.extn_submenu .bar img { width: 2.5em; margin-bottom: .1em; margin: auto -.9em; }
 
-#register_track .substate_tab img { width: 4em; }
-#register_track .menu_text .substate_tab { padding: .6em; }
-#register_track .menu_text .current_tab { color: #336699; }
-#register_track .menu_text .past { color: green; }
-#register_track .menu_text .future { color: #330000; }
+.extn_submenu .substate_tab img { width: 4em; }
+.extn_submenu .menu_text .substate_tab { padding: .6em; text-decoration: none; }
+.extn_submenu .menu_text .current_tab, .extn_submenu .menu_text .current_tab a { color: #336699; }
+.extn_submenu .menu_text .past, .extn_submenu .menu_text .past a { color: green; }
+.extn_submenu .menu_text .future, .extn_submenu .menu_text .future a { color: #330000; }
 
 .prev { margin: 1em 1em 0em -2em; width: 6em; max-height: 52px; cursor: pointer; }
 .next { margin: 1em 0em 0em -1em; width: 6em; max-height: 52px; cursor: pointer; }
@@ -659,7 +659,8 @@ td { vertical-align: middle; }
 }
 
 /******** RECIPIENT ORGANIZER *******************/
-#register_track .menu_text li a { text-decoration: none; }
+#organizer_submenu .menu_text .substate_tab { padding: 0em .9em; }
+#organizer_submenu .menu_text li a { text-decoration: none; }
 
 .organizer_form td { text-align: left; }
 .organizer_form th { text-align: right; padding-right: 1em; }

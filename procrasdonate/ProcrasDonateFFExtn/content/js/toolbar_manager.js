@@ -1,11 +1,13 @@
 
-function PD_ToolbarManager(pddb) {
+function ToolbarManager(pddb, prefs) {
 	this.pddb = pddb;
+	this.prefs = prefs;
+	
 	//this.initialize()
 	//window.addEventListener("load", _bind(this, this.initialize), false);
 }
-PD_ToolbarManager.prototype = {};
-_extend(PD_ToolbarManager.prototype, {
+ToolbarManager.prototype = {};
+_extend(ToolbarManager.prototype, {
 		
 	classify_button : null,
 	pd_progress_button: null,
@@ -194,11 +196,11 @@ _extend(PD_ToolbarManager.prototype, {
 			});
 			//logger("yyyyy "+this.pddb.TimeWellSpent+"     "+tws_total);
 			
-			var pd_goal = parseFloat(this.pddb.prefs.get('pd_hr_per_week_goal', 1));
-			var pd_limit = parseFloat(this.pddb.prefs.get('pd_hr_per_week_max', 1));
+			var pd_goal = parseFloat(this.prefs.get('pd_hr_per_week_goal', 1));
+			var pd_limit = parseFloat(this.prefs.get('pd_hr_per_week_max', 1));
 			
-			var tws_goal = parseFloat(this.pddb.prefs.get('tws_hr_per_week_goal', 1));
-			var tws_limit = parseFloat(this.pddb.prefs.get('tws_hr_per_week_max', 1));
+			var tws_goal = parseFloat(this.prefs.get('tws_hr_per_week_goal', 1));
+			var tws_limit = parseFloat(this.prefs.get('tws_hr_per_week_max', 1));
 			
 			if ( pd_total && this.pd_progress_button) {
 				pd_total = parseInt(pd_total.total_time);
@@ -315,12 +317,12 @@ _extend(PD_ToolbarManager.prototype, {
     },
     
     onProgressButtonPDCommand : function(e) {
-    	this.pddb.prefs.set('impact_state', 'goals');
+    	this.prefs.set('impact_state', 'goals');
     	window.content.location.href = constants.PD_URL + constants.PROGRESS_URL;
     },
     
     onProgressButtonTWSCommand : function(e) {
-    	this.pddb.prefs.set('impact_state', 'goals');
+    	this.prefs.set('impact_state', 'goals');
     	window.content.location.href = constants.PD_URL + constants.IMPACT_URL;
     }
 

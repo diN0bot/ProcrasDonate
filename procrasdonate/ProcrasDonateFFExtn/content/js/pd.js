@@ -1,9 +1,9 @@
 
 // PD_API
 // * handles interaction with ProcrasDonate.com
-var ProcrasDonate_API = function(prefs, pddb) {
-	this.prefs = prefs;
+var ProcrasDonate_API = function(pddb, prefs) {
 	this.pddb = pddb;
+	this.prefs = prefs;
 	//API.apply(this, arguments);
 };
 

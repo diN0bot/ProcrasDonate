@@ -22,13 +22,15 @@ _extend(PageRequest.prototype, {
 		
 		if (event.originalTarget instanceof HTMLDocument) {
 			// Target is an HTML element
-			if (event.originalTarget.defaultView.frameElement)
+			if (event.originalTarget.defaultView.frameElement) {
 				// Target is a frame
 				return "html frame";
-			else
+			} else {
 				return "html";
-		} else
+			}
+		} else {
 			return "other";
+		}
 	},
 	
 	add_jQuery_ui: function() {
@@ -38,10 +40,9 @@ _extend(PageRequest.prototype, {
 			return jQuery.fn.init(selector, context || self.get_document());
 		};
 		jQuery.extend(jq, jQuery);
-		jQuery_UI(jq)
+		var c = self.get_document();
+		jQuery_UI(jq, c)
 		//jQuery_UI(function() { return self.jQuery.apply(self, Array.prototype.slice.apply(arguments, [0])) });
-		jq("#frame_for_slider").append("<div id=\"monthly_fee_slider\"></div>");
-		jq("#monthly_fee_slider").slider();
 		return jq
 	},
 	

@@ -886,5 +886,4 @@ def ipn(request):
                 multiuse.status = FPSMultiuseAuth.STATUSES['CANCELLED']
                 multiuse.save()
             
-    parameters = response['parameters']
     return json_success()
