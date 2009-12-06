@@ -542,7 +542,8 @@ td { vertical-align: middle; }
 .Move_Site_Arrow { width: 1.2em; vertical-align: bottom; margin-bottom: -.25em; padding: 0 .5em 0 .5em; }
 
 /**** EXTENSION SUBMENU ****/
-.extn_submenu ul { text-align: center; list-style-type: none; margin: 0em 0em 0em-2em; padding: 0em; }
+.extn_submenu { margin-left: -3em; }
+.extn_submenu ul { text-align: center; list-style-type: none; margin: 0em; padding: 0em; }
 .extn_submenu ul li { text-align: center; display: inline; }
 .extn_submenu .bar { vertical-align: bottom; }
 .extn_submenu .bar img { width: 2.5em; margin-bottom: .1em; margin: auto -.9em; }
