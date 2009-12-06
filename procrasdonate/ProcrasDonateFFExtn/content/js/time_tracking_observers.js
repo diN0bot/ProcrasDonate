@@ -14,8 +14,8 @@ var TimeTracker = function TimeTracker(pddb, prefs) {
 TimeTracker.prototype = {};
 _extend(TimeTracker.prototype, {
 
-	start_recording: function(url) {
-		this.stop_recording();
+	start_recording: function(url, enter_type) {
+		this.stop_recording(this.pddb.Visit.UNKNOWN);
 		if (IDLE_LOGGING) logger("start recording "+url+
 				"\n last_url="+this.prefs.get("last_url", "--")+
 				"\n idle_url="+this.prefs.get("saved_idle_last_url", "")+
@@ -25,19 +25,24 @@ _extend(TimeTracker.prototype, {
 		this.prefs.set("saved_sleep_last_url", "");
 		
 		this.prefs.set("last_url", url);
+		this.prefs.set("last_url_enter_type", enter_type);
 		var now = _dbify_date(new Date());
 		this.prefs.set("last_start", now);
 	},
 	
-	stop_recording: function() {
+	stop_recording: function(leave_type) {
 		if (IDLE_LOGGING) logger("stop recording "+
 				"\n last_url="+this.prefs.get("last_url", "")+
 				"\n idle_url="+this.prefs.get("saved_idle_last_url", "")+
 				"\n focus_url="+this.prefs.get("saved_focus_last_url", "")+
 				"\n in focus="+this.prefs.get("ff_is_in_focus", "--"));
 		var url = this.prefs.get("last_url", false);
+		var enter_type = this.prefs.get("last_url_enter_type", false);
+		if (!enter_type) { enter_type = this.pddb.Visit.UNKNOWN; }
+		
 		if (url) {
 			this.prefs.set("last_url", "");
+			this.prefs.set("last_url_enter_type", "");
 			var start = this.prefs.get("last_start");
 			var now = _dbify_date(new Date());
 			var diff = now - start;
@@ -53,12 +58,12 @@ _extend(TimeTracker.prototype, {
 				//diff = constants.DEFAULT_FLASH_MAX_IDLE + 1;
 			}
 			if (diff > 0) {
-				this.store_visit(url, start, diff);
+				this.store_visit(url, start, diff, enter_type, leave_type);
 			}
 		}
 	},
 	
-	store_visit: function(url, start_time, duration) {
+	store_visit: function(url, start_time, duration, enter_type, leave_type) {
 		if (STORE_VISIT_LOGGING) logger("  >>>> store_visit "+url+" "+start_time+" for "+duration);
 		
 		var site = this.pddb.Site.get_or_null({url__eq: url });
@@ -86,7 +91,9 @@ _extend(TimeTracker.prototype, {
 		var visit = this.pddb.Visit.create({
 			site_id: site.id,
 			enter_at: start_time,
-			duration: duration
+			duration: duration,
+			enter_type: enter_type,
+			leave_type: leave_type
 		});
 		
 		this.update_totals(site, visit);
@@ -395,13 +402,13 @@ _extend(IdleBackListener.prototype, {
 	/*
 	 * user is recognized to be idle. check if we should stop_recording
 	 */
-	idle: function() {
+	idle: function(leave_type) {
 		logger("idle");
 		//#@TODO check multiple urls like in idle_no_flash??
 		var last_url = this.prefs.get("last_url", "");
 		if (last_url) {
 			this.prefs.set("saved_idle_last_url", last_url); 
-			this.time_tracker.stop_recording();
+			this.time_tracker.stop_recording(leave_type);
 		}
 	},
 	
@@ -421,7 +428,7 @@ _extend(IdleBackListener.prototype, {
 			//#@TODO check multiple urls like in idle_no_flash??
 			if (url) {
 				this.prefs.set("saved_idle_last_url", "");
-				this.time_tracker.start_recording(url);
+				this.time_tracker.start_recording(url, this.pddb.Visit.BACK);
 			}
 		}
 	}
@@ -446,9 +453,9 @@ _extend(IdleBack_Flash_Listener.prototype, {
 	observe: function(subject, topic, data) {
 		logger(topic+" -- flash");
 		if (topic == "back") {
-			this.back();
+			this.back(this.pddb.Visit.BACK);
 		} else if (topic == "idle") {
-			this.idle();
+			this.idle(this.pddb.Visit.IDLE_FLASH);
 		}
 	},
 });
@@ -473,7 +480,7 @@ _extend(IdleBack_NoFlash_Listener.prototype, {
 		logger(topic+" -- no flash   ");
 		
 		if (topic == "back") {
-			this.back();
+			this.back(this.pddb.Visit.BACK);
 		} else if (topic == "idle") {
 			var url = this.prefs.get("last_url", "");
 			if (!url) {
@@ -484,7 +491,7 @@ _extend(IdleBack_NoFlash_Listener.prototype, {
 				var site = this.pddb.Site.get_or_null({url__eq: url });
 				if (site) {
 					if (!site.has_flash()) {
-						this.idle();
+						this.idle(this.pddb.Visit.FLASH_NOFLASH);
 					}
 				} else {
 					logger("NO SITE in idle_no_flash "+url);
@@ -525,6 +532,7 @@ _extend(BlurFocusListener.prototype, {
 	},
 	
 	focus: function(e) {
+		logger("FOCUS");
 		this.prefs.set("new_ff_is_in_focus", true);
 		this.prefs.set("ff_blur_time", _dbify_date(new Date()));
 
@@ -538,6 +546,7 @@ _extend(BlurFocusListener.prototype, {
 	},
 	
 	blur: function(e) {
+		logger("BLUR");
 		this.prefs.set("new_ff_is_in_focus", false);
 		this.prefs.set("ff_blur_time", _dbify_date(new Date()));
 		
@@ -556,9 +565,9 @@ _extend(BlurFocusListener.prototype, {
 		var new_ff_state = this.prefs.get("new_ff_is_in_focus", false);
 		var ff_state = this.prefs.get("ff_is_in_focus", false);
 		
-		//logger("determine_ff_focus_state timer_started="+this.prefs.get("ff_focus_timer_started", false)+
-		//		" new ff state="+new_ff_state+
-		//		"     ff state="+ff_state);
+		logger("determine_ff_focus_state timer_started="+this.prefs.get("ff_focus_timer_started", false)+
+				" new ff state="+new_ff_state+
+				"     ff state="+ff_state);
 		
 		
 		if (ff_state != new_ff_state) {
@@ -570,7 +579,8 @@ _extend(BlurFocusListener.prototype, {
 						"\n focus_url="+this.prefs.get("saved_focus_last_url", "-"));
 				if (url) {
 					this.prefs.set("saved_focus_last_url", "");
-					this.time_tracker.start_recording(url);
+					logger("START REC FOCUS");
+					this.time_tracker.start_recording(url, this.pddb.Visit.FOCUS);
 				}
 			} else {
 				//#@TODO check multiple urls like in idle_no_flash??
@@ -579,8 +589,9 @@ _extend(BlurFocusListener.prototype, {
 						"\n focus_url="+this.prefs.get("saved_focus_last_url", "-"));
 				
 				if (last_url) {
-					this.prefs.set("saved_focus_last_url", last_url); 
-					this.time_tracker.stop_recording();
+					this.prefs.set("saved_focus_last_url", last_url);
+					logger("STOP REC BLUR");
+					this.time_tracker.stop_recording(this.pddb.Visit.BLUR);
 				}
 			}
 		}
@@ -625,7 +636,7 @@ _extend(SleepWakeListener.prototype, {
 		var last_url = this.prefs.get("last_url", "");
 		if (last_url) {
 			this.prefs.set("saved_sleep_last_url", last_url); 
-			this.time_tracker.stop_recording();
+			this.time_tracker.stop_recording(this.pddb.Visit.SLEEP);
 		}
 	},
 	
@@ -640,7 +651,7 @@ _extend(SleepWakeListener.prototype, {
 			var url = this.prefs.get("saved_sleep_last_url", "");
 			if (url) {
 				this.prefs.set("saved_sleep_last_url", "");
-				this.time_tracker.start_recording(url);
+				this.time_tracker.start_recording(url, this.pddb.Visit.WAKE);
 			}
 		}
 	},

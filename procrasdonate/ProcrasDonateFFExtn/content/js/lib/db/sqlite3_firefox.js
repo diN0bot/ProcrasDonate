@@ -319,6 +319,15 @@ _extend(Model.prototype, {
 		
 	},
 	
+	add_column: function(name, type) {
+		var sql = this.sql_add_column(name, type);
+		return this.db.execute(sql);
+	},
+	sql_add_column: function(name, type) {
+		return Model.sql_add_column(this.table_name, name, type);
+	},
+		
+	
 	/*
 	 * @param query: OBJECT of column name, value
 	 */
@@ -447,6 +456,10 @@ _extend(Model, {
 	},
 	sql_drop_table: function(name) {
 		return "DROP TABLE " + name;
+	},
+	
+	sql_add_column: function(name, cname, ctype) {
+		return "ALTER TABLE " + name + " ADD COLUMN " + cname + " " + ctype;
 	},
 	
 	operators: {

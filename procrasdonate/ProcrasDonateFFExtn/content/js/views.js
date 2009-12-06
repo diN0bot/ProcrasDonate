@@ -2201,7 +2201,7 @@ _extend(PageController.prototype, {
 	///
 	trigger_daily_cycle: function() {
 		logger("triggering daily cycle...");
-		this.pddb.schedule.do_once_daily_tasks();
+		this.schedule.do_once_daily_tasks();
 		logger("...daily cycle done");
 	},
 	
@@ -2210,7 +2210,7 @@ _extend(PageController.prototype, {
 	///
 	trigger_weekly_cycle: function() {
 		logger("triggering weekly cycle...");
-		this.pddb.schedule.do_once_weekly_tasks();
+		this.schedule.do_once_weekly_tasks();
 		logger("...weekly cycle done");
 	},
 	
@@ -2224,7 +2224,11 @@ _extend(PageController.prototype, {
 	},
 	
 	trigger_on_install: function() {
-		myOverlay.onInstall("0.0.0");
+		myOverlay.init_listener.onInstall(this.prefs.get("version","0.0.0"));
+	},
+	
+	trigger_on_upgrade: function() {
+		myOverlay.init_listener.onUpgrade("0.3.2", "0.3.3");
 	},
 	
 	trigger_init_db: function() {
@@ -2238,6 +2242,7 @@ _extend(PageController.prototype, {
 		               "trigger_payment",
 		               "",
 		               "trigger_on_install",
+		               "trigger_on_upgrade",
 		               "trigger_init_db",
 		               "",
 		               "reset_state_to_defaults",

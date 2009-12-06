@@ -7,9 +7,12 @@
 <ol>
 	{% for visit in visits %}
 	<li>
+		{{ visit.enter_type_display }} -> {{ visit.leave_type_display }}
+		<strong>{{ visit.duration_display }}</strong>
+		<blockquote>
 		<a href="{{ visit.site.url }}">{{ visit.site.url }}</a>
-		{{ visit.enter_at_display }} - 
-		{{ visit.duration_display }}
+		{{ visit.enter_at_display }}
+		</blockquote> 
 	</li>
 	{% endfor %}
 </ol>

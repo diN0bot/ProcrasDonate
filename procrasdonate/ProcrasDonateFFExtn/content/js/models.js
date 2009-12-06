@@ -444,11 +444,13 @@ function load_models(db, pddb) {
 	var Visit = new Model(db, "Visit", {
 		table_name: "visits",
 		columns: {
-			_order: ["id", "site_id", "enter_at", "duration"],
+			_order: ["id", "site_id", "enter_at", "duration", "enter_type", "leave_type"],
 			id: "INTEGER PRIMARY KEY",
 			site_id: "INTEGER",
 			enter_at: "INTEGER", //"DATETIME",
 			duration: "INTEGER", //seconds
+			enter_type: "VARCHAR", // trigger that began visit
+			leave_type: "VARCHAR", // trigger that ended visit
 		},
 		indexes: []
 	}, {
@@ -487,17 +489,94 @@ function load_models(db, pddb) {
 			}
 			return ret;
 		},
+
+		enter_type_display: function() {
+			return this.type_display(this.enter_type);
+		},
+		
+		leave_type_display: function() {
+			return this.type_display(this.leave_type);
+		},
+			
+		type_display: function(type) {
+			switch(type) {
+			case(Visit.IDLE_NOFLASH):
+				return "Idle on page without flash"
+			case(Visit.IDLE_FLASH):
+				return "Idle on page with flash"
+			case(Visit.BACK):
+				return "Back from being idle"
+			case(Visit.CLOSE):
+				return "Quit Firefox"
+			case(Visit.CLOSE_TAB):
+				return "Close tab"
+			case(Visit.CLOSE_WINDOW):
+				return "Close window"
+			case(Visit.OPEN):
+				return "Opened Firefox"
+			case(Visit.BLUR):
+				return "Changed to another application from Firefox"
+			case(Visit.FOCUS):
+				return "Changed to Firefox from another application"
+			case(Visit.SLEEP):
+				return "Computer went to sleep"
+			case(Visit.WAKE):
+				return "Computer woke up"
+			case(Visit.URL):
+				return "Viewing new url"
+			case(Visit.URL_TAB):
+				return "Changed tab"
+			case(Visit.URL_WINDOW):
+				return "Changed windows"
+			case(Visit.URL_LINK):
+				return "Clicked on a link"
+			case(Visit.URL_BAR):
+				return "Entered new URL into address bar"
+			case(Visit.UNKNOWN):
+				return "Unknown"
+			default:
+				return "-"
+			}
+		},
 		
 		deep_dict: function() {
 			return {
 				id: this.id,
 				site: this.site().deep_dict(),
 				enter_at: _un_dbify_date(this.enter_at),
-				duration: parseInt(this.duration)
+				duration: parseInt(this.duration),
+				enter_type: this.enter_type,
+				leave_type: this.leave_type
 			}
 		}
 	}, {
 		// class methods
+		
+		// types
+		UNKNOWN: "K",
+		
+		IDLE_NOFLASH: "IN", // computer detects idle user, no flash on page
+		IDLE_FLASH: "IF", // computer detects idle user
+		BACK: "B",
+		
+		CLOSE: "C", // quit FF
+		CLOSE_TAB: "CT", // swith to a new tab
+		CLOSE_WINDOW: "CW", // switch to a new window
+		OPEN: "O", // open FF
+		
+		BLUR: "BL", // switch to different application
+		FOCUS: "FO", // come back
+		
+		SLEEP: "S", // computer goes to sleep
+		WAKE: "W", // computer wakes up
+		
+		URL: "U", // visit new url; could be by loading new page or switching tabs/windows
+		//// don't have the granularity for these
+		URL_TAB: "UT", // swith to a new tab
+		URL_WINDOW: "UW", // switch to a new window
+		URL_LINK: "UL", // click a link
+		URL_BAR: "UB", // type/paste a new url into the url bar
+		
 	});
 	
 	// Aggregates visits in different ways

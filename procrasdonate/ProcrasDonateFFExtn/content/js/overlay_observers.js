@@ -99,7 +99,7 @@ _extend(InitListener.prototype, {
 		var self = this;
 
 		// stop recording
-		this.time_tracker.stop_recording();
+		this.time_tracker.stop_recording(this.pddb.Visit.CLOSE_WINDOW);
 		
 		// remove listeners
 		this.page_load_listener.unregister();
@@ -141,12 +141,12 @@ _extend(InitListener.prototype, {
 			}
 			
 			if (ver != current && !firstrun) {
-				this.doUpgrade();
+				this.doUpgrade(ver);
 				// !firstrun ensures that this section does not get loaded if its a first run.
 				this.prefs.set("version",current);
 				
 				// Insert code if version is different here => upgrade
-				this.onUpgrade(current);
+				this.onUpgrade(ver, current);
 			}
 		}
 	},
@@ -216,11 +216,40 @@ _extend(InitListener.prototype, {
 		this.pddb.page.pd_api.send_data();
 	},
 	
-	doUpgrade: function() { // make any necessary changes for a new version (upgrade)
-		logger("Overlay.doUpgrade::");
+	/**
+	 * make any necessary changes for a new version (upgrade)
+	 * @param version: old version
+	 */
+	doUpgrade: function(version) {
+		this.pddb.orthogonals.log("prepare "+version+" for upgrade", "extn_sys");
 	},
-	onUpgrade: function(version) { // execute after each new version (upgrade)
-		this.pddb.orthogonals.log("upgrade ProcrasDonate to version "+version, "extn_sys");
+	
+	/**
+	 *  execute after each new version (upgrade)
+	 *  @param old_version: old version
+	 *  @param version: new version
+	 */
+	onUpgrade: function(old_version, version) {
+		var self = this;
+		
+		this.pddb.orthogonals.log("upgrade version "+old_version+" to version "+version, "extn_sys");
+		
+		var old_version_number = this.version_to_number(old_version);
+		var version_number = this.version_to_number(version);
+		
+		if (old_version_number < this.version_to_number("0.3.3")) {
+			this.pddb.Visit.add_column("enter_type", "VARCHAR");
+			this.pddb.Visit.add_column("leave_type", "VARCHAR");
+			this.pddb.Visit.select({}, function(row) {
+				self.pddb.Visit.set({
+					enter_type: self.pddb.Visit.UNKNOWN,
+					leave_type: self.pddb.Visit.UNKNOWN
+				}, {
+					id: row.id
+				});
+			})
+		}
+		
 		
 		// initialize new state (initialize_state initializes state if necessary.
 		this.controller.initialize_state();
@@ -232,6 +261,22 @@ _extend(InitListener.prototype, {
 		}, 1500); //Firefox 2 fix - or else tab will get closed
 		
 	},
+	
+	/**
+	 * turns a version, eg 1.14.8, into a number, in this case 11408.
+	 * version components should never go above 99 or the ordering of version
+	 * numbers will be messed up.
+	 */
+	version_to_number: function(version) {
+		var parts = version.split(".");
+		var ret = 0;
+		_iterate(parts, function(key, value, index) {
+			var v = parseInt(value);
+			ret += v*(Math.pow(10, index*2))
+		});
+		logger("version is "+version+"     ret is "+ret);
+		return ret
+	}
 	
 });
 
@@ -313,7 +358,8 @@ _extend(URLBarListener.prototype, {
 		//logger([aProgress.DOMWindow.content]);
 		
 		//logger(" location changed. start recording: "+href);
-		this.time_tracker.start_recording(href);
+		this.time_tracker.stop_recording(this.pddb.Visit.URL);
+		this.time_tracker.start_recording(href, this.pddb.Visit.URL);
 
 		this.toolbar_manager.updateButtons({ url: href });
 		this.processNewURL(aProgress.DOMWindow, aURI);
