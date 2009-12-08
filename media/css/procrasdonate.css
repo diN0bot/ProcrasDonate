@@ -564,6 +564,8 @@ td { vertical-align: middle; }
 
 /**** REGISTER PAYMENTS ****/
 
+.disabled { color: #888888; }
+
 #go_to_amazon_button { width: 20em; margin-top: -2em; }
 #multi_auth_status_updated {
 	padding: .4em 1.2em;

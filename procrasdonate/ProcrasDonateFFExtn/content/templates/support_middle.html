@@ -1,15 +1,19 @@
-{% ifequal support_method "monthly" %}
+
+<table>
+<tbody>
+<tr>
+<td class="{% ifequal support_method "percent" %}disabled{% endifequal %}">
 	<p>Voluntary membership fees are charged to your account each month.</p>
 	<p><input
 		type="text"
 		id="monthly_fee"
 		name="monthly_fee" 
-		value="{{ monthly_fee }}" />
+		value="{{ monthly_fee }}"
+		{% ifequal support_method "percent" %}disabled{% endifequal %} />
 	   <span class="units">dollars per month</span>
 	   <span id="monthly_error" class="error"></span></p>
-{% endifequal %}
-
-{% ifequal support_method "percent" %}
+</td>
+<td class="{% ifequal support_method "monthly" %}disabled{% endifequal %}">
 	<p>You can also pay us a percentage of every transaction you 
 		make using our service.
 		<br>Since we don't charge charities for receiving donations
@@ -19,10 +23,14 @@
 		type="text"
 		id="support_pct"
 		name="support_pct" 
-		value="{{ support_pct }}" />
+		value="{{ support_pct }}"
+		{% ifequal support_method "monthly" %}disabled{% endifequal %} />
 	   <span class="units">%</span>
 	   <span class="help"> 
 	   	<br>(enter ''4.00'' to donate 4% per transaction.)</span>
 	   <span id="support_error" class="error"></span>
 	   </p>
-{% endifequal %}
+</td>
+</tr>
+</tbody>
+</table>
