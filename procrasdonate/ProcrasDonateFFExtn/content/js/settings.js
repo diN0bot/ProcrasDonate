@@ -179,13 +179,13 @@ var constants = {};
 		'time_well_spent'
 	];
 	constants.REGISTER_STATE_TAB_NAMES = [
-		'Incentive', 'Charities', 'Updates', 'Payments', 'TWS'];
+		'Incentive', 'Charities', 'Updates', 'Payments', 'XXXX']; // XXXX won't show done arrow, XXX will
 	constants.REGISTER_STATE_INSERTS = [
 		"insert_register_incentive", 
 		"insert_register_charities", 
 		"insert_register_updates",
 		"insert_register_payments",
-		"insert_register_time_well_spent"
+		"insert_register_time_well_spent",
 	];
 	constants.REGISTER_STATE_PROCESSORS = [
 		"process_register_incentive", 
@@ -202,11 +202,11 @@ var constants = {};
 	constants.DEFAULT_EMAIL = "";
 	constants.DEFAULT_PROCRASDONATE_REASON = "ProcrasDonating for a good cause";
 	constants.DEFAULT_TIMEWELLSPENT_REASON = "TimeWellSpent for a good cause";
-	constants.DEFAULT_PD_DOLLARS_PER_HR = 2;
-	constants.DEFAULT_PD_HR_PER_WEEK_GOAL = 20;
+	constants.DEFAULT_PD_DOLLARS_PER_HR = 5;
+	constants.DEFAULT_PD_HR_PER_WEEK_GOAL = 15;
 	constants.DEFAULT_PD_HR_PER_WEEK_MAX = 30;
-	constants.DEFAULT_TWS_DOLLARS_PER_HR = 2;
-	constants.DEFAULT_TWS_HR_PER_WEEK_GOAL = 20;
+	constants.DEFAULT_TWS_DOLLARS_PER_HR = 0;
+	constants.DEFAULT_TWS_HR_PER_WEEK_GOAL = 15;
 	constants.DEFAULT_TWS_HR_PER_WEEK_MAX = 30;
 	constants.DEFAULT_SUPPORT_PCT = _prefify_float(0.07);
 	constants.DEFAULT_MONTHLY_FEE = _prefify_float(7.00);

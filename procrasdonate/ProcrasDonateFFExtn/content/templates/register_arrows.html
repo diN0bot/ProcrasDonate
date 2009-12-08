@@ -19,11 +19,15 @@
 		  class="done {{ substate_menu_items.next.id }}"
 		  src="/procrasdonate_media/img/DoneButton.png" />
 	{% else %}
-		{% if substate_menu_items.next.url %}<a href="{{ substate_menu_items.next.url }}">{% endif %}
-			<img
-			  class="next {{ substate_menu_items.next.id }}"
-			  src="/procrasdonate_media/img/NextArrow.png" />
-		{% if substate_menu_items.next.url %}</a>{% endif %}
+		{% ifequal substate_menu_items.next.value "XXXX" %}
+			{# ifnotequal does not work #}
+		{% else %}
+			{% if substate_menu_items.next.url %}<a href="{{ substate_menu_items.next.url }}">{% endif %}
+				<img
+				  class="next {{ substate_menu_items.next.id }}"
+				  src="/procrasdonate_media/img/NextArrow.png" />
+			{% if substate_menu_items.next.url %}</a>{% endif %}
+		{% endifequal %}
 	{% endifequal %}
 {% else %}
 	{% if not substate_menu_items.no_spacers %}

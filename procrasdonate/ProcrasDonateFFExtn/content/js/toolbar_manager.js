@@ -24,7 +24,7 @@ _extend(ToolbarManager.prototype, {
 
 	/*
 	* do stuff when new browser window opens 
-	* #@TODO ?? use a settimeout to allow window to open if masterpassword is set
+	* #?? use a settimeout to allow window to open if masterpassword is set
 	*/
 	initialize : function() {
 		var self = this;
@@ -124,7 +124,7 @@ _extend(ToolbarManager.prototype, {
 	},
 	
 	uninstall_toolbar : function() {
-		// @TODO explicitly remove toolbar items from nav-bar   ?
+		// explicitly remove toolbar items from nav-bar. 
 		// removal is automatic when extn is uninstalled,
 		// but if re-installed, old icons will show up.
 		var tb = document.getElementById("nav-bar");

@@ -35,7 +35,6 @@ _extend(Controller.prototype, {
 		 * @param event_inserts: array. functions corresponding to enums. one of
 		 * 		'constants.SETTINGS_STATE_INSERTS', 'constants.IMPACT_STATE_INSERTS', 'constants.REGISTER_STATE_INSERTS'
 		 */
-		//this.page.$ = request.jQuery;
 		request.jQuery("#"+state_name+"_menu_item").addClass("here_we_are");
 		
 		this.prefs.set('site_classifications_settings_activated', true);
@@ -414,7 +413,7 @@ _extend(PageController.prototype, {
 				prev = _last;
 			}
 			// add to menu items
-			if (value != "XXX") {
+			if (value != "XXX" && value != "XXXX") {
 				menu_items.push(menu_item);
 			}
 			_last = menu_item;
@@ -604,7 +603,8 @@ _extend(PageController.prototype, {
 						if (amount_paid_against_multi_auth >= parseFloat(multi_auth.global_amount_limit)) {
 							// expired because payments exceed global_amount_limit
 							// #@TODO we probably already ran into this when trying to make payments
-							//   what we want to do is predict how many months are left.
+							//   what we want to do is predict how many months are left based on
+							//   payments already made.
 							self.pddb.FPSMultiuseAuthorization.set({
 								status: 'EX'
 							}, {
@@ -696,6 +696,10 @@ _extend(PageController.prototype, {
 		request.jQuery(".choose_charities").addClass("link").click(function() {
 			self.prefs.set('register_state', 'charities');
 		});
+		
+		/*request.jQuery(".choose_charities").addClass("link").click(function() {
+			self.prefs.set('register_state', 'time_well_spent');
+		});*/
 		
 		function arrow_click(arrow_id, diff) {
 			request.jQuery(arrow_id)
@@ -1073,13 +1077,7 @@ _extend(PageController.prototype, {
 			constants.MESSAGES_STATE_ENUM, constants.MESSAGES_STATE_INSERTS);
 		*/
 	},
-	
-
-	/*************************************************************************/
-	/******************************* MESSAGES ********************************/
-	
-	
-	
+		
 	/*************************************************************************/
 	/******************************* PROGRESS ********************************/
 	
@@ -1488,7 +1486,7 @@ _extend(PageController.prototype, {
 
 		request.jQuery("input[name='pd_hr_per_week_goal']").keyup(function() {
 			request.jQuery("#goal_error").text("");
-			var value = $.trim($(this).attr("value"));
+			var value = request.jQuery.trim(request.jQuery(this).attr("value"));
 			if (!value) { return; }
 			
 			if ( !self.validate_hours_input(request, value) ) {
@@ -1501,7 +1499,7 @@ _extend(PageController.prototype, {
 		
 		request.jQuery("input[name='pd_hr_per_week_max']").keyup(function() {
 			request.jQuery("#max_error").text("");
-			var value = $.trim($(this).attr("value"));
+			var value = request.jQuery.trim(request.jQuery(this).attr("value"));
 			if (!value) { return; }
 			
 			if ( !self.validate_hours_input(request, value) ) {
@@ -2281,9 +2279,9 @@ _extend(PageController.prototype, {
 		request.jQuery("#min_auth_time_input").keyup(function() {
 			var time = null;
 			try {
-				time = parseFloat($(this).attr("value"));
+				time = parseFloat(request.jQuery(this).attr("value"));
 			} catch(e) {
-				self.pddb.orthogonals.log("activate_register_payments: user entered non-float time: "+$(this).attr("value"));
+				self.pddb.orthogonals.log("activate_register_payments: user entered non-float time: "+request.jQuery(this).attr("value"));
 			}
 			if (!time) return
 			self.prefs.set('min_auth_time', _prefify_float(time));
@@ -2321,6 +2319,70 @@ _extend(PageController.prototype, {
 	
 	insert_register_done: function(request) {
 		this.prefs.set('registration_done', true);
+		this.insert_register_time_well_spent(request);
+		/*
+		this.prefs.set('registration_done', true);
+		var unsafeWin = request.get_unsafeContentWin();//event.target.defaultView;
+		if (unsafeWin.wrappedJSObject) {
+			unsafeWin = unsafeWin.wrappedJSObject;
+		}
+		
+		// raises [Exception... "Illegal value" nsresult: "0x80070057 
+		// (NS_ERROR_ILLEGAL_VALUE)" location: "JS frame :: 
+		// chrome://procrasdonate/content/js/views.js :: anonymous :: line 834" data: no]
+		
+		// NOTE: INCLUDE THE DOMAIN!!
+		// raises the following error when not given a full url
+		// Error: Component is not available = NS_ERROR_NOT_AVAILABLE
+		// Source file: chrome://procrasdonate/content/js/ext/jquery-1.2.6.js
+		// Line: 2020
+		new XPCNativeWrapper(unsafeWin, "location").location = constants.PD_URL + constants.SETTINGS_URL;*/
+	}, 
+	
+	process_register_done: function(request) {
+		return true
+	},
+	
+	insert_register_time_well_spent: function(request) {
+		var self = this;
+		this.prefs.set('register_state', 'time_well_spent');
+		
+		var middle = Template.get("register_time_well_spent_middle").render(
+			new Context({
+				constants: constants,
+				tws_dollars_per_hr: self.retrieve_float_for_display('tws_dollars_per_hr', constants.DEFAULT_TWS_DOLLARS_PER_HR),
+				tws_hr_per_week_goal: self.retrieve_float_for_display('tws_hr_per_week_goal', constants.DEFAULT_TWS_HR_PER_WEEK_GOAL),
+				tws_hr_per_week_max: self.retrieve_float_for_display('tws_hr_per_week_max', constants.DEFAULT_TWS_HR_PER_WEEK_MAX),
+			})
+		);
+		request.jQuery("#content").html( middle );
+		
+		this.activate_register_time_well_spent(request);
+	},
+	
+	activate_register_time_well_spent: function(request) {
+		var self = this;
+
+		request.jQuery("input").keyup(function() {
+			request.jQuery(this).siblings(".error").text("");
+			var name = request.jQuery(this).attr("name");
+			var value = request.jQuery.trim(request.jQuery(this).attr("value"));
+			if (!value) { value = "0"; }
+			
+			if ( !self.validate_hours_input(request, value) ) {
+				request.jQuery(this).siblings(".error").text("Please enter a number");
+			} else {
+				self.prefs.set(name, _prefify_float(value));
+			}
+		});
+		
+		request.jQuery(".done").click(function() {
+			self.insert_register_time_well_spent_done(request);
+		});
+	},
+	
+	insert_register_time_well_spent_done: function(request) {
+		this.prefs.set('registration_done', true);
 		var unsafeWin = request.get_unsafeContentWin();//event.target.defaultView;
 		if (unsafeWin.wrappedJSObject) {
 			unsafeWin = unsafeWin.wrappedJSObject;
@@ -2337,10 +2399,6 @@ _extend(PageController.prototype, {
 		// Line: 2020
 		new XPCNativeWrapper(unsafeWin, "location").location = constants.PD_URL + constants.SETTINGS_URL;
 	}, 
-	
-	process_register_done: function(request) {
-		return true
-	},
 	
 	/*************************************************************************/
 	/************************** TESTS AND CHECKS *****************************/

@@ -40,7 +40,7 @@
 			<input
 				type="text"
 				name="{{ field.name }}"
-				{% if tax_deductions %}disabled{% endif %}
+				{% if not tax_deductions %}disabled{% endif %}
 				value="{{ field.value }}" />
 		</p>
 	{% endfor %}

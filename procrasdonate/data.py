@@ -245,7 +245,8 @@ class Recipient(models.Model):
         return not (self.name and self.category and self.mission and self.description and self.url)
     
     def private_information_incomplete(self):
-        return False #@todo: do we require anything here?
+        return not (self.office_phone and self.mailing_address and self.city and
+                    self.state and self.country)
     
     def media_incomplete(self):
         return not self.logo or not self.promotional_video
@@ -408,6 +409,9 @@ class RecipientUserTagging(models.Model):
     homepage_link = models.CharField(max_length=task_max_len, choices=TASK_CHOICES, default=TASK_STATES["TODO"])
     blog_post = models.CharField(max_length=task_max_len, choices=TASK_CHOICES, default=TASK_STATES["TODO"])
     twitter_tweet = models.CharField(max_length=task_max_len, choices=TASK_CHOICES, default=TASK_STATES["TODO"])
+    
+    def user_information_incomplete(self):
+        return not (self.user.first_name and self.user.last_name and self.user.email)
     
     def set_recipient(self, recipient):
         self.recipient = recipient

@@ -1,6 +1,10 @@
 var STORE_VISIT_LOGGING = false;
 var IDLE_LOGGING = false;
 
+/*
+ * TODO listener for force quit and other unexpected shutdown problems?
+ *  or periodic callback in order to catch bad shutdowns and hangups.
+ */
 
 /**
  * 
@@ -402,10 +406,12 @@ _extend(IdleBackListener.prototype, {
 	 */
 	idle: function(leave_type) {
 		logger("idle");
-		//#@TODO check multiple urls like in idle_no_flash??
-		var last_url = this.prefs.get("last_url", "");
-		if (last_url) {
-			this.prefs.set("saved_idle_last_url", last_url); 
+		var url = this.prefs.get("last_url", "");
+		if (!url) {
+			url = this.prefs.get("saved_idle_last_url", "");
+		}
+		if (url) {
+			this.prefs.set("saved_idle_last_url", url); 
 			this.time_tracker.stop_recording(leave_type);
 		}
 	},
@@ -423,7 +429,6 @@ _extend(IdleBackListener.prototype, {
 			// want to do anything.
 			// (ns1IdleService can have 5 second delay)
 			var url = this.prefs.get("saved_idle_last_url", "");
-			//#@TODO check multiple urls like in idle_no_flash??
 			if (url) {
 				this.prefs.set("saved_idle_last_url", "");
 				this.time_tracker.start_recording(url, this.pddb.Visit.BACK);
@@ -569,7 +574,6 @@ _extend(BlurFocusListener.prototype, {
 		if (ff_state != new_ff_state) {
 			this.prefs.set("ff_is_in_focus", new_ff_state);
 			if (new_ff_state) {
-				//#@TODO check multiple urls like in idle_no_flash??
 				var url = this.prefs.get("saved_focus_last_url", "");
 				if (IDLE_LOGGING) logger("focus last_url="+this.prefs.get("last_url", "")+
 						"\n focus_url="+this.prefs.get("saved_focus_last_url", "-"));
@@ -578,7 +582,6 @@ _extend(BlurFocusListener.prototype, {
 					this.time_tracker.start_recording(url, this.pddb.Visit.FOCUS);
 				}
 			} else {
-				//#@TODO check multiple urls like in idle_no_flash??
 				var last_url = this.prefs.get("last_url", "");
 				if (IDLE_LOGGING) logger("blur last_url="+this.prefs.get("last_url", "")+
 						"\n focus_url="+this.prefs.get("saved_focus_last_url", "-"));

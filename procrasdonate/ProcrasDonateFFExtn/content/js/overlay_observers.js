@@ -2,12 +2,12 @@
 /**
  * Listens for Firefox application load, which occurs once per window (?).
  * Initializes and un-initializes other listeners.
- * #@TODOs
- * ? any concurrency issues with having multiple windows open 
- * and doing uninits?
- * ? what's the effect of force quit and other problems? maybe we should
- *  have periodic callback anyway (rather than rely on sleep/wake)
- *  in order to catch bad shutdowns and hangups.
+ * 
+ *  concurrency issues with uninits from closing multiple windows?
+ *  -> no because each init listener instantiates its own state?
+ *  
+ *  TODO: should init listener listen for firefox applicaiton load 
+ *        rather than window load?
  */
 var InitListener = function InitListener() {
 	this.VERSION = -1;
@@ -59,7 +59,6 @@ _extend(InitListener.prototype, {
 		// we need to do this every time so that the PD domain are set.
 		// don't set preselected charities yet because charities might
 		// not be received from server.
-		// #@TODO do we need to do this in init rather than constructor?
 		this.install_generated_input(false);
 		
 		// create listeners

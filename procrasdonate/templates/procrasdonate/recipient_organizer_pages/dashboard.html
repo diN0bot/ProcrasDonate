@@ -44,7 +44,7 @@
 		<tr>
 			<td></td>
 			<td><a href="{% url edit_private_information %}">Organizational information</a>
-				{% if recipient.private_information_incomplete %}
+				{% if recipient.private_information_incomplete or recipient_user_tagging.user_information_incomplete %}
 					<span class="incomplete_action">incomplete</span>
 				{% endif %}
 			</td>

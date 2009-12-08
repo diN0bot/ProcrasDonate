@@ -1,0 +1,38 @@
+<img
+	class="done {{ substate_menu_items.next.id }}"
+	src="/procrasdonate_media/img/DoneButton.png" />
+	
+<h1>Time Well Spent</h1>
+
+<h2>Incentive: 
+	<span class="subheader">What is your time worth? </span></h2>
+<p id="rate_error" class="error"></p>
+
+<p>Create an incentive for good time management 
+	by making a pledge to your favorite charities.  
+	<br>This is a pledge to 
+	automatically donate for every hour you spend TimeWellSpent online.
+</p>
+<p><input
+	type="text"
+	id="tws_dollars_per_hr"
+	name="tws_dollars_per_hr" 
+	value="{{ tws_dollars_per_hr }}" />
+   <span class="units">dollars per hour</span></p>
+
+<h2>TimeWellSpent Limit: 
+	<span class="subheader">What is your weekly limit? </span></h2>
+<p id="max_error" class="error"></p>
+<p>What is the most number hours in a week that you want to keep track of?  
+	<br>No further pledges can be made in a week where you have 
+	already reached your limit.</p>
+<p><input
+	type="text"
+	id="tws_hr_per_week_max"
+	name="tws_hr_per_week_max" 
+	value="{{ tws_hr_per_week_max }}" />
+   <span class="units">hours per week</span></p>
+
+<img
+	class="done {{ substate_menu_items.next.id }}"
+	src="/procrasdonate_media/img/DoneButton.png" />
