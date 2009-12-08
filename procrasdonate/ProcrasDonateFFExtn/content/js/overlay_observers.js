@@ -560,7 +560,7 @@ _extend(UninstallListener.prototype, {
 			// this gets called for every uninstall, so we need to check
 			// that the request is for ProcrasDonate
 			subject.QueryInterface(Components.interfaces.nsIUpdateItem);
-			if (subject.id != ProcrasDonate__UUID) {
+			if (subject.id != constants.ProcrasDonate__UUID) {
 				return;
 			}
 			

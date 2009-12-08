@@ -274,9 +274,9 @@ _extend(TimeTracker.prototype, {
 				}, {
 					id: total.id
 				});
-				if (STORE_VISIT_LOGGING) logger("updated total="+this.Total.get_or_null({ id: total.id }));
+				if (STORE_VISIT_LOGGING) logger("updated total="+this.pddb.Total.get_or_null({ id: total.id }));
 				
-				if ( requires_payment && timetypes[i].id == this.Weekly.id ) {
+				if ( requires_payment && timetypes[i].id == this.pddb.Weekly.id ) {
 					this.pddb.RequiresPayment.get_or_create({
 						total_id: total.id
 					}, {
@@ -368,7 +368,6 @@ var IdleBackListener = function IdleBackListener() {
 IdleBackListener.prototype = {};
 _extend(IdleBackListener.prototype, {
 	init: function(idleService, pddb, prefs, time_tracker) {
-		logger("IdleBackListener()");
 		this.idleService = idleService;
 		this.pddb = pddb;
 		this.prefs = prefs;
@@ -395,7 +394,6 @@ _extend(IdleBackListener.prototype, {
 	},
 	
 	unregister: function() {
-		logger("IdleBackListener.unregister");
 		this.idleService.removeIdleObserver(this, this.idle_timeout, false);
 	},
 	
@@ -532,7 +530,6 @@ _extend(BlurFocusListener.prototype, {
 	},
 	
 	focus: function(e) {
-		logger("FOCUS");
 		this.prefs.set("new_ff_is_in_focus", true);
 		this.prefs.set("ff_blur_time", _dbify_date(new Date()));
 
@@ -546,7 +543,6 @@ _extend(BlurFocusListener.prototype, {
 	},
 	
 	blur: function(e) {
-		logger("BLUR");
 		this.prefs.set("new_ff_is_in_focus", false);
 		this.prefs.set("ff_blur_time", _dbify_date(new Date()));
 		
@@ -565,10 +561,10 @@ _extend(BlurFocusListener.prototype, {
 		var new_ff_state = this.prefs.get("new_ff_is_in_focus", false);
 		var ff_state = this.prefs.get("ff_is_in_focus", false);
 		
-		logger("determine_ff_focus_state timer_started="+this.prefs.get("ff_focus_timer_started", false)+
+		/*logger("determine_ff_focus_state timer_started="+this.prefs.get("ff_focus_timer_started", false)+
 				" new ff state="+new_ff_state+
 				"     ff state="+ff_state);
-		
+		*/
 		
 		if (ff_state != new_ff_state) {
 			this.prefs.set("ff_is_in_focus", new_ff_state);
@@ -579,7 +575,6 @@ _extend(BlurFocusListener.prototype, {
 						"\n focus_url="+this.prefs.get("saved_focus_last_url", "-"));
 				if (url) {
 					this.prefs.set("saved_focus_last_url", "");
-					logger("START REC FOCUS");
 					this.time_tracker.start_recording(url, this.pddb.Visit.FOCUS);
 				}
 			} else {
@@ -590,7 +585,6 @@ _extend(BlurFocusListener.prototype, {
 				
 				if (last_url) {
 					this.prefs.set("saved_focus_last_url", last_url);
-					logger("STOP REC BLUR");
 					this.time_tracker.stop_recording(this.pddb.Visit.BLUR);
 				}
 			}

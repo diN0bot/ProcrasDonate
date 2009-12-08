@@ -215,12 +215,12 @@ _extend(Controller.prototype, {
 		email: constants.DEFAULT_EMAIL,
 		procrasdonate_reason: constants.DEFAULT_PROCRASDONATE_REASON,
 		timewellspent_reason: constants.DEFAULT_TIMEWELLSPENT_REASON,
-		pd_dollars_per_hr: constants.PD_DEFAULT_DOLLARS_PER_HR,
-		pd_hr_per_week_goal: constants.PD_DEFAULT_HR_PER_WEEK_GOAL,
-		pd_hr_per_week_max: constants.PD_DEFAULT_HR_PER_WEEK_MAX,
-		tws_dollars_per_hr: constants.TWS_DEFAULT_DOLLARS_PER_HR,
-		tws_hr_per_week_goal: constants.TWS_DEFAULT_HR_PER_WEEK_GOAL,
-		tws_hr_per_week_max: constants.TWS_DEFAULT_HR_PER_WEEK_MAX,
+		pd_dollars_per_hr: constants.DEFAULT_PD_DOLLARS_PER_HR,
+		pd_hr_per_week_goal: constants.DEFAULT_PD_HR_PER_WEEK_GOAL,
+		pd_hr_per_week_max: constants.DEFAULT_PD_HR_PER_WEEK_MAX,
+		tws_dollars_per_hr: constants.DEFAULT_TWS_DOLLARS_PER_HR,
+		tws_hr_per_week_goal: constants.DEFAULT_TWS_HR_PER_WEEK_GOAL,
+		tws_hr_per_week_max: constants.DEFAULT_TWS_HR_PER_WEEK_MAX,
 		support_pct: constants.DEFAULT_SUPPORT_PCT,
 		monthly_fee: constants.DEFAULT_MONTHLY_FEE,
 		tos: false,
@@ -659,13 +659,13 @@ _extend(PageController.prototype, {
 				recipient_percents: recipient_percents,
 				estimated_months_before_reauth: estimated_months_before_reauth,
 				
-				pd_hr_per_week_goal: self.retrieve_float_for_display("pd_hr_per_week_goal", constants.PD_DEFAULT_HR_PER_WEEK_GOAL),
-				pd_dollars_per_hr: self.retrieve_float_for_display("pd_dollars_per_hr", constants.PD_DEFAULT_DOLLARS_PER_HR),
-				pd_hr_per_week_max: self.retrieve_float_for_display("pd_hr_per_week_max", constants.PD_DEFAULT_HR_PER_WEEK_MAX),
+				pd_hr_per_week_goal: self.retrieve_float_for_display("pd_hr_per_week_goal", constants.DEFAULT_PD_HR_PER_WEEK_GOAL),
+				pd_dollars_per_hr: self.retrieve_float_for_display("pd_dollars_per_hr", constants.DEFAULT_PD_DOLLARS_PER_HR),
+				pd_hr_per_week_max: self.retrieve_float_for_display("pd_hr_per_week_max", constants.DEFAULT_PD_HR_PER_WEEK_MAX),
 				
-				tws_hr_per_week_goal: self.retrieve_float_for_display("tws_hr_per_week_goal", constants.TWS_DEFAULT_HR_PER_WEEK_MAX),
-				tws_dollars_per_hr: self.retrieve_float_for_display("tws_dollars_per_hr", constants.TWS_DEFAULT_DOLLARS_PER_HR),
-				tws_hr_per_week_max: self.retrieve_float_for_display("tws_hr_per_week_max", constants.TWS_DEFAULT_HR_PER_WEEK_MAX),
+				tws_hr_per_week_goal: self.retrieve_float_for_display("tws_hr_per_week_goal", constants.DEFAULT_TWS_HR_PER_WEEK_MAX),
+				tws_dollars_per_hr: self.retrieve_float_for_display("tws_dollars_per_hr", constants.DEFAULT_TWS_DOLLARS_PER_HR),
+				tws_hr_per_week_max: self.retrieve_float_for_display("tws_hr_per_week_max", constants.DEFAULT_TWS_HR_PER_WEEK_MAX),
 				
 				monthly_fee: self.retrieve_float_for_display('monthly_fee', constants.DEFAULT_MONTHLY_FEE),
 				support_pct: self.retrieve_percent_for_display('support_pct', constants.DEFAULT_SUPPORT_PCT),
@@ -682,6 +682,8 @@ _extend(PageController.prototype, {
 		
 		this.activate_substate_menu_items(request, 'overview',
 			constants.SETTINGS_STATE_ENUM, constants.SETTINGS_STATE_INSERTS, constants.SETTINGS_STATE_PROCESSORS);
+		
+		this.insert_example_gauges(request);
 	},
 	
 	activate_settings_overview: function(request) {
@@ -724,6 +726,7 @@ _extend(PageController.prototype, {
 					} else {
 						item.siblings(".error").text("ERROR");
 					}
+					self.insert_example_gauges(request);
 				});
 		}
 		arrow_click(".up_arrow", 0.25);
@@ -1075,76 +1078,7 @@ _extend(PageController.prototype, {
 	/*************************************************************************/
 	/******************************* MESSAGES ********************************/
 	
-	create_weekly_report: function() {
-		var self = this;
-		
-		if (!_un_dbify_bool(self.prefs.get('weekly_affirmations', constants.DEFAULT_WEEKLY_AFFIRMATIONS))) {
-			// user doesn't want a weekly affirmation
-			return
-		}
-		
-		var email = self.prefs.get('email', constants.DEFAULT_EMAIL);
-		var name = "";
-		if (email) {
-			name = email.substr(0, email.indexOf("@"));
-		}
-		
-		var pd_hr_per_week_goal = self.retrieve_float_for_display("pd_hr_per_week_goal", constants.PD_DEFAULT_HR_PER_WEEK_GOAL);
-		var pd_dollars_per_hr = self.retrieve_float_for_display("pd_dollars_per_hr", constants.PD_DEFAULT_DOLLARS_PER_HR);
-		var pd_hr_per_week_max = self.retrieve_float_for_display("pd_hr_per_week_max", constants.PD_DEFAULT_HR_PER_WEEK_MAX);
-		
-		var tag_contenttype = self.pddb.ContentType.get_or_null({
-			modelname: "Tag"
-		});
-		var last_week = new Date();
-		last_week.setDate(last_week.getDate() - 7);
-		
-		var start_date = _start_of_week(last_week);
-		var start_date_friendly = _friendly_date(start_date);
-		var end_date = _end_of_week(last_week);
-		var end_date_friendly = _friendly_date(end_date);
-		
-		var pd_total_last_week = self.pddb.Total.get_or_null({
-			contenttype_id: tag_contenttype.id,
-			content_id: self.pddb.ProcrasDonate.id,
-			datetime: _dbify_date(end_date),
-			timetype_id: self.pddb.Weekly.id
-		});
-		var last_week_hrs = 0.0;
-		if (pd_total_last_week) {
-			last_week_hrs = pd_total_last_week.hours().toFixed(1)
-		}
-		
-		var good_news = (last_week_hrs < pd_hr_per_week_goal)
-		
-		var pledges = [];
-		var payments = [];
-		var time_span = "first week in a row";
-		
-		var message = Template.get("weekly_report").render(
-			new Context({
-				name: name,
-				start_date: start_date_friendly,
-				end_date: end_date_friendly,
-				good_news: good_news,
-				time_span: time_span,
-				pd_hr_per_week_goal: pd_hr_per_week_goal,
-				pd_dollars_per_hr: pd_dollars_per_hr,
-				pd_hr_per_week_max: pd_hr_per_week_max,
-				last_week_hrs: last_week_hrs,
-				pledges: pledges,
-				payments: payments
-			})
-		);
-		
-		self.pddb.Report.create({
-			datetime: _dbify_date(end_date),
-			type: "weekly",
-			message: message,
-			read: _dbify_bool(false),
-			sent: _dbify_bool(false)
-		});
-	},
+	
 	
 	/*************************************************************************/
 	/******************************* PROGRESS ********************************/
@@ -1264,6 +1198,9 @@ _extend(PageController.prototype, {
 		var goal = _un_prefify_float(this.prefs.get("pd_hr_per_week_goal", constants.DEFAULT_PD_HR_PER_WEEK_GOAL));
 		var width = 600;
 		
+		var pd_this_week_hrs_unlimited = pd_this_week_hrs;
+		var pd_last_week_hrs_unlimited = pd_last_week_hrs;
+		var pd_total_hrs_unlimited = pd_total_hrs;
 		if (pd_this_week_hrs > max) pd_this_week_hrs = max;
 		if (pd_last_week_hrs > max) pd_last_week_hrs = max;
 		if (pd_total_hrs > max) pd_total_hrs = max;
@@ -1283,7 +1220,7 @@ _extend(PageController.prototype, {
 
 		// create labels for major ticks
 		var major_tick_labels = [];
-		var major_tick_SPACES_count = 5;
+		var major_tick_SPACES_count = Math.min(5, max);
 		for (var i = 0; i <= major_tick_SPACES_count; i++) {
 			major_tick_labels.push( Math.round(max / major_tick_SPACES_count * i) );
 		}
@@ -1316,6 +1253,9 @@ _extend(PageController.prototype, {
 				pd_this_week_hrs: pd_this_week_hrs,
 				pd_last_week_hrs: pd_last_week_hrs,
 				pd_total_hrs: pd_total_hrs,
+				pd_this_week_hrs_unlimited: pd_this_week_hrs_unlimited,
+				pd_last_week_hrs_unlimited: pd_last_week_hrs_unlimited,
+				pd_total_hrs_unlimited: pd_total_hrs_unlimited,
 				this_week_laptop: this_week_laptop,
 				last_week_laptop: last_week_laptop,
 				total_laptop: total_laptop,
@@ -1518,22 +1458,116 @@ _extend(PageController.prototype, {
 				new Context({
 					substate_menu_items: substate_menu_items,
 					submenu_id: "register_track"
-				})
-			);
+				}));
+		var arrows = Template.get("register_arrows").render(
+				new Context({ substate_menu_items: substate_menu_items }));
 		
 		var middle = Template.get("register_incentive_middle").render(
 			new Context({
 				substate_menu_items: substate_menu_items,
 				substate_menu: substate_menu,
-				pd_dollars_per_hr: self.retrieve_float_for_display('pd_dollars_per_hr', constants.PD_DEFAULT_DOLLARS_PER_HR),
-				pd_hr_per_week_goal: self.retrieve_float_for_display('pd_hr_per_week_goal', constants.PD_DEFAULT_HR_PER_WEEK_GOAL),
-				pd_hr_per_week_max: self.retrieve_float_for_display('pd_hr_per_week_max', constants.PD_DEFAULT_HR_PER_WEEK_MAX),
+				arrows: arrows,
+				constants: constants,
+				pd_dollars_per_hr: self.retrieve_float_for_display('pd_dollars_per_hr', constants.DEFAULT_PD_DOLLARS_PER_HR),
+				pd_hr_per_week_goal: self.retrieve_float_for_display('pd_hr_per_week_goal', constants.DEFAULT_PD_HR_PER_WEEK_GOAL),
+				pd_hr_per_week_max: self.retrieve_float_for_display('pd_hr_per_week_max', constants.DEFAULT_PD_HR_PER_WEEK_MAX),
 			})
 		);
 		request.jQuery("#content").html( middle );
 		
 		this.activate_substate_menu_items(request, 'incentive',
 				constants.REGISTER_STATE_ENUM, constants.REGISTER_STATE_INSERTS, constants.REGISTER_STATE_PROCESSORS);
+		
+		this.activate_register_incentive(request);
+		
+		this.insert_example_gauges(request);
+	},
+	
+	activate_register_incentive: function(request) {
+		var self = this;
+
+		request.jQuery("input[name='pd_hr_per_week_goal']").keyup(function() {
+			request.jQuery("#goal_error").text("");
+			var value = $.trim($(this).attr("value"));
+			if (!value) { return; }
+			
+			if ( !self.validate_hours_input(request, value) ) {
+				request.jQuery("#goal_error").text("Please enter number of hours. For example, to strive for 8 hrs and 15 minutes, please enter 1.25");
+			} else {
+				self.prefs.set('pd_hr_per_week_goal', self.clean_hours_input(value));
+				self.insert_example_gauges(request);
+			}
+		});
+		
+		request.jQuery("input[name='pd_hr_per_week_max']").keyup(function() {
+			request.jQuery("#max_error").text("");
+			var value = $.trim($(this).attr("value"));
+			if (!value) { return; }
+			
+			if ( !self.validate_hours_input(request, value) ) {
+				request.jQuery("#max_error").text("Please enter number of hours. For example, enter 30 minutes as .5");
+			} else {
+				self.prefs.set('pd_hr_per_week_max', self.clean_hours_input(value));
+				self.insert_example_gauges(request);
+			}
+		});
+	},
+	
+	insert_example_gauges: function(request) {
+		var max = _un_prefify_float(this.prefs.get("pd_hr_per_week_max", constants.DEFAULT_PD_HR_PER_WEEK_MAX));
+		var goal = _un_prefify_float(this.prefs.get("pd_hr_per_week_goal", constants.DEFAULT_PD_HR_PER_WEEK_GOAL));
+		
+		/*
+		var happy_example = goal / 2;
+		if (Math.round(happy_example) == goal) { happy_example -= 1; }
+		
+		var unhappy_example = (max - goal) / 2 + goal;
+		if (Math.round(unhappy_example) == goal) { unhappy_example += 1; }
+		
+		this.insert_example_gauge(request, goal, max, happy_example, "happy_example_gauge");
+		this.insert_example_gauge(request, goal, max, unhappy_example, "unhappy_example_gauge");
+		*/
+		this.insert_example_gauge(request, goal, max, 0, "happy_example_gauge");
+	},
+	
+	insert_example_gauge: function(request, goal, max, value, id) {
+		var self = this;
+		
+		var width = 200;
+		var data = new google.visualization.DataTable();
+		data.addColumn('string', 'Label');
+		data.addColumn('number', 'Value');
+		data.addRows(1);
+		data.setValue(0, 0, 'hours per week');
+		data.setValue(0, 1, value);
+
+		var chart = new google.visualization.Gauge( request.jQuery("#"+id).get(0) );
+
+		// create labels for major ticks
+		var major_tick_labels = [];
+		var major_tick_SPACES_count = Math.min(5, max);
+		for (var i = 0; i <= major_tick_SPACES_count; i++) {
+			major_tick_labels.push( Math.round(max / major_tick_SPACES_count * i) );
+		}
+		
+		var options = {
+			width : width,
+			height : 250,
+			min: 0,
+			max: Math.round(max),
+			greenFrom : 0,
+			greenTo : Math.round(goal),
+			redFrom : Math.round(goal),
+			redTo : Math.round(max),
+			minorTicks : 5,
+			majorTicks: major_tick_labels
+		};
+		chart.draw(data, options);
+		
+		var first = true;
+		var r = request.jQuery("text").get(0);
+		if (r) { request.jQuery(r).css("font-size", "1.1em"); }
+		request.jQuery("g g text").attr("stroke", "#DDDDDD");
 	},
 	
 	process_register_incentive: function(request) {
@@ -1574,8 +1608,9 @@ _extend(PageController.prototype, {
 			new Context({
 				substate_menu_items: substate_menu_items,
 				submenu_id: "register_track"
-			})
-		);
+			}));
+		var arrows = Template.get("register_arrows").render(
+				new Context({ substate_menu_items: substate_menu_items }));
 		
 		var categories = [];
 		this.pddb.Category.select({}, function(row) {
@@ -1598,7 +1633,8 @@ _extend(PageController.prototype, {
 			}
 		});
 		
-		var not_chosen_charities = [];
+		var staff_picks = [];
+		var recently_added = [];
 		this.pddb.Recipient.select({}, function(row) {
 			if (row.bool_is_visible()) {
 				var chosen = false;
@@ -1612,7 +1648,11 @@ _extend(PageController.prototype, {
 							recipient: row
 						})
 					);
-					not_chosen_charities.push(html);
+					if (row.slug == "bilumi") {
+						staff_picks.push(html);
+					} else {
+						recently_added.push(html);
+					}
 				}
 			}
 		});
@@ -1622,9 +1662,11 @@ _extend(PageController.prototype, {
 				constants: constants,
 				substate_menu_items: substate_menu_items,
 				substate_menu: substate_menu,
+				arrows: arrows,
 				categories: categories,
 				chosen_charities: chosen_charities,
-				not_chosen_charities: not_chosen_charities
+				staff_picks: staff_picks,
+				recently_added: recently_added
 			})
 		);
 		request.jQuery("#content").html( middle );
@@ -1702,7 +1744,7 @@ _extend(PageController.prototype, {
 		}
 		
 		var user_recipients_div = request.jQuery("#chosen_charities");
-		var potential_recipients_div = request.jQuery("#not_chosen_charities");
+		var potential_recipients_div = request.jQuery("#removed_charities_temporary");
 		
 		recipient_elem.children(".add_recipient").click(function() {
 			var recipient_id = request.jQuery(this).siblings(".recipient_id").text();
@@ -1783,16 +1825,18 @@ _extend(PageController.prototype, {
 			new Context({
 				substate_menu_items: substate_menu_items,
 				submenu_id: "register_track"
-			})
-		);
+			}));
+		var arrows = Template.get("register_arrows").render(
+			new Context({ substate_menu_items: substate_menu_items }));
 		
 		var middle = Template.get("register_content_middle").render(
 			new Context({
 				substate_menu_items: substate_menu_items,
 				substate_menu: substate_menu,
-				tws_dollars_per_hr: self.retrieve_float_for_display('tws_dollars_per_hr', constants.TWS_DEFAULT_DOLLARS_PER_HR),
-				//tws_hr_per_week_goal: self.retrieve_float_for_display('tws_hr_per_week_goal', constants.TWS_DEFAULT_HR_PER_WEEK_GOAL),
-				tws_hr_per_week_max: self.retrieve_float_for_display('tws_hr_per_week_max', constants.TWS_DEFAULT_HR_PER_WEEK_MAX),
+				arrows: arrows,
+				tws_dollars_per_hr: self.retrieve_float_for_display('tws_dollars_per_hr', constants.DEFAULT_TWS_DOLLARS_PER_HR),
+				//tws_hr_per_week_goal: self.retrieve_float_for_display('tws_hr_per_week_goal', constants.DEFAULT_TWS_HR_PER_WEEK_GOAL),
+				tws_hr_per_week_max: self.retrieve_float_for_display('tws_hr_per_week_max', constants.DEFAULT_TWS_HR_PER_WEEK_MAX),
 			})
 		);
 		request.jQuery("#content").html( middle );
@@ -1837,13 +1881,15 @@ _extend(PageController.prototype, {
 			new Context({
 				substate_menu_items: substate_menu_items,
 				submenu_id: "register_track"
-			})
-		);
+			}));
+		var arrows = Template.get("register_arrows").render(
+			new Context({ substate_menu_items: substate_menu_items }));
 		
 		var middle = Template.get("register_support_middle").render(
 			new Context({
 				substate_menu_items: substate_menu_items,
 				substate_menu: substate_menu,
+				arrows: arrows,
 				support_pct: self.retrieve_percent_for_display('support_pct', constants.DEFAULT_SUPPORT_PCT),
 				monthly_fee: self.retrieve_float_for_display('monthly_fee', constants.DEFAULT_MONTHLY_FEE),
 			})
@@ -1930,24 +1976,71 @@ _extend(PageController.prototype, {
 			new Context({
 				substate_menu_items: substate_menu_items,
 				submenu_id: "register_track"
-			})
-		);
+			}));
+		var arrows = Template.get("register_arrows").render(
+			new Context({ substate_menu_items: substate_menu_items }));
 		
 		var middle = Template.get("register_updates_middle").render(
 			new Context({
 				substate_menu_items: substate_menu_items,
 				substate_menu: substate_menu,
+				arrows: arrows,
 				email: self.prefs.get('email', constants.DEFAULT_EMAIL),
-				weekly_affirmations: _un_dbify_bool(self.prefs.get('weekly_affirmations', constants.DEFAULT_WEEKLY_AFFIRMATIONS)),
-				org_thank_yous: _un_dbify_bool(self.prefs.get('org_thank_yous', constants.DEFAULT_ORG_THANK_YOUS)),
-				org_newsletters: _un_dbify_bool(self.prefs.get('org_newsletters', constants.DEFAULT_ORG_NEWSLETTERS)),
+				tax_deductions: _un_dbify_bool(self.prefs.get('tax_deductions', constants.DEFAULT_ELIGIBLE_FOR_TAX_DEDUCTIONS)),
 				tos: _un_dbify_bool(self.prefs.get('tos', constants.DEFAULT_TOS)),
 			})
 		);
 		request.jQuery("#content").html( middle );
 		
+		this.insert_tax_deductions_middle(request);
+		
 		this.activate_substate_menu_items(request, 'updates',
 			constants.REGISTER_STATE_ENUM, constants.REGISTER_STATE_INSERTS, constants.REGISTER_STATE_PROCESSORS);
+	},
+	
+	insert_tax_deductions_middle: function(request) {
+		var self = this;
+		
+		var address_fields = [
+			{name: "first_name", display: "First Name", value: self.prefs.get('first_name', '')},
+			{name: "last_name", display: "Last Name", value: self.prefs.get('last_name', '')},
+			{name: "mailing_address", display: "Mailing Address", value: self.prefs.get('mailing_address', '')},
+			{name: "city", display: "City", value: self.prefs.get('city', '')},
+			{name: "state", display: "State", value: self.prefs.get('state', '')},
+			{name: "zip", display: "Zip Code", value: self.prefs.get('zip', '')},
+			{name: "country", display: "Country", value: self.prefs.get('country', '')}];
+		
+		var middle = Template.get("tax_deductions_middle").render(
+			new Context({
+				weekly_affirmations: _un_dbify_bool(self.prefs.get('weekly_affirmations', constants.DEFAULT_WEEKLY_AFFIRMATIONS)),
+				org_thank_yous: _un_dbify_bool(self.prefs.get('org_thank_yous', constants.DEFAULT_ORG_THANK_YOUS)),
+				org_newsletters: _un_dbify_bool(self.prefs.get('org_newsletters', constants.DEFAULT_ORG_NEWSLETTERS)),
+				tax_deductions: _un_dbify_bool(self.prefs.get('tax_deductions', constants.DEFAULT_TAX_DEDUCTIONS)),
+				address_fields: address_fields
+			}));
+		request.jQuery("#tax_deductions_middle").html( middle );
+		
+		this.activate_register_updates(request);
+	},
+	
+	activate_register_updates: function(request) {
+		var self = this;
+		
+		request.jQuery(".tax_deductions_radio").click(function() {
+			var value = request.jQuery(this).attr("value");
+			if (value == "yes") {
+				self.prefs.set('tax_deductions', _dbify_bool(true));
+			} else {
+				self.prefs.set('tax_deductions', _dbify_bool(false));
+			}
+			self.insert_tax_deductions_middle(request);
+		});
+		
+		request.jQuery("input[type=text]").keyup(function() {
+			var name = request.jQuery(this).attr("name");
+			var value = request.jQuery(this).attr("value");
+			self.prefs.set(name, value);
+		});
 	},
 	
 	process_register_updates: function(request) {
@@ -1981,8 +2074,12 @@ _extend(PageController.prototype, {
 	 * return maximum amount that would be paid at user's rate and limit
 	 * for the given min_auth_time.
 	 */
-	calculate_max_amount: function(pd_dollars_per_hr, pd_hr_per_week_max, min_auth_time) {
-		var max_per_week = pd_dollars_per_hr * pd_hr_per_week_max;
+	calculate_max_amount: function(pd_dollars_per_hr, pd_hr_per_week_max, min_auth_time, monthly_fee) {
+		var support_method = this.prefs.get('support_method', constants.DEFAULT_SUPPORT_METHOD);
+		if (support_method != "monthly") {
+			monthly_fee = 0;
+		}
+		var max_per_week = pd_dollars_per_hr * pd_hr_per_week_max + (monthly_fee / 4);
 		var total_weeks = 0;
 		if (min_auth_time.units == "months" || min_auth_time.units == "month") {
 			// 4.348 is the avg number weeks per month
@@ -2003,17 +2100,25 @@ _extend(PageController.prototype, {
 		var substate_menu_items = this.make_substate_menu_items('payments',
 				constants.REGISTER_STATE_ENUM, constants.REGISTER_STATE_TAB_NAMES);
 		var substate_menu = Template.get("register_submenu").render(
-				new Context({ substate_menu_items: substate_menu_items })
-			);
+				new Context({
+					substate_menu_items: substate_menu_items,
+					submenu_id: "register_track"}));
+		var arrows = Template.get("register_arrows").render(
+				new Context({ substate_menu_items: substate_menu_items }));
 
 		// money/time information
-		var pd_dollars_per_hr = self.retrieve_float_for_display('pd_dollars_per_hr', constants.PD_DEFAULT_DOLLARS_PER_HR);
-		var pd_hr_per_week_max = self.retrieve_float_for_display('pd_hr_per_week_max', constants.PD_DEFAULT_HR_PER_WEEK_MAX);
+		var pd_dollars_per_hr = self.retrieve_float_for_display('pd_dollars_per_hr', constants.DEFAULT_PD_DOLLARS_PER_HR);
+		var pd_hr_per_week_max = self.retrieve_float_for_display('pd_hr_per_week_max', constants.DEFAULT_PD_HR_PER_WEEK_MAX);
 		var min_auth_time = {
 			time: _un_prefify_float(self.prefs.get('min_auth_time', constants.DEFAULT_MIN_AUTH_TIME)),
 			units: self.prefs.get('min_auth_units', constants.DEFAULT_MIN_AUTH_UNITS),
 		};
-		var max_amount_paid = self.calculate_max_amount(pd_dollars_per_hr, pd_hr_per_week_max, min_auth_time);
+		var monthly_fee = _un_prefify_float(self.prefs.get('monthly_fee', constants.DEFAULT_MONTHLY_FEE));
+		var max_amount_paid = self.calculate_max_amount(
+				pd_dollars_per_hr,
+				pd_hr_per_week_max,
+				min_auth_time,
+				monthly_fee);
 		
 		var multi_auth = self.pddb.FPSMultiuseAuthorization.most_recent();
 		var multi_auth_status = "";
@@ -2041,9 +2146,11 @@ _extend(PageController.prototype, {
 					constants: constants,
 					substate_menu_items: substate_menu_items,
 					substate_menu: substate_menu,
-					pd_dollars_per_hr: self.retrieve_float_for_display('pd_dollars_per_hr', constants.PD_DEFAULT_DOLLARS_PER_HR),
-					pd_hr_per_week_goal: self.retrieve_float_for_display('pd_hr_per_week_goal', constants.PD_DEFAULT_HR_PER_WEEK_GOAL),
-					pd_hr_per_week_max: self.retrieve_float_for_display('pd_hr_per_week_max', constants.PD_DEFAULT_HR_PER_WEEK_MAX),
+					arrows: arrows,
+					support_method: self.prefs.get('support_method', constants.DEFAULT_SUPPORT_METHOD), 
+					pd_dollars_per_hr: self.retrieve_float_for_display('pd_dollars_per_hr', constants.DEFAULT_PD_DOLLARS_PER_HR),
+					pd_hr_per_week_goal: self.retrieve_float_for_display('pd_hr_per_week_goal', constants.DEFAULT_PD_HR_PER_WEEK_GOAL),
+					pd_hr_per_week_max: self.retrieve_float_for_display('pd_hr_per_week_max', constants.DEFAULT_PD_HR_PER_WEEK_MAX),
 					min_auth_time: min_auth_time,
 					max_amount_paid: parseInt(max_amount_paid+1),
 					multi_auth_status: multi_auth_status,
@@ -2057,6 +2164,8 @@ _extend(PageController.prototype, {
 		
 		this.activate_substate_menu_items(request, 'payments',
 			constants.REGISTER_STATE_ENUM, constants.REGISTER_STATE_INSERTS, constants.REGISTER_STATE_PROCESSORS);
+		
+		this.insert_support_middle(request);
 		
 		this.activate_register_payments(request);
 		
@@ -2086,7 +2195,57 @@ _extend(PageController.prototype, {
 			}
 		);
 	},
+		
+	insert_support_middle: function(request) {
+		var self = this;
+		
+		var middle = Template.get("support_middle").render(
+			new Context({
+				support_method: self.prefs.get('support_method', constants.DEFAULT_SUPPORT_METHOD),
+				support_pct: self.retrieve_percent_for_display('support_pct', constants.DEFAULT_SUPPORT_PCT),
+				monthly_fee: self.retrieve_float_for_display('monthly_fee', constants.DEFAULT_MONTHLY_FEE),
+			}));
+		request.jQuery("#support_middle").html( middle );
+		
+		this.activate_support_middle(request);
+	},
 	
+	activate_support_middle: function(request) {
+		var self = this;
+		
+		request.jQuery(".support_method_radio").click(function() {
+			var value = request.jQuery(this).attr("value");
+			self.prefs.set('support_method', value);
+			self.insert_support_middle(request);
+			self.adjust_amazon_params(request);
+		});
+		
+		request.jQuery("#support_pct").keyup(function() {
+			var support_pct = request.jQuery(this).attr("value");
+			request.jQuery(".error").text("");
+			
+			if ( !self.validate_positive_float_input(request, support_pct) ) {
+				request.jQuery("#support_error").append("<p>Please enter a valid percent. For example, 6.75 for 6.75%</p>");
+			} else if ( parseFloat(support_pct) > 10.0 ) {
+				request.jQuery("#support_error").append("<p>We cannot accept more than 10%. Please enter a lower percent. For example, 10 for 10%.</p>");
+			} else {
+				self.prefs.set('support_pct', self.clean_percent_input(support_pct));
+			}
+		});
+		
+		request.jQuery("#monthly_fee").keyup(function() {
+			var monthly_fee = request.jQuery(this).attr("value");
+			request.jQuery(".error").text("");
+			
+			if ( !self.validate_dollars_input(request, monthly_fee) ) {
+				request.jQuery("#monthly_error").append("<p>Please enter a valid amount. For example, 4.99 for $4.99</p>");
+			} else {
+				self.prefs.set('monthly_fee', self.clean_dollars_input(monthly_fee));
+				self.adjust_amazon_params(request);
+			}
+		});
+	},
+		
 	activate_register_payments: function(request) {
 		var self = this;
 		request.jQuery("#min_auth_time_input").keyup(function() {
@@ -2098,20 +2257,32 @@ _extend(PageController.prototype, {
 			}
 			if (!time) return
 			self.prefs.set('min_auth_time', _prefify_float(time));
-			
-			var pd_dollars_per_hr = self.retrieve_float_for_display('pd_dollars_per_hr', constants.PD_DEFAULT_DOLLARS_PER_HR);
-			var pd_hr_per_week_max = self.retrieve_float_for_display('pd_hr_per_week_max', constants.PD_DEFAULT_HR_PER_WEEK_MAX);
-			var min_auth_time = {
-				time: time,
-				units: self.prefs.get('min_auth_units', constants.DEFAULT_MIN_AUTH_UNITS),
-			};
-			var max_amount_paid = self.calculate_max_amount(pd_dollars_per_hr, pd_hr_per_week_max, min_auth_time);
-			
-			request.jQuery("#max_amount_paid").text(parseInt(max_amount_paid+1));
-			request.jQuery(".global_amount_limit").attr("value", parseInt(max_amount_paid+1));
-			request.jQuery("#min_auth_time_display").text(min_auth_time.time);
-			request.jQuery("#min_auth_units_display").text(min_auth_time.units);
+			self.adjust_amazon_params(request);
 		});
+	},
+	
+	adjust_amazon_params: function(request) {
+		var self = this;
+		
+		var time = _un_prefify_float(self.prefs.get('min_auth_time', constants.DEFAULT_MIN_AUTH_TIME));
+		var pd_dollars_per_hr = self.retrieve_float_for_display('pd_dollars_per_hr', constants.DEFAULT_PD_DOLLARS_PER_HR);
+		var pd_hr_per_week_max = self.retrieve_float_for_display('pd_hr_per_week_max', constants.DEFAULT_PD_HR_PER_WEEK_MAX);
+		
+		var min_auth_time = {
+			time: time,
+			units: self.prefs.get('min_auth_units', constants.DEFAULT_MIN_AUTH_UNITS),
+		};
+		var monthly_fee = _un_prefify_float(self.prefs.get('monthly_fee', constants.DEFAULT_MONTHLY_FEE));
+		var max_amount_paid = self.calculate_max_amount(
+				pd_dollars_per_hr,
+				pd_hr_per_week_max,
+				min_auth_time,
+				monthly_fee);
+		
+		request.jQuery("#max_amount_paid").text(Math.ceil(max_amount_paid));
+		request.jQuery(".global_amount_limit").attr("value", Math.ceil(max_amount_paid));
+		request.jQuery("#min_auth_time_display").text(min_auth_time.time);
+		request.jQuery("#min_auth_units_display").text(min_auth_time.units);
 	},
 	
 	process_register_payments: function(request) {
@@ -2191,7 +2362,7 @@ _extend(PageController.prototype, {
 			for (var i = 0; i < urls.length; i++) {
 				// add at least 2000 seconds to start time
 				// times the number of visits already done
-				self.pddb.store_visit(urls[i], time + i*2000, duration);
+				myOverlay.init_listener.time_tracker.store_visit(urls[i], time + i*2000, duration);
 			}
 		});
 	},
@@ -2468,7 +2639,7 @@ _extend(Schedule.prototype, {
 	},
 	
 	do_once_weekly_tasks: function() {
-		this.pddb.page.create_weekly_report();
+		this.create_weekly_report();
 	},
 	
 	do_make_payment: function() {
@@ -2482,5 +2653,80 @@ _extend(Schedule.prototype, {
 		var start_of_week = _start_of_week();
 		this.prefs.set('last_week_mark', _dbify_date(start_of_week));
 	},
+	
+	retrieve_float_for_display: function(key, def) {
+		return _un_prefify_float( this.prefs.get(key, def) ).toFixed(2)
+	},
+	
+	create_weekly_report: function() {
+		var self = this;
+		
+		if (!_un_dbify_bool(self.prefs.get('weekly_affirmations', constants.DEFAULT_WEEKLY_AFFIRMATIONS))) {
+			// user doesn't want a weekly affirmation
+			return
+		}
+		
+		var email = self.prefs.get('email', constants.DEFAULT_EMAIL);
+		var name = "";
+		if (email) {
+			name = email.substr(0, email.indexOf("@"));
+		}
+		
+		var pd_hr_per_week_goal = self.retrieve_float_for_display("pd_hr_per_week_goal", constants.DEFAULT_PD_HR_PER_WEEK_GOAL);
+		var pd_dollars_per_hr = self.retrieve_float_for_display("pd_dollars_per_hr", constants.DEFAULT_PD_DOLLARS_PER_HR);
+		var pd_hr_per_week_max = self.retrieve_float_for_display("pd_hr_per_week_max", constants.DEFAULT_PD_HR_PER_WEEK_MAX);
+		
+		var tag_contenttype = self.pddb.ContentType.get_or_null({
+			modelname: "Tag"
+		});
+		var last_week = new Date();
+		last_week.setDate(last_week.getDate() - 7);
+		
+		var start_date = _start_of_week(last_week);
+		var start_date_friendly = _friendly_date(start_date);
+		var end_date = _end_of_week(last_week);
+		var end_date_friendly = _friendly_date(end_date);
+		
+		var pd_total_last_week = self.pddb.Total.get_or_null({
+			contenttype_id: tag_contenttype.id,
+			content_id: self.pddb.ProcrasDonate.id,
+			datetime: _dbify_date(end_date),
+			timetype_id: self.pddb.Weekly.id
+		});
+		var last_week_hrs = 0.0;
+		if (pd_total_last_week) {
+			last_week_hrs = pd_total_last_week.hours().toFixed(1)
+		}
+		
+		var good_news = (last_week_hrs < pd_hr_per_week_goal)
+		
+		var pledges = [];
+		var payments = [];
+		var time_span = "first week in a row";
+		
+		var message = Template.get("weekly_report").render(
+			new Context({
+				name: name,
+				start_date: start_date_friendly,
+				end_date: end_date_friendly,
+				good_news: good_news,
+				time_span: time_span,
+				pd_hr_per_week_goal: pd_hr_per_week_goal,
+				pd_dollars_per_hr: pd_dollars_per_hr,
+				pd_hr_per_week_max: pd_hr_per_week_max,
+				last_week_hrs: last_week_hrs,
+				pledges: pledges,
+				payments: payments
+			})
+		);
+		
+		self.pddb.Report.create({
+			datetime: _dbify_date(end_date),
+			type: "weekly",
+			message: message,
+			read: _dbify_bool(false),
+			sent: _dbify_bool(false)
+		});
+	}
 
 });

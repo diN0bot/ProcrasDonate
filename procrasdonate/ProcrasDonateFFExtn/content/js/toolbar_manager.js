@@ -171,12 +171,19 @@ _extend(ToolbarManager.prototype, {
 			this.classify_button.setAttribute("image", this.images[tag_id]);
 			this.classify_button.setAttribute("label", tag.tag);
 			
-			var tooltip_text = this.classify_button.getAttribute("tooltiptext");
-			var new_tooltip_text = tooltip_text.replace(/: [\w]+\./, ": "+tag.tag+".");
-			this.classify_button.setAttribute("tooltiptext", new_tooltip_text);
+			var tt = "";
+			if (tag.id == this.pddb.ProcrasDonate.id) {
+				tt = "ProcrasDonating";
+			} else if (tag.id == this.pddb.TimeWellSpent.id) {
+				tt = "TimeWellSpending";
+			} else {
+				tt = "Doing My Thing";
+			}
+			this.classify_button.setAttribute("tooltiptext", "Currently "+tt+". To re-classify this site click this icon.");
 			
 			// alter progress bars only if they exist
 			if ( !this.pd_progress_button && !this.tws_progress_button ) {
+				logger("----------------- toolbar buttons don't exist :-( ------------------------")
 				return;
 			}
 			
@@ -188,29 +195,30 @@ _extend(ToolbarManager.prototype, {
 				datetime: _dbify_date(_end_of_week()),
 				timetype_id: this.pddb.Weekly.id
 			});
+			/*
 			var tws_total = this.pddb.Total.get_or_null({
 				contenttype_id: tag_content_type.id,
 				content_id: this.pddb.TimeWellSpent.id,
 				datetime: _dbify_date(_end_of_week()),
 				timetype_id: this.pddb.Weekly.id
 			});
-			//logger("yyyyy "+this.pddb.TimeWellSpent+"     "+tws_total);
+			*/
 			
 			var pd_goal = parseFloat(this.prefs.get('pd_hr_per_week_goal', 1));
 			var pd_limit = parseFloat(this.prefs.get('pd_hr_per_week_max', 1));
 			
-			var tws_goal = parseFloat(this.prefs.get('tws_hr_per_week_goal', 1));
-			var tws_limit = parseFloat(this.prefs.get('tws_hr_per_week_max', 1));
+			//var tws_goal = parseFloat(this.prefs.get('tws_hr_per_week_goal', 1));
+			//var tws_limit = parseFloat(this.prefs.get('tws_hr_per_week_max', 1));
 			
 			if ( pd_total && this.pd_progress_button) {
 				pd_total = parseInt(pd_total.total_time);
 				this.update_progress(pd_total, pd_goal, pd_limit, this.pd_progress_button, "PD")
 			}
 			
-			if ( tws_total && this.tws_progress_button) {
+			/*if ( tws_total && this.tws_progress_button) {
 				tws_total = parseInt(tws_total.total_time);
 				this.update_progress(tws_total, tws_goal, tws_limit, this.tws_progress_button, "TWS")
-			}
+			}*/
 			
 		}
     },
@@ -218,24 +226,24 @@ _extend(ToolbarManager.prototype, {
 	update_progress: function(total, goal, limit, button, label) {
     	//logger("toolbar.js::update_progress LABEL="+label);
 
-    	var total_in_date = _start_of_week();
-		total_in_date.setSeconds(total);
-		
-		var start = _start_of_week();
-		var days = total_in_date.getDate() - start.getDate();
-		var hours = total_in_date.getHours() - start.getHours();
-		var minutes = total_in_date.getMinutes() - start.getMinutes();
-		//logger("toolbar.js::update_progress: total for the week is: " + total);
-		//logger("toolbar.js::update_progress:    days, hours, minutes="+days+" hr="+hours+" mi="+minutes);
-		//logger("toolbar.js::update_progress: goal="+goal+" limit="+limit);
-
+    	//logger(" >>> total="+total);
+    	//logger(" >>> goal ="+goal);
+    	//logger(" >>> limit ="+limit);
+    	
+    	var days = Math.floor(total / (3600*24));
+    	var days_r = total % (3600*24);
+    	var hrs = Math.floor(days_r / 3600);
+    	var hrs_r = days_r % 3600;
+    	var mins = Math.floor(hrs_r / 60);
+    	var mins_r = hrs_r % 60;
+    	var secs = mins_r % 60;
+    	
 		var goal_in_s = parseFloat(goal) * 3600;
 		var limit_in_s = parseFloat(limit) * 3600;
-		//logger("toolbar.js::update_progress: goal in sec="+goal_in_s+" limit in sec="+limit_in_s);
 		
 		var percentile = total/goal_in_s;
 		var limit_progress = (total - goal_in_s) / (limit_in_s - goal_in_s) 
-		//logger("toolbar.js::update_progress: total/goal="+percentile+" limit_progress="+limit_progress);
+
 		var icon_number = "0";
 		
 		if (percentile < (0.125 * 1)) {
@@ -269,10 +277,11 @@ _extend(ToolbarManager.prototype, {
 		
 		button.setAttribute("image", "chrome://ProcrasDonate/skin/IconBar"+icon_number+".png");
 		var diff_str = "";
-		if (days > 0) { diff_str += days+" days, "; }
-		if (hours > 0) { diff_str += hours+" hr, "; }
-		if (minutes >= 0) { diff_str += minutes+" min"; }
+		if (days > 0) { diff_str += days+" day, "; }
+		if (hrs > 0) { diff_str += hrs+" hr, "; }
+		if (mins >= 0) { diff_str += mins+" min"; }
 		button.setAttribute("label", label+": "+diff_str);
+		button.setAttribute("tooltiptext", "Progress towards weekly "+label+" goal: "+diff_str+". To view your progress click this icon.");
     },
     
     getDbRowsForLocation : function(url) {

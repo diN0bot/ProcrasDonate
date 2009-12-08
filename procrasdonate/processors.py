@@ -175,7 +175,7 @@ class Processor(object):
                 Log.add(Log.LOG_TYPES['LOG'], 'missing_pref', "%s not in %s" % (field, pref), user)
             elif getattr(user, field) != pref[field]:
                 if field == 'email':
-                    user.field = Email.get_or_create(pref['email'])
+                    user.email = Email.get_or_create(pref['email'])
                 else:
                     setattr(user, field, pref[field])
                 changed = True

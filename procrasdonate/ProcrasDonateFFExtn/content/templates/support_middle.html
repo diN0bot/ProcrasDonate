@@ -1,16 +1,28 @@
-<h3 class='RegisterHeader'>What is ProcrasDonate worth to you?</h3>
+{% ifequal support_method "monthly" %}
+	<p>Voluntary membership fees are charged to your account each month.</p>
+	<p><input
+		type="text"
+		id="monthly_fee"
+		name="monthly_fee" 
+		value="{{ monthly_fee }}" />
+	   <span class="units">dollars per month</span>
+	   <span id="monthly_error" class="error"></span></p>
+{% endifequal %}
 
-<p>What <b>percentage</b> of <i>your</i> donations should we use to run/improve our service?</p>
-	
-<form name='account_form' onSubmit='return false'>
-	<table>
-		<tbody>
-			<tr>
-				<td><label class='form-right form-label'>Support ProcrasDonate: </label></td>
-				<!-- <td><div id='support_slider' class='slider' alt='{{ pct }}'></div></td>-->
-				<td><input id='support_input' class='press_enter_for_next input form-value form-right' alt='{{ pct }}' value='{{ pct }}' size='2'/></td>
-				<td><span class='help form-label form-right'>% of total donation</span></td>
-			</tr>
-		</tbody>
-	</table>
-</form>
+{% ifequal support_method "percent" %}
+	<p>You can also pay us a percentage of every transaction you 
+		make using our service.
+		<br>Since we don't charge charities for receiving donations
+		your transaction fees will be charged separately and 
+		paid directly to ProcrasDonate.</p>
+	<p><input
+		type="text"
+		id="support_pct"
+		name="support_pct" 
+		value="{{ support_pct }}" />
+	   <span class="units">%</span>
+	   <span class="help"> 
+	   	<br>(enter ''4.00'' to donate 4% per transaction.)</span>
+	   <span id="support_error" class="error"></span>
+	   </p>
+{% endifequal %}

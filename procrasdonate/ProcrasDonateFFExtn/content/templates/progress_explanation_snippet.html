@@ -1,9 +1,25 @@
 <table id="progress_explanation" style="width: {{ width }}px; margin: auto;">
 <tbody>
 	<tr>
-		<td>This week so far:<br />{{ pd_this_week_hrs }} hours</td>
-		<td>Last week:<br />{{ pd_last_week_hrs }} hours</td>
-		<td>All time average:<br />{{ pd_total_hrs }} hours</td>
+		<td>This week so far:<br />{{ pd_this_week_hrs_unlimited }} hours
+			{% ifequal pd_this_week_hrs_unlimited pd_this_week_hrs %}
+				{# inexplicably, ifequal is called... #}
+			{% else %}
+				{# (limited to {{ pd_this_week_hrs }} hours) #}
+			{% endifequal %}
+		</td>
+		<td>Last week:<br />{{ pd_last_week_hrs_unlimited }} hours
+			{% ifequal pd_last_week_hrs_unlimited pd_last_week_hrs %}
+			{% else %}
+				{# (limited to {{ pd_last_week_hrs }}) #}
+			{% endifequal %}
+		</td>
+		<td>All time average:<br />{{ pd_total_hrs_unlimited }} hours
+			{% ifequal pd_total_hrs_unlimited pd_total_hrs %}
+			{% else %}
+				{# (limited to {{ pd_total_hrs }}) #}
+			{% endifequal %}
+		</td>
 	</tr>
 	<tr>
 		<td><img class="laptop" src="{{ this_week_laptop }}" /></td>

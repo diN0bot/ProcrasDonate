@@ -116,9 +116,9 @@ var constants = {};
 		"insert_progress_visits"
 	];
 	constants.PROGRESS_STATE_IMAGES = [
-		{ past: "coins_card.png", selected: "DollarRocket.png" },
-		{ past: "FireWall.png", selected: "DollarRocket.png" },
-		{ past: "FourHeads.png", selected: "DollarRocket.png" },
+		{ past: "StepCircle1.png", selected: "StepCircle1Done.png", future: "StepCircle1.png" },
+		{ past: "StepCircle2.png", selected: "StepCircle2Done.png", future: "StepCircle2.png" },
+		{ past: "StepCircle3.png", selected: "StepCircle3Done.png", future: "StepCircle3.png" },
    	];
 
 	// enumeration of messages page state
@@ -174,31 +174,25 @@ var constants = {};
 	constants.REGISTER_STATE_ENUM = [
 		'incentive', 
 		'charities', 
-		'content', 
-		'support', 
 		'updates', 
-		'payments'/*,
-		'done'*/
+		'payments',
+		'time_well_spent'
 	];
 	constants.REGISTER_STATE_TAB_NAMES = [
-		'Incentive', 'Charities', 'Content', 'Support', 'Updates', 'Payments'/*, 'XXX'*/];
+		'Incentive', 'Charities', 'Updates', 'Payments', 'TWS'];
 	constants.REGISTER_STATE_INSERTS = [
 		"insert_register_incentive", 
 		"insert_register_charities", 
-		"insert_register_content", 
-		"insert_register_support", 
 		"insert_register_updates",
-		"insert_register_payments"/*,
-		"insert_register_done"*/
+		"insert_register_payments",
+		"insert_register_time_well_spent"
 	];
 	constants.REGISTER_STATE_PROCESSORS = [
 		"process_register_incentive", 
-		"process_register_charities", 
-		"process_register_content", 
-		"process_register_support", 
+		"process_register_charities",  
 		"process_register_updates",
-		"process_register_payments"/*,
-		"process_register_done"*/
+		"process_register_payments",
+		"process_register_time_well_spent"
 	];
 	
 	constants.DEFAULT_HASH = "nohash";
@@ -208,12 +202,12 @@ var constants = {};
 	constants.DEFAULT_EMAIL = "";
 	constants.DEFAULT_PROCRASDONATE_REASON = "ProcrasDonating for a good cause";
 	constants.DEFAULT_TIMEWELLSPENT_REASON = "TimeWellSpent for a good cause";
-	constants.PD_DEFAULT_DOLLARS_PER_HR = 2;
-	constants.PD_DEFAULT_HR_PER_WEEK_GOAL = 20;
-	constants.PD_DEFAULT_HR_PER_WEEK_MAX = 30;
-	constants.TWS_DEFAULT_DOLLARS_PER_HR = 2;
-	constants.TWS_DEFAULT_HR_PER_WEEK_GOAL = 20;
-	constants.TWS_DEFAULT_HR_PER_WEEK_MAX = 30;
+	constants.DEFAULT_PD_DOLLARS_PER_HR = 2;
+	constants.DEFAULT_PD_HR_PER_WEEK_GOAL = 20;
+	constants.DEFAULT_PD_HR_PER_WEEK_MAX = 30;
+	constants.DEFAULT_TWS_DOLLARS_PER_HR = 2;
+	constants.DEFAULT_TWS_HR_PER_WEEK_GOAL = 20;
+	constants.DEFAULT_TWS_HR_PER_WEEK_MAX = 30;
 	constants.DEFAULT_SUPPORT_PCT = _prefify_float(0.10);
 	constants.DEFAULT_MONTHLY_FEE = _prefify_float(1.00);
 	constants.DEFAULT_PAYMENT_THRESHHOLD = 10;
@@ -225,9 +219,11 @@ var constants = {};
 	constants.DEFAULT_FLASH_MAX_IDLE = 20*60; // 20 minutes
 	
 	constants.DEFAULT_WEEKLY_AFFIRMATIONS = _dbify_bool(true);
-	constants.DEFAULT_ORG_THANK_YOUS = _dbify_bool(true);
-	constants.DEFAULT_ORG_NEWSLETTERS = _dbify_bool(true);
+	constants.DEFAULT_ORG_THANK_YOUS = _dbify_bool(false);
+	constants.DEFAULT_ORG_NEWSLETTERS = _dbify_bool(false);
 	constants.DEFAULT_TOS = _dbify_bool(false);
+	constants.DEFAULT_TAX_DEDUCTIONS = _dbify_bool(false);
+	constants.DEFAULT_SUPPORT_METHOD = "monthly"; // or "percent"
 	
 	// flag for whether to make payments or not--
 	// eg, if db corruption or some other error

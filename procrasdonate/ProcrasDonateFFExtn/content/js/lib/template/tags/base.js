@@ -83,6 +83,9 @@ var TAGS = {
 			return this.render_nodelist(nodelist_true, context, env);
 		return this.render_nodelist(nodelist_false, context, env);
 	},
+	'ifnotequal':function(args, context, env) {
+		return !this.ifequal(args, context, env);
+	},
 	
 	'comment':function(args, context, env) {
 		return ''

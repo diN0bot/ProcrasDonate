@@ -1,4 +1,5 @@
 {{ substate_menu }}
+{{ arrows }}
 
 <h1>Charitable recipients</h1>
 <p>You can use your ProcrasDonation incentive to help several 
@@ -9,14 +10,18 @@
 <h2>Selected charities:</h2>
 
 <div id="chosen_charities">
-	{% for deep_recip_pct_html in chosen_charities %}
-		{{ deep_recip_pct_html }}
-	{% endfor %}
+	{% if chosen_charities %}
+		{% for deep_recip_pct_html in chosen_charities %}
+			{{ deep_recip_pct_html }}
+		{% endfor %}
+	{% else %}
+		<p>Please add at least one charity.</p>
+	{% endif %}
 </div>
 
+{% comment %}
 <h2>Find other charities:</h2>
 
-{% comment %}
 <select name="categories">
 	<option value="null">Select Category</option>
 	{% for category in categories %}
@@ -43,12 +48,6 @@
 
 {% endcomment %}
 
-<div id="not_chosen_charities">
-	{% for recipient_html in not_chosen_charities %}
-		{{ recipient_html }}
-	{% endfor %}
-</div>
-
 <h2>Invite new charities:</h2>
 <p>If a non-profit charity is not listed then you can invite 
 	them to join by entering their name below.
@@ -68,6 +67,22 @@
 		value="add new recipient"/>
 </p>
 
+{% if staff_picks %}
+<h2>Staff Picks</h2>
+	{% for recipient_html in staff_picks %}
+		{{ recipient_html }}
+	{% endfor %}
+{% endif %}
+
+{% if recently_added %}
+<h2>Recently Added</h2>
+	{% for recipient_html in recently_added %}
+		{{ recipient_html }}
+	{% endfor %}
+{% endif %}
+
+<div id="removed_charities_temporary"></div>
+	
 {% comment %}
 <p class="new_recipient">
 	Optionally provide a website or email to help us contact the charity.
@@ -79,3 +94,5 @@
 	<input id="new_recipient_email" type="text" size="23" />
 </p>
 {% endcomment %}
+
+{{ arrows }}

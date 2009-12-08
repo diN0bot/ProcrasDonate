@@ -1,4 +1,5 @@
 {{ substate_menu }}
+{{ arrows }}
 
 <form method="post" action="{{ action }}">
 	{% for param in form_params %}
@@ -17,6 +18,28 @@
 
 <div id="multi_auth_status">
 	{{ multi_auth_status }}
+</div>
+
+<h1>Support our service</h1>
+
+<p>We need to develop technology, build our organization and pay the bills.
+	Please choose how you would like to help.</p>
+
+<input
+	class="support_method_radio"
+	type="radio"
+	name="support_method"
+	value="monthly"
+	{% ifequal support_method "monthly" %}checked{% endifequal %}>Yes</input>
+	
+<input
+	class="support_method_radio"
+	type="radio"
+	name="support_method"
+	value="percent"
+	{% ifequal support_method "percent" %}checked{% endifequal %}>No</input>
+
+<div id="support_middle">
 </div>
 
 <h1>Approving payments</h1>
@@ -66,3 +89,5 @@
 				src="{{ constants.MEDIA_URL }}img/GoAmazonButton.png" />
 		</form>
 {% endif %}
+
+{{ arrows }}
