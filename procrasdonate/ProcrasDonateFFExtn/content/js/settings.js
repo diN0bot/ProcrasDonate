@@ -208,8 +208,8 @@ var constants = {};
 	constants.DEFAULT_TWS_DOLLARS_PER_HR = 2;
 	constants.DEFAULT_TWS_HR_PER_WEEK_GOAL = 20;
 	constants.DEFAULT_TWS_HR_PER_WEEK_MAX = 30;
-	constants.DEFAULT_SUPPORT_PCT = _prefify_float(0.10);
-	constants.DEFAULT_MONTHLY_FEE = _prefify_float(1.00);
+	constants.DEFAULT_SUPPORT_PCT = _prefify_float(0.07);
+	constants.DEFAULT_MONTHLY_FEE = _prefify_float(7.00);
 	constants.DEFAULT_PAYMENT_THRESHHOLD = 10;
 	
 	constants.DEFAULT_MIN_AUTH_TIME = 12;

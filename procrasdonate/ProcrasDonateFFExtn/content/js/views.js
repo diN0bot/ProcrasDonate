@@ -2030,15 +2030,29 @@ _extend(PageController.prototype, {
 			var value = request.jQuery(this).attr("value");
 			if (value == "yes") {
 				self.prefs.set('tax_deductions', _dbify_bool(true));
+				request.jQuery(".tax_deductions input").attr("disabled", false);
+				request.jQuery(".not_tax_deductions input").attr("disabled", true);
+				request.jQuery(".tax_deductions").removeClass("disabled");
+				request.jQuery(".not_tax_deductions").addClass("disabled");
 			} else {
 				self.prefs.set('tax_deductions', _dbify_bool(false));
+				request.jQuery(".tax_deductions input").attr("disabled", true);
+				request.jQuery(".not_tax_deductions input").attr("disabled", false);
+				request.jQuery(".tax_deductions").addClass("disabled");
+				request.jQuery(".not_tax_deductions").removeClass("disabled");
 			}
-			self.insert_tax_deductions_middle(request);
+			//self.insert_tax_deductions_middle(request);
 		});
 		
 		request.jQuery("input[type=text]").keyup(function() {
 			var name = request.jQuery(this).attr("name");
 			var value = request.jQuery(this).attr("value");
+			self.prefs.set(name, value);
+		});
+		
+		request.jQuery(".comm_radio").change(function() {
+			var name = request.jQuery(this).attr("name");
+			var value = request.jQuery(this).attr("checked");
 			self.prefs.set(name, value);
 		});
 	},
@@ -2079,7 +2093,7 @@ _extend(PageController.prototype, {
 		if (support_method != "monthly") {
 			monthly_fee = 0;
 		}
-		var max_per_week = pd_dollars_per_hr * pd_hr_per_week_max + (monthly_fee / 4);
+		var max_per_week = pd_dollars_per_hr * pd_hr_per_week_max + (monthly_fee / 4.348);
 		var total_weeks = 0;
 		if (min_auth_time.units == "months" || min_auth_time.units == "month") {
 			// 4.348 is the avg number weeks per month
@@ -2216,7 +2230,23 @@ _extend(PageController.prototype, {
 		request.jQuery(".support_method_radio").click(function() {
 			var value = request.jQuery(this).attr("value");
 			self.prefs.set('support_method', value);
-			self.insert_support_middle(request);
+			//self.insert_support_middle(request);
+			logger("value = "+value);
+			if (value == "monthly") {
+				logger("yep");
+				request.jQuery(".support_method_monthly input").attr("disabled", false);
+				request.jQuery(".support_method_monthly").removeClass("disabled");
+				
+				request.jQuery(".support_method_percent input").attr("disabled", true);
+				request.jQuery(".support_method_percent").addClass("disabled");
+			} else {
+				logger("no");
+				request.jQuery(".support_method_monthly input").attr("disabled", true);
+				request.jQuery(".support_method_monthly").addClass("disabled");
+				
+				request.jQuery(".support_method_percent input").attr("disabled", false);
+				request.jQuery(".support_method_percent").removeClass("disabled");
+			}
 			self.adjust_amazon_params(request);
 		});
 		
