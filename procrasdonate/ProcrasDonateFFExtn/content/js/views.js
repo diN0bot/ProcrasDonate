@@ -1531,7 +1531,7 @@ _extend(PageController.prototype, {
 	insert_example_gauge: function(request, goal, max, value, id) {
 		var self = this;
 		
-		var width = 200;
+		var width = 300;
 		var data = new google.visualization.DataTable();
 		data.addColumn('string', 'Label');
 		data.addColumn('number', 'Value');
