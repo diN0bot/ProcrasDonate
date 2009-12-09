@@ -116,9 +116,9 @@ var constants = {};
 		"insert_progress_visits"
 	];
 	constants.PROGRESS_STATE_IMAGES = [
-		{ past: "StepCircle1.png", selected: "StepCircle1Done.png", future: "StepCircle1.png" },
-		{ past: "StepCircle2.png", selected: "StepCircle2Done.png", future: "StepCircle2.png" },
-		{ past: "StepCircle3.png", selected: "StepCircle3Done.png", future: "StepCircle3.png" },
+		{ past: "GaugesButton.png", selected: "GaugesButton.png", future: "GaugesButton.png" },
+		{ past: "LargeUnsortedIcon.png", selected: "LargeUnsortedIcon.png", future: "LargeUnsortedIcon.png" },
+		{ past: "VisitsButton.png", selected: "VisitsButton.png", future: "VisitsButton.png" },
    	];
 
 	// enumeration of messages page state
