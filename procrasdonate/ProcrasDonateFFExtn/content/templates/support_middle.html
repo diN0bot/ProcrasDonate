@@ -2,34 +2,59 @@
 <table>
 <tbody>
 <tr>
+	<td align="left">
+		<input
+		class="support_method_radio"
+		type="radio"
+		name="support_method"
+		value="monthly"
+		{% ifequal support_method "monthly" %}checked{% endifequal %} />
+	<label>Monthly Subscription</label>
+	</td>
+	<td align="left">
+			<input
+		class="support_method_radio"
+		type="radio"
+		name="support_method"
+		value="percent"
+		{% ifequal support_method "percent" %}checked{% endifequal %}>Transaction Percent</input>
+	</td>	
+</tr>	
+<tr>
 <td class="support_method_monthly {% ifequal support_method "percent" %}disabled{% endifequal %}">
-	<p>Voluntary membership fees are charged to your account each month.</p>
-	<p><input
+	<p>''Please charge me a membership services fee of 	
+	<input
 		type="text"
 		id="monthly_fee"
 		name="monthly_fee" 
 		value="{{ monthly_fee }}"
+		size="4"
 		{% ifequal support_method "percent" %}disabled{% endifequal %} />
-	   <span class="units">dollars per month</span>
-	   <span id="monthly_error" class="error"></span></p>
+	   dollars per month.''		
+	</p>
+	<span class="units"></span>
+   <span id="monthly_error" class="error"></span></p>
+   <ul><li>Choosing this option benefits your charities since they'll get more out of each donation.
+		</li>
+	</ul>
 </td>
 <td class="support_method_percent {% ifequal support_method "monthly" %}disabled{% endifequal %}">
-	<p>You can also pay us a percentage of every transaction you 
-		make using our service.
-		<br>Since we don't charge charities for receiving donations
-		your transaction fees will be charged separately and 
-		paid directly to ProcrasDonate.</p>
-	<p><input
-		type="text"
-		id="support_pct"
-		name="support_pct" 
-		value="{{ support_pct }}"
-		{% ifequal support_method "monthly" %}disabled{% endifequal %} />
-	   <span class="units">%</span>
-	   <span class="help"> 
-	   	<br>(enter ''4.00'' to donate 4% per transaction.)</span>
-	   <span id="support_error" class="error"></span>
-	   </p>
+	<p>
+		''Please subtract a 
+			<input
+			type="text"
+			id="support_pct"
+			name="support_pct" 
+			value="{{ support_pct }}"
+			size="4"
+			{% ifequal support_method "monthly" %}disabled{% endifequal %} />
+		   <span class="units"></span>
+		   <span id="support_error" class="error"></span>
+	  	% transfer service fee from my donations." 
+	<ul><li>This is a good option if your donations may not be large enough to justify paying a monthly fee.
+		</li>
+	</ul>	
+	</p>
 </td>
 </tr>
 </tbody>

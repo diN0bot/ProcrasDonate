@@ -1,18 +1,25 @@
 <table>
 <tbody>
 <tr>
+	<td align="left">
+		<input
+		class="tax_deductions_radio"
+		type="radio"
+		name="tax_deductions"
+		value="yes"
+		{% if tax_deductions %}checked{% endif %}>Yes</input>
+	</td>
+	<td align="left">
+		<input
+		class="tax_deductions_radio"
+		type="radio"
+		name="tax_deductions"
+		value="no"
+		{% if not tax_deductions %}checked{% endif %}>No</input>
+	</td>
+</tr>
+<tr>
 <td class="tax_deductions {% if not tax_deductions %}disabled{% endif %}">
-	<p><input
-		type="checkbox"
-		id="weekly_affirmations"
-		name="weekly_affirmations"
-		class="comm_radio"
-		{% if not tax_deductions %}disabled{% endif %}
-		{% if weekly_affirmations %}checked{% endif %} />
-	   <span>I want to receive weekly affirmation emails/alerts on the 
-	   	progress I am making towards my goals.</span>
-	   </p>
-	
 	<p><input
 		type="checkbox"
 		id="org_thank_yous"
@@ -20,8 +27,8 @@
 		class="comm_radio"
 		{% if not tax_deductions %}disabled{% endif %}
 		{% if org_thank_yous %}checked{% endif %} />
-	   <span>I want to receive occasional thank you notes from the 
-	   		organizations that I support.</span>
+	   <span>''Please forward occasional thank you notes from 
+	   		organizations I support.''</span>
 	   </p>
 	   
 	<p><input
@@ -31,9 +38,11 @@
 		class="comm_radio"
 		{% if not tax_deductions %}disabled{% endif %}
 		{% if org_newsletters %}checked{% endif %} />
-	   <span>I want to receive a year end newsletter from the 
-	   organizations that I support.</span>
+	   <span>''Please forward occasional newsletters from 
+	   organizations I support.''</span>
 	   </p>
+	<ul><li>Organizations you support will have access to your mailing address to send you appropriate tax documentation.</li>
+	</ul>
 	{% for field in address_fields %}
 		<p>
 			<label>{{ field.display }}</label>
@@ -44,19 +53,10 @@
 				value="{{ field.value }}" />
 		</p>
 	{% endfor %}
+
 </td>
 <td class="not_tax_deductions {% if tax_deductions %}disabled{% endif %}">
-	<p><input
-		type="checkbox"
-		id="weekly_affirmations"
-		name="weekly_affirmations"
-		class="comm_radio"
-		{% if tax_deductions %}disabled{% endif %} 
-		{% if weekly_affirmations %}checked{% endif %} />
-	   <span>I want to receive weekly affirmation emails/alerts on the 
-	   	progress I am making towards my goals.</span>
-	   </p>
-	
+
 	<p><input
 		type="checkbox"
 		id="org_thank_yous"
@@ -64,8 +64,8 @@
 		class="comm_radio"
 		{% if tax_deductions %}disabled{% endif %}
 		{% if org_thank_yous %}checked{% endif %} />
-	   <span>I want to receive occasional thank you notes from the 
-	   		organizations that I support.</span>
+	   <span>''Please forward occasional thank you notes from 
+	   		organizations I support.''</span>
 	   </p>
 	   
 	<p><input
@@ -75,9 +75,13 @@
 		class="comm_radio"
 		{% if tax_deductions %}disabled{% endif %}
 		{% if org_newsletters %}checked{% endif %} />
-	   <span>I want to receive a year end newsletter from the 
-	   organizations that I support.</span>
+	   <span>''Please forward occasional newsletters from 
+	   organizations I support.''</span>
 	   </p>
+
+	<ul><li>Organizations you support will see your name but not your address on their receipts.</li>
+	</ul>
+
 </td>
 </tr>
 </tbody>

@@ -581,6 +581,11 @@ td { vertical-align: middle; }
 /**** REGISTER PAYMENTS ****/
 
 .disabled { color: #888888; }
+.split_arrow { margin-left:2em; width:24em; }
+.split_arrow_div {text-align: left; }
+
+.split_arrow_div { }
+.left {text-align: left; }
 
 #go_to_amazon_button { width: 20em; margin-top: -2em; }
 #multi_auth_status_updated {

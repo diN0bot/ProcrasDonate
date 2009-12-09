@@ -3,49 +3,24 @@
 
 <p id="error"></p>
 
-<h1>Updates, affirmations and thankyou notes</h1>
-<p>In order to help you keep track of your time management progress, our
-	system will use your preferences to provide you with weekly
-	feedback in the form of emails and/or alerts.
-</p>
-<p> Due to user preference, your email address will not even be shared with 
-	the organizations you support.  
-	However, our system does allow your supported organizations to create 
-	automatic thank you notes and year-end updates so that they can 
-	let you know how your contributions help to further their missions.
-</p>
-<p>By the way, although your ProcrasDonate records are anonymous, Amazon
-	does include your full name (but not your contact information) on the 
-	transaction receipt that the organizations you donate to will receive.  
-</p>
-<p>
-	Please set your communication preferences below:
-</p>
-<h2>Email address</h2>
-<p><label>Please enter your email address and check it twice</label><input
+<h5>Where would you like to receive weekly feedback and alerts?</h5>
+
+<ul><li>We do not share your email; not even with organizations that you donate to.</li	
+</ul>   
+
+<p><label>Email </label><input
 	type="text"
 	id="email"
 	name="email" 
 	value="{{ email }}" />
-   </p>
+</p>
 
-<h2>Options</h2>
+<h5>Do you deduct charitable donations from your taxes?</h5>
+<p></p>
+<div class="split_arrow_div" class="left">
+	<img class="split_arrow" src="{{ constants.MEDIA_URL }}img/SplitArrows.png" />
+</div>
 
-<p>Do you want to be eligible for tax deductions?</p>
-
-<input
-	class="tax_deductions_radio"
-	type="radio"
-	name="tax_deductions"
-	value="yes"
-	{% if tax_deductions %}checked{% endif %}>Yes</input>
-	
-<input
-	class="tax_deductions_radio"
-	type="radio"
-	name="tax_deductions"
-	value="no"
-	{% if not tax_deductions %}checked{% endif %}>No</input>
 
 <div id="tax_deductions_middle">
 </div>

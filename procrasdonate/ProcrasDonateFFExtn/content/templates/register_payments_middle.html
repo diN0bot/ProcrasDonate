@@ -20,60 +20,27 @@
 	{{ multi_auth_status }}
 </div>
 
-<h1>Support our service</h1>
+<h5>How would you like to pay for using ProcrasDonate?</h5>
 
-<p>We need to develop technology, build our organization and pay the bills.
-	Please choose how you would like to help.</p>
+<p>We're making improvements all the time and your support keeps us rolling!</p>
 
-<input
-	class="support_method_radio"
-	type="radio"
-	name="support_method"
-	value="monthly"
-	{% ifequal support_method "monthly" %}checked{% endifequal %}>Monthly Subscription</input>
-	
-<input
-	class="support_method_radio"
-	type="radio"
-	name="support_method"
-	value="percent"
-	{% ifequal support_method "percent" %}checked{% endifequal %}>Transaction Percent</input>
+<div class="split_arrow_div" class="left">
+	<img class="split_arrow" src="{{ constants.MEDIA_URL }}img/SplitArrows.png" />
+</div>
 
 <div id="support_middle">
 </div>
 
-<h1>Approving payments</h1>
-<p>Your final step is to automate turning pledges into payments.</p>
+<h5>Your final step is to automate payments through Amazon.com.</h5>
 <ul>
-	<li>Payments to registered 501c3 non-profits will be fully tax deductible.</li>
-	<li>Payments will be fully refundable up to 30 days after they are made.</li>
-	<li>No one else will be able to make payments on your behalf.</li>
+	<li>Payments to registered 501c3 non-profits will be fully <b>tax deductible</b>.</li>
+	<li>For added security, your potential donations are <b>capped</b> so that you cannot be charged more than one year's worth of maximal giving at your current settings.</li>
+	<li>You will have to <b>reauthorize</b> once your pledges have exceeded this cap.</li>
 </ul>
 
 {% if not multi_auth or not multiuse.good_to_go %}
-	<p>Click on <span id="go_to_amazon" class="link">Go to Amazon to approve payments</span>
-		when you are ready.</p>
-	
-	<h2>Determining an overall limit</h2>
-	<p>How often do you want to have to re-authorize payments for your account?</p>
-	<p>Once every <input
-		type="text"
-		id="min_auth_time_input"
-		class="min_auth_time"
-		name="min_auth_time" 
-		value="{{ min_auth_time.time }}" />
-		<span class="units min_auth_units">{{ min_auth_time.units }}</span>
-	   </p>
-	
-	<p>You will donate <i>at most</i>
-		<b>$<span id="max_amount_paid">{{ max_amount_paid }}</span></b>
-		
-		in <span id="min_auth_time_display">{{ min_auth_time.time }}</span>
-		<span id="min_auth_units_display">{{ min_auth_time.units }}</span>,
-		
-		based on your
-		ProcrasDonation rate of ${{ pd_dollars_per_hr }} per hour and limit of
-		{{ pd_hr_per_week_max }} hours per week.</p>
+	<p>Click on <span id="go_to_amazon" class="link">Go to Amazon to approve payments!</span>
+		when you're ready.</p>
 	
 		<form method="post" action="{{ action }}">
 			{% for param in form_params %}
