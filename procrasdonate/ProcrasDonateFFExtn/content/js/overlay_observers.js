@@ -233,10 +233,10 @@ _extend(InitListener.prototype, {
 		
 		this.pddb.orthogonals.log("upgrade version "+old_version+" to version "+version, "extn_sys");
 		
-		var old_version_number = this.version_to_number(old_version);
-		var version_number = this.version_to_number(version);
+		var old_version_number = _version_to_number(old_version);
+		var version_number = _version_to_number(version);
 		
-		if (old_version_number < this.version_to_number("0.3.3")) {
+		if (old_version_number < _version_to_number("0.3.3")) {
 			this.pddb.Visit.add_column("enter_type", "VARCHAR");
 			this.pddb.Visit.add_column("leave_type", "VARCHAR");
 			this.pddb.Visit.select({}, function(row) {
@@ -260,22 +260,6 @@ _extend(InitListener.prototype, {
 		}, 1500); //Firefox 2 fix - or else tab will get closed
 		
 	},
-	
-	/**
-	 * turns a version, eg 1.14.8, into a number, in this case 11408.
-	 * version components should never go above 99 or the ordering of version
-	 * numbers will be messed up.
-	 */
-	version_to_number: function(version) {
-		var parts = version.split(".");
-		var ret = 0;
-		_iterate(parts, function(key, value, index) {
-			var v = parseInt(value);
-			ret += v*(Math.pow(10, index*2))
-		});
-		logger("version is "+version+"     ret is "+ret);
-		return ret
-	}
 	
 });
 
@@ -338,7 +322,7 @@ _extend(URLBarListener.prototype, {
 		// or when the user switches tabs. If you use myListener for more than one tab/window,
 		// use aProgress.DOMWindow to obtain the tab/window which triggered the change.
 		var href = aProgress.DOMWindow.location.href;
-		logger("onLocationChange:: href=" + href);
+		//logger("onLocationChange:: href=" + href);
 		//logger(jQuery(aProgress.DOMWindow,
 		//if (aURI == "about:config")
 		//	return;
@@ -456,7 +440,6 @@ _extend(PageLoadListener.prototype, {
 		var request = new PageRequest(href, event);
 		var has_flash = null;
 		var max_idle = null;
-		request.jQuery("*[type=application/x-shockwave-flash]").after("<H1>BOOM</h1>");
 		if (request.jQuery("[type=application/x-shockwave-flash]").length > 0) {
 			has_flash = true;
 			max_idle = constants.DEFAULT_FLASH_MAX_IDLE;

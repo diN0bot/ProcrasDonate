@@ -18,6 +18,8 @@ from django.contrib.auth.decorators import login_required, user_passes_test
 from django.contrib.auth.forms import SetPasswordForm
 from django.contrib.auth.backends import ModelBackend
 
+from procrasdonate.applib.xpi_builder import XpiBuilder
+
 from django.db.models import Avg
 from ext import feedparser
 
@@ -440,3 +442,18 @@ def edit_thank_yous(request):
 def edit_yearly_newsletter(request):
     recipient = request.user.get_profile().recipient
     return render_response(request, 'procrasdonate/recipient_organizer_pages/edit_yearly_newsletter.html', locals())
+
+def download_update(request):
+    """
+    Not called by anyone yet.
+    """
+    xpi_builder = XpiBuilder(settings.pathify([settings.PROJECT_PATH,
+                                               'procrasdonate',
+                                               'ProcrasDonateFFExtn'],
+                                               file_extension=True),
+                             "%s%s" % (settings.MEDIA_ROOT, 'xpi'),
+                             "%s%s" % (settings.MEDIA_ROOT, 'rdf'))
+    info = xpi_builder.get_update_info()
+    link = info['update_link']
+    hash = info['update_hash']
+    return render_response(request, 'procrasdonate/extension_pages/download_xpi.html', locals())

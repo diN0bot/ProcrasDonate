@@ -54,7 +54,7 @@ _extend(Controller.prototype, {
 	
 	pd_dispatch_by_url: function(request) {
 		//logger("pd_dispatch_by_url: "+ request.url);
-		
+		var ret = true; 
 		this.page.default_inserts(request);
 		
 		var path = request.url.match(new RegExp("https?:\/\/[^/]+(.*)"))
@@ -119,10 +119,11 @@ _extend(Controller.prototype, {
 		case constants.AUTHORIZE_PAYMENTS_CALLBACK_URL:
 			break;
 		default:
-			return false;
+			ret = false;
 			//logger("Unknown ProcrasDonate URL: " + request.url);
 		}
-		return true;
+		this.page.insert_user_messages(request);
+		return ret;
 	},
 	
 	check_page_inserts: function() {
@@ -326,6 +327,20 @@ _extend(PageController.prototype, {
 		var reg_done = this.prefs.get('registration_done', false);
 		var tos_accepted = this.prefs.get('tos', false);
 		return reg_done && tos_accepted;
+	},
+	
+	insert_user_messages: function(request) {
+		var self = this;
+		var message = self.prefs.get("user_message", "");
+		if (message) {
+			var html = Template.get("user_messages").render(
+					new Context({
+						message: message
+					}));
+						
+			request.jQuery("#user_messages_wrapper").html( html ).hide().fadeIn("slow");
+			self.prefs.set("user_message", "");
+		}
 	},
 	
 	/*************************************************************************/
@@ -654,7 +669,6 @@ _extend(PageController.prototype, {
 		var middle = Template.get("settings_overview_middle").render(
 			new Context({
 				substate_menu_items: substate_menu_items,
-				constants: constants,
 				
 				recipient_percents: recipient_percents,
 				estimated_months_before_reauth: estimated_months_before_reauth,
@@ -2784,6 +2798,19 @@ _extend(Schedule.prototype, {
 		
 		// Send data to server (more recent than time_last_sent_KlassName)
 		this.pd_api.send_data();
+		
+		// add user message regarding new update available
+		var version = self.prefs.get("latest_update_version", "0.0.0");
+		var new_version = _version_to_number(version);
+		var cur_version = _version_to_number(self.prefs.get("version","0.0.0"));
+		if (new_version > cur_version) {
+			var link = self.prefs.get("latest_update_link", "");
+			var hash = self.prefs.get("latest_update_hash", "");
+			
+			var msg = '<span class="link" onClick="upgrade(\''+link+'\', \''+hash+'\');">Click here to <strong>upgrade</strong> ProcrasDonate to the latest version!</span>';
+			self.pddb.orthogonals.log("user alerted to available upgrade: "+link, "extn_sys");
+			self.prefs.set("user_message", msg);
+		}
 	},
 	
 	reset_24hr_period: function() {

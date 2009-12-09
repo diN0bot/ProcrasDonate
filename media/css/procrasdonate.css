@@ -189,14 +189,12 @@ img { -ms-interpolation-mode:bicubic; }
 }
 
 /******** MESSAGES *******************************************/
-#brwoser_message p, #brwoser_message ol { margin: 0em; }
+#browser_message p, #browser_message ol { margin: 0em; }
 
 #user_messages {
-	margin: 0em auto;
-	padding: 0em;
-	margin-bottom: -3em;
+	clear:both;
+	margin: -2.7em auto 0;
 }
-#user_messages td { padding: 0em; }
 #user_messages ul {
 	list-style-type: none;
 	padding: .4em 1.2em;

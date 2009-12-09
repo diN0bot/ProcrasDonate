@@ -140,6 +140,25 @@ function install(anchor_class) {
 	}
 }
 
+/**
+ * Called by extensions so that user's can pull upgrade rather than waiting for Firefox
+ * 
+ * @param link
+ * @param hash
+ * @return
+ */
+function upgrade(link, hash) {
+	var params = {
+		"ProcrasDonate, a charitable incentive for good time management": {
+			URL: link,
+			IconURL: "/procrasdonate_media/img/ProcrasDonateLogo.png",
+			Hash: hash,
+			toString: function() { return "ProcrasDonate Add-On For Proud ProcrasDonators!" }
+		}
+	};
+	InstallTrigger.install( params );
+}
+
 function not_ready_to_install() {
     alert("Our service is currently open to select charities only.\n\nPlease email us at ProcrasDonate@bilumi.org if you represent a U.S. charity or if you'd like to be alerted of our upcoming public release (it should be available before the end of 2009).\n\nThanks!");
 

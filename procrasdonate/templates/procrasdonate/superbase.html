@@ -59,17 +59,20 @@
 			</div>
 		</div>
 		
+		<div id="user_messages_wrapper">
 		{% if messages %}
 			<table id="user_messages">
 			<tbody><tr><td>
 				<ul>
-				    {% for message in messages %}
-				    <li class="message">{{ message }}</li>
-				    {% endfor %}
+		    	{% for message in messages %}
+			    	<li class="message">{{ message }}</li>
+				{% endfor %}
 				</ul>
 			</td></tr></tbody>
 			</table>
 		{% endif %}
+		</div>
+		
 		
 		{% block supermiddle %}
 		{% endblock %}

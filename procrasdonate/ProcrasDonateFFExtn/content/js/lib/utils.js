@@ -462,6 +462,22 @@ var _date_to_http_format = function(t) {
 	return year+"-"+month+"-"+day+" "+hours+":"+minutes+":"+seconds;
 }
 
+/**
+ * turns a version, eg 1.14.8, into a number, in this case 11408.
+ * version components should never go above 99 or the ordering of version
+ * numbers will be messed up.
+ */
+var _version_to_number = function(version) {
+	var parts = version.split(".");
+	var ret = 0;
+	_iterate(parts, function(key, value, index) {
+		var v = parseInt(value);
+		ret += v*(Math.pow(10, index*2))
+	});
+	logger("version is "+version+"     ret is "+ret);
+	return ret
+}
+
 // x is a string
 // if x can be parsed as an int, return that
 // otherwise, we return x parsed as a float to 2 decimal places

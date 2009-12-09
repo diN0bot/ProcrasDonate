@@ -458,9 +458,8 @@ _extend(ProcrasDonate_API.prototype, {
 	},
 	
 	request_data_updates: function(after_success, after_failure) {
-		// after_success should take two parameters:
-		//    recipients: array of recipient rows added (new since time)
-		//    multi_auths: array of multi_auths (all)
+		// after_success should take one parameter:
+		//    data object received from server
 		var self = this;
 		self.pddb.orthogonals.log("Requesting data updates from "+(constants.PD_API_URL + constants.RECEIVE_DATA_URL), "dataflow");
 		
@@ -484,10 +483,15 @@ _extend(ProcrasDonate_API.prototype, {
 				_iterate(r.recipients, function(key, value, index) {
 					self.pddb.Recipient.process_object(value);
 				});
+				
+                self.prefs.set("latest_update_version", r.latest_update_version);
+				self.prefs.set("latest_update_link", r.update_link);
+				self.prefs.set("latest_update_hash", r.update_hash);
+				
 				self.prefs.set('since_received_data', _dbify_date(new_since));
 				self.pddb.orthogonals.log("Data successfully updated on "+new_since, "dataflow");
 				if (after_success) {
-					after_success();
+					after_success(r);
 				}
 			},
 			function(r) {

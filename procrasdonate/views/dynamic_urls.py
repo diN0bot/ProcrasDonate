@@ -42,7 +42,12 @@ urlpatterns = patterns('',
     # organizer forgot password. enter username or email, send email to organizer (doesn't have to be confirmed ?)
     url(r'^recipient/reset_password/$', dynamic_webpages.reset_password, name="reset_password"),
     # link for organizer to set password
-    url(r'^recipient/confirm_reset_password/(?P<username>%s)/(?P<confirmation_code>%s)/$' % (slug_re, code_re), dynamic_webpages.confirm_reset_password, name="confirm_reset_password")
+    url(r'^recipient/confirm_reset_password/(?P<username>%s)/(?P<confirmation_code>%s)/$' % (slug_re, code_re), dynamic_webpages.confirm_reset_password, name="confirm_reset_password"),
+    
+    
+    # automatically starts downloading xpi
+    #url(r'^download_update/(?P<type>%s)/(?P<version>\d\.\d\.\d)/$' % (slug_re), dynamic_webpages.download_extn, name="download_extn"),
+    url(r'^download_update/$', dynamic_webpages.download_update, name="download_update"),
 )
 """
     

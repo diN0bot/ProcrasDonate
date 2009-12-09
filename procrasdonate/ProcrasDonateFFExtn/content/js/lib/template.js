@@ -256,6 +256,9 @@ _extend(Template, {
 		return template;
 	},
 	render: function(obj, context) {
+		// ?? not called. one in django.js is called.
+		logger("template.js");
+		context.assign("constants", constants);
 		var klass = Template.get_template_class(template);
 		var template = new klass(obj);
 		return template.render(context);

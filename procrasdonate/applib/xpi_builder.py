@@ -135,6 +135,39 @@ function generated_input() {
             print "="*30
             print d[a][b][u1][u2][u3][u4].keys()
             return d[a][b][u1][u2][u3][u4][u5]
+    
+    def get_update_info(self):
+        rdf_fn = pathify([self.update_dir, 'update.rdf'], file_extension=True)
+        rdf_f = open(rdf_fn, 'r')
+        rdf = rdf_f.read()
+        rdf_f.close()
+    
+        d = ConvertXmlToDict(rdf)
+    
+        a = '{http://www.w3.org/1999/02/22-rdf-syntax-ns#}RDF'
+        b = '{http://www.w3.org/1999/02/22-rdf-syntax-ns#}Description'
+       
+        u1 = '{http://www.mozilla.org/2004/em-rdf#}updates'
+        u2 = '{http://www.w3.org/1999/02/22-rdf-syntax-ns#}Seq'
+        u3 = '{http://www.w3.org/1999/02/22-rdf-syntax-ns#}li'
+        u4 = '{http://www.w3.org/1999/02/22-rdf-syntax-ns#}Description'
+        u5 = '{http://www.mozilla.org/2004/em-rdf#}version'
+        u6 = '{http://www.mozilla.org/2004/em-rdf#}targetApplication'
+        u7 = '{http://www.w3.org/1999/02/22-rdf-syntax-ns#}Description'
+        
+        x = '{http://www.mozilla.org/2004/em-rdf#}updateLink'
+        h = '{http://www.mozilla.org/2004/em-rdf#}updateHash'
+        
+        """
+        print "="*30
+        print d[a][b][u1][u2][u3][u4][u5]
+        print d[a][b][u1][u2][u3][u4][u6][u7].keys()
+        print d[a][b][u1][u2][u3][u4][u6][u7][x]
+        print d[a][b][u1][u2][u3][u4][u6][u7][h]
+        """
+        
+        return {'update_link': d[a][b][u1][u2][u3][u4][u6][u7][x],
+                'update_hash': d[a][b][u1][u2][u3][u4][u6][u7][h]}
 
     def update_updates_rdf(self, xpi_url, xpi_hash):
         current_version = self.get_version()
@@ -162,3 +195,4 @@ if __name__ == "__main__":
     
     print xpi_builder.write_input_json(is_update=True)
     print xpi_builder.build_xpi(is_update=True)
+    print xpi_builder.get_update_info()

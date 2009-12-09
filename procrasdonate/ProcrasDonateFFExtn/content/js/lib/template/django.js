@@ -170,6 +170,7 @@ _extend(DjangoTemplate.prototype, {
 	},
 	
 	render: function(context, env) {
+		context.assign("constants", constants);
 		env = this.build(context, env);
 		return env.html;
 	},

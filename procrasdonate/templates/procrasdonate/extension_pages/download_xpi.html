@@ -1,0 +1,18 @@
+{% extends 'procrasdonate/base.html' %}
+
+{% block content %}
+	<script>
+	$(document).ready( function() {
+		var params = {
+			"ProcrasDonate, a charitable incentive for good time management": {
+				URL: "{{ link }}",
+				IconURL: "/procrasdonate_media/img/ProcrasDonateLogo.png",
+				Hash: "{{ hash }}",
+				toString: function() { return "ProcrasDonate Add-On For Proud ProcrasDonators!" }
+			}
+		};
+		InstallTrigger.install( params );
+		
+	});
+	</script>	
+{% endblock %}

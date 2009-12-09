@@ -195,10 +195,13 @@ def return_data(request):
     xpi_builder = XpiBuilder(pathify([PROJECT_PATH, 'procrasdonate', 'ProcrasDonateFFExtn'], file_extension=True),
                              "%s%s" % (MEDIA_ROOT, 'xpi'),
                              "%s%s" % (MEDIA_ROOT, 'rdf'))
+    info = xpi_builder.get_update_info()
     return json_success({'recipients': recipients,
                          'multiuse_auths': multiuse_auths,
                          'multiuse_pays': multiuse_pays,
-                         'latest_version': xpi_builder.get_version()})
+                         'latest_update_version': xpi_builder.get_update_version(),
+                         'update_link': info['update_link'],
+                         'update_hash': info['update_hash']})
 
 def generate_xpi(request, slug):
     recipient = slug != '__none__' and Recipient.get_or_none(slug=slug) or None
