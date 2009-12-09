@@ -84,7 +84,6 @@ _extend(Controller.prototype, {
 				constants.IMPACT_STATE_INSERTS);
 			break;
 		case constants.PROGRESS_URL:
-			logger("location chagned to PROGRESS_URL");
 			this.insert_based_on_state(
 				request,
 				'progress', 
@@ -554,7 +553,6 @@ _extend(PageController.prototype, {
 	/******************************* MISC VIEWS ********************************/
 
 	handle_home_url: function(request) {
-		logger("handle home url");
 		var unsafeWin = request.get_unsafeContentWin();//event.target.defaultView;
 		if (unsafeWin.wrappedJSObject) {
 			unsafeWin = unsafeWin.wrappedJSObject;
@@ -1435,7 +1433,6 @@ _extend(PageController.prototype, {
 				tag = self.pddb.ProcrasDonate;
 			}
 			var site = self.pddb.Site.get_or_make(url, false, constants.DEFAULT_MAX_IDLE, tag.id);
-			logger("SITE = "+site);
 			
 			var new_elem = request.jQuery(
 				self.make_site_box(
@@ -1870,12 +1867,14 @@ _extend(PageController.prototype, {
 	process_register_charities: function(request) {
 		var self = this;
 		var ret = true;
+		request.jQuery("#errors").html("");
+		
 		request.jQuery(".recipient_percent input").each( function() {
 			var percent = request.jQuery(this).attr("value");
 			try {
 				percent = parseFloat(percent) / 100.0;
-				if (percent < 0.0) {
-					request.jQuery("#errors").append("<p>Please enter a percent greater than 0</p>");
+				if (percent <= 0 || percent > 1.0) {
+					request.jQuery("#errors").append("<p>Please enter a percent greater than 0 and at most 100</p>");
 					ret = false;
 				}
 			} catch(e) {
@@ -1887,6 +1886,10 @@ _extend(PageController.prototype, {
 				self.pddb.RecipientPercent.set({ percent: percent }, { recipient_id: recipient_id });
 			}
 		});
+		if (self.pddb.RecipientPercent.count() == 0) {
+			ret = false
+			request.jQuery("#errors").append("<p>Please add at least one recipient</p>");
+		}
 		return ret;
 	},
 	
@@ -2077,14 +2080,16 @@ _extend(PageController.prototype, {
 	insert_tax_deductions_middle: function(request) {
 		var self = this;
 		
-		var address_fields = [
-			{name: "first_name", display: "First Name", value: self.prefs.get('first_name', '')},
-			{name: "last_name", display: "Last Name", value: self.prefs.get('last_name', '')},
-			{name: "mailing_address", display: "Mailing Address", value: self.prefs.get('mailing_address', '')},
-			{name: "city", display: "City", value: self.prefs.get('city', '')},
-			{name: "state", display: "State", value: self.prefs.get('state', '')},
-			{name: "zip", display: "Zip Code", value: self.prefs.get('zip', '')},
-			{name: "country", display: "Country", value: self.prefs.get('country', '')}];
+		var address_field_names = ["first_name", "last_name", "mail_address",
+		                           "city", "state", "zip", "country"];
+		var address_fields = [];
+		_iterate(address_field_names, function(key, value, index) {
+			address_fields.push({
+				name: value,
+				display: _displayable(value),
+				value: self.prefs.get(value, '')
+			});
+		});
 		
 		var middle = Template.get("tax_deductions_middle").render(
 			new Context({
@@ -2145,6 +2150,7 @@ _extend(PageController.prototype, {
 	
 	process_register_updates: function(request) {
 		request.jQuery("#error").text("");
+		var ret = true;
 		
 		var old_email = this.prefs.set('email', constants.DEFAULT_EMAIL);
 		var email = request.jQuery("#email").attr("value").trim();
@@ -2162,12 +2168,25 @@ _extend(PageController.prototype, {
 		
 		if (!tos) {
 			request.jQuery("#error").text("To use our service you must agree to the terms of service by checking the Terms of Service checkbox below");
+			ret = false;
 		}
 		
 		if (old_email != email) {
 			this.pd_api.send_data();
 		}
-		return tos
+		
+		if (this.prefs.get('tax_deductions', constants.DEFAULT_TAX_DEDUCTIONS)) {
+			var address_field_names = ["first_name", "last_name", "mail_address",
+			                           "city", "state", "zip", "country"];
+			_iterate(address_field_names, function(key, value, index) {
+				var value = request.jQuery("input[name="+value+"]").attr("value");
+				if (!value) {
+					request.jQuery("#error").text("To be eligible for tax deductions, you must provide your mailing address.");
+					ret = false;
+				}
+			});
+		}
+		return ret
 	},
 	
 	/**
@@ -2317,16 +2336,13 @@ _extend(PageController.prototype, {
 			var value = request.jQuery(this).attr("value");
 			self.prefs.set('support_method', value);
 			//self.insert_support_middle(request);
-			logger("value = "+value);
 			if (value == "monthly") {
-				logger("yep");
 				request.jQuery(".support_method_monthly input").attr("disabled", false);
 				request.jQuery(".support_method_monthly").removeClass("disabled");
 				
 				request.jQuery(".support_method_percent input").attr("disabled", true);
 				request.jQuery(".support_method_percent").addClass("disabled");
 			} else {
-				logger("no");
 				request.jQuery(".support_method_monthly input").attr("disabled", true);
 				request.jQuery(".support_method_monthly").addClass("disabled");
 				

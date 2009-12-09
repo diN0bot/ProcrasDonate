@@ -22,7 +22,7 @@
 </tr>	
 <tr>
 <td class="support_method_monthly {% ifequal support_method "percent" %}disabled{% endifequal %}">
-	<p>''Please charge me a membership services fee of 	
+	<p>"Please charge me a membership services fee of 	
 	<input
 		type="text"
 		id="monthly_fee"
@@ -30,7 +30,7 @@
 		value="{{ monthly_fee }}"
 		size="4"
 		{% ifequal support_method "percent" %}disabled{% endifequal %} />
-	   dollars per month.''		
+	   dollars per month."		
 	</p>
 	<span class="units"></span>
    <span id="monthly_error" class="error"></span></p>
@@ -40,7 +40,7 @@
 </td>
 <td class="support_method_percent {% ifequal support_method "monthly" %}disabled{% endifequal %}">
 	<p>
-		''Please subtract a 
+		"Please subtract a 
 			<input
 			type="text"
 			id="support_pct"

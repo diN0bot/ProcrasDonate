@@ -478,6 +478,21 @@ var _version_to_number = function(version) {
 	return ret
 }
 
+
+/**
+ * Turns slug into displayable name
+ * eg "first_name" becomes "First Name"
+ */
+var _displayable = function(n) {
+	var ret = "";
+	_iterate(n.split("_"), function(key, value, index) {
+		ret += value[0].toUpperCase();
+		ret += value.substring(1,value.length);
+		ret += " ";
+	});
+	return ret;
+}
+
 // x is a string
 // if x can be parsed as an int, return that
 // otherwise, we return x parsed as a float to 2 decimal places

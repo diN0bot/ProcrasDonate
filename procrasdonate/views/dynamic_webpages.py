@@ -187,7 +187,7 @@ def confirm_reset_password(request, username, confirmation_code):
                 if user.is_active:
                     login(request, user)
                     user.message_set.create(message='Password reset complete!')
-                    return HttpResponseRedirect(reverse('edit_information'))                
+                    return HttpResponseRedirect(reverse('recipient_organizer_dashboard'))                
                 else:
                     return HttpResponseRedirect(reverse('login'))
         
