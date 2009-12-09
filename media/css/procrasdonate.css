@@ -312,6 +312,14 @@ img { -ms-interpolation-mode:bicubic; }
 	margin-top: 1em;
 }
 
+.side_note {
+	float: right;
+	width: 32em;
+	padding: .5em 0em 0em 1em;
+	margin: 4em 0 1em 2em;
+	background: #EEEEEE none repeat scroll 0 0;
+}
+
 #blog_posts { width: 20em;	background: white;
 }
 #blog_posts h3 {
