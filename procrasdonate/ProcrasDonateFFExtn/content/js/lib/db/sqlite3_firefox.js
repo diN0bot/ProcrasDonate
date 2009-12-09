@@ -242,6 +242,16 @@ _extend(Model.prototype, {
 					sql = ["SELECT * FROM", this.table_name];
 				}
 				if (order_by) {
+					/*
+					var order_by_column = order_by;
+					if (order_by_column[0] == "-") {
+						order_by_column = order_by_column.substr(1, order_by_column.length);
+					}
+					// this.columns contains [name=INTEGER, name2=VARCHAR, ...]
+					if (!_contains(this.columns, order_by_column)) {
+						logger("Unknown ORDER_BY column: "+order_by_column+" in "+this.table_name);
+					}
+					*/
 					var desc = false;
 					if (order_by[0] == "-") {
 						order_by = order_by.substring(1);
@@ -252,7 +262,6 @@ _extend(Model.prototype, {
 					if (desc) {
 						sql.push("DESC");
 					}
-					//@TODO throw error if order by column is not a column of this table
 				}
 				sql = sql.join(" ");
 				if (SQLITE3_FIREFOX_LOGGING) logger(" THE SQL:::"+sql);
@@ -418,8 +427,7 @@ _extend(Model.prototype, {
 			return null;
 		} else {
 			if (ary.length > 1) {
-				//#@Todo db.Log a warning??
-				logger("get_or_null found "+ary.length+" rows for "+query);
+				logger("WARNING: get_or_null found "+ary.length+" rows for "+query);
 			}
 			return ary[0];
 		}
@@ -530,8 +538,8 @@ function make_row_factory(columns, prototype) {
 				*/
 				var v = self[name];
 				/*
-				 * hmmm but how do we do date?'
-				 * #@TODO also, we want to do this for all row.foo calls
+				 * how do we do date?
+				 * perhaps we want to do this for all row.foo calls one day
 				if (value == "INTEGER" || value == "INTEGER PRIMARY KEY") {
 					v = parseInt(v);
 				} else if (value == "REAL") {

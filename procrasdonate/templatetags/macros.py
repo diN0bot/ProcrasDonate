@@ -37,7 +37,7 @@ class RenderResponses(template.Node):
     """
     render_responses takes one required parameter, a Response object, and one 
     optional parameter, a template. 
-    @TODO giving a template via parameter seems to fail!! TemplateDoesNotExist. don't know why.
+    WARNING: giving a template via parameter seems to fail!! TemplateDoesNotExist. don't know why.
     """
     def __init__(self, response_var, template=None):
         self.response = Variable(response_var)

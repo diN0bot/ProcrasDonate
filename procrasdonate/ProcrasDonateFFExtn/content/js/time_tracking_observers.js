@@ -2,8 +2,10 @@ var STORE_VISIT_LOGGING = false;
 var IDLE_LOGGING = false;
 
 /*
- * TODO listener for force quit and other unexpected shutdown problems?
- *  or periodic callback in order to catch bad shutdowns and hangups.
+ * ?? currently we do not know when force quit or other unexpected shutdown problems occurs.
+ *    solutions:
+ *       * listener that notifies on restart after unexpected shutdown
+ *       * periodic callback that notices unexpected length of time between last chirp
  */
 
 /**

@@ -19,8 +19,8 @@ DATABASE_NAME = PROJECT_PATH+"/mydatabase.db"
 ## https://aws-portal.amazon.com/gp/aws/developer/registration/index.html
 
 SANDBOX_PAYMENTS = True
-FPS = {'callerKey': "#@TODO FILL ME IN",
-      'secretKey': "#@TODO FILL ME IN",
+FPS = {'callerKey': "FILL ME IN",
+      'secretKey': "FILL ME IN",
       'version': '2009-01-09',
       'cobrandingUrl': "http://procrasdonate.com/procrasdonate_media/img/ProcrasDonateLogoText.png",
       'websiteDescription': "ProcrasDonate (charitable incentives for good time management)"}

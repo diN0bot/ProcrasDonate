@@ -4,6 +4,7 @@
 
 <h3>Website Categorizations</h3>  
 	<p>
+		<img src="{{ constants.MEDIA_URL }}img/ScreenshotUnsorted_cropped.png" style="float:right;" />
 		Click on the green arrows to move websites to neighboring columns.  
 		You can also classify websites by clicking the icons in your Firefox toolbar.
 	</p>
@@ -16,6 +17,10 @@
 			<img src="{{ constants.MEDIA_URL }}img/ToolbarImages/ProcrasDonateIcon.png" class="icon-image">		
 			ProcrasDonate
 		</div>
+		<div class='add_website'>
+			<input type="text" name="procrasdonate" value="add website here" />
+			<input type="button" class="add" value="add" />
+		</div>
 		{{ procrasdonate_text }}
 	</div>
 	<div id='unsorted_col' class='column'>
@@ -23,12 +28,20 @@
 			<img src="{{ constants.MEDIA_URL }}img/ToolbarImages/UnsortedIcon.png" class="icon-image">		
 			Unsorted
 		</div>
+		<div class='add_website'>
+			<input type="text" name="unsorted" value="add website here" />
+			<input type="button" class="add" value="add" />
+		</div>
 		{{ unsorted_text }}
 	</div>
 	<div id='timewellspent_col' class='column'>
 		<div class='title'>
 			<img src="{{ constants.MEDIA_URL }}img/ToolbarImages/TimeWellSpentIcon.png" class="icon-image">		
 			Time Well Spent
+		</div>
+		<div class='add_website'>
+			<input type="text" name="timewellspent" value="add website here" />
+			<input type="button" class="add" value="add" />
 		</div>
 		{{ timewellspent_text }}
 	</div>

@@ -2,9 +2,10 @@
  * deep_dict: returns dictionary of fields 
  *   fetches <foo>_id fields via deep_dict()
  *   flattens some fields, eg <foo>.tag() returns tag.tag string
- *   calls _un_dbify_bool, _un_dbify_date, parseInt and parseFloat as appropriate
- *     (#@TODO would be nice to make the getting and setting of fields automatic.
- *         tricky part is handling dates v INTEGER correctly)
+ *   calls _un_dbify_bool, _un_dbify_date, parseInt and parseFloat as appropriate.
+ *         one day this could be automatic by sqlite3_firefox.
+ *         would need to create DATE type that appeared as an INTEGER to sqlite
+ *         but _un_dbified differently. Same for BOOL and INTEGER.
  *   
  * deep field instance methods never flatten. thus, <foo>() always returns a row factory
  */
@@ -62,8 +63,11 @@ function load_models(db, pddb) {
 		
 	}, {
 		// Model-class methods
-		get_or_make: function(url, has_flash, max_idle) {
+		get_or_make: function(url, has_flash, max_idle, tag_id) {
 			var site = this.get_or_null({url__eq: url});
+			if (!tag_id) {
+				tag_id = pddb.Unsorted.id;
+			}
 			if (!site) {
 				var host = _host(url);
 				var sitegroup = SiteGroup.get_or_create({
@@ -71,7 +75,7 @@ function load_models(db, pddb) {
 				}, {
 					name: host,
 					host: host,
-					tag_id: pddb.Unsorted.id
+					tag_id: tag_id
 				});
 	
 				site = this.create({
@@ -1260,7 +1264,8 @@ function load_models(db, pddb) {
 		FAILURE: 'F', // Amazon says transaction failed 
 		ERROR: 'E', // something messed up before we could even get a transaction status
 		REFUND_INITIATED: 'I',
-		REFUNDED: 'D', // the transaction was refunded.... #@TODO maybe there should be a refund transaction.
+		REFUNDED: 'D', // the transaction was refunded.... 
+		// ?? maybe there should be a refund transaction?
 		
 		process_object: function(p) {
 			// @param p: object from server. json already loaded
@@ -1308,9 +1313,10 @@ function load_models(db, pddb) {
 					var payment = pay.payment();
 					// if success, refunded or cancelled:
 					//   * remove requires payment
-					//     #@ TODO if refunded, do we want to do anything else,
-					//     eg remove payment or mark payment as refunded???
 					//   * set settled to true
+					// if refunded, do we want to do anything else,
+					//     eg remove payment or mark payment as refunded?
+					//    do we really want settled to be true for refund or cancelled?
 					Payment.set({
 						settled: _dbify_bool(true)
 					}, {

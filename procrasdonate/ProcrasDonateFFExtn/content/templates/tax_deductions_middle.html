@@ -4,18 +4,6 @@
 <td class="tax_deductions {% if not tax_deductions %}disabled{% endif %}">
 	<p><input
 		type="checkbox"
-		id="weekly_affirmations"
-		name="weekly_affirmations"
-		class="comm_radio"
-		{% if not tax_deductions %}disabled{% endif %}
-		{% if weekly_affirmations %}checked{% endif %} />
-	   <span>I want to receive weekly affirmation emails/alerts on the 
-	   	progress I am making towards my goals.</span>
-	   </p>
-	
-	<p><input
-		type="checkbox"
-		id="org_thank_yous"
 		name="org_thank_yous"
 		class="comm_radio"
 		{% if not tax_deductions %}disabled{% endif %}
@@ -26,7 +14,6 @@
 	   
 	<p><input
 		type="checkbox"
-		id="org_newsletters"
 		name="org_newsletters"
 		class="comm_radio"
 		{% if not tax_deductions %}disabled{% endif %}
@@ -48,18 +35,6 @@
 <td class="not_tax_deductions {% if tax_deductions %}disabled{% endif %}">
 	<p><input
 		type="checkbox"
-		id="weekly_affirmations"
-		name="weekly_affirmations"
-		class="comm_radio"
-		{% if tax_deductions %}disabled{% endif %} 
-		{% if weekly_affirmations %}checked{% endif %} />
-	   <span>I want to receive weekly affirmation emails/alerts on the 
-	   	progress I am making towards my goals.</span>
-	   </p>
-	
-	<p><input
-		type="checkbox"
-		id="org_thank_yous"
 		name="org_thank_yous"
 		class="comm_radio"
 		{% if tax_deductions %}disabled{% endif %}
@@ -70,7 +45,6 @@
 	   
 	<p><input
 		type="checkbox"
-		id="org_newsletters"
 		name="org_newsletters"
 		class="comm_radio"
 		{% if tax_deductions %}disabled{% endif %}

@@ -116,7 +116,7 @@ _extend(TestRunnerConsoleDisplay.prototype, {
 ///
 /// Inserts test results into the DOM
 /// Inherits from TestRunnerDisplay
-/// @TODO actually implement this.
+/// ** not actually implemented **
 ///
 var TestRunnerDOMDisplay = function(request) {
 	this.request = request;

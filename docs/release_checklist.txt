@@ -9,7 +9,7 @@ Although some server releases may occur independent of an extension release, muc
 of this system works together. Backwards compatibility must be considered in that
 users will update their extensions asynchronously.
 
-@TODO : move necessary css from the server to the extension so that the
+?? move necessary css from the server to the extension so that the
 website can be updated (mostly) separate from the extension.
 
 Every release should go through the following checklist:
@@ -29,10 +29,11 @@ views.js
 
 === procrasdonate Django app ===
 
- new template files
-   * Create after_install_<v'> and after_upgrade_<v'>
+ record changes in new template file
+   * <v'> in templates/procrasdonate/extn_pages/after_install_or_upgrade
 
- generate xpi
+ generate update xpi
    * xpi_it alias from command line (see README)
 
- record all changes in docs/release_changes_<v'>.txt
+ on server:
+   chown -hR www-data:www-data /var/sites/ProcrasDonate

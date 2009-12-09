@@ -602,7 +602,7 @@ _extend(PageController.prototype, {
 						
 						if (amount_paid_against_multi_auth >= parseFloat(multi_auth.global_amount_limit)) {
 							// expired because payments exceed global_amount_limit
-							// #@TODO we probably already ran into this when trying to make payments
+							// ?? we probably already ran into this when trying to make payments
 							//   what we want to do is predict how many months are left based on
 							//   payments already made.
 							self.pddb.FPSMultiuseAuthorization.set({
@@ -1378,7 +1378,7 @@ _extend(PageController.prototype, {
 					self.make_site_box(request, site_name, site_name, tag)
 				);
 				
-				request.jQuery("#"+tag+"_col .title")
+				request.jQuery("#"+tag+"_col .add_website")
 					.after(new_elem)
 					.next().hide().fadeIn("slow");
 				
@@ -1410,6 +1410,69 @@ _extend(PageController.prototype, {
 			});
 			this.prefs.set('site_classifications_settings_activated', false);
 		//}
+		
+		var do_add = function(input) {
+			var url = input.attr("value");
+			var lower_case_tag_name = input.attr("name");
+			var tag = self.pddb.Unsorted;
+			if (lower_case_tag_name == "timewellspent") {
+				tag = self.pddb.TimeWellSpent;
+			} else if (lower_case_tag_name == "procrasdonate") {
+				tag = self.pddb.ProcrasDonate;
+			}
+			var site = self.pddb.Site.get_or_make(url, false, constants.DEFAULT_MAX_IDLE, tag.id);
+			logger("SITE = "+site);
+			
+			var new_elem = request.jQuery(
+				self.make_site_box(
+					request,
+					site.sitegroup().host,
+					site.sitegroup().host,
+					lower_case_tag_name
+				));
+			
+			// add new element to DOM
+			request.jQuery("#"+lower_case_tag_name+"_col .add_website")
+				.after(new_elem)
+				.next().hide().fadeIn("slow");
+			
+			// add events to new element
+			new_elem.children(".move_to_timewellspent").click( function() {
+				f(request.jQuery(this), "timewellspent", self.pddb.TimeWellSpent);
+			});
+			new_elem.children(".move_to_unsorted").click( function() {
+				f(request.jQuery(this), "unsorted", self.pddb.Unsorted);
+			});
+			new_elem.children(".move_to_procrasdonate").click( function() {
+				f(request.jQuery(this), "procrasdonate", self.pddb.ProcrasDonate);
+			});
+			
+			// return input description
+			input.attr("value", "enter url to classify");
+			input.css("color", "#999999");
+		};
+		
+		request.jQuery(".add_website .add").click(function() {
+			var input = request.jQuery(this).siblings("input[type=text]");
+			do_add(input);
+		});
+		request.jQuery(".add_website input[type=text]").keydown(function(event) {
+			if (event.keyCode == 13) {
+				var input = request.jQuery(this);
+				do_add(input);
+			}
+		});
+		
+		request.jQuery(".add_website input[type=text]")
+			.css("color", "#999999")
+			.focus(function() {
+				if (request.jQuery(this).css("color") != "#000000") {
+					// removed input description if haven't already 
+					// (don't want to remove entered url)
+					request.jQuery(this).attr("value", "");
+					request.jQuery(this).css("color", "#000000");
+				}
+			});
 	},
 	
 	insert_progress_visits: function(request) {
@@ -2027,17 +2090,27 @@ _extend(PageController.prototype, {
 		request.jQuery(".tax_deductions_radio").click(function() {
 			var value = request.jQuery(this).attr("value");
 			if (value == "yes") {
-				self.prefs.set('tax_deductions', _dbify_bool(true));
+				self.prefs.set('tax_deductions', true);
 				request.jQuery(".tax_deductions input").attr("disabled", false);
 				request.jQuery(".not_tax_deductions input").attr("disabled", true);
 				request.jQuery(".tax_deductions").removeClass("disabled");
 				request.jQuery(".not_tax_deductions").addClass("disabled");
+				
+				self.prefs.set('org_thank_yous', true);
+				self.prefs.set('org_newsletters', true);
+				request.jQuery(".tax_deductions input[name=org_thank_yous]").attr("checked", true);
+				request.jQuery(".tax_deductions input[name=org_newsletters]").attr("checked", true);
 			} else {
 				self.prefs.set('tax_deductions', _dbify_bool(false));
 				request.jQuery(".tax_deductions input").attr("disabled", true);
 				request.jQuery(".not_tax_deductions input").attr("disabled", false);
 				request.jQuery(".tax_deductions").addClass("disabled");
 				request.jQuery(".not_tax_deductions").removeClass("disabled");
+				
+				self.prefs.set('org_thank_yous', false);
+				self.prefs.set('org_newsletters', false);
+				request.jQuery(".not_tax_deductions input[name=org_thank_yous]").attr("checked", false);
+				request.jQuery(".not_tax_deductions input[name=org_newsletters]").attr("checked", false);
 			}
 			//self.insert_tax_deductions_middle(request);
 		});

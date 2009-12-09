@@ -64,7 +64,7 @@ var TestRunner = function(request) {
 	// blocks processing of queue items until document is ready
 	// allows for setup of DOM by TestRunnerDisplay
 	this.blocking = true;
-	// @TODO ok, TestRunnerDisplay is done...
+	// ?? ok, TestRunnerDisplay is done...
 	this.blocking = false;
 
 	// timeout (milliseconds) to wait for stopped TestRunner

@@ -6,8 +6,8 @@
  *  concurrency issues with uninits from closing multiple windows?
  *  -> no because each init listener instantiates its own state?
  *  
- *  TODO: should init listener listen for firefox applicaiton load 
- *        rather than window load?
+ *  ?? should init listener listen for firefox applicaiton load 
+ *     rather than window load?
  */
 var InitListener = function InitListener() {
 	this.VERSION = -1;

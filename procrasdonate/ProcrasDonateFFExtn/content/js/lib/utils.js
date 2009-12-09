@@ -193,6 +193,15 @@ function _iterate(o, fn) {
 	return ret;
 }
 
+
+function _contains(o, item) {
+	var ret = false;
+	_iterate(o, function(key, value, index) {
+		if (item == value) { ret = true; }
+	});
+	return ret;
+}
+
 //function dict(o) {
 //	var ret={},k,i;
 //	if (typeof(o) == "object" && !!o) {
@@ -473,7 +482,10 @@ var host_regexp =  /^[\w]+:\/\/(www\.)?([^\/]+).*/g;
 var _host = function(href) {
 	if (!href) {
 		var urlbar = document.getElementById('urlbar');
-		// @TODO if urlbar is null...
+		if (!urlbar) {
+			logger("WARNING: urlbar is false. utils::_host is returning the empty string.");
+			return "";
+		}
 		href = urlbar.value;
 	}
 	var splits = href.split(host_regexp);
@@ -486,7 +498,10 @@ var _host = function(href) {
 
 var _href = function() {
 	var urlbar = document.getElementById('urlbar');
-	// @TODO if urlbar is null...
+	if (!urlbar) {
+		logger("WARNING: urlbar is false. utils::_href is returning the empty string.");
+		return "";
+	}
 	return urlbar.value
 };
 

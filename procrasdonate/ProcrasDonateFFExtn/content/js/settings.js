@@ -222,7 +222,7 @@ var constants = {};
 	constants.DEFAULT_ORG_THANK_YOUS = _dbify_bool(false);
 	constants.DEFAULT_ORG_NEWSLETTERS = _dbify_bool(false);
 	constants.DEFAULT_TOS = _dbify_bool(false);
-	constants.DEFAULT_TAX_DEDUCTIONS = _dbify_bool(false);
+	constants.DEFAULT_TAX_DEDUCTIONS = _dbify_bool(true);
 	constants.DEFAULT_SUPPORT_METHOD = "monthly"; // or "percent"
 	
 	// flag for whether to make payments or not--
