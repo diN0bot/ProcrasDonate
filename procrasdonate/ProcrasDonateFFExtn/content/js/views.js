@@ -1194,7 +1194,7 @@ _extend(PageController.prototype, {
 		
 		var max = _un_prefify_float(this.prefs.get("pd_hr_per_week_max", constants.DEFAULT_PD_HR_PER_WEEK_MAX));
 		var goal = _un_prefify_float(this.prefs.get("pd_hr_per_week_goal", constants.DEFAULT_PD_HR_PER_WEEK_GOAL));
-		var width = 600;
+		var width = 700;
 		
 		var pd_this_week_hrs_unlimited = pd_this_week_hrs;
 		var pd_last_week_hrs_unlimited = pd_last_week_hrs;
@@ -2043,6 +2043,7 @@ _extend(PageController.prototype, {
 		
 		var middle = Template.get("register_updates_middle").render(
 			new Context({
+				constants: constants,
 				substate_menu_items: substate_menu_items,
 				substate_menu: substate_menu,
 				arrows: arrows,

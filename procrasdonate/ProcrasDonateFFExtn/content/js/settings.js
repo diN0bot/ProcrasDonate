@@ -179,7 +179,7 @@ var constants = {};
 		'time_well_spent'
 	];
 	constants.REGISTER_STATE_TAB_NAMES = [
-		'Incentive', 'Charities', 'Updates', 'Payments', 'XXXX']; // XXXX won't show done arrow, XXX will
+		'Incentive', 'Charities', 'Services', 'Payments', 'XXXX']; // XXXX won't show done arrow, XXX will
 	constants.REGISTER_STATE_INSERTS = [
 		"insert_register_incentive", 
 		"insert_register_charities", 
