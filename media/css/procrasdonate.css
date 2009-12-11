@@ -376,8 +376,6 @@ img { -ms-interpolation-mode:bicubic; }
 .SmallSpacer {width: 14em; height: 0.5em; }
 
 .units { color: #8b949d; }
-	
-.percent_symbol {display: inline; font-size: 1.2em; }
 
 .DivRight {text-align: right; }	
 .DivLeft {text-align: left; }
@@ -402,8 +400,10 @@ img { -ms-interpolation-mode:bicubic; }
 
 /* #@ TODO from recipient list in extension page */
 
-.recipient-image { width: 10.25em; margin-left: 1em; float: right; padding: 0.2em 1.4em; }
+.recipient-image { width: 8em; margin: -1em 0em 0em 1em; float: right; padding: 0.2em 1.4em; }
 #new_recipient_submit { width: 10.25em; padding: 0em; margin: .6em 0em -.6em 0em; /*float: right;*/ }
+.recipient_percent .percent_symbol { font-size: 1.2em; margin-right: .4em; }
+.recipient_percent .percent { font-size: 1.2em; }
 /* goes with register charity page stuff that is commented out
 .new_recipient { color: #797979; }
 #new_recipient_website { margin-right: 1em; }*/
@@ -655,11 +655,22 @@ td { vertical-align: middle; }
 .ui-slider-vertical .ui-slider-range-min { bottom: 0; }
 .ui-slider-vertical .ui-slider-range-max { top: 0; }
 
-/**** MY PROGRESS ****/
+/**** MY PROGRESS GAUGES ****/
 .laptop { width: 10em; }
 #progress_explanation tr td { padding: 0em; }
 .progress_notes { margin-top: 4em; font-size: .9em; padding-left: 3em; }
 #progress_submenu img { margin: 0em 1em; }
+
+/**** MY PROGRESS TRENDS ****/
+#trend_chart { text-align: left; margin-bottom: 1em; }
+#legend { margin-top: 1em; height: 1em; }
+div.trend_title { text-align: center; font-size: 1.2em; }
+div.trend_yaxis { text-align: left; font-size: 1.1em; }
+div.trend_xaxis { font-size: 1.1em; }
+div.trend_list { float: left; margin: 0em 1em; }
+div.trend_list ul { list-style-type: none; margin: 0em; padding: 0em; }
+div.trend_list ul li { max-width: 30em; overflow: hidden; white-space: nowrap; }
+div.trend_list h4 { margin-top: 1em; padding: 0em; }
 
 /**** MY IMPACT ****/
 #impact_submenu {

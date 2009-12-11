@@ -63,17 +63,15 @@ _extend(TimeTracker.prototype, {
 				this.orthogonals.warn("store_visit:: diff greater than flash max: "+diff+" start="+start+"="+_un_dbify_date(start)+" url="+url);
 				//diff = constants.DEFAULT_FLASH_MAX_IDLE + 1;
 			}
-			if (diff > 0) {
+			var private_browsing_enabled = this.prefs.get("private_browsing_enabled", constants.DEFAULT_PRIVATE_BROWSING_ENABLED);
+			if (diff > 0 && !private_browsing_enabled) {
 				this.store_visit(url, start, diff, enter_type, leave_type);
 			}
 		}
 	},
 	
 	store_visit: function(url, start_time, duration, enter_type, leave_type) {
-		if (STORE_VISIT_LOGGING) logger("  >>>> store_visit "+url+" "+start_time+" for "+duration);
-		
 		var site = this.pddb.Site.get_or_null({url__eq: url });
-		if (STORE_VISIT_LOGGING) logger("SITE: "+site);
 		
 		if (!site) {
 			var host = _host(url);
@@ -91,7 +89,6 @@ _extend(TimeTracker.prototype, {
 				flash: _dbify_bool(false),
 				max_idle: constants.DEFAULT_FLASH_MAX_IDLE
 			});
-			if (STORE_VISIT_LOGGING) logger("store created "+site);
 		}
 		
 		var visit = this.pddb.Visit.create({

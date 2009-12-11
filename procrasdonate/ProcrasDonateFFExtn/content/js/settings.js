@@ -105,19 +105,23 @@ var constants = {};
 	// enumeration of progress page state
 	constants.DEFAULT_PROGRESS_STATE = "gauges";
 	constants.PROGRESS_STATE_ENUM = [
-		"gauges", "classifications", "visits"
+		"gauges", "classifications", "visits", "trends", "averages"
 	];
 	constants.PROGRESS_STATE_TAB_NAMES = [
-		"Gauges", "Classifications", "Visits"
+		"Gauges", "Classifications", "Visits", "Trends", "Averages"
 	];
 	constants.PROGRESS_STATE_INSERTS = [
 		"insert_progress_gauges",
 		"insert_progress_classifications",
-		"insert_progress_visits"
+		"insert_progress_visits",
+		"insert_progress_trends",
+		"insert_progress_averages"
 	];
 	constants.PROGRESS_STATE_IMAGES = [
 		{ past: "GaugesButton.png", selected: "GaugesButton.png", future: "GaugesButton.png" },
 		{ past: "LargeUnsortedIcon.png", selected: "LargeUnsortedIcon.png", future: "LargeUnsortedIcon.png" },
+		{ past: "VisitsButton.png", selected: "VisitsButton.png", future: "VisitsButton.png" },
+		{ past: "VisitsButton.png", selected: "VisitsButton.png", future: "VisitsButton.png" },
 		{ past: "VisitsButton.png", selected: "VisitsButton.png", future: "VisitsButton.png" },
    	];
 
@@ -218,12 +222,14 @@ var constants = {};
 	constants.DEFAULT_MAX_IDLE = 3*60; // 3 minutes
 	constants.DEFAULT_FLASH_MAX_IDLE = 20*60; // 20 minutes
 	
-	constants.DEFAULT_WEEKLY_AFFIRMATIONS = _dbify_bool(true);
-	constants.DEFAULT_ORG_THANK_YOUS = _dbify_bool(false);
-	constants.DEFAULT_ORG_NEWSLETTERS = _dbify_bool(false);
-	constants.DEFAULT_TOS = _dbify_bool(false);
-	constants.DEFAULT_TAX_DEDUCTIONS = _dbify_bool(true);
+	constants.DEFAULT_WEEKLY_AFFIRMATIONS = true;
+	constants.DEFAULT_ORG_THANK_YOUS = false;
+	constants.DEFAULT_ORG_NEWSLETTERS = false;
+	constants.DEFAULT_TOS = false
+	constants.DEFAULT_TAX_DEDUCTIONS = true;
 	constants.DEFAULT_SUPPORT_METHOD = "monthly"; // or "percent"
+	
+	constants.DEFAULT_PRIVATE_BROWSING_ENABLED = false;
 	
 	// flag for whether to make payments or not--
 	// eg, if db corruption or some other error

@@ -185,6 +185,12 @@ function load_models(db, pddb) {
 			return category
 		},
 		
+		recipient_percent: function() {
+			// return recipient percent object or null
+			var self = this;
+			return RecipientPercent.get_or_null({ recipient_id: self.id });
+		},
+		
 		has_tax_exempt_status: function() {
 			return _un_dbify_bool(this.tax_exempt_status);
 		},
@@ -389,7 +395,7 @@ function load_models(db, pddb) {
 		},
 		
 		display_percent: function() {
-			return this.percent * 100
+			return Math.round(parseFloat(this.percent) * 100)
 		},
 		
 		deep_dict: function() {
@@ -428,6 +434,17 @@ function load_models(db, pddb) {
 		indexes: []
 	}, {
 		// instance methods
+		icon: function() {
+			if (this.id == pddb.ProcrasDonate.id) {
+				return constants.MEDIA_URL+"img/ToolbarImages/ProcrasDonateIcon.png"
+			} else if (this.id == pddb.TimeWellSpent.id) {
+				return constants.MEDIA_URL+"img/ToolbarImages/TimeWellSpentIcon.png"
+			} else if (this.id == pddb.Unsorted.id) {
+				return constants.MEDIA_URL+"img/ToolbarImages/UnsortedIcon.png"
+			} else {
+				return ""
+			}
+		}
 	}, {
 		// class methods
 	});
@@ -611,6 +628,10 @@ function load_models(db, pddb) {
 		
 		hours: function() {
 			return parseFloat(this.total_time) / (60*60);
+		},
+		
+		hours_int: function() {
+			return Math.round( parseFloat(this.total_time) / (60*60) );
 		},
 		
 		// instance methods

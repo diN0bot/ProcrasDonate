@@ -1,0 +1,52 @@
+{{ substate_menu }}
+
+<h2>My Progress</h2>
+
+<h3>Trends</h3>
+
+<p>Plot of daily totals in hours over time</p>
+
+<div class="trend_title"><span id="trend_title_A">{{ A_label }}</span> 
+	<span id="trend_title_and">{% if B_label %}and{% endif %}</span>
+	<span id="trend_title_B">{% if B_label %}{{ B_label }}{% endif %}</span>
+	trend</div>
+<div id="legend"></div>
+<div class="trend_yaxis">Hours</div>
+<div id="trend_chart"></div>
+<div class="trend_xaxis">Days</div>
+
+<h3>Select data to view</h3>
+<p>At most 2 trends can be graphed simultaneously.</p>
+
+<div class="trend_list tag_list" alt="{{ tagtype.id }}" >
+<h4>Classification totals</h4>
+<ul>
+	<li><input type="checkbox" class="{{ ProcrasDonate.id }}" checked value="ProcrasDonate" />
+		<img src="{{ constants.MEDIA_URL }}img/ToolbarImages/ProcrasDonateIcon.png" />
+		ProcrasDonate
+	</li>
+	<li>
+		<input type="checkbox" class="{{ TimeWellSpent.id }}" checked value="TimeWellSpent" />
+		<img src="{{ constants.MEDIA_URL }}img/ToolbarImages/TimeWellSpentIcon.png" />
+		TimeWellSpent
+	</li>
+	<li>
+		<input type="checkbox" class="{{ Unsorted.id }}" value="Unsorted" />
+		<img src="{{ constants.MEDIA_URL }}img/ToolbarImages/UnsortedIcon.png" />
+		Unsorted
+	</li>
+</ul>
+</div>
+
+<div class="trend_list sitegroup_list" alt="{{ sitegrouptype.id }}">
+<h4>Most visited websites</h4>
+<ul>
+	{% for t in sitegroup_totals %} 
+		<li title="{{ t.sitegroup.host }}">
+			<input type="checkbox" class="{{ t.sitegroup.id }}" value="{{ t.sitegroup.host }}" />
+			<img src="{{ t.sitegroup.tag.icon }}" />
+			{{ t.hours_int }} hours: {{ t.sitegroup.host }}
+		</li>
+	{% endfor %} 
+</ul>
+</div>

@@ -39,6 +39,32 @@
     <script type='application/x-javascript'
             src='chrome://ProcrasDonate/content/js/ext/the_real_google_gauge_api.js'></script>
     
+    <!-- raphael SVG library, plus raphael graph library
+      -->
+    <script type='application/x-javascript'
+            src='chrome://ProcrasDonate/content/js/ext/raphael.js'></script>
+	<script type='application/x-javascript'
+            src='chrome://ProcrasDonate/content/js/ext/g.raphael.js'></script>
+	<script type='application/x-javascript'
+            src='chrome://ProcrasDonate/content/js/ext/g.bar.js'></script>
+    <script type='application/x-javascript'
+            src='chrome://ProcrasDonate/content/js/ext/g.dot.js'></script>
+	<script type='application/x-javascript'
+            src='chrome://ProcrasDonate/content/js/ext/g.line.js'></script>
+	<script type='application/x-javascript'
+            src='chrome://ProcrasDonate/content/js/ext/g.pie.js'></script>
+      
+    <!-- dygraph javascript chart library
+      -->
+    <script type='application/x-javascript'
+            src='chrome://ProcrasDonate/content/js/ext/strftime.js'></script>
+    <script type='application/x-javascript'
+            src='chrome://ProcrasDonate/content/js/ext/dygraph-canvas.js'></script>
+    <script type='application/x-javascript'
+            src='chrome://ProcrasDonate/content/js/ext/dygraph.js'></script>
+    <script type='application/x-javascript'
+            src='chrome://ProcrasDonate/content/js/ext/rgbcolor.js'></script>
+
     <!-- Basic utils
       -->
     <script type='application/x-javascript'

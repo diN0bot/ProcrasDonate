@@ -73,6 +73,7 @@ _extend(InitListener.prototype, {
 		this.sleep_wake_listener = new SleepWakeListener(this.observerService, this.pddb, this.prefs, this.time_tracker);
 		this.idle_back_noflash_listener = new IdleBack_NoFlash_Listener(this.idleService, this.pddb, this.prefs, this.time_tracker, constants.DEFAULT_MAX_IDLE);
 		this.idle_back_flash_listener = new IdleBack_Flash_Listener(this.idleService, this.pddb, this.prefs, this.time_tracker, constants.DEFAULT_FLASH_MAX_IDLE);
+		this.private_browsing_listener = new PrivateBrowsingListener(this.observerService, this.pddb, this.prefs, this.toolbar_manager);
 		
 		this.uninstall_listener = new UninstallListener(this.observerService, this.pddb, this.prefs, this.toolbar_manager);
 		
@@ -108,6 +109,7 @@ _extend(InitListener.prototype, {
 		this.uninstall_listener.unregister();
 		this.idle_back_noflash_listener.unregister();
 		this.idle_back_flash_listener.unregister();
+		this.private_browsing_listener.unregister();
 		
 		// remove listener (unload only happens once anyway)
 		window.removeEventListener("unload", function(event) { self.uninit(event); }, false);
@@ -443,11 +445,11 @@ _extend(PageLoadListener.prototype, {
 		if (request.jQuery("[type=application/x-shockwave-flash]").length > 0) {
 			has_flash = true;
 			max_idle = constants.DEFAULT_FLASH_MAX_IDLE;
-			logger("flash on page");
+			//logger("flash on page");
 		} else {
 			has_flash = false;
 			max_idle = constants.DEFAULT_MAX_IDLE;
-			logger("NO flash on page");
+			//logger("NO flash on page");
 		}
 		// create site if necessary and overwrite flash and max idle
 		var site = this.pddb.Site.get_or_make(href, has_flash, max_idle);
@@ -598,3 +600,39 @@ _extend(UninstallListener.prototype, {
 	},
 });
 
+/**
+* 
+*/
+var PrivateBrowsingListener = function PrivateBrowsingListener(observerService, pddb, prefs, toolbar_manager) {
+	this.observerService = observerService;
+	this.pddb = pddb;
+	this.prefs = prefs;
+	this.toolbar_manager = toolbar_manager;
+
+	this.register();
+};
+PrivateBrowsingListener.prototype = {};
+_extend(PrivateBrowsingListener.prototype, {
+	register: function() {
+		this.observerService.addObserver(this, "private-browsing", false);
+	},
+	
+	unregister: function() {
+		this.observerService.removeObserver(this, "private-browsing", false);
+	},
+	
+	observe: function(subject, topic, data) {
+		logger("subject="+subject+" topic="+topic+" data="+data);
+		if (topic == "private-browsing") {
+			if (data == "enter") {
+				this.prefs.set("private_browsing_enabled", true);
+			} else if (data == "exit") {
+				this.prefs.set("private_browsing_enabled", false);
+			} else {
+				this.pddb.orthogonals.log("Unknown private-browsing data: "+data, "privacy");
+			}
+		} else {
+			this.pddb.orthogonals.log("Unknown private-browsing topic: "+topic+" data: "+data, "privacy");
+		}
+	}
+});

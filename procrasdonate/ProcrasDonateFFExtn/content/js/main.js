@@ -67,13 +67,11 @@ PDDB.prototype = {
 		});
 
 		////// CONTENTTYPES ////////
-		this.content_types = {};
 		if (this.ContentType.count() == 0) {
 			var contenttype_names = ['Site', 'SiteGroup', 'Recipient', 'Tag'];
-			for (var i=0; i < contenttype_names.length; i++) {
-				var ct = this.ContentType.create({ modelname: contenttype_names[i] });
-				this.content_types[ct.id] = this[ct.modelname];
-			}
+			_iterate(contenttype_names, function(key, value, index) {
+				this[value] = this.ContentType.create({ modelname: value });
+			});
 		}
 	},
 };

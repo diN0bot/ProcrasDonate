@@ -490,7 +490,7 @@ _extend(PageController.prototype, {
 		return (_un_prefify_float( this.prefs.get(key, def) ) * 100).toFixed(2)
 	},
 	
-	validate_positive_float_input: function(request, v) {
+	validate_positive_float_input: function(v) {
 		try {
 			return parseFloat(v) >= 0
 		} catch(e) {
@@ -498,13 +498,9 @@ _extend(PageController.prototype, {
 		}
 	},
 	
-	validate_dollars_input: function(request, v) {
+	validate_dollars_input: function(v) {
 		return parseFloat(v) >= 0
 		
-		/// old
-		
-		//var hr_per_week_goal = parseFloat(
-		//	request.jQuery("input[name='hr_per_week_goal']").attr("value"));
 		var max = 20;
 		if ( dollars >= 0 && dollars <= max )
 			return true;
@@ -520,7 +516,7 @@ _extend(PageController.prototype, {
 		return false;
 	},
 	
-	validate_hours_input: function(request, v) {
+	validate_hours_input: function(v) {
 		var hours = parseFloat(v);
 		if ( hours >= 0 )
 			return true;
@@ -1517,6 +1513,377 @@ _extend(PageController.prototype, {
 		
 	},
 	
+	insert_progress_trends: function(request) {
+		var self = this;
+		this.prefs.set('progress_state', 'trends');
+
+		var substate_menu_items = this.make_substate_menu_items('trends',
+			constants.PROGRESS_STATE_ENUM,
+			constants.PROGRESS_STATE_TAB_NAMES,
+			constants.PROGRESS_STATE_IMAGES);
+		var substate_menu = Template.get("progress_submenu").render(
+				new Context({ substate_menu_items: substate_menu_items })
+			);
+		
+		var sitegrouptype = self.pddb.ContentType.get_or_null({ modelname: "SiteGroup" });
+		var tagtype = self.pddb.ContentType.get_or_null({ modelname: "Tag" });
+		
+		var sitegroup_totals = [];
+		this.pddb.Total.select({
+			timetype_id: self.pddb.Forever.id,
+			contenttype_id: sitegrouptype.id,
+		}, function(row) {
+			if (sitegroup_totals.length < 10) {
+				sitegroup_totals.push(row);
+			}
+		}, "-total_time");
+		
+		var middle = Template.get("progress_trends_middle").render(
+			new Context({
+				substate_menu: substate_menu,
+				constants: constants,
+				sitegroup_totals: sitegroup_totals,
+				ProcrasDonate: self.pddb.ProcrasDonate,
+				TimeWellSpent: self.pddb.TimeWellSpent,
+				Unsorted: self.pddb.Unsorted,
+				tagtype: tagtype,
+				sitegrouptype: sitegrouptype
+			})
+		);
+		request.jQuery("#content").html( middle );
+		
+		var aset = [tagtype.id, self.pddb.ProcrasDonate.id];
+		var bset = [tagtype.id, self.pddb.TimeWellSpent.id];
+		
+		this.prefs.set("trend_a", aset.join(":"));
+		this.prefs.set("trend_b", bset.join(":"));
+		
+		var data = this.get_trend_data(aset, bset);
+
+		this.insert_trends_graph(request,
+				"trend_chart",
+				data.A,
+				data.B,
+				this.get_trend_label(aset),
+				this.get_trend_label(bset),
+				this.get_trend_color(aset),
+				this.get_trend_color(bset, aset, true));
+		
+		this.activate_trends_checkboxes(request);
+		
+		this.activate_substate_menu_items(request, 'trends',
+			constants.PROGRESS_STATE_ENUM, constants.PROGRESS_STATE_INSERTS, constants.PROGRESS_STATE_PROCESSORS);
+	},
+	
+	/*
+	 * d is a string of the form: 
+	 *    contenttype_id:content_id
+	 * other has the same form. it is the other trend
+	 * if go_lighter is true and both trends have the same tag type,
+	 * then a lighter color will be returned
+	 */
+	get_trend_color: function(d, other, go_lighter) {
+		if (!d) { return "#000000"; }
+		// dark versions of the colors
+		var PD_color = "#2277BB";
+		var TWS_color = "#BB7722";
+		var U_color = "#22BB77";
+		// light version of the colors
+		var PD_color_lighter = "#44CCFF";
+		var TWS_color_lighter = "#FFCC44";
+		var U_color_lighter = "#44FFCC";
+		
+		var self = this;
+		var tag_id = null;
+		var contenttype = this.pddb.ContentType.get_or_null({ id: d[0] });
+		if (contenttype.modelname == "SiteGroup") {
+			// get website tag
+			var sitegroup = this.pddb.SiteGroup.get_or_null({ id: d[1] });
+			tag_id = sitegroup.tag().id;
+		} else {
+			tag_id = d[1];
+		}
+		
+		// check if need to use lighter color version
+		// if so, overwrite colors with lighter version
+		if (other && go_lighter) {
+			var tag_id_other = null;
+			var contenttype = this.pddb.ContentType.get_or_null({ id: other[0] });
+			if (contenttype.modelname == "SiteGroup") {
+				// get website tag
+				var sitegroup = this.pddb.SiteGroup.get_or_null({ id: other[1] });
+				tag_id_other = sitegroup.tag().id;
+			} else {
+				tag_id_other = other[1];
+			}
+			if (tag_id == tag_id_other) {
+				PD_color = PD_color_lighter;
+				TWS_color = TWS_color_lighter;
+				U_color = U_color_lighter;
+			}
+		}
+	
+		if (tag_id == this.pddb.ProcrasDonate.id) {
+			return PD_color;
+		} else if (tag_id == this.pddb.TimeWellSpent.id) {
+			return TWS_color;
+		} else {
+			return U_color;
+		}
+	},
+	
+	/*
+	 * d is a string of the form: 
+	 *    contenttype_id:content_id
+	 */
+	get_trend_label: function(d) {
+		if (!d) { return "";}
+		
+		var self = this;
+		var tag_id = null;
+		var contenttype = this.pddb.ContentType.get_or_null({ id: d[0] });
+		var ret = "";
+		if (contenttype.modelname == "SiteGroup") {
+			// get website tag
+			var sitegroup = this.pddb.SiteGroup.get_or_null({ id: d[1] });
+			return ret + sitegroup.host
+		} else {
+			var tag = this.pddb.Tag.get_or_null({ id: d[1] });
+			return ret + tag.tag;
+		}
+	},
+	
+	get_trend_data: function(A, B) {
+		//logger("trend data: A "+A+" \nB "+B);
+		var self = this;
+		
+		var A_totals = [];
+		if (A) {
+			this.pddb.Total.select({
+				timetype_id: self.pddb.Daily.id,
+				contenttype_id: A[0],
+				content_id: A[1]
+			}, function(row) {
+				A_totals.push(row);
+			}, "datetime");
+		}
+		
+		var B_totals = [];
+		if (B) {
+			this.pddb.Total.select({
+				timetype_id: self.pddb.Daily.id,
+				contenttype_id: B[0],
+				content_id: B[1]
+			}, function(row) {
+				B_totals.push(row);
+			}, "datetime");
+		}
+		
+		return { A: A_totals, B: B_totals }
+	},
+	
+	insert_trends_graph: function(request, div_id, A, B, alabel, blabel, acolor, bcolor) {
+		//_pprint(A, "A =\n");
+		//_pprint(B, "B =\n");
+		
+		var data = [];
+		data.push("Date,"+alabel+","+blabel);
+		
+		var A_idx = 0;
+		var B_idx = 0;
+		while ((A && A_idx < A.length) || (B && B_idx < B.length)) {
+			var A_d = null;
+			var A_v = null;
+			if (A && A_idx < A.length) {
+				A_d = A[A_idx].datetime;
+				A_v = A[A_idx].hours();
+			} 
+			var B_d = null;
+			var B_v = null;
+			if (B && B_idx < B.length) {
+				B_d = B[B_idx].datetime;
+				B_v = B[B_idx].hours();
+			}
+			//logger("A_d="+A_d+" date="+_un_dbify_date(A_d)+" A_v="+A_v+
+			//		"\nB_d="+B_d+" date="+_un_dbify_date(B_d)+" B_v="+B_v);
+			
+			if (A_d != null && B_d != null && A_d == B_d) {
+				data.push(_un_dbify_date(A_d).strftime("%Y-%m-%d")+","+A_v+","+B_v);
+				A_idx += 1;
+				B_idx += 1;
+			} else if ((B_d == null && A_d != null) || (A_d != null && B_d != null && A_d < B_d)) {
+				var x = "";
+				if (A && B) { x = A_v+",0"; }
+				else { x = A_v; }
+				data.push(_un_dbify_date(A_d).strftime("%Y-%m-%d")+","+x);
+				A_idx += 1;
+			} else if ((B_d != null && A_d == null) || (A_d != null && B_d != null && A_d > B_d)) {
+				var x = "";
+				if (A && B) { x = "0, "+B_v; }
+				else { x = B_v; }
+				data.push(_un_dbify_date(B_d).strftime("%Y-%m-%d")+","+x);
+				B_idx += 1;
+			} else {
+				logger("Something unexpected occured while putting trend graph together"+
+						"\nA time = "+A_d+", A item = "+A_idx+": "+A[A_idx]+
+						"\nB time = "+B_d+", B item = "+B_idx+": "+B[B_idx]);
+				A_idx += 1;
+				B_idx += 1;
+			}
+		}
+		data = data.join("\n");
+		logger(data, "DATA\n");
+		
+		request.jQuery("#trend_title_A").text(alabel).css("color", acolor);
+		request.jQuery("#trend_title_B").text(blabel).css("color", bcolor);
+		if (blabel) { request.jQuery("#trend_title_and").text(" and "); }
+		
+		// clear existing graph
+		request.jQuery("#"+div_id).html("");
+		request.jQuery("#legend").html("");
+		
+		init_dygraph_canvas(request.get_document());
+		init_dygraph(request.get_document());
+		g = new DateGraph(
+				request.jQuery("#"+div_id).get(0),
+				data,
+				{showRoller: false,
+				 //labelsDivWidth: 350,
+				 labelsDiv: request.jQuery("#legend").get(0),
+				 axisLabelFontSize: 10,
+				 //pixelsPerXLabel: 35,
+				 gridLineColor: "#BBBBBB",
+				 strokeWidth: 2,
+				 colors: [acolor, bcolor],
+				 //xAxisLabelWidth: 50
+				 });
+		
+		request.jQuery("#trend_chart").children().children().each(function() {
+			if ($(this).attr("style").match("bottom: 0px")) {
+				$(this).css("margin-bottom", "-.5em");
+			}
+		});
+					
+					//overflow: hidden; position: absolute; font-size: 10px; z-index: 10; 
+					//color: black; width: 50px; text-align: center; bottom: 0px; left: 226.533px;
+	},
+	
+	activate_trends_checkboxes: function(request) {
+		var self = this;
+		function set_color(X, acolor) {
+			if (X && X.length > 1) {
+				request.jQuery(".trend_list[alt="+X[0]+"]")
+					.children("ul").children("li").children("."+X[1])
+					.parent().css("color", acolor);
+			}
+		}
+		
+		request.jQuery("input").click(function() {
+			var a = self.prefs.get("trend_a", "");
+			var b = self.prefs.get("trend_b", "");
+			set_color(a.split(":"), "#000000");
+			set_color(b.split(":"), "#000000");
+			
+			var A = null;
+			var B = null;
+			
+			var e = request.jQuery(this);
+			var contenttype_id = e.parent().parent().parent().attr("alt");
+			var content_id = e.attr("class");
+			var c = contenttype_id+":"+content_id;
+			//logger("a = "+a+"\nb = "+b+"\nc = "+c+", checked?"+e.attr("checked"));
+			if (e.attr("checked")) {
+				if (b) {
+					request.jQuery(".trend_list[alt="+a.split(":")[0]+"]")
+						.children("ul").children("li").children("."+a.split(":")[1])
+						.attr("checked", false);
+					a = b;
+				}
+				b = c;
+				self.prefs.set("trend_a", a);
+				self.prefs.set("trend_b", b);
+				
+				A = [a.split(":")[0], a.split(":")[1]];
+				B = [contenttype_id, content_id];
+			} else {
+				if (b) {
+					if (a == c) {
+						a = b;
+					}
+					self.prefs.set("trend_a", a);
+					self.prefs.set("trend_b", "");
+					A = [a.split(":")[0], a.split(":")[1]];
+				} else {
+					e.attr("checked", true);
+				}
+			}
+			
+			var data = self.get_trend_data(A, B);
+			
+			var acolor = self.get_trend_color(A);
+			var bcolor = self.get_trend_color(B, A, true);
+			
+			set_color(A, acolor);
+			set_color(B, bcolor);
+			
+			self.insert_trends_graph(request,
+					"trend_chart",
+					data.A,
+					data.B,
+					self.get_trend_label(A),
+					self.get_trend_label(B),
+					acolor,
+					bcolor);
+		});
+	},
+	
+	insert_progress_averages: function(request) {
+		var self = this;
+		this.prefs.set('progress_state', 'averages');
+
+		var substate_menu_items = this.make_substate_menu_items('averages',
+			constants.PROGRESS_STATE_ENUM,
+			constants.PROGRESS_STATE_TAB_NAMES,
+			constants.PROGRESS_STATE_IMAGES);
+		var substate_menu = Template.get("progress_submenu").render(
+				new Context({ substate_menu_items: substate_menu_items })
+			);
+		
+		var tagtype = self.pddb.ContentType.get_or_null({ modelname: "Tag" });
+		
+		var pd_totals = [];
+		this.pddb.Total.select({
+			timetype_id: self.pddb.Daily.id,
+			contenttype_id: tagtype.id,
+			content_id: self.pddb.ProcrasDonate.id
+		}, function(row) {
+			pd_totals.push(row)
+		}, "datetime");
+		
+		var middle = Template.get("progress_averages_middle").render(
+			new Context({
+				substate_menu: substate_menu,
+				constants: constants,
+			})
+		);
+		request.jQuery("#content").html( middle );
+		
+		this.insert_averages_graph(request, pd_totals);
+		
+		this.activate_substate_menu_items(request, 'averages',
+			constants.PROGRESS_STATE_ENUM, constants.PROGRESS_STATE_INSERTS, constants.PROGRESS_STATE_PROCESSORS);
+	},
+	
+	insert_averages_graph: function(request, A) {
+		init_raphael(request.get_document());
+		init_graphael();
+		init_graphael_dot();
+		init_graphael_pie();
+		var paper = Raphael("chart", 540, 480);
+		// pie chart centered at 320, 200, radius 100
+		paper.g.piechart(320, 240, 100, [55, 20, 13, 32, 5, 1, 2, 10]);
+	},
+	
 	/*************************************************************************/
 	/******************************* REGISTER ********************************/
 	
@@ -1563,7 +1930,7 @@ _extend(PageController.prototype, {
 			var value = request.jQuery.trim(request.jQuery(this).attr("value"));
 			if (!value) { return; }
 			
-			if ( !self.validate_hours_input(request, value) ) {
+			if ( !self.validate_hours_input(value) ) {
 				request.jQuery("#goal_error").text("Please enter number of hours. For example, to strive for 8 hrs and 15 minutes, please enter 1.25");
 			} else {
 				self.prefs.set('pd_hr_per_week_goal', self.clean_hours_input(value));
@@ -1576,7 +1943,7 @@ _extend(PageController.prototype, {
 			var value = request.jQuery.trim(request.jQuery(this).attr("value"));
 			if (!value) { return; }
 			
-			if ( !self.validate_hours_input(request, value) ) {
+			if ( !self.validate_hours_input(value) ) {
 				request.jQuery("#max_error").text("Please enter number of hours. For example, enter 30 minutes as .5");
 			} else {
 				self.prefs.set('pd_hr_per_week_max', self.clean_hours_input(value));
@@ -1649,13 +2016,13 @@ _extend(PageController.prototype, {
 		var pd_hr_per_week_max = request.jQuery("input[name='pd_hr_per_week_max']").attr("value");
 
 		request.jQuery("#errors").text("");
-		if ( !this.validate_dollars_input(request, pd_dollars_per_hr) ) {
+		if ( !this.validate_dollars_input(pd_dollars_per_hr) ) {
 			request.jQuery("#rate_error").text("Please enter a valid dollar amount. For example, to donate $2.34 per hour, please enter 2.34");
 			
-		} else if ( !this.validate_hours_input(request, pd_hr_per_week_goal) ) {
+		} else if ( !this.validate_hours_input(pd_hr_per_week_goal) ) {
 			request.jQuery("#goal_error").text("Please enter number of hours. For example, to strive for 8 hrs and 15 minutes, please enter 1.25");
 			
-		} else if ( !this.validate_hours_input(request, pd_hr_per_week_max) ) {
+		} else if ( !this.validate_hours_input(pd_hr_per_week_max) ) {
 			request.jQuery("#max_error").text("Please enter number of hours. For example, enter 30 minutes as .5");
 			
 		} else if (parseFloat(pd_hr_per_week_goal) > parseFloat(pd_hr_per_week_max)) { 
@@ -1743,9 +2110,49 @@ _extend(PageController.prototype, {
 		);
 		request.jQuery("#content").html( middle );
 		
+		this.insert_register_charities_pie_chart(request);
+		
 		this.activate_substate_menu_items(request, 'charities',
 			constants.REGISTER_STATE_ENUM, constants.REGISTER_STATE_INSERTS, constants.REGISTER_STATE_PROCESSORS);
 		this.activate_register_charities(request);
+	},
+	
+	insert_register_charities_pie_chart: function(request) {
+		// get data
+		var data = [];
+		var legend = [];
+		this.pddb.RecipientPercent.select({}, function(row) {
+			data.push(row.display_percent());
+			legend.push(row.recipient().name+" ("+row.display_percent()+"%)");
+		});
+		
+		init_raphael(request.get_document());
+		init_graphael();
+		init_graphael_pie();
+		// clear existing chart
+		request.jQuery("#pie_chart").html("");
+		// create pie chart
+		var paper = Raphael("pie_chart", 550, 250);
+		var pie = paper.g.piechart(125, 125, 100,
+				data,
+				{ legend: legend, legendpos: "east" });
+
+		// add cool effects (copied from g.raphael demo)
+        pie.hover(function () {
+            this.sector.stop();
+            this.sector.scale(1.1, 1.1, this.cx, this.cy);
+            if (this.label) {
+                this.label[0].stop();
+                this.label[0].scale(1.5);
+                this.label[1].attr({"font-weight": 800});
+            }
+        }, function () {
+            this.sector.animate({scale: [1, 1, this.cx, this.cy]}, 500, "bounce");
+            if (this.label) {
+                this.label[0].animate({scale: 1}, 500, "bounce");
+                this.label[1].attr({"font-weight": 400});
+            }
+        });
 	},
 	
 	activate_register_charities: function(request) {
@@ -1862,6 +2269,32 @@ _extend(PageController.prototype, {
 			potential_recipients_div.prepend(new_recip);
 			self.activate_a_recipient(request, new_recip);
 		});
+		
+		recipient_elem.children(".recipient_percent").children(".up_arrow, .down_arrow").click(function() {
+			// using recipient_elem doesn't work
+			// var id = recipient_elem.children(".recipient_id").text();
+			var id = request.jQuery(this).parent().siblings(".recipient_id").text();
+
+			var r = self.pddb.Recipient.get_or_null({
+				id: id
+			});
+			var rp = r.recipient_percent();
+			
+			var new_pct = 0;
+			if (request.jQuery(this).attr("class") == "up_arrow") {
+				new_pct = parseFloat(rp.percent) + .05;
+			} else {
+				new_pct = parseFloat(rp.percent) - .05;
+			}
+			
+			self.pddb.RecipientPercent.set({
+				percent: new_pct
+			}, {
+				id: rp.id
+			});
+			self.insert_register_charities_pie_chart(request);
+			request.jQuery(this).siblings(".percent").text(Math.round(new_pct * 100));
+		});
 	},
 	
 	process_register_charities: function(request) {
@@ -1930,13 +2363,13 @@ _extend(PageController.prototype, {
 		var tws_hr_per_week_max = request.jQuery("input[name='tws_hr_per_week_max']").attr("value");
 
 		request.jQuery("#errors").text("");
-		if ( !this.validate_dollars_input(request, tws_dollars_per_hr) ) {
+		if ( !this.validate_dollars_input(tws_dollars_per_hr) ) {
 			request.jQuery("#errors").append("<p>Please enter a valid dollar amount. For example, to donate $2.34 per hour, please enter 2.34</p>");
 			
-		//} else if ( !this.validate_hours_input(request, tws_hr_per_week_goal) ) {
+		//} else if ( !this.validate_hours_input(tws_hr_per_week_goal) ) {
 		//	request.jQuery("#errors").append("<p>Please enter number of hours. For example, to strive for 8 hrs and 15 minutes, please enter 1.25</p>");
 			
-		} else if ( !this.validate_hours_input(request, tws_hr_per_week_max) ) {
+		} else if ( !this.validate_hours_input(tws_hr_per_week_max) ) {
 			request.jQuery("#errors").append("<p>Please enter number of hours. For example, enter 30 minutes as .5</p>");
 			
 		} else {
@@ -2028,10 +2461,10 @@ _extend(PageController.prototype, {
 		var monthly_fee = request.jQuery("input[name='monthly_fee']").attr("value");
 
 		request.jQuery(".error").text("");
-		if ( !this.validate_positive_float_input(request, support_pct) ) {
+		if ( !this.validate_positive_float_input(support_pct) ) {
 			request.jQuery("#support_error").append("<p>Please enter a valid percent. For example, 6.75 for 6.75%</p>");
 			
-		} else if ( !this.validate_dollars_input(request, monthly_fee) ) {
+		} else if ( !this.validate_dollars_input(monthly_fee) ) {
 			request.jQuery("#monthly_error").append("<p>Please enter a valid amount. For example, 4.99 for $4.99</p>");
 			
 		} else if ( parseFloat(support_pct) > 10.0 ) {
@@ -2356,7 +2789,7 @@ _extend(PageController.prototype, {
 			var support_pct = request.jQuery(this).attr("value");
 			request.jQuery(".error").text("");
 			
-			if ( !self.validate_positive_float_input(request, support_pct) ) {
+			if ( !self.validate_positive_float_input(support_pct) ) {
 				request.jQuery("#support_error").append("<p>Please enter a valid percent. For example, 6.75 for 6.75%</p>");
 			} else if ( parseFloat(support_pct) > 10.0 ) {
 				request.jQuery("#support_error").append("<p>We cannot accept more than 10%. Please enter a lower percent. For example, 10 for 10%.</p>");
@@ -2369,7 +2802,7 @@ _extend(PageController.prototype, {
 			var monthly_fee = request.jQuery(this).attr("value");
 			request.jQuery(".error").text("");
 			
-			if ( !self.validate_dollars_input(request, monthly_fee) ) {
+			if ( !self.validate_dollars_input(monthly_fee) ) {
 				request.jQuery("#monthly_error").append("<p>Please enter a valid amount. For example, 4.99 for $4.99</p>");
 			} else {
 				self.prefs.set('monthly_fee', self.clean_dollars_input(monthly_fee));
@@ -2473,7 +2906,7 @@ _extend(PageController.prototype, {
 			var value = request.jQuery.trim(request.jQuery(this).attr("value"));
 			if (!value) { value = "0"; }
 			
-			if ( !self.validate_hours_input(request, value) ) {
+			if ( !self.validate_hours_input(value) ) {
 				request.jQuery(this).siblings(".error").text("Please enter a number");
 			} else {
 				self.prefs.set(name, _prefify_float(value));
