@@ -142,6 +142,10 @@ def reset_password(request):
             if not tagging:
                 error = "No matching username or email found"
                 return render_response(request, 'procrasdonate/recipient_organizer_pages/account/reset_password.html', locals())
+
+        if not tagging.user.email:
+            error = "User has no email address."
+            return render_response(request, 'procrasdonate/recipient_organizer_pages/account/reset_password.html', locals())
         
         tagging.reset_password()
         # send email for recipient user to reset password
@@ -154,11 +158,15 @@ def reset_password(request):
                      'confirmation_code': tagging.confirmation_code,
                      'expiration_days': 14 })
         t = loader.get_template('procrasdonate/recipient_organizer_pages/account/reset_password_email.txt')
-        tagging.send_email("Password reset for ProcrasDonate organizer for %s" % tagging.recipient.name,
-                           t.render(c),
-                           from_email="procrasdonate@bilumi.org")
-        
         email_address = tagging.user.email
+        try:
+            tagging.send_email("Password reset for ProcrasDonate organizer for %s" % tagging.recipient.name,
+                               t.render(c),
+                               from_email="procrasdonate@bilumi.org")
+        except:
+            error = "Problem sending email to %s." % email_address
+            return render_response(request, 'procrasdonate/recipient_organizer_pages/account/reset_password.html', locals())
+        
         return render_response(request, 'procrasdonate/recipient_organizer_pages/account/reset_password_email_sent.html', locals())
 
     return render_response(request, 'procrasdonate/recipient_organizer_pages/account/reset_password.html', locals())

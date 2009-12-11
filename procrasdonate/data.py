@@ -98,7 +98,7 @@ class Site(models.Model):
 
     @classmethod
     def make(klass, url, sitegroup):
-        return Site(url=url, sitegroup=sitegroup)
+        return Site(url=url[:400], sitegroup=sitegroup)
     
     def __unicode__(self):
         return u"%s (%s)" % (self.url, self.sitegroup)
@@ -112,13 +112,13 @@ class SiteGroup(models.Model):
     url_re = models.CharField(max_length=256, null=True, blank=True)
     name = models.CharField(max_length=200, null=True, blank=True)
     
-    HOST_RE = re.compile("http://([^/]+)")
+    HOST_RE = re.compile("(https?|ftp|file)://([^/]+)")
     
     @classmethod
     def extract_host(klass, url):
         match = SiteGroup.HOST_RE.match(url)
         if match:
-            return match.groups()[0]
+            return match.groups()[1]
         return url
     
     @classmethod
@@ -130,7 +130,7 @@ class SiteGroup(models.Model):
     
     @classmethod
     def make(klass, host, url_re=None, name=None):
-        return SiteGroup(host=host,
+        return SiteGroup(host=host[:400],
                          url_re=url_re,
                          name=name)
     
