@@ -2037,6 +2037,8 @@ _extend(PageController.prototype, {
 		return false;
 	},
 	
+	RECIPIENT_PERCENT_COLORS: ["red", "green", "blue", "yellow", "black", "white", "orange"],
+	
 	insert_register_charities: function(request) {
 		var self = this;
 		this.prefs.set('register_state', 'charities');
@@ -2065,12 +2067,13 @@ _extend(PageController.prototype, {
 					new Context({
 						constants: constants,
 						deep_recip_pct: row,
+						percent_color: self.RECIPIENT_PERCENT_COLORS[chosen_charities.length]
 					})
 				);
 				chosen_charities.push(html);
 				chosen_charities_rows.push(recipient);
 			}
-		});
+		}, "-percent");
 		
 		var staff_picks = [];
 		var recently_added = [];
@@ -2118,13 +2121,15 @@ _extend(PageController.prototype, {
 	},
 	
 	insert_register_charities_pie_chart: function(request) {
-		// get data
+		var self = this;
 		var data = [];
 		var legend = [];
+		var colors = [];
 		this.pddb.RecipientPercent.select({}, function(row) {
 			data.push(row.display_percent());
 			legend.push(row.recipient().name+" ("+row.display_percent()+"%)");
-		});
+			colors.push(self.RECIPIENT_PERCENT_COLORS[colors.length]);
+		}, "-percent");
 		
 		init_raphael(request.get_document());
 		init_graphael();
@@ -2135,7 +2140,9 @@ _extend(PageController.prototype, {
 		var paper = Raphael("pie_chart", 550, 250);
 		var pie = paper.g.piechart(125, 125, 100,
 				data,
-				{ legend: legend, legendpos: "east" });
+				{ legend: legend,
+				  legendpos: "east",
+				  colors: colors });
 
 		// add cool effects (copied from g.raphael demo)
         pie.hover(function () {
@@ -2197,12 +2204,101 @@ _extend(PageController.prototype, {
 					deep_recip_pct: recipient_pct
 				})
 			);
-			request.jQuery("#chosen_charities").prepend(html);
+			var x = request.jQuery(html);
+			request.jQuery("#chosen_charities").prepend(x);
 			// clear input
 			request.jQuery("#new_recipient_name").attr("value", "");
+			self.activate_a_recipient(request, x);
+			self.insert_register_charities_pie_chart(request);
 		});
 	},
 	
+	/**
+	 * redistribute lost points among remaining selected charities
+	 * @param amount: float amount to redistribute (0, 1)
+	 * 		a negative amount will be subtracted from percents
+	 * @param not_id: id of the recipient percent from which the
+	 * 		redistribution is coming from. thus, don't redistribute to it
+	 */
+	redistribute_percents: function(amount, not_id) {
+		if (!amount) { return; }
+		var self = this;
+		// calculate the count based on percents eligible for redistribution
+		var count = 0;
+		self.pddb.RecipientPercent.select({}, function(row) {
+			if (not_id && row.id == not_id) { return }
+			if (parseFloat(row.percent) <= 0 && amount < 0) { return }
+			if (parseFloat(row.percent) >= 1 && amount > 0) { return }
+			count += 1;
+		});
+		if (count > 0) {
+			var each = amount / count;
+			var total_redistributed = 0;
+
+			self.pddb.RecipientPercent.select({}, function(row) {
+				// don't redistribute to source recipient percent
+				if (not_id && row.id == not_id) { return }
+				if (parseFloat(row.percent) <= 0 && amount < 0) { return }
+				if (parseFloat(row.percent) >= 1 && amount > 0) { return }
+				
+				var amt = parseFloat(row.percent) + each;
+				if (amt < 0) { amt = 0; }
+				if (amt > 1) { amt = 1; }
+				total_redistributed += amt - parseFloat(row.percent)
+				self.pddb.RecipientPercent.set({
+					percent: amt
+				}, {
+					id: row.id
+				});
+			});
+			
+			logger("TOTAL RED "+total_redistributed+", ORIG AMOUNT "+amount);
+			
+			// might have left-overs to redistribute if a percent got capped at 0 or 1
+			if (Math.abs(total_redistributed) > 0.001 &&
+					Math.abs(total_redistributed - amount) > 0.001) {
+				self.redistribute_percents((amount - total_redistributed), not_id); 
+			}
+		}
+	},
+	
+	update_displayed_percents: function(request) {
+		var self = this;
+		var rps = {};
+		self.pddb.RecipientPercent.select({}, function(row) {
+			rps[row.recipient_id] = row.display_percent();
+		});
+		
+		request.jQuery("#chosen_charities").children().each(function() {
+			var rid = request.jQuery(this).children(".recipient_id").text();
+			request.jQuery(this).children(".recipient_percent")
+				.children(".percent").text(rps[rid]);
+		});
+	},
+	
+	/*
+	 * initial percents -> action -> outcome
+	 * -------------------------------------
+	 * 1. percents should always sum to 100%
+	 * 2. percents should always be integers?
+	 * 3. philosophy of add and remove:
+	 *      make no changes to other percents
+	 *      because ?? might be part of larger action (eg, swap)
+	 * 
+	 * []         -> add Z    -> [Z:100]
+	 * [A:x]      -> add Z    -> [A:x, Z:0]
+	 * [A:x, B:y] -> add Z    -> [A:x, B:y, Z:0]
+	 * [A:x, B:y] -> remove B -> [A:x]
+	 * [A:x]      -> remove A -> []
+	 * 
+	 * 4. philosophy of up and down:
+	 *      +/- 5 to acted on percent--capped at 0-100
+	 *      redistribute lost 5 evenly amongst others
+	 * 
+	 * [A:x, B:y, C:z] -> C+5 -> [A:x-2, B:y-3, C:z+5]
+	 * [A:x, B:y]      -> B+5 -> [A:x-5, B:y-5]
+	 * [A:x]           -> A+5 -> [A:x]
+	 */
 	activate_a_recipient: function(request, recipient_elem) {
 		var self = this;
 		recipient_elem.children(".recipient_id").hide();
@@ -2228,7 +2324,12 @@ _extend(PageController.prototype, {
 		recipient_elem.children(".add_recipient").click(function() {
 			var recipient_id = request.jQuery(this).siblings(".recipient_id").text();
 			var recipient = self.pddb.Recipient.get_or_null({ id: recipient_id });
+			// percent is 0 unless no other recipients are selected
+			// total percent should always sum to 1.
 			var percent = 0;
+			if (self.pddb.RecipientPercent.count() == 0) {
+				percent = 1;
+			}
 			var recipient_pct = self.pddb.RecipientPercent.create({
 				recipient_id: recipient_id,
 				percent: percent
@@ -2246,13 +2347,24 @@ _extend(PageController.prototype, {
 			
 			user_recipients_div.append(new_recip);
 			self.activate_a_recipient(request, new_recip);
+			self.insert_register_charities_pie_chart(request);
+			self.update_displayed_percents(request);
 		});
 		
 		recipient_elem.children(".remove_recipient").click(function() {
 			var recipient_id = request.jQuery(this).siblings(".recipient_id").text();
+			var rp = self.pddb.RecipientPercent.get_or_null({
+				recipient_id: recipient_id });
+			
+			var remove_pct = parseFloat(rp.percent);
+			
 			self.pddb.RecipientPercent.del({
 				recipient_id: recipient_id
 			});
+			
+			self.redistribute_percents(remove_pct);
+			
+			// add unselected charity to unselected section
 			var recipient = self.pddb.Recipient.get_or_null({ id: recipient_id });
 			
 			//request.jQuery(this).parent().clone(true).insertAfter(spacer);
@@ -2268,9 +2380,16 @@ _extend(PageController.prototype, {
 			
 			potential_recipients_div.prepend(new_recip);
 			self.activate_a_recipient(request, new_recip);
+			self.insert_register_charities_pie_chart(request);
+			self.update_displayed_percents(request);
 		});
 		
 		recipient_elem.children(".recipient_percent").children(".up_arrow, .down_arrow").click(function() {
+			// arrows only work if there are multiple recipient percents
+			if (self.pddb.RecipientPercent.count() == 1) {
+				return;
+			}
+			
 			// using recipient_elem doesn't work
 			// var id = recipient_elem.children(".recipient_id").text();
 			var id = request.jQuery(this).parent().siblings(".recipient_id").text();
@@ -2286,14 +2405,20 @@ _extend(PageController.prototype, {
 			} else {
 				new_pct = parseFloat(rp.percent) - .05;
 			}
+			if (new_pct > 1) { new_pct = 1; }
+			if (new_pct < 0) { new_pct = 0; }
 			
 			self.pddb.RecipientPercent.set({
 				percent: new_pct
 			}, {
 				id: rp.id
 			});
+			
+			var diff = parseFloat(rp.percent) - new_pct;
+			self.redistribute_percents(diff, rp.id);
+			
 			self.insert_register_charities_pie_chart(request);
-			request.jQuery(this).siblings(".percent").text(Math.round(new_pct * 100));
+			self.update_displayed_percents(request);
 		});
 	},
 	
