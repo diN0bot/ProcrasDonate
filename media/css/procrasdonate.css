@@ -358,7 +358,6 @@ img { -ms-interpolation-mode:bicubic; }
 	border: 0.27em ridge #156451; -moz-border-radius: .4em; padding: .6em .4em;
 }
 
-
 /******** EXTENSION CSS (#@TODO move to extension)*******************************************/
 
 .tracks { margin-bottom: 1.5em; }
@@ -400,10 +399,12 @@ img { -ms-interpolation-mode:bicubic; }
 
 /* #@ TODO from recipient list in extension page */
 
-.recipient-image { width: 8em; margin: -1em 0em 0em 1em; float: right; padding: 0.2em 1.4em; }
+.remove_img { float: left; width: 10.5em; margin: .3em 0em -.6em 0em;}
+.add_img { float: right; width: 11em; margin: 0.1em 0.6em -0.6em 0;}
 #new_recipient_submit { width: 10.25em; padding: 0em; margin: .6em 0em -.6em 0em; /*float: right;*/ }
 .recipient_percent .percent_symbol { font-size: 1.2em; margin-right: .4em; }
 .recipient_percent .percent { font-size: 1.2em; }
+.left_recipient_float { float: left; margin: -.2em 0.5em 0.5em .4em; }
 /* goes with register charity page stuff that is commented out
 .new_recipient { color: #797979; }
 #new_recipient_website { margin-right: 1em; }*/
@@ -614,11 +615,11 @@ td { vertical-align: middle; }
 
 .recipient_row { margin: .2em 0em .2em 0em; clear: both; }
 .recipient_row div { float: left; }
-.recipient { border: 1px solid #DDDDFF; -moz-border-radius: 4px; margin: .8em 0em; padding: 0.8em .8em 1.2em .8em; width: 90%;
-	background: #FBFBDE; }
+.recipient { border: 0.27em ridge #156451; -moz-border-radius: .4em; margin: .6em; padding: .6em .4em;
+	width: 90%; background: #FBFBDE; min-height: 6.3em; }
 .recipient_to_add { background: #faf6f3; }
-.recipient .name { font-size: 1.4em; padding: 0.2em 0.4em 0.7em 0; }
-.recipient .category { color:green; display:inline; float:left; padding: 0.5em 1.5em 0.7em 0; font-size: 1.08em; }
+.recipient .name { font-size: 1.5em; padding: 0.2em 0.4em 0.2em 0.4em; text-align: left; }
+.recipient .category { color:green; display:inline; font-size: 1.08em; }
 .recipient .description { padding: .2em .4em; }
 .recipient .description_toggle { }
 .recipient_row .remove { text-decoration: none; background: #FFDDDD; -moz-border-radius: 4px; margin-top: .3em; padding: .2em .4em; }
@@ -627,7 +628,7 @@ td { vertical-align: middle; }
 .recipient_row .input { float: left; margin: 0em 1em; }
 .recipient_spacer_row { height: 4em; width: 100%; clear: both; }
 .recipient_instructions { margin-bottom: 2em; }
-.recipient_percent { float: right; padding: 0.2em 1.4em; }
+.recipient_percent { float: right; font-size: 1.2em; padding: 0 1.4em; }
 
 /**** DONATION AND GOALS, LIMIT ****/
 
