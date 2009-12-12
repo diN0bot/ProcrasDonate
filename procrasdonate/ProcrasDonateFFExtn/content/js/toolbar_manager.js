@@ -32,7 +32,7 @@ _extend(ToolbarManager.prototype, {
 		//this.removeEventListener('load', this.initialize, false);
 
 		this.classify_button = document.getElementById("PD-classify-toolbar-button");
-		if (this.classify_button) {
+		if (this.classify_button && this.pddb && this.pddb.Tag) {
 			self.initialized = true;
 		} else {
 			self.initialized = false;
@@ -43,6 +43,7 @@ _extend(ToolbarManager.prototype, {
 		this.tws_progress_button = document.getElementById("TWS-progress-toolbar-button");
 		
 		self.images = {};
+		logger("TOOLBAR MANAGER's pddb = "+this.pddb);
 		this.pddb.Tag.select({}, function(row) {
 			self.images[row.id] = "chrome://ProcrasDonate/skin/"+row.tag+"Icon.png";	
 		});

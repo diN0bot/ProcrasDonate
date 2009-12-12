@@ -28,10 +28,11 @@ PDDB.prototype = {
 		db.connect(this.db_filename);
 		this.db = db;
 		this.models = load_models(db, this);
+		logger("init_db: models loaded");
 		
 		var self = this;
 		_iterate(this.models, function(name, model) {
-			//logger("model: "+name);
+			logger("model: "+name);
 			self[name] = model; //new Model(db, name, spec);
 			
 			var already_exists = false;
@@ -43,11 +44,11 @@ PDDB.prototype = {
 				model.create_table();
 			}
 		});
+		logger("init_db: tag: "+this.Tag);
 		
 		// install data if not already installed.
 		
-		// NOTE: onInstall will receive data from server after this method (init_db)
-		// is called.
+		// NOTE: onInstall will receive data from server after this is called
 		
 		/////// TAGS ////////
 		this.Unsorted      = this.Tag.get_or_create({ tag: "Unsorted" })
@@ -73,6 +74,7 @@ PDDB.prototype = {
 				self[value] = self.ContentType.create({ modelname: value });
 			});
 		}
+		logger("PDDB.init_db complete");
 	},
 };
 

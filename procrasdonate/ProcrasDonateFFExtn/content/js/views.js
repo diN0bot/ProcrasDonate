@@ -174,7 +174,7 @@ _extend(Controller.prototype, {
 		 */
 		var self = this;
 		_iterate(this.STATE_DEFAULTS, function(name, value) {
-			logger("state defaults: "+name+" "+value);
+			//logger("state defaults: "+name+" "+value);
 			if (!self.prefs.get(name, ''))
 				return self.prefs.set(name, value);
 		});
