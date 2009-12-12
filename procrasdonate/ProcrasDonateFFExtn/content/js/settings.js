@@ -105,24 +105,24 @@ var constants = {};
 	// enumeration of progress page state
 	constants.DEFAULT_PROGRESS_STATE = "gauges";
 	constants.PROGRESS_STATE_ENUM = [
-		"gauges", "classifications", "visits", "trends", "averages"
+		"gauges", "classifications", "visits", "trends"/*, "averages"*/
 	];
 	constants.PROGRESS_STATE_TAB_NAMES = [
-		"Gauges", "Classifications", "Visits", "Trends", "Averages"
+		"Gauges", "Sites", "Visits", "Trends"/*, "Averages"*/
 	];
 	constants.PROGRESS_STATE_INSERTS = [
 		"insert_progress_gauges",
 		"insert_progress_classifications",
 		"insert_progress_visits",
-		"insert_progress_trends",
-		"insert_progress_averages"
+		"insert_progress_trends"/*,
+		"insert_progress_averages"*/
 	];
 	constants.PROGRESS_STATE_IMAGES = [
 		{ past: "GaugesButton.png", selected: "GaugesButton.png", future: "GaugesButton.png" },
-		{ past: "LargeUnsortedIcon.png", selected: "LargeUnsortedIcon.png", future: "LargeUnsortedIcon.png" },
+		{ past: "LargeUnsortedIcon2.png", selected: "LargeUnsortedIcon.png", future: "LargeUnsortedIcon2.png" },
 		{ past: "VisitsButton.png", selected: "VisitsButton.png", future: "VisitsButton.png" },
-		{ past: "VisitsButton.png", selected: "VisitsButton.png", future: "VisitsButton.png" },
-		{ past: "VisitsButton.png", selected: "VisitsButton.png", future: "VisitsButton.png" },
+		{ past: "trends_button.png", selected: "trends_button.png", future: "trends_button.png" }/*,
+		{ past: "VisitsButton.png", selected: "VisitsButton.png", future: "VisitsButton.png" },*/
    	];
 
 	// enumeration of messages page state

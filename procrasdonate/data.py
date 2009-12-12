@@ -321,7 +321,7 @@ class Recipient(models.Model):
                 return "%s_thumbnail%s" % (self.logo.path[:dot_idx],
                                            self.logo.path[dot_idx:])
             else:
-                return self.logo.path + ".thumbnail"
+                return self.logo.path + ".thumbnail.png"
         else:
             return ""
     
@@ -332,7 +332,7 @@ class Recipient(models.Model):
                 return "%s_thumbnail%s" % (self.logo.url[:dot_idx],
                                            self.logo.url[dot_idx:])
             else:
-                return self.logo.url + ".thumbnail"
+                return self.logo.url + ".thumbnail.png"
         else:
             return ""
     

@@ -11,7 +11,7 @@
 		</tr>
 		<tr>
 			<td><a href="#privacy">Is my browsing confidential?</a></td>
-			<td><a href="#time">Is it always recording?</a></td>
+			<td><a href="#time">What is tracked?</a></td>
 			<td><a href="#how">Will I get lots of junk mail?</a></td>
 		</tr>
 		<tr>
@@ -76,16 +76,30 @@
 		But we only store <b>anonymous</b> statistical data in order to measure our community impact.		
 		</p> 
 		
-		<h2><a name="time"></a>Is it always recording?</h2>
+		<h2><a name="time"></a>What is tracked? Is it always recording? Is there a private browsing mode?</h2>
 		<img src="{{ MEDIA_URL }}img/FireWall.png" class="small-image">		
-		<p><b>No!</b> 
-		ProcrasDonate only keeps track of the webpages that it thinks you are actually using.
-		It stops recording your time when you switch to another application or browser tab.
-		Most pages will also stop being recorded if you don't click a mouse or use the keyboard for 3 minutes.
-		If there is flash on a page then the allowable idle time gets extended to 20 minutes (in case you're watching tv.)
-		Finally, it won't record more than 10 hours of straight use even if you are spending all that time playing video games.
-		</p> 
-		
+		<p><b>ProcrasDonate only tracks the webpage you are currently using.</b></p>
+		<p>
+		Only a single tab from a single window is tracked at any one time. When you have multiple
+		tabs and windows, the ProcrasDonate clock is only running on the one you are actually viewing.</p>
+		<p>
+		ProcrasDonate <em>stops recording</em> when any of the following occur:</p>
+		<ul>
+			<li>You start using a different application, such as Outlook or Photoshop</li>
+			<li>You close Firefox</li>
+			<li>You put your computer to sleep (this often occurs when you close a laptop)</li>
+			<li>You stop using your computer for a little while, which means no keyboard keys pressed,
+				no mouse clicks or scrolling and no mouse movement.<br /><br />On webpages without flash,
+				ProcrasDonate stops recording after 3 minutes of idle time. On webpages with flash,
+				ProcrasDonate stops recording after 20 minutes.</li>
+		</ul>
+		<p>Finally, ProcrasDonate <strong>honors Firefox's Private Browsing Mode</strong>.
+			When in Private Browsing Mode, no webpage visits are recorded.</p>
+		<p>You can enable and disable Private Browsing Mode through the Firefox <em>Tools</em>
+			menu at the top of the screen. You can also use the keyboard shortcut shown next
+			to <em>"Tools"->"Start Private Browsing"</em>...something like <em>shift-ctrl-P</em>
+			on Windows and <em>shift-apple-P</em> on Macs.
+
 		<h2><a name="email"></a>Will I get lots of junk mail?</h2>
 		<img src="{{ MEDIA_URL }}img/ScratchHead.png" class="small-image">			
 		<p>We <b>do not</b> give out your email address.  

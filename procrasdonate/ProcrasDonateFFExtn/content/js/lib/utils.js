@@ -468,8 +468,10 @@ var _date_to_http_format = function(t) {
  * numbers will be messed up.
  */
 var _version_to_number = function(version) {
-	var parts = version.split(".");
 	var ret = 0;
+	if (!version) { return ret; }
+	
+	var parts = version.split(".");
 	_iterate(parts, function(key, value, index) {
 		var v = parseInt(value);
 		ret += v*(Math.pow(10, index*2))

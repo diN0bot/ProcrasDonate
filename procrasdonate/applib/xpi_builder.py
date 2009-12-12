@@ -52,7 +52,9 @@ function generated_input() {
             if self.recipient:
                 recip_pcts.append({"recipient_slug": self.recipient.slug,
                                    "percent": 1.0})
-            if bilumi:
+            elif bilumi:
+                # we wanted percent to be 0.0, but we have the invariant
+                # that percents must sum to 100% 
                 recip_pcts.append({"recipient_slug": bilumi.slug,
                                    "percent": 0.0})
             

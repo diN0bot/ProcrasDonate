@@ -1,9 +1,10 @@
-<div class='recipient'>
+<div class="recipient" alt="{{ deep_recip_pct.recipient.id }}">
 	
 	<!-- id class needed for js -->
 	<div class="recipient_id hidden">{{ deep_recip_pct.recipient.id }}</div>	
 
 	<div class="recipient_percent form-input">
+		<span class="pie_sector_color" style="background: {{ percent_color }};"> </span>
 		<span class="percent">{{ deep_recip_pct.display_percent }}</span>
 		<span class="percent_symbol">%</span>
 		<img
@@ -28,6 +29,7 @@
 	</div>
 	<div class='left_recipient_float'>
 		<table>
+		<tbody>
 			<tr><td>
 				<div class="category">{{ deep_recip_pct.recipient.category.category }}</div>
 			</td></tr><tr><td>
@@ -35,13 +37,17 @@
 					<img src="{{ constants.MEDIA_URL }}img/Remove.png" class="recipient-image remove_img img_link">		
 				</div>
 			</td></tr>
+		</tbody>
 		</table>
 	</div>	
 	<div class='mission'>
 		{{ deep_recip_pct.recipient.mission }}
-		<span class='link description_toggle'>(less)</span>
+		{% if deep_recip_pct.recipient.html_description %}
+			<span class='link description_toggle'>(less)</span>
+		{% endif %}
 	</div>
 	<div class='description'>
 		{{ deep_recip_pct.recipient.html_description }}
 	</div>
+	<div class="float_prop" />
 </div>

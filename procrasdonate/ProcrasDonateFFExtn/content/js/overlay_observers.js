@@ -75,7 +75,7 @@ _extend(InitListener.prototype, {
 		this.idle_back_flash_listener = new IdleBack_Flash_Listener(this.idleService, this.pddb, this.prefs, this.time_tracker, constants.DEFAULT_FLASH_MAX_IDLE);
 		this.private_browsing_listener = new PrivateBrowsingListener(this.observerService, this.pddb, this.prefs, this.toolbar_manager);
 		
-		this.uninstall_listener = new UninstallListener(this.observerService, this.pddb, this.prefs, this.toolbar_manager);
+		this.uninstall_listener = new UninstallListener(this.observerService, this.pddb, this.prefs, this.pd_api, this.toolbar_manager);
 		
 		// cannot initialize toolbar here because chrome toolbar is not set up, which 
 		// means that document.getElementById returns null.
@@ -106,7 +106,9 @@ _extend(InitListener.prototype, {
 		this.url_bar_listener.unregister();
 		this.blur_focus_listener.unregister();
 		this.sleep_wake_listener.unregister();
-		this.uninstall_listener.unregister();
+		// don't unregister before "application-shutdown-granted" notification occurs,
+		// otherwise uninstall method doesn't have a chance to occur.
+		//this.uninstall_listener.unregister();
 		this.idle_back_noflash_listener.unregister();
 		this.idle_back_flash_listener.unregister();
 		this.private_browsing_listener.unregister();
@@ -117,7 +119,8 @@ _extend(InitListener.prototype, {
 	
 	checkVersion: function() {
 		logger("check version");
-		var ver = -1, firstrun = true;
+		var ver = "0.0.0";
+		var firstrun = true;
 		
 		var gExtensionManager = Components.
 		    classes["@mozilla.org/extensions/manager;1"].
@@ -126,16 +129,16 @@ _extend(InitListener.prototype, {
 		var current = gExtensionManager.getItemForID(constants.ProcrasDonate__UUID).version;
 		
 		try {
-			ver = this.prefs.get("version", null);
-			firstrun = this.prefs.get("firstrun", null);
+			ver = this.prefs.get("version", ver);
+			firstrun = this.prefs.get("firstrun", true);
 		} catch(e) {
 			//nothing
 		} finally {
 			if (firstrun) {
 				this.doInstall();
 				
-				this.prefs.set("firstrun",false);
-				this.prefs.set("version",current);
+				this.prefs.set("firstrun", false);
+				this.prefs.set("version", current);
 				
 				// Insert code for first run here
 				this.onInstall(current);
@@ -168,7 +171,7 @@ _extend(InitListener.prototype, {
 			
 			if (set_preselected_charities && !this.prefs.exists("set_preselected_charities")) {
 				this.prefs.set("set_preselected_charities", true);
-				_iterate(value, function(k, recip_pct, idx) {
+				_iterate(data.preselected_charities, function(k, recip_pct, idx) {
 					self.pddb.RecipientPercent.process_object(recip_pct);
 				});
 			}
@@ -196,7 +199,7 @@ _extend(InitListener.prototype, {
 		// receive data from server to populate database
 		// received tables: sitegroups, categories, recipients (user can add their own eventually)
 		// after success, set default recipient percent
-		this.pddb.page.pd_api.request_data_updates(
+		this.pd_api.request_data_updates(
 			function() {
 				// after success
 
@@ -214,7 +217,7 @@ _extend(InitListener.prototype, {
 		
 		// send data to server (log install)
 		//this.pddb.schedule.do_once_daily_tasks();
-		this.pddb.page.pd_api.send_data();
+		this.pd_api.send_data();
 	},
 	
 	/**
@@ -497,10 +500,11 @@ _extend(PageLoadListener.prototype, {
 /**
  * 
  */
-var UninstallListener = function UninstallListener(observerService, pddb, prefs, toolbar_manager) {
+var UninstallListener = function UninstallListener(observerService, pddb, prefs, pd_api, toolbar_manager) {
 	this.observerService = observerService;
 	this.pddb = pddb;
 	this.prefs = prefs;
+	this.pd_api = pd_api;
 	this.toolbar_manager = toolbar_manager;
 
 	// we need this flag because we don't want to uninstall before
@@ -557,10 +561,13 @@ _extend(UninstallListener.prototype, {
 			}
 			
 		} else if (topic == "quit-application-granted") {
+			logger("quit-application-granted");
 			if (self._uninstall) {
+				logger("uninstall!");
+				//self.pddb.orthogonals.log("uninstall cancelled", "extn_sys");
 				self.uninstall();
-				self.unregister();
 			}
+			self.unregister();
 		}
 	},
 	
@@ -577,7 +584,7 @@ _extend(UninstallListener.prototype, {
 		
 		// send logs to pd server
 		this.pddb.orthogonals.log("doing uninstall...", "extn_sys");
-		this.pddb.page.pd_api.send_data();
+		this.pd_api.send_data();
 		
 		// opens feedback tab
 		gBrowser.selectedTab = gBrowser.addTab(constants.PD_URL + constants.FEEDBACK_URL);
@@ -589,7 +596,7 @@ _extend(UninstallListener.prototype, {
 
 		// delete database (or rather, drop all the tables)
 		_iterate(self.pddb.models, function(key, value, index) {
-			logger("key = "+key+" value = "+value);
+			//logger("key = "+key+" value = "+value);
 			if (key != "_order") {
 				value.drop_table();
 			}
@@ -622,7 +629,7 @@ _extend(PrivateBrowsingListener.prototype, {
 	},
 	
 	observe: function(subject, topic, data) {
-		logger("subject="+subject+" topic="+topic+" data="+data);
+		this.pddb.orthogonals.log("Private browsing mode observer: "+data);
 		if (topic == "private-browsing") {
 			if (data == "enter") {
 				this.prefs.set("private_browsing_enabled", true);

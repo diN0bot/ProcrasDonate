@@ -70,7 +70,7 @@ PDDB.prototype = {
 		if (this.ContentType.count() == 0) {
 			var contenttype_names = ['Site', 'SiteGroup', 'Recipient', 'Tag'];
 			_iterate(contenttype_names, function(key, value, index) {
-				this[value] = this.ContentType.create({ modelname: value });
+				self[value] = self.ContentType.create({ modelname: value });
 			});
 		}
 	},

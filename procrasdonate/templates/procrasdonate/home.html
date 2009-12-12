@@ -64,34 +64,24 @@
 <div id="charities_bar">
 	<div class="center_column">
 		<table id="charities_bar_table">
+		<tbody>
 		<tr><td>
 			<div id="charities_bar_info">Charity Spotlight:
 				<div id="charities_bar_subtext">(featured charity <b>videos</b>)</div>
 			</div>
 		</td><td>			
 			<div id="charities">
-				<a href="{% url recipient bilumi.slug %}">
-					<img id="charity_{{ bilumi.slug }}" class="charity_logo" src="{{ bilumi.thumbnail_url }}" />
-				</a>
-				<a href="{% url recipient pd.slug %}">
-					<img id="charity_{{ pd.slug }}" class="charity_logo" src="{{ pd.thumbnail_url }}" />
-				</a>
-				
-				<a href="">
-					<img width="60" id="charity_placeholder_A" class="charity_logo" src="{{ MEDIA_URL }}img/CharityPlaceholder.png" />
-				</a>
-				<a href="">
-					<img width="60" id="charity_placeholder_B" class="charity_logo" src="{{ MEDIA_URL }}img/CharityPlaceholder.png" />
-				</a>
-				<a href="">
-					<img width="60" id="charity_placeholder_C" class="charity_logo" src="{{ MEDIA_URL }}img/CharityPlaceholder.png" />
-				</a>
-				<a href="">
-					<img width="60" id="charity_placeholder_D" class="charity_logo" src="{{ MEDIA_URL }}img/CharityPlaceholder.png" />
-				</a>
+				{% for r in charities %}
+					{% if r.thumbnail_url %} 
+						<a href="{% url recipient r.slug %}">
+							<img id="charity_{{ r.slug }}" class="charity_logo" src="{{ r.thumbnail_url }}" />
+						</a>
+					{% endif %}
+				{% endfor %}
 			</div>
-			</td></tr>
-			</table>
+		</td></tr>
+		</tbody>
+		</table>
 	</div>
 </div>
 	

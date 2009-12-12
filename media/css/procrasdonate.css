@@ -274,14 +274,15 @@ img { -ms-interpolation-mode:bicubic; }
 	letter-spacing: .09em;
 }
 #charities_bar_table { width: 100%; }
+#charities_bar_table #charities { text-align: left; }
 #charities_bar_subtext { font-size: .59em; margin-left: -.4em}
-#charities { display: inline; }
-#charities .charity_logo {
+#charities_bar_table #charities { display: inline; }
+#charities_bar_table #charities .charity_logo {
 	float: right; margin-right: 1em; margin-left: 1em; margin-top: .3em;
 	border: 0.25em groove #bbba93; padding: 0em 0em;
 }
 
-#charities div.charity_logo { width: 50px; display: inline; }
+#charities_bar_table #charities div.charity_logo { width: 50px; display: inline; }
 
 #more_information { clear: both; }
 
@@ -402,8 +403,9 @@ img { -ms-interpolation-mode:bicubic; }
 .remove_img { float: left; width: 10.5em; margin: .3em 0em -.6em 0em;}
 .add_img { float: right; width: 11em; margin: 0.1em 0.6em -0.6em 0;}
 #new_recipient_submit { width: 10.25em; padding: 0em; margin: .6em 0em -.6em 0em; /*float: right;*/ }
-.recipient_percent .percent_symbol { font-size: 1.2em; margin-right: .4em; }
-.recipient_percent .percent { font-size: 1.2em; }
+.recipient_percent .percent_symbol { font-size: 1.2em; margin: .1em .4em 0em 0em; float: left; }
+.recipient_percent .percent { font-size: 1.2em; float: left; width: 2em; margin:0.15em 0em 0 0em; text-align:right; }
+.pie_sector_color { width: 1.2em; height: 1.2em; float: left; -moz-border-radius: .65em; margin: .4em 0em 0em 0em; }
 .left_recipient_float { float: left; margin: -.2em 0.5em 0.5em .4em; }
 /* goes with register charity page stuff that is commented out
 .new_recipient { color: #797979; }
@@ -571,8 +573,8 @@ td { vertical-align: middle; }
 .extn_submenu .bar { vertical-align: bottom; }
 .extn_submenu .bar img { width: 2.5em; margin-bottom: .1em; margin: auto -.9em; }
 
-.extn_submenu .substate_tab img { width: 4em; }
-.extn_submenu .menu_text .substate_tab { padding: .6em; text-decoration: none; }
+.extn_submenu .substate_tab img { width: 4em; text-align: center; }
+.extn_submenu .menu_text .substate_tab { padding: 0.6em; text-decoration: none; }
 .extn_submenu .menu_text .current_tab, .extn_submenu .menu_text .current_tab a { color: #336699; }
 .extn_submenu .menu_text .past, .extn_submenu .menu_text .past a { color: green; }
 .extn_submenu .menu_text .future, .extn_submenu .menu_text .future a { color: #330000; }
@@ -606,7 +608,7 @@ td { vertical-align: middle; }
 #top_go_to_amazon_button { width: 40%; float: right; margin-top: -5em; }
 
 /**** SETTINGS *****/
-.up_arrow, .down_arrow { height: 1.7em; }
+.up_arrow, .down_arrow { height: 1.7em; cursor: pointer; }
 
 /**** IMAGES ****/
 
@@ -616,7 +618,7 @@ td { vertical-align: middle; }
 .recipient_row { margin: .2em 0em .2em 0em; clear: both; }
 .recipient_row div { float: left; }
 .recipient { border: 0.27em ridge #156451; -moz-border-radius: .4em; margin: .6em; padding: .6em .4em;
-	width: 90%; background: #FBFBDE; min-height: 6.3em; }
+	width: 90%; background: #FBFBDE;  }
 .recipient_to_add { background: #faf6f3; }
 .recipient .name { font-size: 1.5em; padding: 0.2em 0.4em 0.2em 0.4em; text-align: left; }
 .recipient .category { color:green; display:inline; font-size: 1.08em; }
@@ -629,6 +631,9 @@ td { vertical-align: middle; }
 .recipient_spacer_row { height: 4em; width: 100%; clear: both; }
 .recipient_instructions { margin-bottom: 2em; }
 .recipient_percent { float: right; font-size: 1.2em; padding: 0 1.4em; }
+/* used to "prop up" floats so that enclosing divs actually *enclose* the float.
+   create an empty div with the "float prop" class after the float that you want to prop up.*/
+.float_prop { clear:both; height:1px; overflow:hidden; }
 
 /**** DONATION AND GOALS, LIMIT ****/
 
@@ -655,6 +660,11 @@ td { vertical-align: middle; }
 .ui-slider-vertical .ui-slider-range { left: 0; width: 100%; }
 .ui-slider-vertical .ui-slider-range-min { bottom: 0; }
 .ui-slider-vertical .ui-slider-range-max { top: 0; }
+
+/*** MY PROGRESS ****/
+
+#progress_submenu .substate_tab img { max-width: 4em; width: auto; }
+#progress_submenu .menu_text .substate_tab { padding: 1.6em; }
 
 /**** MY PROGRESS GAUGES ****/
 .laptop { width: 10em; }

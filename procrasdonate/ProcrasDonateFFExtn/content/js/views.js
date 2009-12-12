@@ -239,7 +239,7 @@ _extend(Controller.prototype, {
 		 */
 		var self = this;
 		_iterate(this.ACCOUNT_DEFAULTS, function init(name, value) {
-			logger("account defaults: "+name+" "+value);
+			//logger("account defaults: "+name+" "+value);
 			if (!self.prefs.get(name, ''))
 				return self.prefs.set(name, value);
 		});
@@ -261,7 +261,7 @@ _extend(Controller.prototype, {
 		 */
 		var self = this;
 		_iterate(this.STATE_DEFAULTS, function init(name, value) {
-			logger("SET STATE: name:"+name+", value:"+value);
+			//logger("SET STATE: name:"+name+", value:"+value);
 			self.prefs.set(name, value);
 		});
 	},
@@ -1732,7 +1732,7 @@ _extend(PageController.prototype, {
 			}
 		}
 		data = data.join("\n");
-		logger(data, "DATA\n");
+		//logger(data, "DATA\n");
 		
 		request.jQuery("#trend_title_A").text(alabel).css("color", acolor);
 		request.jQuery("#trend_title_B").text(blabel).css("color", bcolor);
@@ -1750,12 +1750,16 @@ _extend(PageController.prototype, {
 				{showRoller: false,
 				 //labelsDivWidth: 350,
 				 labelsDiv: request.jQuery("#legend").get(0),
-				 axisLabelFontSize: 10,
-				 //pixelsPerXLabel: 35,
+				 labelsSeparateLines: true,
+				 axisLabelFontSize: 14,
+				 pixelsPerXLabel: 50,
+				 pixelsPerYLabel: 50,
 				 gridLineColor: "#BBBBBB",
-				 strokeWidth: 2,
+				 strokeWidth: 4,
+				 highlightCircleSize: 6,
 				 colors: [acolor, bcolor],
-				 //xAxisLabelWidth: 50
+				 /*xAxisLabelWidth: 50,
+				 yAxisLabelWidth: 50*/
 				 });
 		
 		request.jQuery("#trend_chart").children().children().each(function() {
@@ -2036,8 +2040,18 @@ _extend(PageController.prototype, {
 		}
 		return false;
 	},
-	
-	RECIPIENT_PERCENT_COLORS: ["red", "green", "blue", "yellow", "black", "white", "orange"],
+
+	RECIPIENT_PERCENT_COLORS: [
+		"#b4daf4",
+		"#e92928",
+		"#77c375",
+		"#fbc236",
+		"#ee9feb",
+		"#f9cade",
+		"#3f5caa",
+		"#f6e801",
+		"#d1c1c4",
+		"#d0ea23"],
 	
 	insert_register_charities: function(request) {
 		var self = this;
@@ -2114,10 +2128,10 @@ _extend(PageController.prototype, {
 		request.jQuery("#content").html( middle );
 		
 		this.insert_register_charities_pie_chart(request);
+		this.activate_register_charities(request);
 		
 		this.activate_substate_menu_items(request, 'charities',
 			constants.REGISTER_STATE_ENUM, constants.REGISTER_STATE_INSERTS, constants.REGISTER_STATE_PROCESSORS);
-		this.activate_register_charities(request);
 	},
 	
 	insert_register_charities_pie_chart: function(request) {
@@ -2164,12 +2178,10 @@ _extend(PageController.prototype, {
 	
 	activate_register_charities: function(request) {
 		var self = this;
-
 		// activate add and remove buttons per recipient
 		request.jQuery(".recipient").each( function() {
 			self.activate_a_recipient(request, request.jQuery(this));
 		});
-		
 		// activate recipient suggestion
 		request.jQuery("#new_recipient_submit").click(function() {
 			var value = request.jQuery("#new_recipient_name").attr("value").trim();
@@ -2252,7 +2264,7 @@ _extend(PageController.prototype, {
 				});
 			});
 			
-			logger("TOTAL RED "+total_redistributed+", ORIG AMOUNT "+amount);
+			//logger("TOTAL RED "+total_redistributed+", ORIG AMOUNT "+amount);
 			
 			// might have left-overs to redistribute if a percent got capped at 0 or 1
 			if (Math.abs(total_redistributed) > 0.001 &&
@@ -2264,16 +2276,39 @@ _extend(PageController.prototype, {
 	
 	update_displayed_percents: function(request) {
 		var self = this;
-		var rps = {};
+		//request.jQuery("#chosen_charities").html("");
+		var i = 0;
 		self.pddb.RecipientPercent.select({}, function(row) {
-			rps[row.recipient_id] = row.display_percent();
+			/*
+			var html = Template.get("recipient_with_percent_snippet").render(
+				new Context({
+					deep_recip_pct: row,
+					percent_color: self.RECIPIENT_PERCENT_COLORS[i]
+				})
+			);
+			//request.jQuery("#chosen_charities").append( html );
+			*/
+			
+			// set percent amount on recipient with percent
+			request.jQuery(".recipient[alt="+row.recipient_id+"]")
+			.children(".recipient_percent")
+				.children(".percent")
+				.text(row.display_percent());
+			
+			// set dot background color on recipient with percent
+			request.jQuery(".recipient[alt="+row.recipient_id+"]")
+			.children(".recipient_percent")
+				.children(".pie_sector_color")
+				.css("background", self.RECIPIENT_PERCENT_COLORS[i]);
+			
+			i += 1;
+		}, "-percent");
+		/*
+		 * reinserts all the recipient with percent blocks
+		request.jQuery("#chosen_charities").children(".recipient").each( function() {
+			self.activate_a_recipient(request, request.jQuery(this));
 		});
-		
-		request.jQuery("#chosen_charities").children().each(function() {
-			var rid = request.jQuery(this).children(".recipient_id").text();
-			request.jQuery(this).children(".recipient_percent")
-				.children(".percent").text(rps[rid]);
-		});
+		*/
 	},
 	
 	/*
@@ -2321,8 +2356,9 @@ _extend(PageController.prototype, {
 		var user_recipients_div = request.jQuery("#chosen_charities");
 		var potential_recipients_div = request.jQuery("#removed_charities_temporary");
 		
-		recipient_elem.children(".add_recipient").click(function() {
-			var recipient_id = request.jQuery(this).siblings(".recipient_id").text();
+		recipient_elem.children(".add_recipient").children(".add_img").click(function() {
+			//logger("ADD RECIP");
+			var recipient_id = request.jQuery(this).parent().siblings(".recipient_id").text();
 			var recipient = self.pddb.Recipient.get_or_null({ id: recipient_id });
 			// percent is 0 unless no other recipients are selected
 			// total percent should always sum to 1.
@@ -2334,16 +2370,13 @@ _extend(PageController.prototype, {
 				recipient_id: recipient_id,
 				percent: percent
 			});
-			request.jQuery(this).parent().fadeOut("slow", function() {
+			request.jQuery(this).parent().parent().fadeOut("slow", function() {
 				request.jQuery(this).remove();
 			});
 			
-			var context = new Context({
-				constants: constants,
-				deep_recip_pct: recipient_pct
-			});
 			var new_recip = request.jQuery(
-					Template.get("recipient_with_percent_snippet").render(context));
+					Template.get("recipient_with_percent_snippet").render(
+							new Context({ deep_recip_pct: recipient_pct })));
 			
 			user_recipients_div.append(new_recip);
 			self.activate_a_recipient(request, new_recip);
@@ -2351,8 +2384,19 @@ _extend(PageController.prototype, {
 			self.update_displayed_percents(request);
 		});
 		
-		recipient_elem.children(".remove_recipient").click(function() {
-			var recipient_id = request.jQuery(this).siblings(".recipient_id").text();
+		//recipient_elem.css("background", "red");
+		//recipient_elem.children(".remove_recipient").css("background", "green");
+		//recipient_elem.children(".remove_recipient").children(".remove_img").css("border", "4px solid black");
+		
+		recipient_elem.children().children().children().children()
+			.children().children(".remove_recipient").children(".remove_img").click(function() {
+			//logger("REMOVE RECIP: "+request.jQuery(this).attr("class"));
+			
+			var r_elem = request.jQuery(this).parent().parent().parent().parent()
+				.parent().parent().parent();
+
+			var recipient_id = r_elem.children(".recipient_id").text();
+			
 			var rp = self.pddb.RecipientPercent.get_or_null({
 				recipient_id: recipient_id });
 			
@@ -2368,7 +2412,7 @@ _extend(PageController.prototype, {
 			var recipient = self.pddb.Recipient.get_or_null({ id: recipient_id });
 			
 			//request.jQuery(this).parent().clone(true).insertAfter(spacer);
-			request.jQuery(this).parent().fadeOut("slow", function() {
+			r_elem.fadeOut("slow", function() {
 				request.jQuery(this).remove();
 			});
 			
@@ -2385,6 +2429,7 @@ _extend(PageController.prototype, {
 		});
 		
 		recipient_elem.children(".recipient_percent").children(".up_arrow, .down_arrow").click(function() {
+			//logger("UP OR DOWN");
 			// arrows only work if there are multiple recipient percents
 			if (self.pddb.RecipientPercent.count() == 1) {
 				return;
@@ -2402,8 +2447,10 @@ _extend(PageController.prototype, {
 			var new_pct = 0;
 			if (request.jQuery(this).attr("class") == "up_arrow") {
 				new_pct = parseFloat(rp.percent) + .05;
-			} else {
+			} else if (request.jQuery(this).attr("class") == "down_arrow") {
 				new_pct = parseFloat(rp.percent) - .05;
+			} else {
+				self.pddb.orthogonals.warn("Up or Down recipient percent Arrow is not up or down! "+request.jQuery(this).attr("class"));
 			}
 			if (new_pct > 1) { new_pct = 1; }
 			if (new_pct < 0) { new_pct = 0; }

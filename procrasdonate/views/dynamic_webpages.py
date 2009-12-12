@@ -30,6 +30,7 @@ def home(request):
     blog_posts = feedparser.parse("http://procrastinateless.wordpress.com/feed/")
     pd = Recipient.get_or_none(slug="PD")
     bilumi = Recipient.get_or_none(slug="bilumi")
+    charities = Recipient.objects.filter(is_visible=True)
     return render_response(request, 'procrasdonate/home.html', locals())
 
 #### COMMUNITY ###################################
