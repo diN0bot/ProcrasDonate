@@ -15,6 +15,7 @@
 			title="Decrement percent"
 			src="{{ constants.MEDIA_URL }}img/DownArrow.png" />
 	</div>
+
 	<div class='name'>
 		{% if deep_recip_pct.recipient.is_pd_registered %}
 			<a href='{{ constants.RECIPIENTS_URL }}{{ deep_recip_pct.recipient.slug }}'>
@@ -25,14 +26,20 @@
 			</a>
 		{% endif %}
 	</div>
-
-	<div class="category">{{ deep_recip_pct.recipient.category.category }}</div>
+	<div class='left_recipient_float'>
+		<table>
+			<tr><td>
+				<div class="category">{{ deep_recip_pct.recipient.category.category }}</div>
+			</td></tr><tr><td>
+				<div class='remove_recipient' title="Remove recipient from list">
+					<img src="{{ constants.MEDIA_URL }}img/Remove.png" class="recipient-image remove_img img_link">		
+				</div>
+			</td></tr>
+		</table>
+	</div>	
 	<div class='mission'>
 		{{ deep_recip_pct.recipient.mission }}
 		<span class='link description_toggle'>(less)</span>
-	</div>
-	<div class='remove_recipient' title="Remove recipient from list">
-		<img src="{{ constants.MEDIA_URL }}img/Remove.png" class="recipient-image img_link">		
 	</div>
 	<div class='description'>
 		{{ deep_recip_pct.recipient.html_description }}

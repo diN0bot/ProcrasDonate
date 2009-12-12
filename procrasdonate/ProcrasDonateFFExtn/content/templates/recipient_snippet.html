@@ -2,7 +2,7 @@
 	<!-- id class needed for js -->
 	<div class="recipient_id hidden">{{ recipient.id }}</div>
 	<div class='add_recipient' title="Add recipient to list"> 
-		<img src="{{ constants.MEDIA_URL }}img/AddRecipient.png" class="recipient-image img_link">		
+		<img src="{{ constants.MEDIA_URL }}img/AddRecipient.png" class="recipient-image add_img img_link">		
 	 </div>
 	 <div class='name'>
 		{% if deep_recip_pct.recipient.is_pd_registered %}
@@ -14,10 +14,15 @@
 			</a>
 		{% endif %}
 	  </div>
-	<div class="category">{{ recipient.category.category }}</div>
+
+	<div class='left_recipient_float'>
+
+		<div class="category">{{ recipient.category.category }}</div>
+	</div>	
 	<div class='mission'>{{ recipient.mission }}
 		<span class='link description_toggle'>(less)</span>
 	</div>
 	<div class='description'><p>{{ recipient.description }}</p></div>
+
 
 </div>
