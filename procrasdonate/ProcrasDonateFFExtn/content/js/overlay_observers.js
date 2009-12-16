@@ -74,7 +74,7 @@ _extend(InitListener.prototype, {
 		this.idle_back_noflash_listener = new IdleBack_NoFlash_Listener(this.idleService, this.pddb, this.prefs, this.time_tracker, constants.DEFAULT_MAX_IDLE);
 		this.idle_back_flash_listener = new IdleBack_Flash_Listener(this.idleService, this.pddb, this.prefs, this.time_tracker, constants.DEFAULT_FLASH_MAX_IDLE);
 		this.private_browsing_listener = new PrivateBrowsingListener(this.observerService, this.pddb, this.prefs, this.toolbar_manager);
-		
+
 		this.uninstall_listener = new UninstallListener(this.observerService, this.pddb, this.prefs, this.pd_api, this.toolbar_manager);
 		
 		// cannot initialize toolbar here because chrome toolbar is not set up, which 
@@ -118,7 +118,6 @@ _extend(InitListener.prototype, {
 	},
 	
 	checkVersion: function() {
-		logger("check version");
 		var ver = "0.0.0";
 		var firstrun = true;
 		
@@ -128,11 +127,13 @@ _extend(InitListener.prototype, {
 		
 		var current = gExtensionManager.getItemForID(constants.ProcrasDonate__UUID).version;
 		
+		logger("check version - "+current);
+		
 		try {
 			ver = this.prefs.get("version", ver);
 			firstrun = this.prefs.get("firstrun", true);
 		} catch(e) {
-			//nothing
+			logger("checkVersion exception thrown! "+ver+" "+firstrun);
 		} finally {
 			if (firstrun) {
 				this.doInstall();
@@ -146,8 +147,8 @@ _extend(InitListener.prototype, {
 			
 			if (ver != current && !firstrun) {
 				this.doUpgrade(ver);
-				// !firstrun ensures that this section does not get loaded if its a first run.
-				this.prefs.set("version",current);
+
+				this.prefs.set("version", current);
 				
 				// Insert code if version is different here => upgrade
 				this.onUpgrade(ver, current);
@@ -156,7 +157,6 @@ _extend(InitListener.prototype, {
 	},
 	
 	install_generated_input: function(set_preselected_charities) {
-		logger("install generated input");
 		var self = this;
 		var data = generated_input()[0];
 		
@@ -175,12 +175,14 @@ _extend(InitListener.prototype, {
 					self.pddb.RecipientPercent.process_object(recip_pct);
 				});
 			}
+			
+			_pprint(data, "install generated input - not update");
+		} else {
+			logger("install generated input - update");
 		}
 	},
 	
 	doInstall: function() { // 
-		logger("Overlay.doInstall::");
-		
 		this.toolbar_manager.install_toolbar();
 	},
 	onInstall: function(version) { // execute on first run
@@ -375,7 +377,6 @@ _extend(URLBarListener.prototype, {
  * 
  */
 var PageLoadListener = function PageLoadListener(pddb, toolbar_manager, controller) {
-	logger("PAGE LOAD LISTENER");
 	this.pddb = pddb;
 	this.toolbar_manager = toolbar_manager;
 	this.controller = controller;
@@ -561,10 +562,7 @@ _extend(UninstallListener.prototype, {
 			}
 			
 		} else if (topic == "quit-application-granted") {
-			logger("quit-application-granted");
 			if (self._uninstall) {
-				logger("uninstall!");
-				//self.pddb.orthogonals.log("uninstall cancelled", "extn_sys");
 				self.uninstall();
 			}
 			self.unregister();
@@ -596,7 +594,6 @@ _extend(UninstallListener.prototype, {
 
 		// delete database (or rather, drop all the tables)
 		_iterate(self.pddb.models, function(key, value, index) {
-			//logger("key = "+key+" value = "+value);
 			if (key != "_order") {
 				value.drop_table();
 			}

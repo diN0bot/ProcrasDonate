@@ -229,10 +229,6 @@ img { -ms-interpolation-mode:bicubic; }
 
 #big_video { }
 
-#focus_slogan_line2 {margin-top:-1.4em; }
-#focus_slogan_line3 {margin-top:1.4em; font-size:1.1em;}
-#focus_image {height: 3.4em; margin-top:1em; padding: 0 .8em;}
-
 .focus_slogans {
 	text-align: center;
 	font-weight: bold;
@@ -240,6 +236,14 @@ img { -ms-interpolation-mode:bicubic; }
 	margin-top: -2.7em;
 }
 .focus_slogans div { }
+
+#focus_slogan_line2 {margin-top:-1.4em; }
+#focus_slogan_line3 {margin-top:1.4em; font-size:1.1em;}
+#focus_slogan_line2.special_line2 { font-size: .8em; }
+#focus_slogan_line2.special_line2 h1 { color: #76481b; }
+#focus_slogan_line3.special_line3 { font-size: .85em; }
+#focus_image {height: 3.4em; margin-top:1em; padding: 0 .8em;}
+
 #left-side-info {margin-bottom: .5em; margin-top: .5em; margin-left: -7em; }
 #download_wrapper { text-align: center; }
 #download { width: 23em; }

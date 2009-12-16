@@ -43,7 +43,7 @@ _extend(ToolbarManager.prototype, {
 		this.tws_progress_button = document.getElementById("TWS-progress-toolbar-button");
 		
 		self.images = {};
-		logger("TOOLBAR MANAGER's pddb = "+this.pddb);
+		
 		this.pddb.Tag.select({}, function(row) {
 			self.images[row.id] = "chrome://ProcrasDonate/skin/"+row.tag+"Icon.png";	
 		});

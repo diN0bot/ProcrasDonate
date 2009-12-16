@@ -1575,10 +1575,11 @@ _extend(PageController.prototype, {
 			constants.PROGRESS_STATE_ENUM, constants.PROGRESS_STATE_INSERTS, constants.PROGRESS_STATE_PROCESSORS);
 	},
 	
-	/*
-	 * d is a string of the form: 
+	/**
+	 * @param d: string of the form: 
 	 *    contenttype_id:content_id
-	 * other has the same form. it is the other trend
+	 * @param other: has the same form. it is the other trend
+	 * 
 	 * if go_lighter is true and both trends have the same tag type,
 	 * then a lighter color will be returned
 	 */
@@ -1632,8 +1633,8 @@ _extend(PageController.prototype, {
 		}
 	},
 	
-	/*
-	 * d is a string of the form: 
+	/**
+	 * @param d: string of the form: 
 	 *    contenttype_id:content_id
 	 */
 	get_trend_label: function(d) {
@@ -1653,6 +1654,9 @@ _extend(PageController.prototype, {
 		}
 	},
 	
+	/**
+	 * @param A, B: 2-ary tuple: [contenttype id, content id]
+	 */
 	get_trend_data: function(A, B) {
 		//logger("trend data: A "+A+" \nB "+B);
 		var self = this;
@@ -1682,6 +1686,10 @@ _extend(PageController.prototype, {
 		return { A: A_totals, B: B_totals }
 	},
 	
+	/**
+	 * @param A: list of totals for first trend line
+	 * @param B: list of totals for second trend line
+	 */
 	insert_trends_graph: function(request, div_id, A, B, alabel, blabel, acolor, bcolor) {
 		//_pprint(A, "A =\n");
 		//_pprint(B, "B =\n");
@@ -1841,6 +1849,184 @@ _extend(PageController.prototype, {
 		});
 	},
 	
+	insert_progress_stacks: function(request) {
+		var self = this;
+		this.prefs.set('progress_state', 'stacks');
+
+		var substate_menu_items = this.make_substate_menu_items('stacks',
+			constants.PROGRESS_STATE_ENUM,
+			constants.PROGRESS_STATE_TAB_NAMES,
+			constants.PROGRESS_STATE_IMAGES);
+		var substate_menu = Template.get("progress_submenu").render(
+				new Context({ substate_menu_items: substate_menu_items })
+			);
+		
+		var sitegrouptype = self.pddb.ContentType.get_or_null({ modelname: "SiteGroup" });
+		var tagtype = self.pddb.ContentType.get_or_null({ modelname: "Tag" });
+		
+		var sitegroup_totals = [];
+		this.pddb.Total.select({
+			timetype_id: self.pddb.Forever.id,
+			contenttype_id: sitegrouptype.id,
+		}, function(row) {
+			if (sitegroup_totals.length < 10) {
+				sitegroup_totals.push(row);
+			}
+		}, "-total_time");
+		
+		var middle = Template.get("progress_stacks_middle").render(
+			new Context({
+				substate_menu: substate_menu,
+				constants: constants,
+				sitegroup_totals: sitegroup_totals,
+				ProcrasDonate: self.pddb.ProcrasDonate,
+				TimeWellSpent: self.pddb.TimeWellSpent,
+				Unsorted: self.pddb.Unsorted,
+				tagtype: tagtype,
+				sitegrouptype: sitegrouptype
+			})
+		);
+		request.jQuery("#content").html( middle );
+		
+		var aset = [tagtype.id, self.pddb.ProcrasDonate.id];
+		var bset = [tagtype.id, self.pddb.TimeWellSpent.id];
+		
+		this.prefs.set("trend_a", aset.join(":"));
+		this.prefs.set("trend_b", bset.join(":"));
+		
+		var data = this.get_trend_data(aset, bset);
+
+		this.insert_trends_graph_stacked(request,
+				"trend_chart",
+				data.A,
+				data.B,
+				this.get_trend_label(aset),
+				this.get_trend_label(bset),
+				this.get_trend_color(aset),
+				this.get_trend_color(bset, aset, true));
+		
+		//this.activate_trends_checkboxes(request);
+		
+		this.activate_substate_menu_items(request, 'stacks',
+			constants.PROGRESS_STATE_ENUM, constants.PROGRESS_STATE_INSERTS, constants.PROGRESS_STATE_PROCESSORS);
+	},
+	
+	/**
+	 * @param A: list of totals for first trend line
+	 * @param B: list of totals for second trend line
+	 */
+	insert_trends_graph_stacked: function(request, div_id, A, B, alabel, blabel, acolor, bcolor) {
+		//_pprint(A, "A =\n");
+		//_pprint(B, "B =\n");
+		
+		var data = [];
+		data.push("Date,"+alabel+","+blabel);
+		
+		var A_idx = 0;
+		var B_idx = 0;
+		while ((A && A_idx < A.length) || (B && B_idx < B.length)) {
+			var A_d = null;
+			var A_v = null;
+			if (A && A_idx < A.length) {
+				A_d = A[A_idx].datetime;
+				A_v = A[A_idx].hours();
+			} 
+			var B_d = null;
+			var B_v = null;
+			if (B && B_idx < B.length) {
+				B_d = B[B_idx].datetime;
+				B_v = B[B_idx].hours();
+			}
+			//logger("A_d="+A_d+" date="+_un_dbify_date(A_d)+" A_v="+A_v+
+			//		"\nB_d="+B_d+" date="+_un_dbify_date(B_d)+" B_v="+B_v);
+			
+			if (A_d != null && B_d != null && A_d == B_d) {
+				data.push(_un_dbify_date(A_d).strftime("%Y-%m-%d")+","+A_v+","+B_v);
+				A_idx += 1;
+				B_idx += 1;
+			} else if ((B_d == null && A_d != null) || (A_d != null && B_d != null && A_d < B_d)) {
+				var x = "";
+				if (A && B) { x = A_v+",0"; }
+				else { x = A_v; }
+				data.push(_un_dbify_date(A_d).strftime("%Y-%m-%d")+","+x);
+				A_idx += 1;
+			} else if ((B_d != null && A_d == null) || (A_d != null && B_d != null && A_d > B_d)) {
+				var x = "";
+				if (A && B) { x = "0, "+B_v; }
+				else { x = B_v; }
+				data.push(_un_dbify_date(B_d).strftime("%Y-%m-%d")+","+x);
+				B_idx += 1;
+			} else {
+				logger("Something unexpected occured while putting trend graph together"+
+						"\nA time = "+A_d+", A item = "+A_idx+": "+A[A_idx]+
+						"\nB time = "+B_d+", B item = "+B_idx+": "+B[B_idx]);
+				A_idx += 1;
+				B_idx += 1;
+			}
+		}
+		data = data.join("\n");
+		//logger(data, "DATA\n");
+		
+		request.jQuery("#trend_title_A").text(alabel).css("color", acolor);
+		request.jQuery("#trend_title_B").text(blabel).css("color", bcolor);
+		if (blabel) { request.jQuery("#trend_title_and").text(" and "); }
+		
+		// clear existing graph
+		request.jQuery("#"+div_id).html("");
+		
+		init_raphael(request.get_document());
+		init_graphael();
+		init_graphael_bar();
+		var paper = Raphael(div_id, 540, 480,
+			fin = function () {
+	            this.flag = paper.g.popup(this.bar.x, this.bar.y, this.bar.value || "0").insertBefore(this);
+	        },
+	        fout = function () {
+	            this.flag.animate({opacity: 0}, 300, function () {this.remove();});
+	        });
+		paper.g.hbarchart(
+				330,
+				10,
+				300,
+				220,
+				[[55, 20, 13, 32, 5, 1, 2, 10],
+				 [10, 2, 1, 5, 32, 13, 20, 55]],
+				{stacked: true}).hover(fin, fout);
+		
+		//request.jQuery("#legend").html("");
+		
+		/*
+		init_dygraph_canvas(request.get_document());
+		init_dygraph(request.get_document());
+		g = new DateGraph(
+				request.jQuery("#"+div_id).get(0),
+				data,
+				{showRoller: false,
+				 //labelsDivWidth: 350,
+				 labelsDiv: request.jQuery("#legend").get(0),
+				 labelsSeparateLines: true,
+				 axisLabelFontSize: 14,
+				 pixelsPerXLabel: 50,
+				 pixelsPerYLabel: 50,
+				 gridLineColor: "#BBBBBB",
+				 strokeWidth: 4,
+				 highlightCircleSize: 6,
+				 colors: [acolor, bcolor],
+				 xAxisLabelWidth: 50,
+				 yAxisLabelWidth: 50
+				 });
+		
+		request.jQuery("#trend_chart").children().children().each(function() {
+			if ($(this).attr("style").match("bottom: 0px")) {
+				$(this).css("margin-bottom", "-.5em");
+			}
+		});*/
+					
+					//overflow: hidden; position: absolute; font-size: 10px; z-index: 10; 
+					//color: black; width: 50px; text-align: center; bottom: 0px; left: 226.533px;
+	},
+	
+	
 	insert_progress_averages: function(request) {
 		var self = this;
 		this.prefs.set('progress_state', 'averages');
@@ -1853,17 +2039,6 @@ _extend(PageController.prototype, {
 				new Context({ substate_menu_items: substate_menu_items })
 			);
 		
-		var tagtype = self.pddb.ContentType.get_or_null({ modelname: "Tag" });
-		
-		var pd_totals = [];
-		this.pddb.Total.select({
-			timetype_id: self.pddb.Daily.id,
-			contenttype_id: tagtype.id,
-			content_id: self.pddb.ProcrasDonate.id
-		}, function(row) {
-			pd_totals.push(row)
-		}, "datetime");
-		
 		var middle = Template.get("progress_averages_middle").render(
 			new Context({
 				substate_menu: substate_menu,
@@ -1872,20 +2047,94 @@ _extend(PageController.prototype, {
 		);
 		request.jQuery("#content").html( middle );
 		
-		this.insert_averages_graph(request, pd_totals);
+		this.insert_averages_graph(request);
 		
 		this.activate_substate_menu_items(request, 'averages',
 			constants.PROGRESS_STATE_ENUM, constants.PROGRESS_STATE_INSERTS, constants.PROGRESS_STATE_PROCESSORS);
 	},
 	
-	insert_averages_graph: function(request, A) {
+	insert_averages_graph: function(request) {
+		var self = this;
+		
+		// day of week x hour of day
+		//var data_matrix = [];
+		var data_array = [];
+		var xs = [];
+		var ys = []
+		// initialize data
+		for (var day = 0; day < 7; day++) {
+			//data_matrix[day] = [];
+			for (var hour = 0; hour < 24; hour++) {
+				//data_matrix[day][hour] = 0;
+				var idx = day*hour + hour;
+				data_array[idx] = 0;
+				xs[idx] = hour;
+				ys[idx] = day;
+			}
+		}
+		logger("computed defaults");
+		// sum visits into data
+		this.pddb.Visit.select({}, function(row) {
+			if (row.site().sitegroup().tag().id == self.pddb.ProcrasDonate.id) {
+				var d = _un_dbify_date(row.enter_at);
+				var day = d.getDay() - 1;
+				if (day == -1) { day = 6; }
+				var hour = d.getHours();
+				var v = parseInt(row.duration);
+				if (isNaN(v)) {
+					logger(" NaN!! "+row.duration);
+					v = 0;
+				}
+				//data_matrix[day][d.getHours()] += parseInt(row.duration);
+				data_array[day*hour + hour] = 5;//+= v;
+			}
+		}/*, "enter_at"*/);
+		logger("computed data");
+		// create dot graph
 		init_raphael(request.get_document());
 		init_graphael();
 		init_graphael_dot();
-		init_graphael_pie();
-		var paper = Raphael("chart", 540, 480);
-		// pie chart centered at 320, 200, radius 100
-		paper.g.piechart(320, 240, 100, [55, 20, 13, 32, 5, 1, 2, 10]);
+		logger("init raphael");
+		var paper = Raphael("chart");
+		xs = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23];
+		ys = [7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1];
+	    data_array = [294, 300, 204, 255, 348, 383, 334, 217, 114, 33, 44, 26, 41, 39, 52, 17, 13, 2, 0, 2, 5, 6, 64, 153, 294, 313, 195, 280, 365, 392, 340, 184, 87, 35, 43, 55, 53, 79, 49, 19, 6, 1, 0, 1, 1, 10, 50, 181, 246, 246, 220, 249, 355, 373, 332, 233, 85, 54, 28, 33, 45, 72, 54, 28, 5, 5, 0, 1, 2, 3, 58, 167, 206, 245, 194, 207, 334, 290, 261, 160, 61, 28, 11, 26, 33, 46, 36, 5, 6, 0, 0, 0, 0, 0, 0, 9, 9, 10, 7, 10, 14, 3, 3, 7, 0, 3, 4, 4, 6, 28, 24, 3, 5, 0, 0, 0, 0, 0, 0, 4, 3, 4, 4, 3, 4, 13, 10, 7, 2, 3, 6, 1, 9, 33, 32, 6, 2, 1, 3, 0, 0, 4, 40, 128, 212, 263, 202, 248, 307, 306, 284, 222, 79, 39, 26, 33, 40, 61, 54, 17, 3, 0, 0, 0, 3, 7, 70, 199];
+	    var axisy = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
+	    var axisx = ["12am", "1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12pm", "1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11"];
+	    
+	    logger("DATA ARRAY length = "+data_array.length+" "+xs.length+" "+ys.length);
+	    //_pprint(data_array, "DATA");
+	    
+	    paper.g.txtattr.font = "11px 'Fontin Sans', Fontin-Sans, sans-serif";
+	    
+	    xs   = [0,1,2,0,1,2,0,1,2];
+	    yx   = [2,2,2,1,1,1,0,0,0];
+	    data_array = [3,4,1,9,2,4,3,0,0];
+    
+	    paper.g.dotchart(
+	    		100,
+	    		100,
+	    		620,
+	    		260,
+	    		xs,
+	    		ys,
+	    		data_array);
+	    		/*{	symbol: "o",
+	    			max: 10,
+	    			heat: true,
+	    			axis: "0 0 1 1",
+	    			axisxstep: 2,
+	    			axisystep: 2,
+	    			axisxlabels: axisx,
+	    			axisxtype: " ",
+	    			axisytype: " ",
+	    			axisylabels: axisy });*//*.hover(function () {
+	    				this.tag = this.tag || paper.g.tag(this.x, this.y, this.value, 0, this.r + 2).insertBefore(this);
+	    				this.tag.show();
+	    			}, function () {
+	    				this.tag && this.tag.hide();
+	    			});*/
+	    logger("drawn graph");
 	},
 	
 	/*************************************************************************/

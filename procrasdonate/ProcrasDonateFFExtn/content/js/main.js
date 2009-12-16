@@ -7,6 +7,7 @@ function Overlay() {
 	//logger("Overlay()");
 	//logger([window, document, gBrowser]);
 
+	//this.pddb = 
 	this.toolbar_manager = {};
 	
 	this.init_listener = new InitListener();
@@ -23,16 +24,13 @@ var PDDB = function PDDB(db_filename) {
 
 PDDB.prototype = {
 	init_db: function() {
-		logger("PDDB.init_db()");
 		var db = new Backend__Firefox();
 		db.connect(this.db_filename);
 		this.db = db;
 		this.models = load_models(db, this);
-		logger("init_db: models loaded");
 		
 		var self = this;
 		_iterate(this.models, function(name, model) {
-			logger("model: "+name);
 			self[name] = model; //new Model(db, name, spec);
 			
 			var already_exists = false;
@@ -44,7 +42,6 @@ PDDB.prototype = {
 				model.create_table();
 			}
 		});
-		logger("init_db: tag: "+this.Tag);
 		
 		// install data if not already installed.
 		
@@ -71,10 +68,9 @@ PDDB.prototype = {
 		if (this.ContentType.count() == 0) {
 			var contenttype_names = ['Site', 'SiteGroup', 'Recipient', 'Tag'];
 			_iterate(contenttype_names, function(key, value, index) {
-				self[value] = self.ContentType.create({ modelname: value });
+				self[value+"ContentType"] = self.ContentType.create({ modelname: value });
 			});
 		}
-		logger("PDDB.init_db complete");
 	},
 };
 

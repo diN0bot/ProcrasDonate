@@ -272,6 +272,18 @@ _extend(Model.prototype, {
 		}
 	},
 	
+	/*
+	inner_join: function() {
+		var sql = this.sql_inner_join();
+		return this.db.execute(sql);
+	},
+	sql_inner_join: function() {
+		["SELECT ", Model[fielda], ", ", 
+		//SELECT Artists.ArtistName, CDs.Title FROM Artists INNER JOIN CDs ON Artists.ArtistID=CDs.ArtistID; 
+		return Model.sql_create_table(this.table_name, this.columns);
+	},
+	*/
+	
 	create: function(values) {
 		var ret = this.db.execute(this.sql_create.apply(this, [values]), values);
 		ret = this.select(values)[0];

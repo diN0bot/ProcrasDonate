@@ -598,6 +598,9 @@ function load_models(db, pddb) {
 		URL_LINK: "UL", // click a link
 		URL_BAR: "UB", // type/paste a new url into the url bar
 		
+		by_tag: function(tag_id) {
+			//SELECT  Artists.ArtistName, CDs.Title FROM Artists INNER JOIN CDs ON Artists.ArtistID=CDs.ArtistID; 
+		}
 	});
 	
 	// Aggregates visits in different ways

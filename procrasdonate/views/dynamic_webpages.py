@@ -25,13 +25,18 @@ from ext import feedparser
 
 #### HOME ###################################
 
-def home(request):
+def recipient_splash(request, slug=None):
     big_video = "%sswf/LaptopIntro.swf" % settings.MEDIA_URL
     blog_posts = feedparser.parse("http://procrastinateless.wordpress.com/feed/")
     pd = Recipient.get_or_none(slug="PD")
     bilumi = Recipient.get_or_none(slug="bilumi")
     charities = Recipient.objects.filter(is_visible=True)
+    special = Recipient.get_or_none(slug=slug)
+    print special
     return render_response(request, 'procrasdonate/home.html', locals())
+
+def home(request):
+    return recipient_splash(request)
 
 #### COMMUNITY ###################################
 

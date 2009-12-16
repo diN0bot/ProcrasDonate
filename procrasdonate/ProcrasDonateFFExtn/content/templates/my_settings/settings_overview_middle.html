@@ -1,0 +1,91 @@
+
+<ul>
+	{% for item in substate_menu_items.menu_items %}
+		<li id="{{ item.id }}"
+			class="{% for klass in item.klasses %}{{ klass }} {% endfor %}">
+			{{ item.value }}</li>
+	{% endfor %}
+</ul>
+
+<h2>My Settings</h2>
+
+<h3>Payment Status</h3>
+<p>Estimated time until payment re-authorization is needed: 
+{{ estimated_months_before_reauth.months }}</p>
+
+<h3>Selected Charities</h3>
+{% for rpct in recipient_percents %}
+<p>
+	{{ rpct.display_percent }}% of every hour spent ProcrasDonation goes to
+	{% if rpct.recipient.is_pd_registered %}
+		<a href="/{{ rpct.recipient.slug }}/">
+	{% endif %}
+		{{ rpct.recipient.name }}
+	{% if rpct.recipient.is_pd_registered %}
+		</a>
+	{% endif %}
+</p>
+{% endfor %}
+<p><a class="choose_charities" href="{{ constants.REGISTER_URL }}">Change selections</a></p>
+
+<div class="example_gauge">
+	<div id="happy_example_gauge"></div>
+</div>
+
+<h3>ProcrasDonate</h3>
+<p>Weekly ProcrasDonate goal: 
+	<span class="thevalue" id="pd_hr_per_week_goal">{{ pd_hr_per_week_goal }}</span>
+	<span class="units">hrs</span>
+	<img class="up_arrow" src="{{ constants.MEDIA_URL }}img/UpArrow.png" />
+	<img class="down_arrow" src="{{ constants.MEDIA_URL }}img/DownArrow.png" />
+	<span class="error"></span></p>
+<p>Weekly ProcrasDonate rate:
+	$<span class="thevalue" id="pd_dollars_per_hr">{{ pd_dollars_per_hr }}</span>
+	<span class="units">per hr</span>
+	<img class="up_arrow" src="{{ constants.MEDIA_URL }}img/UpArrow.png" />
+	<img class="down_arrow" src="{{ constants.MEDIA_URL }}img/DownArrow.png" />
+	<span class="error"></span></p>
+<p>Weekly ProcrasDonate limit:
+	<span class="thevalue" id="pd_hr_per_week_max">{{ pd_hr_per_week_max }}</span> 
+	<span class="units">hrs</span>
+	<img class="up_arrow" src="{{ constants.MEDIA_URL }}img/UpArrow.png" />
+	<img class="down_arrow" src="{{ constants.MEDIA_URL }}img/DownArrow.png" />
+	<span class="error"></span></p>
+
+<h3>TimeWellSpent</h3>
+<p>Weekly TimeWellSpent rate:
+	$<span class="thevalue" id="tws_dollars_per_hr">{{ tws_dollars_per_hr }}</span>
+	<span class="units">per hr</span>
+	<img class="up_arrow" src="{{ constants.MEDIA_URL }}img/UpArrow.png" />
+	<img class="down_arrow" src="{{ constants.MEDIA_URL }}img/DownArrow.png" />
+	<span class="error"></span></p>
+<p>Weekly TimeWellSpent limit
+	<span class="thevalue" id="tws_hr_per_week_max">{{ tws_hr_per_week_max }}</span>
+	<span class="units">hrs</span>
+	<img class="up_arrow" src="{{ constants.MEDIA_URL }}img/UpArrow.png" />
+	<img class="down_arrow" src="{{ constants.MEDIA_URL }}img/DownArrow.png" />
+	<span class="error"></span></p>
+	
+<h3>Support This Service</h3>
+<p>Monthly membership fee: $<span class="thevalue" id="monthly_fee">{{ monthly_fee }}</span> 
+	<span class="units">per month</span>
+	<img class="up_arrow" src="{{ constants.MEDIA_URL }}img/UpArrow.png" />
+	<img class="down_arrow" src="{{ constants.MEDIA_URL }}img/DownArrow.png" />
+	<span class="error"></span></p>
+<p>Per transaction percentage charge: <span class="thevalue" id="support_pct">{{ support_pct }}</span>
+	<span class="units">%</span>
+	<img class="up_arrow" src="{{ constants.MEDIA_URL }}img/UpArrow.png" />
+	<img class="down_arrow" src="{{ constants.MEDIA_URL }}img/DownArrow.png" />
+	<span class="error"></span></p>
+
+<h3>Updates</h3>
+<p>Preferred email address: <input id="email" value="{{ email }}" /></p>
+
+<p><input id="weekly_affirmations" type="checkbox" {% if weekly_affirmations %}checked{% endif %} />
+Yes, I want to receive weekly affirmation on the progress I am making towards my goals.</p>
+
+<p><input id="org_thank_yous" type="checkbox" {% if org_thank_yous %}checked{% endif %} />
+Yes, I want to receive occasional thank you notes forwarded from the charities I support.</p>
+
+<p><input id="org_newsletters" type="checkbox" {% if org_newsletters %}checked{% endif %} />
+Yes, I want to receive forwarded year end newsletters from the charities I support.</p>
