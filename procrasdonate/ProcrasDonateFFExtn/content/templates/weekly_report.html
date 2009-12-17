@@ -1,10 +1,47 @@
-Hi {{ name }},
+***if PD equal to previous week***
+<p>It's a match!
+You ProcrasDonated for the same number of hours this week, ***number of hours pd this week***, as you did last week.
+That would win you a free game if we were playing pinball.
+</p>
 
-Here is your ProcrasDonate affirmation for {{ start_date }} to {{ end_date }}
+***if met goal this week and the previous week too***
+<p>You're on a roll, {{ name }}.
+That's great!
+ProcrasDonating less means donating less.
+Would you like to celebrate by ***following is a link*** raising your hourly giving***endlink*** to ***number one charity***?
+Woohoo!</p>
+
 {% if good_news %}
-Congratulations! You ProcrasDonated less than your goal of {{ pd_hr_per_week_goal }} hours. Keep up the good work!
+<p>Congratulations, {{ name }}! 
+You ProcrasDonated less than your goal of {{ pd_hr_per_week_goal }} hours between {{ start_date }} and {{ end_date }}. 
+Keep up the good work!
+</p>
+
 {% else %}
-What happened? You ProcrasDonated more than your goal of {{ pd_hr_per_week_goal }} hours. We know you can improve! Try working up to your current goal with smaller steps.
+
+***if miss goal but met goal on both the week before and the week before that***
+<p>{{ name }}, your streak has ended.  
+You had met your goal for ***number of weeks in a row where goal was met*** weeks in a row.
+But then you ProcrasDonated ***number of hours procrasdonated*** between {{ start_date }} and {{ end_date }}.
+That's ***number of hours minus pd_hr_per_week_goal*** hours more than your goal. 
+Get back on track!
+</p>
+
+***if missed goal and PD more than previous week***
+<p>What happened, {{ name }}?
+You ProcrasDonated ***number of hours pd this week minus number of hours last week*** more hours between {{ start_date }} and {{ end_date }} than the week before.
+That's a total of ***number of hours pd*** hours more than your goal. 
+Try working up to your current goal with smaller steps.
+</p>
+
+***if missed goal but PD less than previous week***
+<p>You're getting closer to your goal, {{ name }}!
+You ProcrasDonated ***number of hours pd last week is number of pd hours this week*** less hours between {{ start_date }} and {{ end_date }} than the week before.
+At this rate you'll meet your goal of ***pd goal*** hours per week in no time. 
+You can do it!
+</p>
+
+
 {% endif %}
 {% if pledges %}
 This week you pledged:
