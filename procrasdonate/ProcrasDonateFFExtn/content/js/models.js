@@ -297,13 +297,14 @@ function load_models(db, pddb) {
 	var Report = new Model(db, "Report", {
 		table_name: "reports",
 		columns: {
-			_order: ["id", "datetime", "type", "message", "read", "sent"],
+			_order: ["id", "datetime", "type", "message", "read", "sent", "subject"],
 			id: "INTEGER PRIMARY KEY",
 			datetime: "INTEGER", //"DATETIME",
 			type: "VARCHAR", // ['weekly', 'newsletter']
 			message: "VARCHAR",
 			read: "INTEGER", // bool
 			sent: "INTEGER", // bool
+			subject: "VARCHAR"
 		},
 		indexes: []
 	}, {
@@ -316,6 +317,10 @@ function load_models(db, pddb) {
 		/** emailed to user */
 		is_sent: function() {
 			return _un_dbify_bool(this.sent)
+		},
+		
+		friendly_datetime: function() {
+			return _un_dbify_date(this.datetime).strftime("%b %d, %Y")
 		},
 		
 		deep_dict: function() {
@@ -355,6 +360,13 @@ function load_models(db, pddb) {
 			}
 		},
 		
+		latest: function() {
+			var latest = null;
+			Report.select({}, function(row) {
+				if (!latest) { latest = row; }
+			}, "-datetime");
+			return latest;
+		}
 		
 	});
 	
@@ -1416,5 +1428,3 @@ function load_models(db, pddb) {
 		Report              : Report
 	};
 }
-
-

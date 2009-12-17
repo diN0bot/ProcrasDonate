@@ -127,11 +127,12 @@ _extend(InitListener.prototype, {
 		
 		var current = gExtensionManager.getItemForID(constants.ProcrasDonate__UUID).version;
 		
-		logger("check version - "+current);
-		
 		try {
 			ver = this.prefs.get("version", ver);
 			firstrun = this.prefs.get("firstrun", true);
+			
+			logger("check version - extn_manager="+current+" prefs="+ver+" firstrun="+firstrun);
+			
 		} catch(e) {
 			logger("checkVersion exception thrown! "+ver+" "+firstrun);
 		} finally {
@@ -250,6 +251,17 @@ _extend(InitListener.prototype, {
 				self.pddb.Visit.set({
 					enter_type: self.pddb.Visit.UNKNOWN,
 					leave_type: self.pddb.Visit.UNKNOWN
+				}, {
+					id: row.id
+				});
+			})
+		}
+		
+		if (old_version_number < _version_to_number("0.3.6")) {
+			this.pddb.Report.add_column("subject", "VARCHAR");
+			this.pddb.Report.select({}, function(row) {
+				self.pddb.Report.set({
+					subject: "Weekly affirmation ("+row.friendly_datetime()+")"
 				}, {
 					id: row.id
 				});

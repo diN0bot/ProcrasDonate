@@ -33,14 +33,20 @@
 				<div class="focus_slogans">
 					<div>
 						<div id="focus_slogan_line1"><h1>Waste an hour?</h1></div>
-						<div id="focus_slogan_line2"><h1>Make a Donation.</h1></div>
+						<div id="focus_slogan_line2" class="{% if special %}special_line2{% endif %}"><h1>
+						{% if special %}
+							Donate to {{ special.name }}
+						{% else %}
+							Make a Donation.
+						{% endif %}
+						</h1></div>
 						<div id="download_wrapper"><img
 							id="download"
 							alt=""
 							src="{{ MEDIA_URL }}img/Download.png"
 							class="link"
 							onclick="return install('install_anchor');" /></div>
-						<div id="focus_slogan_line3"><h1>Get Stuff Done.</h1></div>						
+						<div id="focus_slogan_line3" class="{% if special %}special_line3{% endif %}"><h1>Get Stuff Done.</h1></div>						
 					</div>	
 				</div>
 			</td>

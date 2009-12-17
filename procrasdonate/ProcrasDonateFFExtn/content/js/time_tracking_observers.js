@@ -60,7 +60,7 @@ _extend(TimeTracker.prototype, {
 			this.prefs.set("last_start", "");
 			// log diff if greater than flash max...just in case its a bug...
 			if (diff > constants.DEFAULT_FLASH_MAX_IDLE) {
-				this.orthogonals.warn("store_visit:: diff greater than flash max: "+diff+" start="+start+"="+_un_dbify_date(start)+" url="+url);
+				this.pddb.orthogonals.warn("store_visit:: diff greater than flash max: "+diff+" start="+start+"="+_un_dbify_date(start)+" url="+url);
 				//diff = constants.DEFAULT_FLASH_MAX_IDLE + 1;
 			}
 			var private_browsing_enabled = this.prefs.get("private_browsing_enabled", constants.DEFAULT_PRIVATE_BROWSING_ENABLED);

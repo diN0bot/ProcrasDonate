@@ -15,8 +15,23 @@ var Controller = function(pddb, prefs, pd_api) {
 Controller.prototype = {};
 _extend(Controller.prototype, {
 	handle: function(request) {
-		//logger("Controller.handler: url="+request.url);
 		var host = _host(request.url);
+		
+		// insert top bar
+		//    if visiting first ProcrasDonate website of the day
+		if (!this.prefs.get("inserted_top_bar_today", false)) {
+			if (this.page.top_bar_has_content()) {
+				var sitegroup = this.pddb.SiteGroup.get_or_null({ host: host });
+				if (sitegroup) {
+					if (sitegroup.tag_id == this.pddb.ProcrasDonate.id) {
+						this.page.insert_top_bar(request);
+						this.prefs.set("inserted_top_bar_today", true)
+					}
+				}
+			}
+		}
+		
+		// create ProcrasDonate extension website
 		for (var i = 0; i < constants.VALID_HOSTS.length; i++) {
 			var valid_host = constants.VALID_HOSTS[i];
 			if (host == valid_host) { //match(new RegExp(valid_host)))
@@ -116,6 +131,9 @@ _extend(Controller.prototype, {
 		case constants.AUTHORIZE_PAYMENTS:
 			break;
 		case constants.AUTHORIZE_PAYMENTS_CALLBACK_URL:
+			break;
+		case constants.ADMIN_URL:
+			this.page.insert_top_bar(request);
 			break;
 		default:
 			ret = false;
@@ -292,10 +310,10 @@ _extend(PageController.prototype, {
 		var private_menu = ["<div id=\"ExtensionMenu\" class=\"menu\">",
 		       			 	"    <div id=\"progress_menu_item\"><a href=\""+
 		       			 	constants.PROGRESS_URL+"\">My Progress</a></div>",
+		       			 	"    <div id=\"messages_menu_item\"><a href=\""+
+		       			 	constants.MESSAGES_URL+"\">My Messages</a></div>",
 		       			 	"    <div id=\"impact_menu_item\"><a href=\""+
 		       			 	constants.IMPACT_URL+"\">My Impact</a></div>",
-		       			 	// "    <div id=\"messages_menu_item\"><a href=\""+
-		       			 	// constants.MESSAGES_URL+"\">My Messages</a></div>",
 		       			 	"    <div id=\"settings_menu_item\"><a href=\""+
 		       			 	constants.SETTINGS_URL+"\">My Settings</a></div>",
 		       			 	"</div>"].join("\n");
@@ -340,6 +358,33 @@ _extend(PageController.prototype, {
 			request.jQuery("#user_messages_wrapper").html( html ).hide().fadeIn("slow");
 			self.prefs.set("user_message", "");
 		}
+	},
+	
+	/**
+	 * returns true if top bar would have content; false if would be empty
+	 */
+	top_bar_has_content: function() {
+		var latest = self.pddb.Report.latest();
+		return latest && !latest.is_read()
+	},
+	
+	/**
+	 * does insertion and activation of top bar
+	 */
+	insert_top_bar: function(request) {
+		var self = this;
+		var html = Template.get("top_bar").render(
+			new Context({
+				latest_report: self.pddb.Report.latest(),
+				registration_complete: this.registration_complete
+			}));
+		
+		request.jQuery("body").prepend( html );
+		
+		// activate
+		request.jQuery("#close_procrasdonate_extn_top_bar").click(function() {
+			request.jQuery(this).parent().remove();
+		});
 	},
 	
 	/*************************************************************************/
@@ -1037,18 +1082,51 @@ _extend(PageController.prototype, {
 	/*************************************************************************/
 	/******************************* MESSAGES ********************************/
 	
-	/*
-	"insert_messages_all",
-	"insert_messages_thankyous",
-	"insert_messages_newsletters",
-	"insert_messages_weekly",
-	"insert_messages_tax",
-	*/
 	insert_messages_all: function(request) {
 		var self = this;
+		this.prefs.set('messages_state', 'all');
 		
-		request.jQuery("#content").html( "dingo ate my baby" );
+		var reports = [];
+		self.pddb.Report.select({}, function(row) {
+			logger("ROW "+row);
+			reports.push(row);
+		}, "-datetime");
 		
+		var middle = Template.get("messages_all_middle").render(
+			new Context({
+				reports: reports
+			})
+		);
+		request.jQuery("#content").html( middle );
+		
+		this.activate_messages_all(request);
+	},
+	
+	activate_messages_all: function(request) {
+		var self = this;
+		request.jQuery(".report_message").hide();
+		
+		request.jQuery(".report").click(function() {
+			var id = request.jQuery(this).attr("id")
+			id = id.substr(7, id.length);
+			var report = self.pddb.Report.get_or_null({ id: id });
+			if (report) {
+				request.jQuery(this).children(".report_message").toggle();
+				request.jQuery(this).children(".open_close_arrow").toggleClass("is_closed");
+				if (!report.is_read()) {
+					self.pddb.Report.set({
+						read: _dbify_bool(true)
+					}, {
+						id: report.id
+					});
+					request.jQuery(this).addClass("is_read");
+				}
+			}
+		});
+	},
+		
+	
+	speed_up_video_prototype: function(request) {
 		netscape.security.PrivilegeManager.enablePrivilege("UniversalXPConnect");
 		// create an nsILocalFile for the executable
 		var file = Components.classes["@mozilla.org/file/local;1"]
@@ -1068,22 +1146,6 @@ _extend(PageController.prototype, {
 		// to the process.
 		var args = ["-af", "scaletempo", "-nofontconfig", "http://web.mit.edu/~aresnick/public/star_dorkbot.avi"];
 		process.run(false, args, args.length);
-		
-		/*this.prefs.set('messages_state', 'all');
-		
-		var substate_menu_items = this.make_substate_menu_items('all',
-				constants.MESSAGES_STATE_ENUM, constants.MESSAGES_STATE_TAB_NAMES);
-
-		var middle = Template.get("messages_all_middle").render(
-			new Context({
-				substate_menu_items: substate_menu_items
-			})
-		);
-		request.jQuery("#content").html( middle );
-		
-		this.activate_substate_menu_items(request, 'all',
-			constants.MESSAGES_STATE_ENUM, constants.MESSAGES_STATE_INSERTS);
-		*/
 	},
 		
 	/*************************************************************************/
@@ -3445,7 +3507,7 @@ _extend(PageController.prototype, {
 	},
 	
 	trigger_on_upgrade: function() {
-		myOverlay.init_listener.onUpgrade("0.3.2", "0.3.3");
+		myOverlay.init_listener.onUpgrade("0.3.5", "0.3.6");
 	},
 	
 	trigger_init_db: function() {
@@ -3635,11 +3697,13 @@ Schedule.prototype = {};
 _extend(Schedule.prototype, {
 	run: function() {
 		if ( this.is_new_week_period() ) {
+			this.pddb.orthogonals.log("Do weekly tasks on "+(new Date())+" for "+_un_dbify_date(this.prefs.get('last_24hr_mark', 0)), "schedule");
 			this.do_once_weekly_tasks();
 			this.do_make_payment();
 			this.reset_week_period();
 		}
 		if ( this.is_new_24hr_period() ) {
+			this.pddb.orthogonals.log("Do daily tasks on "+(new Date())+" for "+_un_dbify_date(this.prefs.get('last_week_mark', 0)), "schedule");
 			this.do_once_daily_tasks();
 			this.reset_24hr_period();
 		}
@@ -3720,10 +3784,11 @@ _extend(Schedule.prototype, {
 	create_weekly_report: function() {
 		var self = this;
 		
-		if (!_un_dbify_bool(self.prefs.get('weekly_affirmations', constants.DEFAULT_WEEKLY_AFFIRMATIONS))) {
+		/* user might want webpage reports, just not weekly emails. oops.
+		 * if (!_un_dbify_bool(self.prefs.get('weekly_affirmations', constants.DEFAULT_WEEKLY_AFFIRMATIONS))) {
 			// user doesn't want a weekly affirmation
 			return
-		}
+		}*/
 		
 		var email = self.prefs.get('email', constants.DEFAULT_EMAIL);
 		var name = "";
@@ -3738,9 +3803,8 @@ _extend(Schedule.prototype, {
 		var tag_contenttype = self.pddb.ContentType.get_or_null({
 			modelname: "Tag"
 		});
-		var last_week = new Date();
+		var last_week = _un_dbify_date(this.prefs.get("last_week_mark", 0));
 		last_week.setDate(last_week.getDate() - 7);
-		
 		var start_date = _start_of_week(last_week);
 		var start_date_friendly = _friendly_date(start_date);
 		var end_date = _end_of_week(last_week);

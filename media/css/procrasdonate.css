@@ -188,7 +188,7 @@ img { -ms-interpolation-mode:bicubic; }
 	margin-top: 9em;
 }
 
-/******** MESSAGES *******************************************/
+/******** MESSAGES (inserted at top of PD pages ***************************/
 #browser_message p, #browser_message ol { margin: 0em; }
 
 #user_messages {
@@ -208,6 +208,40 @@ img { -ms-interpolation-mode:bicubic; }
 }
 #user_messages .message {
 	text-align: center;
+}
+
+/******** MY MESSAGES *****************************************/
+#report_list { list-style-type: none; padding: 0em; }
+#report_list .report {
+	cursor: pointer;
+	border-bottom: 1px solid #B6B6B6;
+	margin: 0;
+	padding: 0.5em;
+}
+#report_list .is_read { background: #EEEEEE; }
+#report_list .report_meta {
+	float: right;
+	color: #828282;
+	margin-left: 1em;
+}
+#report_list .summary {
+	overflow: hidden;
+	height: 1.2em;
+	white-space: nowrap;
+}
+#report_list .report_message {
+	margin: 1em;
+}
+#report_list .open_close_arrow {
+	background: red url('/procrasdonate_media/img/UpArrow.png');
+	width: 1em;
+	height: 1em;
+	margin: .2em .4em 0em 0em;
+	float: left; 
+}
+
+#report_list .is_closed {
+	background: blue url('/procrasdonate_media/img/DownArrow.png');
 }
 
 /******** HOME PAGE *******************************************/
@@ -791,7 +825,6 @@ form input[type=submit] { margin-top: 1em; font-size: 1.3em; }
 /**** DEV TEST SUITE *****/
 /* otherwise whole line is a link */
 #manual_test_suite p { width: 10%;}
-
 
 
 /******** JQUERY UI ******************/

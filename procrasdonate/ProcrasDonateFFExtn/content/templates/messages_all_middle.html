@@ -1,9 +1,12 @@
-messages all middle
+<h2>My Messages</h2>
 
-<ul>
-	{% for item in substate_menu_items.menu_items %}
-		<li id="{{ item.id }}"
-			class="{% for klass in item.klasses %}{{ klass }} {% endfor %}">
-			{{ item.value }}</li>
+<ul id="report_list">
+	{% for report in reports %}
+		<li id="report_{{ report.id }}" class="report {% if report.is_read %}is_read{% endif %}">
+			<div class="open_close_arrow is_closed" />
+			<div class="report_meta">{{ report.friendly_datetime }}</div>
+			<div class="subject">{{ report.subject }}</div>
+			<div class="report_message">{{ report.message }}</div> 
+		</li>
 	{% endfor %}
 </ul>
