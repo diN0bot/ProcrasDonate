@@ -300,7 +300,7 @@ function load_models(db, pddb) {
 			_order: ["id", "datetime", "type", "message", "read", "sent", "subject"],
 			id: "INTEGER PRIMARY KEY",
 			datetime: "INTEGER", //"DATETIME",
-			type: "VARCHAR", // ['weekly', 'newsletter']
+			type: "VARCHAR", // ['welcome', 'weekly', 'announcement', 'thankyou', 'newsletter']
 			message: "VARCHAR",
 			read: "INTEGER", // bool
 			sent: "INTEGER", // bool

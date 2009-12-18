@@ -197,15 +197,7 @@ _extend(InitListener.prototype, {
 		}, 1500); //Firefox 2 fix - or else tab will get closed
 
 		// create welcome message
-		var message = Template.get("welcome_message").render(new Context({}));
-		var report = this.pddb.Report.create({
-			datetime: _dbify_date(new Date()),
-			type: "welcome",
-			subject: "Getting started with ProcrasDonate",
-			message: message,
-			read: _dbify_bool(false),
-			sent: _dbify_bool(false)
-		});
+		this.create_welcome_message();
 		
 		// initialize state
 		this.controller.initialize_state();
@@ -259,24 +251,30 @@ _extend(InitListener.prototype, {
 			this.pddb.Visit.add_column("enter_type", "VARCHAR");
 			this.pddb.Visit.add_column("leave_type", "VARCHAR");
 			this.pddb.Visit.select({}, function(row) {
-				self.pddb.Visit.set({
-					enter_type: self.pddb.Visit.UNKNOWN,
-					leave_type: self.pddb.Visit.UNKNOWN
-				}, {
-					id: row.id
-				});
+				if (!row.enter_type && !row.leave_type) {
+					self.pddb.Visit.set({
+						enter_type: self.pddb.Visit.UNKNOWN,
+						leave_type: self.pddb.Visit.UNKNOWN
+					}, {
+						id: row.id
+					});
+				}
 			})
 		}
 		
 		if (old_version_number < _version_to_number("0.3.6")) {
 			this.pddb.Report.add_column("subject", "VARCHAR");
 			this.pddb.Report.select({}, function(row) {
-				self.pddb.Report.set({
-					subject: "Weekly affirmation ("+row.friendly_datetime()+")"
-				}, {
-					id: row.id
-				});
+				if (!row.subject) {
+					self.pddb.Report.set({
+						subject: "Weekly affirmation ("+row.friendly_datetime()+")"
+					}, {
+						id: row.id
+					});
+				}
 			})
+			
+			this.create_welcome_message(true);
 		}
 		
 		
@@ -290,6 +288,29 @@ _extend(InitListener.prototype, {
 		}, 1500); //Firefox 2 fix - or else tab will get closed
 		
 	},
+	
+	create_welcome_message: function(make_earliest) {
+		var message = Template.get("welcome_message").render(
+				new Context({}));
+		
+		var date = null;
+		if (make_earliest) {
+			var r = this.pddb.Report.get_or_null({ id: 1 })
+			if (r) {
+				date = _start_of_week(_un_dbify_date(r.datetime))
+			}
+		}
+		if (!date) { date = new Date(); }
+		
+		var report = this.pddb.Report.create({
+			datetime: _dbify_date(date),
+			type: "welcome",
+			subject: "Getting started with ProcrasDonate",
+			message: message,
+			read: _dbify_bool(false),
+			sent: _dbify_bool(false)
+		});
+	}
 	
 });
 

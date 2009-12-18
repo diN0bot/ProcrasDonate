@@ -392,13 +392,22 @@ _extend(PageController.prototype, {
 	activate_top_bar: function(request) {
 		var self = this;
 		request.jQuery("#procrasdonate_extn_expand").click(function() {
-			var latest = self.pddb.Report.latest();
-			request.jQuery("#procrasdonate_extn_message").html(
-					latest.message).css("text-align", "left");
-			request.jQuery("#procrasdonate_extn_top_bar").css("height", "auto");
-			request.jQuery(this).remove();
-			self.pddb.Report.set({ read: _dbify_bool(true)},
-					{ id: latest.id });
+			if (request.jQuery(this).hasClass("contracted")) {
+				var latest = self.pddb.Report.latest();
+				request.jQuery("#procrasdonate_extn_message").html(
+						latest.message).css("text-align", "left");
+				request.jQuery("#procrasdonate_extn_top_bar").css("height", "auto");
+				request.jQuery(this)
+					.removeClass("contracted")
+					.attr("src", constants.PD_URL+constants.MEDIA_URL+"img/ContractButton.png");
+				self.pddb.Report.set({ read: _dbify_bool(true)}, { id: latest.id });
+			} else {
+				request.jQuery(this)
+					.addClass("contracted")
+					.attr("src", constants.PD_URL+constants.MEDIA_URL+"img/ExpandButton.png");
+				request.jQuery("#procrasdonate_extn_message").html("");
+				request.jQuery("#procrasdonate_extn_top_bar").css("height", "24px");
+			}
 		});
 	},
 	
@@ -1197,9 +1206,9 @@ _extend(PageController.prototype, {
 				request.jQuery(this).children(".report_message").toggle();
 				var arrow = request.jQuery(this).children(".open_close_arrow");
 				if (arrow.hasClass("is_closed")) {
-					arrow.children("img").attr("src", constants.MEDIA_URL+"img/DownArrow.png");
+					arrow.children("img").attr("src", constants.MEDIA_URL+"img/OpenMessageIcon.png");
 				} else { 
-					arrow.children("img").attr("src", constants.MEDIA_URL+"img/RightArrow.png");
+					arrow.children("img").attr("src", constants.MEDIA_URL+"img/ClosedMessageIcon.png");
 				}
 				arrow.toggleClass("is_closed");
 				if (!report.is_read()) {
@@ -3635,17 +3644,19 @@ _extend(PageController.prototype, {
 					t3, t3, t4,
 					t4, t5, t5);
 			
-			var actual = subject.split(" - ");
-			if (actual.length > 1) {
-				actual = actual[1];
+			var actual = subject.split(" ");
+			_pprint(actual);
+			if (actual.length > 3) {
+				actual = actual[3];
 			}
 			
 			logger("\none week = "+pd_hrs_one_week+
 					"\ntwo week = "+pd_hrs_two_week+
 					"\nthree week = "+pd_hrs_three_week+
 					"\ngoal = "+pd_hr_per_week_goal+
-					"\n"+subject+
-					"\n"+message);
+					"\n"+subject);
+					//"\n"+subject+
+					//"\n"+message);
 
 			if (actual != expected) {
 				logger("############# TEST FAILED: expected:"+expected+" actual:"+actual+
@@ -3662,51 +3673,51 @@ _extend(PageController.prototype, {
 		}
 		
 		var fails = 0;
-		fails += message_test(8, 10, 12, 13, 1, 20, "Dec 22, 1982", "Dec 28, 1983", "Winning streak"); // winning streak
-		fails += message_test(8, 10, 12, 11, 1, 20, "Dec 22, 1982", "Dec 28, 1983", "Good work"); // good work
-		fails += message_test(8, 10, 12,  9, 1, 20, "Dec 22, 1982", "Dec 28, 1983", "Good work"); // good work
-		fails += message_test(8, 10, 12,  7, 1, 20, "Dec 22, 1982", "Dec 28, 1983", "Getting better"); // getting better
+		fails += message_test(8, 10, 12, 13, 1, 20, "12/22", "12/28", "Winning streak"); // winning streak
+		fails += message_test(8, 10, 12, 11, 1, 20, "12/22", "12/28", "Good work"); // good work
+		fails += message_test(8, 10, 12,  9, 1, 20, "12/22", "12/28", "Good work"); // good work
+		fails += message_test(8, 10, 12,  7, 1, 20, "12/22", "12/28", "Getting better"); // getting better
 		
-		fails += message_test(12, 10, 8, 13, 1, 20, "Dec 22, 1982", "Dec 28, 1983", "Winning streak"); // 
-		fails += message_test(12, 10, 8, 11, 1, 20, "Dec 22, 1982", "Dec 28, 1983", "Downturn"); // 
-		fails += message_test(12, 10, 8,  9, 1, 20, "Dec 22, 1982", "Dec 28, 1983", "Getting worse"); // 
-		fails += message_test(12, 10, 8,  7, 1, 20, "Dec 22, 1982", "Dec 28, 1983", "Getting worse"); // 
+		fails += message_test(12, 10, 8, 13, 1, 20, "12/22", "12/28", "Winning streak"); // 
+		fails += message_test(12, 10, 8, 11, 1, 20, "12/22", "12/28", "Downturn"); // 
+		fails += message_test(12, 10, 8,  9, 1, 20, "12/22", "12/28", "Getting worse"); // 
+		fails += message_test(12, 10, 8,  7, 1, 20, "12/22", "12/28", "Getting worse"); // 
 		
-		fails += message_test(8, 12, 10, 13, 1, 20, "Dec 22, 1982", "Dec 28, 1983", "Winning streak"); // 
-		fails += message_test(8, 12, 10, 11, 1, 20, "Dec 22, 1982", "Dec 28, 1983", "Good work"); // 
-		fails += message_test(8, 12, 10,  9, 1, 20, "Dec 22, 1982", "Dec 28, 1983", "Good work"); // 
-		fails += message_test(8, 12, 10,  7, 1, 20, "Dec 22, 1982", "Dec 28, 1983", "Getting better"); // 
+		fails += message_test(8, 12, 10, 13, 1, 20, "12/22", "12/28", "Winning streak"); // 
+		fails += message_test(8, 12, 10, 11, 1, 20, "12/22", "12/28", "Good work"); // 
+		fails += message_test(8, 12, 10,  9, 1, 20, "12/22", "12/28", "Good work"); // 
+		fails += message_test(8, 12, 10,  7, 1, 20, "12/22", "12/28", "Getting better"); // 
 		
-		fails += message_test(10, 12, 8, 13, 1, 20, "Dec 22, 1982", "Dec 28, 1983", "Winning streak"); // 
-		fails += message_test(10, 12, 8, 11, 1, 20, "Dec 22, 1982", "Dec 28, 1983", "Good work"); // 
-		fails += message_test(10, 12, 8,  9, 1, 20, "Dec 22, 1982", "Dec 28, 1983", "Getting better"); // 
-		fails += message_test(10, 12, 8,  7, 1, 20, "Dec 22, 1982", "Dec 28, 1983", "Getting better"); // 
+		fails += message_test(10, 12, 8, 13, 1, 20, "12/22", "12/28", "Winning streak"); // 
+		fails += message_test(10, 12, 8, 11, 1, 20, "12/22", "12/28", "Good work"); // 
+		fails += message_test(10, 12, 8,  9, 1, 20, "12/22", "12/28", "Getting better"); // 
+		fails += message_test(10, 12, 8,  7, 1, 20, "12/22", "12/28", "Getting better"); // 
 		
-		fails += message_test(10, 8, 12, 13, 1, 20, "Dec 22, 1982", "Dec 28, 1983", "Winning streak"); // 
-		fails += message_test(10, 8, 12, 11, 1, 20, "Dec 22, 1982", "Dec 28, 1983", "Good work"); // 
-		fails += message_test(10, 8, 12,  9, 1, 20, "Dec 22, 1982", "Dec 28, 1983", "Downturn"); // 
-		fails += message_test(10, 8, 12,  7, 1, 20, "Dec 22, 1982", "Dec 28, 1983", "Getting worse"); // 
+		fails += message_test(10, 8, 12, 13, 1, 20, "12/22", "12/28", "Winning streak"); // 
+		fails += message_test(10, 8, 12, 11, 1, 20, "12/22", "12/28", "Good work"); // 
+		fails += message_test(10, 8, 12,  9, 1, 20, "12/22", "12/28", "Downturn"); // 
+		fails += message_test(10, 8, 12,  7, 1, 20, "12/22", "12/28", "Getting worse"); // 
 		
-		fails += message_test(12, 8, 10, 13, 1, 20, "Dec 22, 1982", "Dec 28, 1983", "Winning streak"); // 
-		fails += message_test(12, 8, 10, 11, 1, 20, "Dec 22, 1982", "Dec 28, 1983", "Downturn"); // 
-		fails += message_test(12, 8, 10,  9, 1, 20, "Dec 22, 1982", "Dec 28, 1983", "Downturn"); // 
-		fails += message_test(12, 8, 10,  7, 1, 20, "Dec 22, 1982", "Dec 28, 1983", "Getting worse"); // 
+		fails += message_test(12, 8, 10, 13, 1, 20, "12/22", "12/28", "Winning streak"); // 
+		fails += message_test(12, 8, 10, 11, 1, 20, "12/22", "12/28", "Downturn"); // 
+		fails += message_test(12, 8, 10,  9, 1, 20, "12/22", "12/28", "Downturn"); // 
+		fails += message_test(12, 8, 10,  7, 1, 20, "12/22", "12/28", "Getting worse"); // 
 		
-		fails += message_test(null, null, null, 13, 1, 20, "Dec 22, 1982", "Dec 28, 1983", "No ProcrasDonation"); // 
+		fails += message_test(null, null, null, 13, 1, 20, "12/22", "12/28", "No ProcrasDonation"); // 
 		
-		fails += message_test(12, null, null, 13, 1, 20, "Dec 22, 1982", "Dec 28, 1983", "Good job"); // 
-		fails += message_test(12, null, null, 12, 1, 20, "Dec 22, 1982", "Dec 28, 1983", "Good job"); // 
-		fails += message_test(12, null, null, 11, 1, 20, "Dec 22, 1982", "Dec 28, 1983", "You can do better"); // 
+		fails += message_test(12, null, null, 13, 1, 20, "12/22", "12/28", "Good job"); // 
+		fails += message_test(12, null, null, 12, 1, 20, "12/22", "12/28", "Good job"); // 
+		fails += message_test(12, null, null, 11, 1, 20, "12/22", "12/28", "You can do better"); // 
 		
-		fails += message_test(10, 8, null, 7, 1, 20, "Dec 22, 1982", "Dec 28, 1983", "Getting worse"); // 
-		fails += message_test(10, 8, null, 9, 1, 20, "Dec 22, 1982", "Dec 28, 1983", "Downturn"); // 
-		fails += message_test(10, 8, null, 11, 1, 20, "Dec 22, 1982", "Dec 28, 1983", "Good work"); // 
+		fails += message_test(10, 8, null, 7, 1, 20, "12/22", "12/28", "Getting worse"); // 
+		fails += message_test(10, 8, null, 9, 1, 20, "12/22", "12/28", "Downturn"); // 
+		fails += message_test(10, 8, null, 11, 1, 20, "12/22", "12/28", "Good work"); // 
 		
-		fails += message_test(10, 12, null, 9, 1, 20, "Dec 22, 1982", "Dec 28, 1983", "Getting better"); // 
-		fails += message_test(10, 12, null, 10, 1, 20, "Dec 22, 1982", "Dec 28, 1983", "Good work"); // 
-		fails += message_test(10, 12, null, 13, 1, 20, "Dec 22, 1982", "Dec 28, 1983", "Good work"); // 
+		fails += message_test(10, 12, null, 9, 1, 20, "12/22", "12/28", "Getting better"); // 
+		fails += message_test(10, 12, null, 10, 1, 20, "12/22", "12/28", "Good work"); // 
+		fails += message_test(10, 12, null, 13, 1, 20, "12/22", "12/28", "Good work"); // 
 		
-		fails += message_test(10, 10, null, 10, 1, 20, "Dec 22, 1982", "Dec 28, 1983", "Pinball champion"); //
+		fails += message_test(10, 10, null, 10, 1, 20, "12/22", "12/28", "Pinball champion"); //
 		
 		logger(">>>>>>>>> "+fails+" failures");
 	},
@@ -4235,30 +4246,30 @@ _extend(Schedule.prototype, {
 		
 		var no_data, one_week_good, one_week_bad, match, good_in_a_row, good, sudden_bad, getting_worse, getting_better = false;
 		var weeks_in_a_row_met = 0;
-		var subject = "Weekly affirmation ("+start_date_friendly+" - "+end_date_friendly+")";
+		var subject = start_date_friendly+" - "+end_date_friendly+" ";
 		if (pd_hrs_one_week === null) {
 			no_data = true;
-			subject += " - No ProcrasDonation"
+			subject += "No ProcrasDonation"
 		} else if (pd_hrs_two_week === null) {
 			if (pd_hrs_one_week <= pd_hr_per_week_goal) {
 				one_week_good = true;
-				subject += " - Good job";
+				subject += "Good job";
 			} else {
 				one_week_bad = true;
-				subject += " - You can do better";
+				subject += "You can do better";
 			}
 		} else if (pd_hrs_one_week == pd_hrs_two_week) {
 			match = true;
-			subject += " - Pinball champion";
+			subject += "Pinball champion";
 		} else if (pd_hrs_one_week <= pd_hr_per_week_goal &&
 				pd_hrs_two_week <= pd_hr_per_week_goal &&
 				pd_hrs_three_week !== null && pd_hrs_three_week <= pd_hr_per_week_goal) {
 			weeks_in_a_row_met = 3;
 			good_in_a_row = true;
-			subject += " - Winning streak";
+			subject += "Winning streak";
 		} else if (pd_hrs_one_week <= pd_hr_per_week_goal) {
 			good = true;
-			subject += " - Good work";
+			subject += "Good work";
 		} else if (pd_hrs_one_week > pd_hr_per_week_goal &&
 				pd_hrs_two_week <= pd_hr_per_week_goal) {
 			if (pd_hrs_three_week !== null && pd_hrs_three_week <= pd_hr_per_week_goal) {
@@ -4266,16 +4277,16 @@ _extend(Schedule.prototype, {
 			} else {
 				weeks_in_a_row_met = 1;
 			}
-			subject += " - Downturn";
+			subject += "Downturn";
 			sudden_bad = true
 		} else if (pd_hrs_one_week > pd_hr_per_week_goal &&
 				pd_hrs_two_week > pd_hr_per_week_goal) {
 			if (pd_hrs_one_week_two_week_diff_real > 0) {
 				getting_better = true;
-				subject += " - Getting better";
+				subject += "Getting better";
 			} else {
 				getting_worse = true;
-				subject += " - Getting worse";
+				subject += "Getting worse";
 			}
 		}
 		
