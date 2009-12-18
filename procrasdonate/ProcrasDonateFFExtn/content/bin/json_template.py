@@ -251,7 +251,7 @@ json_template_converter = JSONTemplateConverter()
 def jsonify_nodelist(nodelist):
     data = json_template_converter.convert_nodelist(nodelist)
     
-    import simplejson
+    from django.utils import simplejson
     json = simplejson.dumps(data)
     
     return json
