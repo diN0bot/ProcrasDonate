@@ -43,9 +43,9 @@ $(document).ready( function() {
 	/// helper for inserting email. single place to alter email; safe from spammers.
 	///
 	$(".insert_procrasdonate_email").each(function() {
-		$(this).attr("href", "mailto:procrasdonate@bilumi.org");
+		$(this).attr("href", "mailto:info@procrasdonate.com");
 		if (!$(this).text()) {
-			$(this).text("ProcrasDonate@bilumi.org");
+			$(this).text("info@ProcrasDonate.com");
 		}
 	});
 
@@ -125,7 +125,7 @@ function install(anchor_class) {
 						var params = {
 							"ProcrasDonate, a charitable incentive for good time management": {
 								URL: xpi_url,
-								IconURL: "/procrasdonate_media/img/ProcrasDonateLogo.png",
+								IconURL: "/procrasdonate_media/img/ToolbarImages/ProcrasDonateIcon.png",
 								Hash: xpi_hash,
 								toString: function() { return "ProcrasDonate Add-On For Proud ProcrasDonators!" }
 							}
@@ -151,7 +151,7 @@ function upgrade(link, hash) {
 	var params = {
 		"ProcrasDonate, a charitable incentive for good time management": {
 			URL: link,
-			IconURL: "/procrasdonate_media/img/ProcrasDonateLogo.png",
+			IconURL: "/procrasdonate_media/img/ToolbarImages/ProcrasDonateIcon.png",
 			Hash: hash,
 			toString: function() { return "ProcrasDonate Add-On For Proud ProcrasDonators!" }
 		}
@@ -160,7 +160,7 @@ function upgrade(link, hash) {
 }
 
 function not_ready_to_install() {
-    alert("Our service is currently open to select charities only.\n\nPlease email us at ProcrasDonate@bilumi.org if you represent a U.S. charity or if you'd like to be alerted of our upcoming public release (it should be available before the end of 2009).\n\nThanks!");
+    alert("Our service is currently open to select charities only.\n\nPlease email us at info@ProcrasDonate.com if you represent a U.S. charity or if you'd like to be alerted of our upcoming public release (it should be available before the end of 2009).\n\nThanks!");
 
 	return false;
 }

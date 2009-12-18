@@ -168,7 +168,7 @@ def reset_password(request):
         try:
             tagging.send_email("Password reset for ProcrasDonate organizer for %s" % tagging.recipient.name,
                                t.render(c),
-                               from_email="procrasdonate@bilumi.org")
+                               from_email=settings.EMAIL)
         except:
             error = "Problem sending email to %s." % email_address
             return render_response(request, 'procrasdonate/recipient_organizer_pages/account/reset_password.html', locals())

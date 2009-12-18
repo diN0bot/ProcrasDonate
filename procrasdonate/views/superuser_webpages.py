@@ -82,7 +82,7 @@ def register_organizer(request):
             t = loader.get_template('procrasdonate/recipient_organizer_pages/account/confirmation_email.txt')
             tagging.send_email("Welcome to ProcrasDonate! Please complete registration for %s" % tagging.recipient.name,
                                t.render(c),
-                               from_email="procrasdonate@bilumi.org")
+                               from_email=settings.EMAIL)
             
             request.user.message_set.create(message='RecipientUser successfully registered')
             return HttpResponseRedirect(reverse('home'))

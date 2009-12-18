@@ -1,63 +1,191 @@
-***if PD equal to previous week***
-<p>It's a match!
-You ProcrasDonated for the same number of hours this week, ***number of hours pd this week***, as you did last week.
-That would win you a free game if we were playing pinball.
-</p>
+{% comment %}
+All the variables this template receives:
 
-***if met goal this week and the previous week too***
-<p>You're on a roll, {{ name }}.
-That's great!
-ProcrasDonating less means donating less.
-Would you like to celebrate by ***following is a link*** raising your hourly giving***endlink*** to ***number one charity***?
-Woohoo!</p>
+name: user's name
+				
+pd_hrs_one_week:        hours procrasdonated last week
+pd_hrs_one_week_diff:   absolute value of above - goal
+pd_hrs_two_week:        hours procrasdonated two weeks ago
+pd_hrs_two_week_diff:   absolute value of above - goal
+pd_hrs_three_week:      hours procrasdonate three weeks ago 
+pd_hrs_three_week_diff: absolute value of above - goal
+pd_hrs_one_week_two_week_diff: absolute value of two weeks ago minus last week
 
-{% if good_news %}
-<p>Congratulations, {{ name }}! 
-You ProcrasDonated less than your goal of {{ pd_hr_per_week_goal }} hours between {{ start_date }} and {{ end_date }}. 
-Keep up the good work!
-</p>
+tws_hrs_one_week: tws_hrs_one_week,
+tws_hrs_two_week: tws_hrs_two_week,
+tws_hrs_three_week: tws_hrs_three_week,
+u_hrs_one_week: u_hrs_one_week,
+u_hrs_two_week: u_hrs_two_week,
+u_hrs_three_week: u_hrs_three_week,
 
+pd_hr_per_week_goal: pd_hr_per_week_goal,
+pd_dollars_per_hr: pd_dollars_per_hr,
+pd_hr_per_week_max: pd_hr_per_week_max,
+tws_dollars_per_hr: tws_dollars_per_hr,
+tws_hr_per_week_max: tws_hr_per_week_max,
+
+start_date: last weeks start time
+end_date:   last weeks end time
+
+>>>>> message blocks <<<<<<<<
+no_data: true if no data for last week or earlier
+one_week_good: true if no data for two weeks ago and last week meets goal
+one_week_bad: true if no data for two weeks ago and last week exceeds goal
+match: true if last week and two weeks ago are the same
+good_in_a_row: true if past 3 weeks meet goal
+good: true if last week meets goal
+sudden_bad: true if two weeks ago exceeds goal but last week meets goal
+getting_worse: true if last week and two weeks ago exceed goal, but last week is better than two weeks ago 
+getting_better: true if last week and two weeks ago exceed goal, but last week is worse than two weeks ago 
+
+weeks_in_a_row_met: how many weeks in row exceed data (1, 2 or 3)
+
+>>>>> top influencing websites for each week and website classification <<<<<<<<
+pd_culprit_one_week: pd_culprit_one_week,
+tws_culprit_one_week: tws_culprit_one_week,
+u_culprit_one_week: u_culprit_one_week,
+pd_culprit_two_week: pd_culprit_two_week,
+tws_culprit_two_week: tws_culprit_two_week,
+u_culprit_three_week: u_culprit_three_week,
+pd_culprit_three_week: pd_culprit_three_week,
+tws_culprit_three_week: tws_culprit_three_week,
+u_culprit_three_week: u_culprit_three_week,
+
+top_charity: recipient with highest donation percent
+pledges: list of all pledges made this week
+payments: list of all payments made this week
+
+{% endcomment %}
+
+{% if match %}
+	<p>
+		It's a match! You ProcrasDonated for exactly
+		{{ pd_hrs_one_week }} hours two weeks in a row!
+		That would win you a free game if we were playing pinball.
+		{% if met_goal %}
+			You would also get extra points for meeting your goal of
+			{{ pd_hr_per_week_goal }} hours per week.
+		{% else %}
+			Unfortunately, you'd lose points a turn for exceeding
+			ur goal of {{ pd_hr_per_week_goal }} hours per week.
+		{% endif %}
+	</p>
 {% else %}
+{% if no_data %}
+	<p>You haven't visited any websites tagged as ProcrasDonate. You can tag sites by clicking the "?" icon in your
+	Firefox toolbar next to the URL address bar, or by visiting the "Sites" tab of 
+	<a href="{{ constants.PD_URL }}{{ constants.PROGRESS_URL }}">My Progress</a>.</p>
+{% else %}
+{% if one_week_good %}
+	<p>
+		Congratulations{% if name %}, {{ name }}!{% else %}!{% endif %}
+		You ProcrasDonated less than your goal of {{ pd_hr_per_week_goal }} hours.
+		Keep up the good work!
+	</p>
+{% else %}
+{% if one_week_bad %}
+	<p>
+		Too bad{% if name %}, {{ name }}.{% else %}.{% endif %}
+		You ProcrasDonated more than your goal of {{ pd_hr_per_week_goal }} hours.
+		We know you can do better!
+	</p>
+{% else %}
+{% if good_in_a_row %}
+	<p>
+		You're on a roll{% if name %}, {{ name }}!{% else %}!{% endif %}
+		You ProcrasDonated less than your goal of {{ pd_hr_per_week_goal }} hours
+		for at least {{ weeks_in_a_row_met }} weeks in a row. ProcrasDonating less means donating less.
+		Would you like to celebrate by <a href="{{ constants.PD_URL }}{{ constants.SETTINGS_URL }}">
+		raising your hourly giving</a> to {{ top_charity.name }}? Woohoo!</p>
+{% else %}
+{% if good %}
+	<p>
+		Congratulations{% if name %}, {{ name }}!{% else %}!{% endif %}
+		You ProcrasDonated less than your goal of {{ pd_hr_per_week_goal }} hours.
+		Keep up the good work!
+	</p>
+{% else %}
+{% if sudden_bad %}
+	<p>
+	{% if name %}{{ name }}, your{% else %}Your{% endif %} streak has ended.  
+	You had met your goal for at least {{ weeks_in_a_row_met }} weeks in a row.
+	This week you ProcrasDonated {{ pd_hrs_one_week }} hours, exceeding 
+	your goal of {{ pd_hr_per_week_goal }} hours by {{ pd_hrs_one_week_diff }}.
+	We know you can get back on track!
+	</p>
+{% else %}
+{% if getting_worse %}
+	<p>
+		What happened{% if name %}, {{ name }}?{% else %}?{% endif %}
+		You ProcrasDonated {{ pd_hrs_one_week_two_week_diff }} hours more than the week before.
+		That's a total of {{ pd_hrs_one_week_diff }} hours more than your goal
+		of {{ pd_hr_per_week_goal }} hours.
+		What are you going to do about this?
+	</p>
+{% else %}
+{% if getting_better %}
+	<p>
+	You're getting closer to your goal{% if name %}, {{ name }}.{% else %}.{% endif %}
+	Awesome!
+	You ProcrasDonated {{ pd_hrs_one_week_two_week_diff }} hours less than the week before,
+	which means you're on track to meeting your goal of {{ pd_hr_per_week_goal }} hours per week.
+	Keep it up! You can do it!
+	</p>
+{% endif %}{% endif %}{% endif %}{% endif %}{% endif %}{% endif %}{% endif %}{% endif %}{% endif %}
 
-***if miss goal but met goal on both the week before and the week before that***
-<p>{{ name }}, your streak has ended.  
-You had met your goal for ***number of weeks in a row where goal was met*** weeks in a row.
-But then you ProcrasDonated ***number of hours procrasdonated*** between {{ start_date }} and {{ end_date }}.
-That's ***number of hours minus pd_hr_per_week_goal*** hours more than your goal. 
-Get back on track!
-</p>
+<p>Hours ProcrasDonated</p>
+<ul>
+	<li>this week: {{ pd_hrs_one_week }} hours 
+		({{ pd_culprit_one_week.hours_int }} hours from {{ pd_culprit_one_week.sitegroup.host }})</li>
+	{% if pd_hrs_two_week %}<li>last week: {{ pd_hrs_two_week }} hours 
+		({{ pd_culprit_two_week.hours_int }} hours from {{ pd_culprit_two_week.sitegroup.host }})</li>{% endif %}
+	{% if pd_hrs_three_week %}<li>two weeks ago: {{ pd_hrs_three_week }} hours 
+		({{ pd_culprit_three_week.hours_int }} hours from {{ pd_culprit_three_week.sitegroup.host }})</li>{% endif %}
+	<br/>
+	<li>goal: {{ pd_hr_per_week_goal }} hours</li>
+	<li>limit: {{ pd_hr_per_week_max }} hours</li>
+	<li>rate: ${{ pd_dollars_per_hr }}/hour</li>
+</ul>
 
-***if missed goal and PD more than previous week***
-<p>What happened, {{ name }}?
-You ProcrasDonated ***number of hours pd this week minus number of hours last week*** more hours between {{ start_date }} and {{ end_date }} than the week before.
-That's a total of ***number of hours pd*** hours more than your goal. 
-Try working up to your current goal with smaller steps.
-</p>
+<p>TimeWellSpent Hours</p>
+<ul>
+	<li>this week: {{ tws_hrs_one_week }} hours
+		({{ tws_culprit_one_week.hours_int }} hours from {{ tws_culprit_one_week.sitegroup.host }})</li>
+	{% if tws_hrs_two_week %}<li>last week: {{ tws_hrs_two_week }} hours
+		({{ tws_culprit_two_week.hours_int }} hours from {{ tws_culprit_two_week.sitegroup.host }})</li>{% endif %}
+	{% if tws_hrs_three_week %}<li>two weeks ago: {{ tws_hrs_three_week }} hours
+		({{ tws_culprit_three_week.hours_int }} hours from {{ tws_culprit_three_week.sitegroup.host }})</li>{% endif %}
+	<br />
+	<li>limit: {{ tws_hr_per_week_max }} hours</li>
+	<li>rate: ${{ tws_dollars_per_hr }}/hour</li>
+</ul>
 
-***if missed goal but PD less than previous week***
-<p>You're getting closer to your goal, {{ name }}!
-You ProcrasDonated ***number of hours pd last week is number of pd hours this week*** less hours between {{ start_date }} and {{ end_date }} than the week before.
-At this rate you'll meet your goal of ***pd goal*** hours per week in no time. 
-You can do it!
-</p>
+<p>Unclassified Hours</p>
+<ul>
+	<li>this week: {{ u_hrs_one_week }} hours
+		({{ u_culprit_one_week.hours_int }} hours from {{ u_culprit_one_week.sitegroup.host }})</li>
+	{% if u_hrs_two_week %}<li>last week: {{ u_hrs_two_week }} hours
+		({{ u_culprit_two_week.hours_int }} hours from {{ u_culprit_two_week.sitegroup.host }})</li>{% endif %}
+	{% if u_hrs_three_week %}<li>two weeks ago: {{ u_hrs_three_week }} hours
+		({{ u_culprit_three_week.hours_int }} hours from {{ u_culprit_three_week.sitegroup.host }})</li>{% endif %}
+</ul>
 
-
-{% endif %}
 {% if pledges %}
-This week you pledged:
-{% for pledge in pledges %}
-    ${{ pledge.amount }} to {{ pledge.charity }}
-{% endfor %}
-{% else %}
-This week you made no pledges to any charity.
+	<p>This week you pledged:</p>
+	<ul>
+	{% for pledge in pledges %}
+	    <li>${{ pledge.amount }} to {{ pledge.charity }}</li>
+	{% endfor %}
+	</ul>
 {% endif %}
+
 {% if payments %}
-This week you turned pledges into donations!!
-{% for payment in payments %}
-    ${{ payment.amount }} to {{ payment.charity }}
-{% endfor %}
-{% else %}
-This week you made no actual payments.
+	<p>This week you turned pledges into donations!</p>
+	<ul>
+	{% for payment in payments %}
+	    <li>${{ payment.amount }} to {{ payment.charity }}</li>
+	{% endfor %}
+	</ul>
 {% endif %}
-Best Regards,
-ProcrasDonate team
+
+<p><a href="{{ constants.PD_URL }}{{ constants.MESSAGES_URL }}">View all messages</a></p>

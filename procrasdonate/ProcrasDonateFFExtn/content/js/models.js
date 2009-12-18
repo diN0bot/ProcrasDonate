@@ -498,7 +498,7 @@ function load_models(db, pddb) {
 		},
 		
 		enter_at_display: function() {
-			return _friendly_datetime(_un_dbify_date(this.enter_at));
+			return _un_dbify_date(this.enter_at).strftime("%b %d, %Y %H:%M:%S");
 		},
 		
 		duration_display: function() {

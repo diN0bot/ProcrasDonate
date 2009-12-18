@@ -36,11 +36,13 @@ DEBUG_TOOLBAR = False # True to show debug toolbar at top of page
 DEBUG_PROPAGATE_EXCEPTIONS = DEBUG # For twill tests
 
 ADMINS = (
-    ('y0i', 'y0i@whynoti.org'),
+    ('Lucy', 'Lucy@ProcrasDonate.com')
 )
 MANAGERS = ADMINS
 
 APPS = ('procrasdonate', )
+
+EMAIL = "info@ProcrasDonate.com"
 
 DOMAIN = 'https://ProcrasDonate.com'
 API_DOMAIN = 'https://ProcrasDonate.com'

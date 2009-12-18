@@ -70,6 +70,8 @@ var constants = {};
 	constants.TIMING_TEST_SUITE_URL = '/dev/timing_test_suite/';
 	
 	constants.AMAZON_USER_URL = "https://payments.amazon.com";
+	
+	constants.EMAIL_ADDRESS = "info@ProcrasDonate.com"
 
 	// enumeration of settings page state
 	constants.DEFAULT_SETTINGS_STATE = "overview";
@@ -106,28 +108,28 @@ var constants = {};
 	// enumeration of progress page state
 	constants.DEFAULT_PROGRESS_STATE = "gauges";
 	constants.PROGRESS_STATE_ENUM = [
-		"gauges", "classifications", "visits", "trends", "stacks", "averages", "ratios"
+		"gauges", "classifications", "visits", "trends", /*"stacks", "averages", "ratios"*/
 	];
 	constants.PROGRESS_STATE_TAB_NAMES = [
-		"Gauges", "Sites", "Visits", "Trends", "Stacks", "Averages", "Ratios"
+		"Gauges", "Sites", "Visits", "Trends", /*"Stacks", "Averages", "Ratios"*/
 	];
 	constants.PROGRESS_STATE_INSERTS = [
 		"insert_progress_gauges",
 		"insert_progress_classifications",
 		"insert_progress_visits",
 		"insert_progress_trends",
-		"insert_progress_stacks",
+		/*"insert_progress_stacks",
 		"insert_progress_averages",
-		"insert_progress_ratios"
+		"insert_progress_ratios"*/
 	];
 	constants.PROGRESS_STATE_IMAGES = [
 		{ past: "GaugesButton.png", selected: "GaugesButton.png", future: "GaugesButton.png" },
 		{ past: "LargeUnsortedIcon2.png", selected: "LargeUnsortedIcon.png", future: "LargeUnsortedIcon2.png" },
 		{ past: "VisitsButton.png", selected: "VisitsButton.png", future: "VisitsButton.png" },
 		{ past: "TrendsButton.png", selected: "TrendsButton.png", future: "TrendsButton.png" },
+		/*{ past: "trends_button.png", selected: "trends_button.png", future: "trends_button.png" },
 		{ past: "trends_button.png", selected: "trends_button.png", future: "trends_button.png" },
-		{ past: "trends_button.png", selected: "trends_button.png", future: "trends_button.png" },
-		{ past: "trends_button.png", selected: "trends_button.png", future: "trends_button.png" }
+		{ past: "trends_button.png", selected: "trends_button.png", future: "trends_button.png" }*/
    	];
 
 	// enumeration of messages page state

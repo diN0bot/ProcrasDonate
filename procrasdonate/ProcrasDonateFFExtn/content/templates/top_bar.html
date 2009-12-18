@@ -11,14 +11,18 @@
 	}
 	
 	#procrasdonate_extn_top_bar img {
-		float: left;
-		margin-left: 10px;
+		margin: 0 10px;
 	}
 	
 	#procrasdonate_extn_top_bar a {
 		color: blue;
 		text-decoration: underline;
 		border: none;
+	}
+	
+	#procrasdonate_extn_expand {
+		width: 60px;
+		cursor: pointer;
 	}
 	
 	#close_procrasdonate_extn_top_bar {
@@ -30,21 +34,17 @@
 </style>
    
  <div id="procrasdonate_extn_top_bar">
- 	<a href="{{ constants.PD_URL }}{{ constants.PROGRESS_URL }}">
- 		<img src="{{ constants.PD_URL }}{{ constants.MEDIA_URL }}img/ToolbarImages/ProcrasDonateIcon.png" />
- 	</a>
  	<div id="close_procrasdonate_extn_top_bar">[x]</div>
- 	
+ 
  	<p>
-		{% if not latest_report.is_read %}
-			<a href="{{ constants.PD_URL }}{{ constants.MESSAGES_URL }}">New progress report.</a>
-		{% else %}
-			Good work!
-		{% endif %}
+ 	 	<a href="{{ constants.PD_URL }}{{ constants.PROGRESS_URL }}">
+ 			<img src="{{ constants.PD_URL }}{{ constants.MEDIA_URL }}img/ToolbarImages/ProcrasDonateIcon.png" />
+ 		</a>
+		<span id="procrasdonate_extn_summary">{{ latest_report.subject }}</span>
+		<span id="procrasdonate_extn_message"></span>
+		<img id="procrasdonate_extn_expand" src="{{ constants.PD_URL }}{{ constants.MEDIA_URL }}img/MoreButton.png" />
+		<img width="20" src="{{ constants.PD_URL }}{{ constants.MEDIA_URL }}img/ExpandButton.png" />
+		<img width="20" src="{{ constants.PD_URL }}{{ constants.MEDIA_URL }}img/ExpandButton2.png" />
+		<img width="20" src="{{ constants.PD_URL }}{{ constants.MEDIA_URL }}img/ContractButton.png" />
 	</p>
-	{% comment %}
-	{% if not registration_complete %}
-		<a href="{{ constants.PD_URL }}{{ constants.REGISTER_URL }}">Finish registering.</a>
-	{% endif %}
-	{% endcomment %}
 </div>

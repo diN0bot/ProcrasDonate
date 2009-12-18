@@ -218,7 +218,6 @@ img { -ms-interpolation-mode:bicubic; }
 	margin: 0;
 	padding: 0.5em;
 }
-#report_list .is_read { background: #EEEEEE; }
 #report_list .report_meta {
 	float: right;
 	color: #828282;
@@ -233,15 +232,21 @@ img { -ms-interpolation-mode:bicubic; }
 	margin: 1em;
 }
 #report_list .open_close_arrow {
-	background: red url('/procrasdonate_media/img/UpArrow.png');
-	width: 1em;
-	height: 1em;
-	margin: .2em .4em 0em 0em;
+	margin: 0em .4em;
 	float: left; 
 }
-
-#report_list .is_closed {
-	background: blue url('/procrasdonate_media/img/DownArrow.png');
+#report_list .open_close_arrow img {
+	width: 1.5em;
+	height: 1.5em;
+}
+#report_list .is_read_holder {
+	float: left;
+	width: 1em;
+	height: 1em;
+}
+#report_list .is_read_holder img {
+	width: 100%;
+	height: 100%;
 }
 
 /******** HOME PAGE *******************************************/

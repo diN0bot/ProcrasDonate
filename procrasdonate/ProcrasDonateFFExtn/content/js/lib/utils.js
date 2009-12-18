@@ -249,72 +249,11 @@ var _change_location = function(request, url) {
 	new XPCNativeWrapper(unsafeWin, "location").location = url;
 }
 
-var _friendly_date = function(date) {
-	if (!date) {
-		date = new Date();
-	}
-	var month = "";
-	switch(date.getMonth()) {
-	case 0:
-		month = "January";
-		break
-	case 1:
-		month = "February";
-		break
-	case 2:
-		month = "March";
-		break
-	case 3:
-		month = "April";
-		break
-	case 4:
-		month = "May";
-		break
-	case 5:
-		month = "June";
-		break
-	case 6:
-		month = "July";
-		break
-	case 7:
-		month = "August";
-		break
-	case 8:
-		month = "September";
-		break
-	case 9:
-		month = "October";
-		break
-	case 10:
-		month = "November";
-		break
-	case 11:
-		month = "December";
-		break
-	}
-	
-	return month+" "+date.getDate()+", "+date.getFullYear();
-}
-
-var _friendly_datetime = function(date) {
-	if (!date) {
-		date = new Date();
-	}
-	var hour = "";
-	var minute = "";
-	var second = "";
-	if (date.getHours() < 10) { hour += "0"; }
-	hour += date.getHours();
-	if (date.getMinutes() < 10) { minute += "0"; }
-	minute += date.getMinutes();
-	if (date.getSeconds() < 10) { second += "0"; }
-	second += date.getSeconds();
-	return _friendly_date(date) + ", " + hour + ":" + minute + ":" + second;
-}
-
 var _start_of_day = function(date) {
 	if (!date) {
 		date = new Date();
+	} else {
+		date = new Date(date);
 	}
 	date.setHours(0);
 	date.setMinutes(0);
@@ -326,6 +265,8 @@ var _start_of_day = function(date) {
 var _start_of_week = function(date) {
 	if (!date) {
 		date = new Date();
+	} else {
+		date = new Date(date);
 	}
 	date.setHours(0);
 	date.setMinutes(0);
@@ -333,6 +274,7 @@ var _start_of_week = function(date) {
 	date.setMilliseconds(0);
 	// first day of week. getDay should now equal 1 (Monday)
 	// if day is already Monday, stay. otherwise, retreat to last Monday
+	//if (x) logger("date.getDay "+date.getDate());
 	if (date.getDay() != 1) {
 		if (date.getDay() == 0) {
 			// if sunday, then subtract 6 days
@@ -348,6 +290,8 @@ var _start_of_week = function(date) {
 var _start_of_year = function(date) {
 	if (!date) {
 		date = new Date();
+	} else {
+		date = new Date(date);
 	}
 	date.setMonth(0);
 	date.setDate(1);
@@ -363,6 +307,8 @@ var _end_of_forever = function() { return -3; }
 var _end_of_day = function(date) {
 	if (!date) {
 		date = new Date();
+	} else {
+		date = new Date(date);
 	}
 	date.setHours(23);
 	date.setMinutes(59);
@@ -374,6 +320,8 @@ var _end_of_day = function(date) {
 var _end_of_week = function(date) {
 	if (!date) {
 		date = new Date();
+	} else {
+		date = new Date(date);
 	}
 	date.setHours(23);
 	date.setMinutes(23);
@@ -390,6 +338,8 @@ var _end_of_week = function(date) {
 var _end_of_year = function(date) {
 	if (!date) {
 		date = new Date();
+	} else {
+		date = new Date(date);
 	}
 	date.setMonth(11);
 	date.setDate(31)
@@ -403,6 +353,8 @@ var _end_of_year = function(date) {
 var _end_of_last_year = function(date) {
 	if (!date) {
 		date = new Date();
+	} else {
+		date = new Date(date);
 	}
 	date.setYear(date.getYear() - 1);
 	date.setMonth(11);

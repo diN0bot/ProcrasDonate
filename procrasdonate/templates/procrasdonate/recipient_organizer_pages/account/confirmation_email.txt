@@ -19,6 +19,6 @@ In order to complete your registration, please click the link below or copy and 
 
 We're here to help.  So please contact us if you have any questions.
 
-Clay Ward
-procrasdonate@bilumi.org
+ProcrasDonate Team
+{{ email }}
 http://ProcrasDonate.com

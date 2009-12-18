@@ -5,8 +5,8 @@
 			You can update these settings later at any time.</p>
 	{% endif %}{% if multi_auth.error %}
 		<p>A problem occurred. Please copy/paste the error message below
-			into an email to <a href="procrasdonate@bilumi.org">
-			procrasdonate@bilumi.org</a>
+			into an email to <a href="{{ constants.EMAIL_ADDRESS }}">
+			{{ constants.EMAIL_ADDRESS }}</a>
 			<blockquote>error message: {{ multi_auth.caller_reference }} -  
 				{{ multi_auth.status }} {{ multi_auth.error_message }}</blockquote>
 		</p>
@@ -16,13 +16,13 @@
 		<p>Authorization canceled</p>
 	{% endif %}{% if multi_auth.aborted %}
 		<p>Did you mean to cancel authorization? Please try again or email
-		<a href="procrasdonate@bilumi.org">procrasdonate@bilumi.org</a> 
+		<a href="{{ constants.EMAIL_ADDRESS }}">{{ constants.EMAIL_ADDRESS }}</a> 
 		for help.
 		</p>
 	{% endif %}{% if multi_auth.response_not_received %}
 		{% if server_dont_know %}
 			<p>Hmmm...incomplete authorization. Please try again or email
-			<a href="procrasdonate@bilumi.org">procrasdonate@bilumi.org</a> 
+			<a href="{{ constants.EMAIL_ADDRESS }}">{{ constants.EMAIL_ADDRESS }}</a> 
 			for help.</p>
 		{% else %}
 			<p>Retrieving information from server...</p>

@@ -25,6 +25,7 @@ _extend(Controller.prototype, {
 				if (sitegroup) {
 					if (sitegroup.tag_id == this.pddb.ProcrasDonate.id) {
 						this.page.insert_top_bar(request);
+						this.page.activate_top_bar(request);
 						this.prefs.set("inserted_top_bar_today", true)
 					}
 				}
@@ -134,6 +135,7 @@ _extend(Controller.prototype, {
 			break;
 		case constants.ADMIN_URL:
 			this.page.insert_top_bar(request);
+			this.page.activate_top_bar(request);
 			break;
 		default:
 			ret = false;
@@ -364,7 +366,7 @@ _extend(PageController.prototype, {
 	 * returns true if top bar would have content; false if would be empty
 	 */
 	top_bar_has_content: function() {
-		var latest = self.pddb.Report.latest();
+		var latest = this.pddb.Report.latest();
 		return latest && !latest.is_read()
 	},
 	
@@ -384,6 +386,19 @@ _extend(PageController.prototype, {
 		// activate
 		request.jQuery("#close_procrasdonate_extn_top_bar").click(function() {
 			request.jQuery(this).parent().remove();
+		});
+	},
+	
+	activate_top_bar: function(request) {
+		var self = this;
+		request.jQuery("#procrasdonate_extn_expand").click(function() {
+			var latest = self.pddb.Report.latest();
+			request.jQuery("#procrasdonate_extn_message").html(
+					latest.message).css("text-align", "left");
+			request.jQuery("#procrasdonate_extn_top_bar").css("height", "auto");
+			request.jQuery(this).remove();
+			self.pddb.Report.set({ read: _dbify_bool(true)},
+					{ id: latest.id });
 		});
 	},
 	
@@ -786,8 +801,77 @@ _extend(PageController.prototype, {
 					self.insert_example_gauges(request);
 				});
 		}
-		arrow_click(".up_arrow", 0.25);
-		arrow_click(".down_arrow", -0.25);
+		
+		function arrow_click2(id, dir_class, diff) {
+			var init_delay = 500;
+			var delay = init_delay;
+			var timer_id = null;
+			var timer_running = false;
+			var elem = request.jQuery("#"+id);
+			
+			function do_change() {
+				var item = elem;
+				var id = item.attr("id");
+				//item.append(" "+id+" ");
+				var value = _un_prefify_float( self.prefs.get(id, null) );
+				//logger("do change ____ "+item.attr("class")+"."+item.attr("id")+"."+id+" = "+value);
+				if (!isNaN(value) && value != null) {
+					var new_value;
+					if (item.siblings(".units").text() == "%") {
+						new_value = value + (diff/100.0);
+					} else {
+						new_value = value + diff;
+					}
+					//logger(" new value = "+new_value);
+					if (new_value < 0) new_value = 0.0;
+					if (item.siblings(".units").text() == "%") {
+						// toFixed returns a string not float!!
+						x = new_value.toFixed(4);
+						self.prefs.set(id, x);
+						new_value = new_value * 100.0;
+					} else {
+						self.prefs.set(id, _prefify_float(new_value));
+					}
+					item.text(new_value.toFixed(2));
+					//logger(" item text: "+(new_value.toFixed(2))+" actual = "+item.text());
+					item.siblings(".error").text("");
+				} else {
+					item.siblings(".error").text("ERROR");
+				}
+			}
+			
+			elem.siblings(dir_class)
+				.mousedown(function(e) {
+					timer_running = true;
+					change_do_change();
+				})
+				.css("cursor", "pointer");
+			
+			request.jQuery(request.get_document())
+				.mouseup(function(e) {
+					// we want to clear every timer_id that gets created
+					timer_running = false;
+					clearTimeout(timer_id);
+					delay = init_delay;
+					self.insert_example_gauges(request);
+				});
+			
+			function change_do_change() {
+				//logger("CHANGE DO CHANGE "+timer_running+" "+delay);
+				if (timer_running) {
+					do_change();
+					if (delay > 100) { delay = delay * .80; }
+					timer_id = setTimeout(change_do_change, delay);
+				}
+			}
+		}
+
+		request.jQuery(".up_arrow").each(function() {
+			arrow_click2(request.jQuery(this).siblings(".thevalue").attr("id"), ".up_arrow", 0.25);
+		});
+		request.jQuery(".down_arrow").each(function() {
+			arrow_click2(request.jQuery(this).siblings(".thevalue").attr("id"), ".down_arrow", -0.25);
+		});
 		
 		request.jQuery("input[type=checkbox]").click(function() {
 			var item = request.jQuery(this);
@@ -1088,7 +1172,6 @@ _extend(PageController.prototype, {
 		
 		var reports = [];
 		self.pddb.Report.select({}, function(row) {
-			logger("ROW "+row);
 			reports.push(row);
 		}, "-datetime");
 		
@@ -1112,14 +1195,22 @@ _extend(PageController.prototype, {
 			var report = self.pddb.Report.get_or_null({ id: id });
 			if (report) {
 				request.jQuery(this).children(".report_message").toggle();
-				request.jQuery(this).children(".open_close_arrow").toggleClass("is_closed");
+				var arrow = request.jQuery(this).children(".open_close_arrow");
+				if (arrow.hasClass("is_closed")) {
+					arrow.children("img").attr("src", constants.MEDIA_URL+"img/DownArrow.png");
+				} else { 
+					arrow.children("img").attr("src", constants.MEDIA_URL+"img/RightArrow.png");
+				}
+				arrow.toggleClass("is_closed");
 				if (!report.is_read()) {
 					self.pddb.Report.set({
 						read: _dbify_bool(true)
 					}, {
 						id: report.id
 					});
-					request.jQuery(this).addClass("is_read");
+					request.jQuery(this).children(".is_read_holder")
+						.children("img").remove()
+						.addClass("is_read");
 				}
 			}
 		});
@@ -3514,6 +3605,112 @@ _extend(PageController.prototype, {
 		this.pddb.init_db();
 	},
 	
+	test_messages: function() {
+		var self = this;
+		
+		var t, t2, t3, t4, t5 = null;
+		self.pddb.Total.select({
+			contenttype_id: self.pddb.ContentType.get_or_null({ modelname: "SiteGroup" }).id
+		}, function(row) {
+			if (!t) { t = row; }
+			else if (!t2) { t2 = row; }
+			else if (!t3) { t3 = row; }
+			else if (!t4) { t4 = row; }
+			else if (!t5) { t5 = row; }
+		}, "-total_time");
+		
+		function message_test(
+				pd_hrs_one_week, pd_hrs_two_week, pd_hrs_three_week,
+				pd_hr_per_week_goal, pd_dollars_per_hr, pd_hr_per_week_max,
+				start_date_friendly, end_date_friendly, expected) {
+			
+			[message, subject] = self.schedule.create_message_logic(
+					pd_hrs_one_week, pd_hrs_two_week, pd_hrs_three_week,
+					1,2,3,
+					6,7,8,
+					pd_hr_per_week_goal, pd_dollars_per_hr, pd_hr_per_week_max,
+					2.22, 22,
+					start_date_friendly, end_date_friendly,
+					t, t2, t2,
+					t3, t3, t4,
+					t4, t5, t5);
+			
+			var actual = subject.split(" - ");
+			if (actual.length > 1) {
+				actual = actual[1];
+			}
+			
+			logger("\none week = "+pd_hrs_one_week+
+					"\ntwo week = "+pd_hrs_two_week+
+					"\nthree week = "+pd_hrs_three_week+
+					"\ngoal = "+pd_hr_per_week_goal+
+					"\n"+subject+
+					"\n"+message);
+
+			if (actual != expected) {
+				logger("############# TEST FAILED: expected:"+expected+" actual:"+actual+
+						"\none week = "+pd_hrs_one_week+
+						"\ntwo week = "+pd_hrs_two_week+
+						"\nthree week = "+pd_hrs_three_week+
+						"\ngoal = "+pd_hr_per_week_goal+
+						"\n"+subject);/*+
+						"\n"+message);*/
+				return 1
+			} else {
+				return 0
+			}
+		}
+		
+		var fails = 0;
+		fails += message_test(8, 10, 12, 13, 1, 20, "Dec 22, 1982", "Dec 28, 1983", "Winning streak"); // winning streak
+		fails += message_test(8, 10, 12, 11, 1, 20, "Dec 22, 1982", "Dec 28, 1983", "Good work"); // good work
+		fails += message_test(8, 10, 12,  9, 1, 20, "Dec 22, 1982", "Dec 28, 1983", "Good work"); // good work
+		fails += message_test(8, 10, 12,  7, 1, 20, "Dec 22, 1982", "Dec 28, 1983", "Getting better"); // getting better
+		
+		fails += message_test(12, 10, 8, 13, 1, 20, "Dec 22, 1982", "Dec 28, 1983", "Winning streak"); // 
+		fails += message_test(12, 10, 8, 11, 1, 20, "Dec 22, 1982", "Dec 28, 1983", "Downturn"); // 
+		fails += message_test(12, 10, 8,  9, 1, 20, "Dec 22, 1982", "Dec 28, 1983", "Getting worse"); // 
+		fails += message_test(12, 10, 8,  7, 1, 20, "Dec 22, 1982", "Dec 28, 1983", "Getting worse"); // 
+		
+		fails += message_test(8, 12, 10, 13, 1, 20, "Dec 22, 1982", "Dec 28, 1983", "Winning streak"); // 
+		fails += message_test(8, 12, 10, 11, 1, 20, "Dec 22, 1982", "Dec 28, 1983", "Good work"); // 
+		fails += message_test(8, 12, 10,  9, 1, 20, "Dec 22, 1982", "Dec 28, 1983", "Good work"); // 
+		fails += message_test(8, 12, 10,  7, 1, 20, "Dec 22, 1982", "Dec 28, 1983", "Getting better"); // 
+		
+		fails += message_test(10, 12, 8, 13, 1, 20, "Dec 22, 1982", "Dec 28, 1983", "Winning streak"); // 
+		fails += message_test(10, 12, 8, 11, 1, 20, "Dec 22, 1982", "Dec 28, 1983", "Good work"); // 
+		fails += message_test(10, 12, 8,  9, 1, 20, "Dec 22, 1982", "Dec 28, 1983", "Getting better"); // 
+		fails += message_test(10, 12, 8,  7, 1, 20, "Dec 22, 1982", "Dec 28, 1983", "Getting better"); // 
+		
+		fails += message_test(10, 8, 12, 13, 1, 20, "Dec 22, 1982", "Dec 28, 1983", "Winning streak"); // 
+		fails += message_test(10, 8, 12, 11, 1, 20, "Dec 22, 1982", "Dec 28, 1983", "Good work"); // 
+		fails += message_test(10, 8, 12,  9, 1, 20, "Dec 22, 1982", "Dec 28, 1983", "Downturn"); // 
+		fails += message_test(10, 8, 12,  7, 1, 20, "Dec 22, 1982", "Dec 28, 1983", "Getting worse"); // 
+		
+		fails += message_test(12, 8, 10, 13, 1, 20, "Dec 22, 1982", "Dec 28, 1983", "Winning streak"); // 
+		fails += message_test(12, 8, 10, 11, 1, 20, "Dec 22, 1982", "Dec 28, 1983", "Downturn"); // 
+		fails += message_test(12, 8, 10,  9, 1, 20, "Dec 22, 1982", "Dec 28, 1983", "Downturn"); // 
+		fails += message_test(12, 8, 10,  7, 1, 20, "Dec 22, 1982", "Dec 28, 1983", "Getting worse"); // 
+		
+		fails += message_test(null, null, null, 13, 1, 20, "Dec 22, 1982", "Dec 28, 1983", "No ProcrasDonation"); // 
+		
+		fails += message_test(12, null, null, 13, 1, 20, "Dec 22, 1982", "Dec 28, 1983", "Good job"); // 
+		fails += message_test(12, null, null, 12, 1, 20, "Dec 22, 1982", "Dec 28, 1983", "Good job"); // 
+		fails += message_test(12, null, null, 11, 1, 20, "Dec 22, 1982", "Dec 28, 1983", "You can do better"); // 
+		
+		fails += message_test(10, 8, null, 7, 1, 20, "Dec 22, 1982", "Dec 28, 1983", "Getting worse"); // 
+		fails += message_test(10, 8, null, 9, 1, 20, "Dec 22, 1982", "Dec 28, 1983", "Downturn"); // 
+		fails += message_test(10, 8, null, 11, 1, 20, "Dec 22, 1982", "Dec 28, 1983", "Good work"); // 
+		
+		fails += message_test(10, 12, null, 9, 1, 20, "Dec 22, 1982", "Dec 28, 1983", "Getting better"); // 
+		fails += message_test(10, 12, null, 10, 1, 20, "Dec 22, 1982", "Dec 28, 1983", "Good work"); // 
+		fails += message_test(10, 12, null, 13, 1, 20, "Dec 22, 1982", "Dec 28, 1983", "Good work"); // 
+		
+		fails += message_test(10, 10, null, 10, 1, 20, "Dec 22, 1982", "Dec 28, 1983", "Pinball champion"); //
+		
+		logger(">>>>>>>>> "+fails+" failures");
+	},
+	
 	manual_test_suite: function(request) {
 		var actions = ["trigger_daily_cycle",
 		               "trigger_weekly_cycle",
@@ -3523,6 +3720,8 @@ _extend(PageController.prototype, {
 		               "trigger_on_install",
 		               "trigger_on_upgrade",
 		               "trigger_init_db",
+		               "",
+		               "test_messages",
 		               "",
 		               "reset_state_to_defaults",
 		               "reset_account_to_defaults",
@@ -3799,29 +3998,292 @@ _extend(Schedule.prototype, {
 		var pd_hr_per_week_goal = self.retrieve_float_for_display("pd_hr_per_week_goal", constants.DEFAULT_PD_HR_PER_WEEK_GOAL);
 		var pd_dollars_per_hr = self.retrieve_float_for_display("pd_dollars_per_hr", constants.DEFAULT_PD_DOLLARS_PER_HR);
 		var pd_hr_per_week_max = self.retrieve_float_for_display("pd_hr_per_week_max", constants.DEFAULT_PD_HR_PER_WEEK_MAX);
+		var tws_dollars_per_hr = self.retrieve_float_for_display("tws_dollars_per_hr", constants.DEFAULT_TWS_DOLLARS_PER_HR);
+		var tws_hr_per_week_max = self.retrieve_float_for_display("tws_hr_per_week_max", constants.DEFAULT_TWS_HR_PER_WEEK_MAX);
 		
-		var tag_contenttype = self.pddb.ContentType.get_or_null({
-			modelname: "Tag"
-		});
-		var last_week = _un_dbify_date(this.prefs.get("last_week_mark", 0));
-		last_week.setDate(last_week.getDate() - 7);
-		var start_date = _start_of_week(last_week);
-		var start_date_friendly = _friendly_date(start_date);
-		var end_date = _end_of_week(last_week);
-		var end_date_friendly = _friendly_date(end_date);
+		var tag_contenttype = self.pddb.ContentType.get_or_null({ modelname: "Tag" });
+		var sitegroup_contenttype = self.pddb.ContentType.get_or_null({ modelname: "SiteGroup" });
 		
-		var pd_total_last_week = self.pddb.Total.get_or_null({
+		var one_week = _un_dbify_date(this.prefs.get("last_week_mark", 0));
+		one_week.setDate(one_week.getDate() - 7);
+		
+		//logger("ONE WEEK "+one_week);
+		
+		var two_week = new Date(one_week);
+		two_week.setDate(two_week.getDate() - 7);
+		
+		var three_week = new Date(two_week);
+		three_week.setDate(three_week.getDate() - 7);
+		
+		var start_date_one_week = _start_of_week(one_week);
+		var end_date_one_week = _end_of_week(one_week);
+		
+		var start_date_two_week = _start_of_week(two_week);
+		var end_date_two_week = _end_of_week(two_week);
+		
+		var start_date_three_week = _start_of_week(three_week);
+		var end_date_three_week = _end_of_week(three_week);
+		
+		var start_date_friendly = start_date_one_week.strftime("%m/%d");
+		var end_date_friendly = end_date_one_week.strftime("%m/%d");
+		
+		//logger("START "+start_date_one_week); 
+		//logger("START FRIENDLY "+start_date_friendly);
+		
+		//logger("END "+end_date_one_week); 
+		//logger("END FRIENDLY "+end_date_friendly);
+		
+		var pd_total_one_week = self.pddb.Total.get_or_null({
 			contenttype_id: tag_contenttype.id,
 			content_id: self.pddb.ProcrasDonate.id,
-			datetime: _dbify_date(end_date),
+			datetime: _dbify_date(end_date_one_week),
 			timetype_id: self.pddb.Weekly.id
 		});
-		var last_week_hrs = 0.0;
-		if (pd_total_last_week) {
-			last_week_hrs = pd_total_last_week.hours().toFixed(1)
+		var pd_hrs_one_week = 0.0;
+		var pd_culprit_one_week = null;
+		var tws_culprit_one_week = null;
+		var u_culprit_one_week = null;
+		if (pd_total_one_week) {
+			pd_hrs_one_week = pd_total_one_week.hours().toFixed(1);
+			self.pddb.Total.select({
+				contenttype_id: sitegroup_contenttype.id,
+				datetime: _dbify_date(end_date_one_week),
+				timetype_id: self.pddb.Weekly.id
+			}, function(row) {
+				if (!pd_culprit_one_week && row.sitegroup().tag_id == self.pddb.ProcrasDonate.id) {
+					pd_culprit_one_week = row;
+				} else if (!tws_culprit_one_week && row.sitegroup().tag_id == self.pddb.TimeWellSpent.id) {
+					tws_culprit_one_week = row;
+				} else if (!u_culprit_one_week && row.sitegroup().tag_id == self.pddb.Unsorted.id) {
+					u_culprit_one_week = row;
+				}
+			}, "-total_time");
+		}
+		var tws_total_one_week = self.pddb.Total.get_or_null({
+			contenttype_id: tag_contenttype.id,
+			content_id: self.pddb.TimeWellSpent.id,
+			datetime: _dbify_date(end_date_one_week),
+			timetype_id: self.pddb.Weekly.id
+		});
+		var tws_hrs_one_week = 0.0;
+		if (tws_total_one_week) {
+			tws_hrs_one_week = tws_total_one_week.hours().toFixed(1);
+		}
+		var u_total_one_week = self.pddb.Total.get_or_null({
+			contenttype_id: tag_contenttype.id,
+			content_id: self.pddb.Unsorted.id,
+			datetime: _dbify_date(end_date_one_week),
+			timetype_id: self.pddb.Weekly.id
+		});
+		var u_hrs_one_week = 0.0;
+		if (u_total_one_week) {
+			u_hrs_one_week = u_total_one_week.hours().toFixed(1);
 		}
 		
-		var good_news = (last_week_hrs < pd_hr_per_week_goal)
+		var pd_total_two_week = self.pddb.Total.get_or_null({
+			contenttype_id: tag_contenttype.id,
+			content_id: self.pddb.ProcrasDonate.id,
+			datetime: _dbify_date(end_date_two_week),
+			timetype_id: self.pddb.Weekly.id
+		});
+		var pd_hrs_two_week = 0.0;
+		var pd_culprit_two_week = null;
+		var tws_culprit_two_week = null;
+		var u_culprit_two_week = null;
+		if (pd_total_two_week) {
+			pd_hrs_two_week = pd_total_two_week.hours().toFixed(1);
+			self.pddb.Total.select({
+				contenttype_id: sitegroup_contenttype.id,
+				datetime: _dbify_date(end_date_two_week),
+				timetype_id: self.pddb.Weekly.id
+			}, function(row) {
+				if (!pd_culprit_two_week && row.sitegroup().tag_id == self.pddb.ProcrasDonate.id) {
+					pd_culprit_two_week = row;
+				} else if (!tws_culprit_two_week && row.sitegroup().tag_id == self.pddb.TimeWellSpent.id) {
+					tws_culprit_two_week = row;
+				} else if (!u_culprit_two_week && row.sitegroup().tag_id == self.pddb.Unsorted.id) {
+					u_culprit_two_week = row;
+				}
+			}, "-total_time");
+		}
+		var tws_total_two_week = self.pddb.Total.get_or_null({
+			contenttype_id: tag_contenttype.id,
+			content_id: self.pddb.TimeWellSpent.id,
+			datetime: _dbify_date(end_date_two_week),
+			timetype_id: self.pddb.Weekly.id
+		});
+		var tws_hrs_two_week = 0.0;
+		if (tws_total_two_week) {
+			tws_hrs_two_week = tws_total_two_week.hours().toFixed(1);
+		}
+		var u_total_two_week = self.pddb.Total.get_or_null({
+			contenttype_id: tag_contenttype.id,
+			content_id: self.pddb.Unsorted.id,
+			datetime: _dbify_date(end_date_two_week),
+			timetype_id: self.pddb.Weekly.id
+		});
+		var u_hrs_two_week = 0.0;
+		if (u_total_two_week) {
+			u_hrs_two_week = u_total_two_week.hours().toFixed(1);
+		}
+		
+		var pd_total_three_week = self.pddb.Total.get_or_null({
+			contenttype_id: tag_contenttype.id,
+			content_id: self.pddb.ProcrasDonate.id,
+			datetime: _dbify_date(end_date_three_week),
+			timetype_id: self.pddb.Weekly.id
+		});
+		var pd_hrs_three_week = null;
+		var pd_culprit_three_week = null;
+		var tws_culprit_three_week = null;
+		var u_culprit_three_week = null;
+		if (pd_total_three_week) {
+			pd_hrs_three_week = pd_total_three_week.hours().toFixed(1);
+			self.pddb.Total.select({
+				contenttype_id: sitegroup_contenttype.id,
+				datetime: _dbify_date(end_date_three_week),
+				timetype_id: self.pddb.Weekly.id
+			}, function(row) {
+				if (!pd_culprit_three_week && row.sitegroup().tag_id == self.pddb.ProcrasDonate.id) {
+					pd_culprit_three_week = row;
+				} else if (!tws_culprit_three_week && row.sitegroup().tag_id == self.pddb.TimeWellSpent.id) {
+					tws_culprit_three_week = row;
+				} else if (!u_culprit_three_week && row.sitegroup().tag_id == self.pddb.Unsorted.id) {
+					u_culprit_three_week = row;
+				}
+			}, "-total_time");
+		}
+		var tws_total_three_week = self.pddb.Total.get_or_null({
+			contenttype_id: tag_contenttype.id,
+			content_id: self.pddb.TimeWellSpent.id,
+			datetime: _dbify_date(end_date_three_week),
+			timetype_id: self.pddb.Weekly.id
+		});
+		var tws_hrs_three_week = null;
+		if (tws_total_three_week) {
+			tws_hrs_three_week = tws_total_three_week.hours().toFixed(1);
+		}
+		var u_total_three_week = self.pddb.Total.get_or_null({
+			contenttype_id: tag_contenttype.id,
+			content_id: self.pddb.Unsorted.id,
+			datetime: _dbify_date(end_date_three_week),
+			timetype_id: self.pddb.Weekly.id
+		});
+		var u_hrs_three_week = null;
+		if (u_total_three_week) {
+			u_hrs_three_week = u_total_three_week.hours().toFixed(1);
+		}
+		
+		/*
+		logger("CULPRITs "+
+				"\n"+pd_culprit_one_week+
+				"\n"+pd_culprit_two_week+
+				"\n"+pd_culprit_three_week+
+				"\n"+tws_culprit_one_week+
+				"\n"+tws_culprit_two_week+
+				"\n"+tws_culprit_three_week+
+				"\n"+u_culprit_one_week+
+				"\n"+u_culprit_two_week+
+				"\n"+u_culprit_three_week);
+		*/
+		
+		[message, subject] = this.create_message_logic(
+				pd_hrs_one_week, pd_hrs_two_week, pd_hrs_three_week,
+				tws_hrs_one_week, tws_hrs_two_week, tws_hrs_three_week,
+				u_hrs_one_week, u_hrs_two_week, u_hrs_three_week,
+				pd_hr_per_week_goal, pd_dollars_per_hr, pd_hr_per_week_max,
+				tws_dollars_per_hr, tws_hr_per_week_max,
+				start_date_friendly, end_date_friendly,
+				pd_culprit_one_week, tws_culprit_one_week, u_culprit_one_week,
+				pd_culprit_two_week, tws_culprit_two_week, u_culprit_two_week,
+				pd_culprit_three_week, tws_culprit_three_week, u_culprit_three_week);
+		
+		self.pddb.Report.create({
+			datetime: _dbify_date(end_date_one_week),
+			type: "weekly",
+			subject: subject,
+			message: message,
+			read: _dbify_bool(false),
+			sent: _dbify_bool(false)
+		});
+	},
+	
+	create_message_logic: function(pd_hrs_one_week, pd_hrs_two_week, pd_hrs_three_week,
+			tws_hrs_one_week, tws_hrs_two_week, tws_hrs_three_week,
+			u_hrs_one_week, u_hrs_two_week, u_hrs_three_week,
+			pd_hr_per_week_goal, pd_dollars_per_hr, pd_hr_per_week_max,
+			tws_dollars_per_hr, tws_hr_per_week_max,
+			start_date_friendly, end_date_friendly,
+			pd_culprit_one_week, tws_culprit_one_week, u_culprit_one_week,
+			pd_culprit_two_week, tws_culprit_two_week, u_culprit_three_week,
+			pd_culprit_three_week, tws_culprit_three_week, u_culprit_three_week) {
+		
+		var pd_hrs_one_week_diff, pd_hrs_two_week_diff, pd_hrs_three_week_diff = null;
+		var pd_hrs_one_week_two_week_diff_real, pd_hrs_one_week_two_week_diff = null;
+		
+		if (pd_hrs_one_week !== null) {
+			pd_hrs_one_week_diff = Math.abs(pd_hr_per_week_goal - pd_hrs_one_week).toFixed(1);
+		}
+		if (pd_hrs_two_week !== null) {
+			pd_hrs_two_week_diff = (pd_hr_per_week_goal - pd_hrs_two_week).toFixed(1);
+			pd_hrs_one_week_two_week_diff_real = (pd_hrs_two_week - pd_hrs_one_week).toFixed(1);
+			pd_hrs_one_week_two_week_diff = Math.abs(pd_hrs_one_week_two_week_diff_real);
+		}
+		if (pd_hrs_three_week !== null) {
+			pd_hrs_three_week_diff = Math.abs(pd_hr_per_week_goal - pd_hrs_three_week).toFixed(1);
+		}
+		
+		var no_data, one_week_good, one_week_bad, match, good_in_a_row, good, sudden_bad, getting_worse, getting_better = false;
+		var weeks_in_a_row_met = 0;
+		var subject = "Weekly affirmation ("+start_date_friendly+" - "+end_date_friendly+")";
+		if (pd_hrs_one_week === null) {
+			no_data = true;
+			subject += " - No ProcrasDonation"
+		} else if (pd_hrs_two_week === null) {
+			if (pd_hrs_one_week <= pd_hr_per_week_goal) {
+				one_week_good = true;
+				subject += " - Good job";
+			} else {
+				one_week_bad = true;
+				subject += " - You can do better";
+			}
+		} else if (pd_hrs_one_week == pd_hrs_two_week) {
+			match = true;
+			subject += " - Pinball champion";
+		} else if (pd_hrs_one_week <= pd_hr_per_week_goal &&
+				pd_hrs_two_week <= pd_hr_per_week_goal &&
+				pd_hrs_three_week !== null && pd_hrs_three_week <= pd_hr_per_week_goal) {
+			weeks_in_a_row_met = 3;
+			good_in_a_row = true;
+			subject += " - Winning streak";
+		} else if (pd_hrs_one_week <= pd_hr_per_week_goal) {
+			good = true;
+			subject += " - Good work";
+		} else if (pd_hrs_one_week > pd_hr_per_week_goal &&
+				pd_hrs_two_week <= pd_hr_per_week_goal) {
+			if (pd_hrs_three_week !== null && pd_hrs_three_week <= pd_hr_per_week_goal) {
+				weeks_in_a_row_met = 2;
+			} else {
+				weeks_in_a_row_met = 1;
+			}
+			subject += " - Downturn";
+			sudden_bad = true
+		} else if (pd_hrs_one_week > pd_hr_per_week_goal &&
+				pd_hrs_two_week > pd_hr_per_week_goal) {
+			if (pd_hrs_one_week_two_week_diff_real > 0) {
+				getting_better = true;
+				subject += " - Getting better";
+			} else {
+				getting_worse = true;
+				subject += " - Getting worse";
+			}
+		}
+		
+		var self = this;
+		var top_charity = null;
+		this.pddb.RecipientPercent.select({}, function(row) {
+			if (!top_charity) { top_charity = row.recipient(); }
+		}, "-percent");
 		
 		var pledges = [];
 		var payments = [];
@@ -3830,26 +4292,59 @@ _extend(Schedule.prototype, {
 		var message = Template.get("weekly_report").render(
 			new Context({
 				name: name,
-				start_date: start_date_friendly,
-				end_date: end_date_friendly,
-				good_news: good_news,
-				time_span: time_span,
+				
+				pd_hrs_one_week: pd_hrs_one_week,
+				pd_hrs_one_week_diff: pd_hrs_one_week_diff,
+				pd_hrs_two_week: pd_hrs_two_week,
+				pd_hrs_two_week_diff: pd_hrs_two_week_diff,
+				pd_hrs_three_week: pd_hrs_three_week,
+				pd_hrs_three_week_diff: pd_hrs_three_week_diff,
+				pd_hrs_one_week_two_week_diff: pd_hrs_one_week_two_week_diff,
+				
+				tws_hrs_one_week: tws_hrs_one_week,
+				tws_hrs_two_week: tws_hrs_two_week,
+				tws_hrs_three_week: tws_hrs_three_week,
+				u_hrs_one_week: u_hrs_one_week,
+				u_hrs_two_week: u_hrs_two_week,
+				u_hrs_three_week: u_hrs_three_week,
+				
 				pd_hr_per_week_goal: pd_hr_per_week_goal,
 				pd_dollars_per_hr: pd_dollars_per_hr,
 				pd_hr_per_week_max: pd_hr_per_week_max,
-				last_week_hrs: last_week_hrs,
+				tws_dollars_per_hr: tws_dollars_per_hr,
+				tws_hr_per_week_max: tws_hr_per_week_max,
+				
+				start_date: start_date_friendly,
+				end_date: end_date_friendly,
+				
+				no_data: no_data,
+				one_week_good: one_week_good,
+				one_week_bad: one_week_bad,
+				match: match,
+				good_in_a_row: good_in_a_row,
+				good: good,
+				sudden_bad: sudden_bad,
+				getting_worse: getting_worse,
+				getting_better: getting_better,
+				weeks_in_a_row_met: weeks_in_a_row_met,
+				
+				pd_culprit_one_week: pd_culprit_one_week,
+				tws_culprit_one_week: tws_culprit_one_week,
+				u_culprit_one_week: u_culprit_one_week,
+				pd_culprit_two_week: pd_culprit_two_week,
+				tws_culprit_two_week: tws_culprit_two_week,
+				u_culprit_three_week: u_culprit_three_week,
+				pd_culprit_three_week: pd_culprit_three_week,
+				tws_culprit_three_week: tws_culprit_three_week,
+				u_culprit_three_week: u_culprit_three_week,
+				
+				top_charity: top_charity,
 				pledges: pledges,
 				payments: payments
 			})
 		);
 		
-		self.pddb.Report.create({
-			datetime: _dbify_date(end_date),
-			type: "weekly",
-			message: message,
-			read: _dbify_bool(false),
-			sent: _dbify_bool(false)
-		});
-	}
+		return [message, subject]
+	},
 
 });

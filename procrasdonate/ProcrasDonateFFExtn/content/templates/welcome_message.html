@@ -1,0 +1,67 @@
+<p>Thanks for using <a href="{{ constants.SPLASH_URL }}">ProcrasDonate</a>
+	{% if name %}, {{ name }}!{% else %}!{% endif %}
+	We hope you have fun.
+</p>
+		
+<p>Below are some tips to get you started. You can find more information
+	in the <a href="{{ constants.FAQ_URL }}">FAQ</a>. If you have questions
+	or suggestions please let us know on the <a href="{{ constants.FEEDBACK_URL }}">
+	Feedback Forum</a> or by sending us <a href="mailto:{{ constants.EMAIL_ADDRESS }}">email: </a>
+	{{ constants.EMAIL_ADDRESS }}.
+</p>
+
+	<h3>
+		1. Categorize websites
+		<img src="{{ MEDIA_URL }}img/ToolbarImages/UnsortedIcon.png" class="icon-image" />
+		<img src="{{ MEDIA_URL }}img/ToolbarImages/ProcrasDonateIcon.png" class="icon-image" />
+		<img src="{{ MEDIA_URL }}img/ToolbarImages/TimeWellSpentIcon.png" class="icon-image" />
+	</h3>
+	
+	<p>Click the 
+		<img src="{{ MEDIA_URL }}img/ToolbarImages/UnsortedIcon.png" class="icon-image" />
+		icon that appears in Firefox's toolbar <b>next</b> to your browser's website address bar.</p>
+	  
+	<p>Click <b>once</b> to classify the currently viewed website as ProcrasDonation		
+		<img src="{{ MEDIA_URL }}img/ToolbarImages/ProcrasDonateIcon.png" class="icon-image" />, 
+		<b>twice</b> for TimeWellSpent		
+		<img src="{{ MEDIA_URL }}img/ToolbarImages/TimeWellSpentIcon.png" class="icon-image" />.
+		</p>
+	
+	<h3>
+		2. <img src="{{ MEDIA_URL }}img/StepCircle6Done.png" class="right-image" />
+		<a href="{% url register %}">Complete Registration</a>
+	</h3>
+	
+	<p><a href="{% url register %}">Customize your account</a> to create charitable incentives
+		and get feedback.</p>
+	
+	<h3>
+		3. Monitor your weekly web usage 
+		<img src="{{ MEDIA_URL }}img/ToolbarImages/IconBar40.png" class="icon-image" />
+	</h3>
+	
+	<p>Click the 
+		<img src="{{ MEDIA_URL }}img/ToolbarImages/IconBar20.png" class="icon-image" />
+		meter view your <a href="{% url my_progress %}">Progress</a> in more detail.</p>
+	
+	<p>Your <img src="{{ MEDIA_URL }}img/ToolbarImages/IconBar90.png" class="icon-image" />
+		meter will remain on default settings <b>until</b> you 
+		<a href="{% url register %}">Complete Registration</a> to set <i>your own goals</i>.</p>
+
+	<h3>
+		4. Look for weekly emails
+		<img style="width:8em" src="{{ MEDIA_URL }}img/laptophappy.png" class="right-image" />
+	</h3>
+	
+	<p>Each week you will receive affirming summaries of your progress.</p>
+	
+	<h3>
+		5. Tell your friends!
+	</h3>
+	<p>
+		<img style="width:6em" src="{{ MEDIA_URL }}img/laptophappy.png" />
+		<img style="width:6em" src="{{ MEDIA_URL }}img/laptophappy.png" />
+		<img style="width:6em" src="{{ MEDIA_URL }}img/laptophappy.png" />
+	</p>
+	
+	

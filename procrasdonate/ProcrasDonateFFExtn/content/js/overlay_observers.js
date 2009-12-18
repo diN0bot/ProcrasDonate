@@ -195,6 +195,17 @@ _extend(InitListener.prototype, {
 		window.setTimeout(function() {
 			gBrowser.selectedTab = gBrowser.addTab(constants.PD_URL + constants.AFTER_INSTALL_URL + version + "/");
 		}, 1500); //Firefox 2 fix - or else tab will get closed
+
+		// create welcome message
+		var message = Template.get("welcome_message").render(new Context({}));
+		var report = this.pddb.Report.create({
+			datetime: _dbify_date(new Date()),
+			type: "welcome",
+			subject: "Getting started with ProcrasDonate",
+			message: message,
+			read: _dbify_bool(false),
+			sent: _dbify_bool(false)
+		});
 		
 		// initialize state
 		this.controller.initialize_state();
