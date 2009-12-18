@@ -10,6 +10,37 @@
 		height: 24px;
 	}
 	
+	#procrasdonate_extn_top_bar * {
+		text-align: center;
+		line-height: 1.3em;
+		float: none;
+		margin: 0em;
+		padding: 0em;
+		border: none;
+		text-decoration: none;
+		font-size: 12px;
+		font-family: Verdana,Arial,Helvetica,sans-serif;
+		font-weight: normal;
+		font-style: normal;
+	}
+	
+	#procrasdonate_extn_top_bar p {
+		text-align: left;
+		margin: .5em .2em
+	}
+	
+	#procrasdonate_extn_top_bar ul {
+		text-align: left;
+	}
+	
+	#procrasdonate_extn_top_bar ul li {
+		text-align: left;
+		list-style-image: none;
+		list-style-position: inside;
+		list-style-type: circle;
+		margin-left: 3em;
+	}
+	
 	#procrasdonate_extn_top_bar img {
 		margin: 0 10px;
 	}
@@ -20,8 +51,18 @@
 		border: none;
 	}
 	
+	#procrasdonate_extn_summary {
+		display: inline;
+		text-align: center;
+	}
+	
+	#procrasdonate_extn_message {
+		text-align: left;
+		display: inline;
+	}
+
 	#procrasdonate_extn_expand {
-		width: 60px;
+		width: 16px;
 		cursor: pointer;
 	}
 	
@@ -36,15 +77,16 @@
  <div id="procrasdonate_extn_top_bar">
  	<div id="close_procrasdonate_extn_top_bar">[x]</div>
  
- 	<p>
- 	 	<a href="{{ constants.PD_URL }}{{ constants.PROGRESS_URL }}">
- 			<img src="{{ constants.PD_URL }}{{ constants.MEDIA_URL }}img/ToolbarImages/ProcrasDonateIcon.png" />
- 		</a>
-		<span id="procrasdonate_extn_summary">{{ latest_report.subject }}</span>
-		<span id="procrasdonate_extn_message"></span>
-		<img id="procrasdonate_extn_expand" src="{{ constants.PD_URL }}{{ constants.MEDIA_URL }}img/MoreButton.png" />
-		<img width="20" src="{{ constants.PD_URL }}{{ constants.MEDIA_URL }}img/ExpandButton.png" />
-		<img width="20" src="{{ constants.PD_URL }}{{ constants.MEDIA_URL }}img/ExpandButton2.png" />
-		<img width="20" src="{{ constants.PD_URL }}{{ constants.MEDIA_URL }}img/ContractButton.png" />
-	</p>
+ 	<a href="{{ constants.PD_URL }}{{ constants.PROGRESS_URL }}">
+		<img src="{{ constants.PD_URL }}{{ constants.MEDIA_URL }}img/ToolbarImages/ProcrasDonateIcon.png" />
+	</a>
+	<p id="procrasdonate_extn_summary">{{ latest_report.subject }}</p>
+	<div id="procrasdonate_extn_message"></div>
+	<img
+		id="procrasdonate_extn_expand"
+		class="contracted"
+		src="{{ constants.PD_URL }}{{ constants.MEDIA_URL }}img/ExpandButton.png" />
+	<a target="_blank" href="{{ constants.PD_URL }}{{ constants.MESSAGES_URL }}">
+		<img src="{{ constants.PD_URL }}{{ constants.MEDIA_URL }}img/MoreButton.png" />
+	</a>
 </div>

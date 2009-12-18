@@ -2,14 +2,14 @@
 
 <ul id="report_list">
 	{% for report in reports %}
-		<li id="report_{{ report.id }}" class="report">
+		<li id="report_{{ report.id }}" class="report {{ report.type }}">
 			<div class="is_read_holder {% if report.is_read %}is_read{% endif %}">
 				{% if not report.is_read %}
-					<img src="{{ constants.MEDIA_URL }}img/Dash.png" />
+					<img src="{{ constants.MEDIA_URL }}img/UnreadMessageIcon.png" />
 				{% endif %}
 			</div>
 			<div class="open_close_arrow is_closed">
-				<img src="{{ constants.MEDIA_URL }}img/RightArrow.png" />
+				<img src="{{ constants.MEDIA_URL }}img/ClosedMessageIcon.png" />
 			</div>
 			<div class="report_meta">{{ report.friendly_datetime }}</div>
 			<div class="subject">{{ report.subject }}</div>
