@@ -7,6 +7,7 @@ from django.utils import simplejson as json
 
 import re
 import os
+import sys
 import random
 import hashlib
 
@@ -69,6 +70,17 @@ function generated_input() {
 }
 """);
         generated_input_f.close()
+        
+        # now build generated_javascript.js
+        print "generate_javascript..."
+        extn_bin = pathify([self.extn_dir, "content", "bin"])
+        sys.path.append(extn_bin)
+        import safe_globals
+        input_file = pathify(['content', 'overlay_list.txt'], file_extension=True)
+        output_file = pathify(['content', 'js', 'generated_javascript.js'], file_extension=True)
+        safe_globals.concatenate(self.extn_dir, input_file, output_file)
+        print "...done"
+        
         return private_key
     
     def build_xpi(self, is_update=False):
@@ -191,7 +203,7 @@ function generated_input() {
         write_rdf_f.close()
             
 if __name__ == "__main__":
-    xpi_builder = XpiBuilder(pathify([PROJECT_PATH, 'procrasdonate', 'ProcrasDonateFFExtn'], file_extension=True),
+    xpi_builder = XpiBuilder(pathify([PROJECT_PATH, 'procrasdonate', 'ProcrasDonateFFExtn']),
                              "%s%s" % (MEDIA_ROOT, 'xpi'),
                              "%s%s" % (MEDIA_ROOT, 'rdf'))
     

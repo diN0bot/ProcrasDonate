@@ -331,6 +331,8 @@ _extend(InitListener.prototype, {
 	},
 	
 	create_welcome_message: function(make_earliest) {
+		var self = this;
+		
 		var message = Template.get("welcome_message").render(
 				new Context({}));
 		
@@ -343,10 +345,10 @@ _extend(InitListener.prototype, {
 		}
 		if (!date) { date = new Date(); }
 		
-		var pd = self.Recipient.get_or_null({ slug: "PD" });
+		var pd = self.pddb.Recipient.get_or_null({ slug: "PD" });
 		var report = this.pddb.Report.create({
 			datetime: _dbify_date(date),
-			type: self.Report.ANNOUNCEMENT,
+			type: self.pddb.Report.ANNOUNCEMENT,
 			subject: "Getting started with ProcrasDonate",
 			message: message,
 			read: _dbify_bool(false),

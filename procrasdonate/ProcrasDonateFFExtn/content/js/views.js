@@ -4220,10 +4220,10 @@ _extend(Schedule.prototype, {
 				pd_culprit_two_week, tws_culprit_two_week, u_culprit_two_week,
 				pd_culprit_three_week, tws_culprit_three_week, u_culprit_three_week);
 		
-		var pd = self.Recipient.get_or_null({ slug: "PD" });
+		var pd = self.pddb.Recipient.get_or_null({ slug: "PD" });
 		self.pddb.Report.create({
 			datetime: _dbify_date(end_date_one_week),
-			type: self.Report.WEEKLY,
+			type: self.pddb.Report.WEEKLY,
 			subject: subject,
 			message: message,
 			recipient_id: pd.id,

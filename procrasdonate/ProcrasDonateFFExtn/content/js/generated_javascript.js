@@ -11237,14 +11237,6 @@ _extend(Schedule.prototype, {
 	},
 	
 
-	is_new_24hr_period: function() {
-		/** @returns: true if the last marked day is over */
-		var yesterday = _un_dbify_date(this.prefs.get('last_24hr_mark', 0));
-		var start_of_yesterday = _start_of_day(yesterday);
-		var start_of_day = _start_of_day();
-		return start_of_yesterday < start_of_day
-	},
-	
 	is_new_week_period: function() {
 		/** @returns: true if the last marked week is over */
 		var last_week = _un_dbify_date(this.prefs.get('last_week_mark', 0));
@@ -11491,10 +11483,10 @@ _extend(Schedule.prototype, {
 				pd_culprit_two_week, tws_culprit_two_week, u_culprit_two_week,
 				pd_culprit_three_week, tws_culprit_three_week, u_culprit_three_week);
 		
-		var pd = self.Recipient.get_or_null({ slug: "PD" });
+		var pd = self.pddb.Recipient.get_or_null({ slug: "PD" });
 		self.pddb.Report.create({
 			datetime: _dbify_date(end_date_one_week),
-			type: self.Report.WEEKLY,
+			type: self.pddb.Report.WEEKLY,
 			subject: subject,
 			message: message,
 			recipient_id: pd.id,
@@ -12977,6 +12969,8 @@ _extend(InitListener.prototype, {
 	},
 	
 	create_welcome_message: function(make_earliest) {
+		var self = this;
+		
 		var message = Template.get("welcome_message").render(
 				new Context({}));
 		
@@ -12989,10 +12983,10 @@ _extend(InitListener.prototype, {
 		}
 		if (!date) { date = new Date(); }
 		
-		var pd = self.Recipient.get_or_null({ slug: "PD" });
+		var pd = self.pddb.Recipient.get_or_null({ slug: "PD" });
 		var report = this.pddb.Report.create({
 			datetime: _dbify_date(date),
-			type: self.Report.ANNOUNCEMENT,
+			type: self.pddb.Report.ANNOUNCEMENT,
 			subject: "Getting started with ProcrasDonate",
 			message: message,
 			read: _dbify_bool(false),
@@ -13391,9 +13385,6 @@ function Overlay() {
 };
 
 Overlay.prototype = {
-	test: function() {
-		alert("hello");
-	},
 };
 
 var PDDB = function PDDB(db_filename) {
