@@ -856,6 +856,7 @@ class Report(models.Model):
     dtime = models.DateTimeField(db_index=True)
     user = models.ForeignKey(User)
     type = models.CharField(max_length=100)
+    subject = models.CharField(max_length=256, default="")
     message = models.TextField()
     is_read = models.BooleanField(default=False)
     is_sent = models.BooleanField(default=False)
@@ -865,28 +866,96 @@ class Report(models.Model):
         model_utils.mixin(ReportMixin, User)
 
     @classmethod
-    def make(klass, user, message, type, is_read, is_sent, dtime):
-        return Report(dtime=dtime,
-                      user=user,
-                      message=message,
-                      type=type,
-                      is_read=is_read,
-                      is_sent=is_sent)
+    def make(klass, user, subject, message, type, is_read, is_sent, dtime):
+        r = Report.get_or_none(user=user,
+                               type=type,
+                               dtime=dtime)
+        if r:
+            return r
+        else:
+            return Report(dtime=dtime,
+                          user=user,
+                          subject=subject,
+                          message=message,
+                          type=type,
+                          is_read=is_read,
+                          is_sent=is_sent)
     
     def deep_dict(self):
-        return {'message': self.message,
+        return {'subject': self.subject,
+                'message': self.message,
                 'type': self.type,
                 'is_sent': self.is_sent,
                 'is_read': self.is_read,
                 'datetime': self.dtime.ctime()}
         
     def __unicode__(self):
-        return "%s (%s) %s -> %s" % (self.dtime,
-                                     self.user,
-                                     self.type,
-                                     self.message)
+        return "%s (%s) %s -> %s: %s" % (self.dtime,
+                                         self.user,
+                                         self.type,
+                                         self.subject,
+                                         self.message)
 
 class ReportMixin(object):
+    """ mixed into User class """
+    
+    @property
+    def reports(self):
+        return Report.objects.filter(user=self).order_by('-dtime')
+    
+
+class MetaReport(models.Model):
+    TYPE_LIST = ["WEEKLY", "ANNOUNCEMENT", "THANKYOU", "NEWSLETTER", "TAX"]
+    type_max_len, TYPES, TYPE_CHOICES = model_utils.convert_to_choices(TYPE_LIST)
+    
+    dtime = models.DateTimeField(db_index=True)
+    recipient = models.ForeignKey(Recipient)
+    type = models.CharField(max_length=type_max_len, choices=TYPE_CHOICES, default=TYPES['WEEKLY'])
+    subject = models.CharField(max_length=256)
+    message = models.TextField()
+    is_draft = models.BooleanField(default=True)
+    
+    @classmethod
+    def Initialize(klass):
+        model_utils.mixin(MetaReportMixin, Recipient)
+        models.signals.pre_save.connect(MetaReport.sanitize_user_input, sender=MetaReport)
+        
+    @classmethod
+    def sanitize_user_input(klass, signal, sender, instance, **kwargs):
+        """
+        remove html tags
+        """
+        v_re = re.compile(r'<.*?>')
+        for field in ["subject", "message"]:
+            if getattr(instance, field):
+                setattr(instance, field, v_re.sub('', getattr(instance, field)))
+
+    @classmethod
+    def make(klass, recipient, subject, message, type, is_draft, dtime):
+        return Report(dtime=dtime,
+                      user=user,
+                      subject=subject,
+                      message=message,
+                      type=type,
+                      is_draft=is_draft)
+            
+    def deep_dict(self):
+        return {'subject': self.subject,
+                'message': self.message,
+                'recipient_slug': self.recipient.slug,
+                'type': self.get_type_display().lower(),
+                'is_draft' : self.is_draft,
+                'datetime': self.dtime.ctime()}
+        
+    def __unicode__(self):
+        return "%s. %s (%s) %s -> %s: %s" % (self.is_draft,
+                                             self.dtime,
+                                             self.recipient.slug,
+                                             self.get_type_display(),
+                                             self.subject,
+                                             self.message)
+
+class MetaReportMixin(object):
     """ mixed into User class """
     
     @property
@@ -910,5 +979,6 @@ ALL_MODELS = [Email,
               SiteGroupTagging,
               RecipientUserTagging,
               RecipientVote,
-              Report]
+              Report,
+              MetaReport]
 

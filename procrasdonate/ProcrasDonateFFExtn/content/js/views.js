@@ -3576,6 +3576,15 @@ _extend(PageController.prototype, {
 	},
 
 	///
+	/// Triggers schedule run
+	///
+	trigger_schedule_run: function() {
+		logger("triggering schedule run...");
+		this.schedule.run();
+		logger("...daily schedule run");
+	},
+	
+	///
 	/// Triggers daily cycle. Does not reset 24hr period state.
 	///
 	trigger_daily_cycle: function() {
@@ -3607,7 +3616,7 @@ _extend(PageController.prototype, {
 	},
 	
 	trigger_on_upgrade: function() {
-		myOverlay.init_listener.onUpgrade("0.3.5", "0.3.6");
+		myOverlay.init_listener.onUpgrade("0.3.6", "0.3.7");
 	},
 	
 	trigger_init_db: function() {
@@ -3725,6 +3734,7 @@ _extend(PageController.prototype, {
 	manual_test_suite: function(request) {
 		var actions = ["trigger_daily_cycle",
 		               "trigger_weekly_cycle",
+		               "trigger_schedule_run",
 		               "",
 		               "trigger_payment",
 		               "",
@@ -3907,13 +3917,13 @@ Schedule.prototype = {};
 _extend(Schedule.prototype, {
 	run: function() {
 		if ( this.is_new_week_period() ) {
-			this.pddb.orthogonals.log("Do weekly tasks on "+(new Date())+" for "+_un_dbify_date(this.prefs.get('last_24hr_mark', 0)), "schedule");
+			this.pddb.orthogonals.log("Do weekly tasks on "+(new Date())+" for "+_un_dbify_date(this.prefs.get('last_week_mark', 0)), "schedule");
 			this.do_once_weekly_tasks();
 			this.do_make_payment();
 			this.reset_week_period();
 		}
 		if ( this.is_new_24hr_period() ) {
-			this.pddb.orthogonals.log("Do daily tasks on "+(new Date())+" for "+_un_dbify_date(this.prefs.get('last_week_mark', 0)), "schedule");
+			this.pddb.orthogonals.log("Do daily tasks on "+(new Date())+" for "+_un_dbify_date(this.prefs.get('last_24hr_mark', 0)), "schedule");
 			this.do_once_daily_tasks();
 			this.reset_24hr_period();
 		}
@@ -3963,6 +3973,7 @@ _extend(Schedule.prototype, {
 		this.prefs.set('last_24hr_mark', _dbify_date(start_of_day));
 	},
 	
+
 	is_new_week_period: function() {
 		/** @returns: true if the last marked week is over */
 		var last_week = _un_dbify_date(this.prefs.get('last_week_mark', 0));
@@ -4209,11 +4220,13 @@ _extend(Schedule.prototype, {
 				pd_culprit_two_week, tws_culprit_two_week, u_culprit_two_week,
 				pd_culprit_three_week, tws_culprit_three_week, u_culprit_three_week);
 		
+		var pd = self.Recipient.get_or_null({ slug: "PD" });
 		self.pddb.Report.create({
 			datetime: _dbify_date(end_date_one_week),
-			type: "weekly",
+			type: self.Report.WEEKLY,
 			subject: subject,
 			message: message,
+			recipient_id: pd.id,
 			read: _dbify_bool(false),
 			sent: _dbify_bool(false)
 		});

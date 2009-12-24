@@ -69,7 +69,7 @@ def send_email(request):
 
 def receive_data(request):
     """
-    handles totals, logs, userstudies, payments, requirepayments posted from extension
+    handles totals, logs, userstudies, payments, requirepayments, reports, prefs posted from extension
     """
     #try:
     if not settings.DJANGO_SERVER and not request.is_secure():
@@ -186,6 +186,10 @@ def return_data(request):
     for multiuse_pay in FPSMultiusePay.objects.filter(user=user):
         multiuse_pays.append(multiuse_pay.deep_dict())
             
+    meta_reports = []
+    for meta_report in MetaReport.objects.filter(is_draft=False):
+       meta_reports.append(meta_report.deep_dict())
+            
     #print '#.'*30;
     #print "RETURN DATA RETURNED"
     #print json.dumps({'recipients': recipients,
@@ -199,6 +203,7 @@ def return_data(request):
     return json_success({'recipients': recipients,
                          'multiuse_auths': multiuse_auths,
                          'multiuse_pays': multiuse_pays,
+                         'meta_reports': meta_reports,
                          'latest_update_version': xpi_builder.get_update_version(),
                          'update_link': info['update_link'],
                          'update_hash': info['update_hash']})

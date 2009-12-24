@@ -140,11 +140,13 @@ class Processor(object):
         """
         type        = report['type']
         message     = report['message']
+        subject     = report['subject']
         is_read     = report['is_read']
         is_sent     = report['is_sent']
         dtime       = Processor.parse_seconds(int(report['datetime']))
         
-        return Report.add(user, message, type, is_read, is_sent, dtime)
+        if (type == "weekly"):
+            return Report.add(user, subject, message, type, is_read, is_sent, dtime)
     
     @classmethod
     def process_log(klass, log, user):

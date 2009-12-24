@@ -65,91 +65,17 @@
     <script type='application/x-javascript'
             src='chrome://ProcrasDonate/content/js/ext/rgbcolor.js'></script>
 
-    <!-- Basic utils
-      -->
-    <script type='application/x-javascript'
-            src='chrome://ProcrasDonate/content/js/lib/utils.js'></script>
-    
-    <script type='application/x-javascript'
-            src='chrome://ProcrasDonate/content/js/lib/fps.js'></script>
-
-    <script type='application/x-javascript' 
-            src='chrome://ProcrasDonate/content/js/lib/testrunner_display.js'></script>
-    <script type='application/x-javascript' 
-            src='chrome://ProcrasDonate/content/js/lib/testobjects.js'></script>
-    <script type='application/x-javascript' 
-            src='chrome://ProcrasDonate/content/js/lib/testrunner.js'></script>
-    <script type='application/x-javascript' 
-            src='chrome://ProcrasDonate/content/js/tests.js'></script>
-
 <!--
     <script src="chrome://ProcrasDonate/content/js/ext/httpd.js" type="application/x-javascript"/>
     <script src="chrome://ProcrasDonate/content/js/ext/fireunit.js" type="application/x-javascript"/>
     <script src="chrome://ProcrasDonate/content/js/ext/jsdiff.js" type="application/x-javascript"/>
 -->
-    
 
-    <!-- Django templates rendered in JS
+    <!-- ProcrasDonate javascript compiled into single namespaced file
       -->
     <script type='application/x-javascript'
-            src='chrome://ProcrasDonate/content/js/lib/template/filters/base.js'></script>
-    <script type='application/x-javascript'
-            src='chrome://ProcrasDonate/content/js/lib/template/tags/base.js'></script>
-    <script type='application/x-javascript'
-            src='chrome://ProcrasDonate/content/js/lib/template.js'></script>
-    <script type='application/x-javascript'
-            src='chrome://ProcrasDonate/content/js/lib/template/django.js'></script>
-    
-    
-    <!-- ProcrasDonate-specific templates, bundled.
-      -->
-    <script type='application/x-javascript'
-            src='chrome://ProcrasDonate/content/js/templates/all.js'></script>
-    
-    
-    <!-- Database and preferences
-      -->
-    <script type='application/x-javascript'
-            src='chrome://ProcrasDonate/content/js/lib/db/base.js'></script>
-    <script type='application/x-javascript'
-            src='chrome://ProcrasDonate/content/js/lib/db/sqlite3_firefox.js'></script>
-    <script type='application/x-javascript'
-            src='chrome://ProcrasDonate/content/js/lib/preferences.js'></script>
-    
-    <!-- 
-      -->
-    <script type='application/x-javascript'
-            src='chrome://ProcrasDonate/content/js/lib/http_request.js'></script>
-    <script type='application/x-javascript'
-            src='chrome://ProcrasDonate/content/js/lib/request.js'></script>
-    
-    <!-- (Mostly) ProcrasDonate-specific stuff.
-      -->
-	<script type='application/x-javascript'
-            src='chrome://ProcrasDonate/content/js/generated_input.js'></script>
-    <script type='application/x-javascript'
-            src='chrome://ProcrasDonate/content/js/settings.js'></script>
-    <script type='application/x-javascript'
-            src='chrome://ProcrasDonate/content/js/api.js'></script>
-    <script type='application/x-javascript'
-            src='chrome://ProcrasDonate/content/js/pd.js'></script>
-    <script type='application/x-javascript'
-            src='chrome://ProcrasDonate/content/js/models.js'></script>
-    <script type='application/x-javascript'
-            src='chrome://ProcrasDonate/content/js/views.js'></script>
-    <script type='application/x-javascript' 
-            src='chrome://ProcrasDonate/content/js/toolbar_manager.js'></script>
+            src='chrome://ProcrasDonate/content/js/generated_javascript.js'></script>
             
-    <!-- ProcrasDonate listeners
-      -->
-    <script type='application/x-javascript' 
-            src='chrome://ProcrasDonate/content/js/time_tracking_observers.js'></script>
-    <script type='application/x-javascript' 
-            src='chrome://ProcrasDonate/content/js/overlay_observers.js'></script>
-    
-    <script type='application/x-javascript' 
-            src='chrome://ProcrasDonate/content/js/main.js'></script>
-    
     <toolbarpalette id="BrowserToolbarPalette">
     	<toolbar
 	    	id="pd-toolbar"
@@ -163,7 +89,7 @@
                        autoCheck="true"
                        label="ProcrasDonating"
                        tooltiptext="Current activity: Unsorted. To re-classify this site click this icon."
-                       oncommand="myOverlay.init_listener.toolbar_manager.onClassifyButtonCommand();"
+                       oncommand="ProcrasDonate.init_listener.toolbar_manager.onClassifyButtonCommand();"
                        image="chrome://ProcrasDonate/skin/UnsortedIcon.png"
                        class="toolbarbutton-1 chromeclass-toolbar-additional"/>
         
@@ -171,7 +97,7 @@
                        autoCheck="true"
                        label="PD: 0"
                        tooltiptext="Progress towards weekly ProcrasDonate goal"
-                       oncommand="myOverlay.init_listener.toolbar_manager.onProgressButtonPDCommand();"
+                       oncommand="ProcrasDonate.init_listener.toolbar_manager.onProgressButtonPDCommand();"
                        image="chrome://ProcrasDonate/skin/IconBar0.png"
                        class="toolbarbutton-1 chromeclass-toolbar-additional"/>
 	</toolbarpalette>

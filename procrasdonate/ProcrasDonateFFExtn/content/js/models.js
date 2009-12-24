@@ -163,7 +163,7 @@ function load_models(db, pddb) {
 			name: "VARCHAR",
 			category_id: "INTEGER",
 			mission: "VARCHAR",
-			description: "VARCHAR",
+			description: "VARCHAR", // allows full Markdown markup
 			url: "VARCHAR",
 			logo: "VARCHAR", // url to img uploaded onto server
 			logo_thumbnail: "VARCHAR", // url to img uploaded onto server
@@ -223,8 +223,7 @@ function load_models(db, pddb) {
 		},
 		
 		html_description: function() {
-			//return "<p>"+this.description.replace("\n\n", "</p><p>")+"</p>"
-			// lets allow full Markdown markup
+			// allows full Markdown markup
 			return (new Showdown.converter()).makeHtml(this.description)
 		}
 	}, {
@@ -297,18 +296,25 @@ function load_models(db, pddb) {
 	var Report = new Model(db, "Report", {
 		table_name: "reports",
 		columns: {
-			_order: ["id", "datetime", "type", "message", "read", "sent", "subject"],
+			_order: ["id", "datetime", "type", "message", "read", "sent", "subject", "recipient_id"],
 			id: "INTEGER PRIMARY KEY",
 			datetime: "INTEGER", //"DATETIME",
-			type: "VARCHAR", // ['welcome', 'weekly', 'announcement', 'thankyou', 'newsletter']
-			message: "VARCHAR",
+			type: "VARCHAR", // 
+			message: "VARCHAR", // allows full Markdown markup
 			read: "INTEGER", // bool
 			sent: "INTEGER", // bool
-			subject: "VARCHAR"
+			subject: "VARCHAR",
+			recipient_id: "INTEGER"
 		},
 		indexes: []
 	}, {
 		// instance methods
+		is_weekly: function() { return this.type == Report.WEEKLY },
+		is_welcome: function() { return this.type == Report.WELCOME },
+		is_announcement: function() { return this.type == Report.ANNOUNCEMENT },
+		is_thankyou: function() { return this.type == Report.THANKYOU },
+		is_newsletter: function() { return this.type == Report.NEWSLETTER },
+		is_tax: function() { return this.type == Report.TAX },
 		
 		/** read by user via our website */
 		is_read: function() {
@@ -323,38 +329,78 @@ function load_models(db, pddb) {
 			return _un_dbify_date(this.datetime).strftime("%b %d, %Y")
 		},
 		
+		recipient: function() {
+			return Recipient.get_or_null({ id: this.recipient_id })
+		},
+		
+		// currently not used. generated reports already include html.
+		html_message: function() {
+			// allows full Markdown markup
+			return 
+		},
+		
 		deep_dict: function() {
 			return {
 				id: this.id,
 				datetime: this.datetime,
 				type: this.type,
+				subject: this.subject,
 				message: this.message,
+				recipient: this.recipient(),
 				is_read: this.is_read(),
 				is_sent: this.is_sent()
 			}
 		}
 	}, {
 		// class methods
-		process_object: function(r) {
-			// @param r: object from server. json already loaded
-			var report = Report.get_or_null({
-				datetime: r.datetime,
-				type: r.type
-			});
-			if (report) {
-				if (report.is_sent() != r.is_sent) {
-					Report.set({
-						sent: r.is_sent
-					}, {
-						id: report.id
-					});
+		WEEKLY: "weekly", // weekly affirmations
+		WELCOME: "welcome", // welcome message - deprecated in 0.3.7, to be removed 0.3.8
+		ANNOUNCEMENT: "announcement", // ProcrasDonate announcement
+		THANKYOU: "thankyou", // charity (org) thank you
+		NEWSLETTER: "newsletter", // charity (org) newsletter (quarterly or yearly)
+		TAX: "tax", // tax-deductible report
+		
+		/**
+		 * 
+		 * @param r: object from server. json already loaded
+		 */
+		process_meta_report: function(r, weekly_affirmations, org_thank_yous, org_newsletters) {
+			var is_weekly = (r.type == Report.WEEKLY); // unexpected
+			var is_announcement = (r.type == Report.ANNOUNCEMENT);
+			var is_thankyou = (r.type == Report.THANKYOU); // also unexpected for now
+			var is_newsletter = (r.type == Report.NEWSLETTER);
+			
+			if (is_weekly) { return } // unexpected
+			if (is_thankyou && !org_thank_yous) { return }
+			if (is_newsletter && !org_newsletters) { return }
+			if (is_announcement && r.recipient_slug != "PD") {
+				pddb.orthogonals.log("Expect announcements from PD only", "dataflow");
+			}
+			
+			var recipient = Recipient.get_or_null({ slug: r.recipient_slug });
+			if (!recipient) { return }
+			
+			// only receive newsletters and thankyous for
+			// recipients currently donating to (even if percent is 0)
+			if (is_newsletter || is_thankyou) {
+				if (!RecipientPercent.get_or_null({ recipient_id: recipient.id })) {
+					return
 				}
-			} else {
+			}
+			
+			var report = Report.get_or_null({
+				datetime: _dbify_date(new Date(r.datetime)),
+				type: r.type,
+				recipient_id: recipient.id
+			});
+			if (!report) {
 				Report.create({
-					message: r.message,
+					message: (new Showdown.converter()).makeHtml(r.message),
+					subject: r.subject,
 	                type: r.type,
-	                is_sent: _dbify_bool(r.is_sent),
-	                is_read: _dbify_bool(r.is_read),
+	                recipient_id: recipient.id,
+	                sent: _dbify_bool(false),
+	                read: _dbify_bool(false),
 	                datetime: _dbify_date(new Date(r.datetime))
 				});
 			}

@@ -280,8 +280,8 @@ var _start_of_week = function(date) {
 			// if sunday, then subtract 6 days
 			date.setDate(date.getDate() - 6);
 		} else {
-			// else, subtract day+1; eg, Wendesday = 3, so subtract 2 to get to Monday (1)
-			date.setDate(date.getDate() - (date.getDay()+1));
+			// else, subtract day-1; eg, Wednesday = 3, so subtract 2 to get to Monday (1)
+			date.setDate(date.getDate() - (date.getDay()-1));
 		}
 	}
 	return date;
@@ -330,6 +330,7 @@ var _end_of_week = function(date) {
 	// last day of week. getDay should now equal 0 (Sunday).
 	// if already Sunday, we're good. otherwise, advance to upcoming Sunday
 	if (date.getDay() != 0) {
+		// add 7-day; eg, Wednesday = 3, so add 7-3=4 to get to Sunday
 		date.setDate(date.getDate() + (7-date.getDay()));
 	}
 	return date;

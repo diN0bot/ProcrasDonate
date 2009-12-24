@@ -484,6 +484,13 @@ _extend(ProcrasDonate_API.prototype, {
 					self.pddb.Recipient.process_object(value);
 				});
 				
+				var weekly_affirmations = _un_dbify_bool(self.prefs.get('weekly_affirmations', constants.DEFAULT_WEEKLY_AFFIRMATIONS));
+				var org_thank_yous = _un_dbify_bool(self.prefs.get('org_thank_yous', constants.DEFAULT_ORG_THANK_YOUS));
+				var org_newsletters = _un_dbify_bool(self.prefs.get('org_newsletters', constants.DEFAULT_ORG_NEWSLETTERS));
+				_iterate(r.meta_reports, function(key, value, index) {
+					self.pddb.Report.process_meta_report(value, weekly_affirmations, org_thank_yous, org_newsletters);
+				});
+				
                 self.prefs.set("latest_update_version", r.latest_update_version);
 				self.prefs.set("latest_update_link", r.update_link);
 				self.prefs.set("latest_update_hash", r.update_hash);

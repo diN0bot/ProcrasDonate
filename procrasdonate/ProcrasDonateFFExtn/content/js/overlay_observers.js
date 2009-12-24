@@ -196,9 +196,6 @@ _extend(InitListener.prototype, {
 			gBrowser.selectedTab = gBrowser.addTab(constants.PD_URL + constants.AFTER_INSTALL_URL + version + "/");
 		}, 1500); //Firefox 2 fix - or else tab will get closed
 
-		// create welcome message
-		this.create_welcome_message();
-		
 		// initialize state
 		this.controller.initialize_state();
 		
@@ -217,6 +214,9 @@ _extend(InitListener.prototype, {
 				// after failure
 			}
 		);
+		
+		// create welcome message. requires PD recipient exists.
+		this.create_welcome_message();
 		
 		// we send an email address as soon as user enters an email
 		// address in the first register tab
@@ -248,6 +248,7 @@ _extend(InitListener.prototype, {
 		var version_number = _version_to_number(version);
 		
 		if (old_version_number < _version_to_number("0.3.3")) {
+			// add visit types
 			this.pddb.Visit.add_column("enter_type", "VARCHAR");
 			this.pddb.Visit.add_column("leave_type", "VARCHAR");
 			this.pddb.Visit.select({}, function(row) {
@@ -263,6 +264,7 @@ _extend(InitListener.prototype, {
 		}
 		
 		if (old_version_number < _version_to_number("0.3.6")) {
+			// add report subject and create welcome message
 			this.pddb.Report.add_column("subject", "VARCHAR");
 			this.pddb.Report.select({}, function(row) {
 				if (!row.subject) {
@@ -273,10 +275,49 @@ _extend(InitListener.prototype, {
 					});
 				}
 			})
-			
 			this.create_welcome_message(true);
 		}
 		
+		if (old_version_number < _version_to_number("0.3.7")) {
+			// add report recipient_id
+			// remove duplicate reports
+			// move WELCOME report types to ANNOUNCEMENT
+			this.pddb.Report.add_column("recipient_id", "INTEGER");
+			var pd = this.pddb.Recipient.get_or_null({ slug: "PD" });
+			var weeklies = {};
+			var welcome = false;
+			this.pddb.Report.select({}, function(row) {
+				var is_duplicate = false;
+				if (row.is_welcome()) {
+					if (!welcome) {
+						welcome = true;
+						self.pddb.Report.set({
+							type: self.pddb.Report.ANNOUNCEMENT
+						}, {
+							id: row.id
+						});
+					} else {
+						is_duplicate = true;
+					}
+				} else if (row.is_weekly()) {
+					if (!weeklies[row.datetime]) {
+						weeklies[row.datetime] = true
+					} else {
+						is_duplicate = true;
+					}
+				}
+				
+				if (!is_duplicate && !row.recipient_id) {
+					self.pddb.Report.set({
+						recipient_id: pd.id
+					}, {
+						id: row.id
+					});
+				} else if (is_duplicate) {
+					self.pddb.Report.del({ id: row.id });
+				}
+			});
+		}
 		
 		// initialize new state (initialize_state initializes state if necessary.
 		this.controller.initialize_state();
@@ -302,9 +343,10 @@ _extend(InitListener.prototype, {
 		}
 		if (!date) { date = new Date(); }
 		
+		var pd = self.Recipient.get_or_null({ slug: "PD" });
 		var report = this.pddb.Report.create({
 			datetime: _dbify_date(date),
-			type: "welcome",
+			type: self.Report.ANNOUNCEMENT,
 			subject: "Getting started with ProcrasDonate",
 			message: message,
 			read: _dbify_bool(false),

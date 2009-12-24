@@ -9,11 +9,20 @@ PYTHONPATH=./
 ## replace with your path to repo
 export REPO="/Users/lucy/sandbox/CalmProcrasDonate/"
 
-## creates xpi file from ff_extn/ProcrasDonate and places in media/xpi 
+## creates update xpi file from ff_extn/ProcrasDonate and places in media/xpi 
 alias xpi_it='python ${REPO}procrasdonate/applib/xpi_builder.py'
 
 ## rebuilds extension templates. you will still need to reload chrome to see changes
 alias rebuild='python ${REPO}procrasdonate/ProcrasDonateFFExtn/content/bin/build_templates.py ${REPO}procrasdonate/ProcrasDonateFFExtn/content/templates/*.html; cat ${REPO}procrasdonate/ProcrasDonateFFExtn/content/templates/*.js > ${REPO}procrasdonate/ProcrasDonateFFExtn/content/js/templates/all.js'
+
+## compiles javascript files in overlay_list.txt into single namespaced file, generated_javascript.js
+alias generate_js='python ${REPO}procrasdonate/ProcrasDonateFFExtn/content/bin/safe_globals.py'
+
+## does everything above
+alias everything='rebuild; generate_js; xpi_it'
+
+## does production things
+alias pd_live='everything; chown -hR www-data:www-data ${REPO}; /etc/init.d/apache2 force-reload'
 
 ##### SOUTH DATABASE SCHEMA AND DATA MIGRATIONS
 
