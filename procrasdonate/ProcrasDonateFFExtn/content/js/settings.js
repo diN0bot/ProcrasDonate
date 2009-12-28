@@ -67,6 +67,7 @@ var constants = {};
 	// used for development and testing
 	constants.MANUAL_TEST_SUITE_URL = '/dev/manual_test_suite/';
 	constants.AUTOMATIC_TEST_SUITE_URL = '/dev/automatic_test_suite/';
+	constants.AUTOTESTER_TEST_SUITE_URL = '/dev/autotester_test_suite/';
 	constants.TIMING_TEST_SUITE_URL = '/dev/timing_test_suite/';
 	
 	constants.AMAZON_USER_URL = "https://payments.amazon.com";

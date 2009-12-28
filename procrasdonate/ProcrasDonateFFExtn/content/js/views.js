@@ -124,7 +124,10 @@ _extend(Controller.prototype, {
 			this.page.manual_test_suite(request);
 			break;
 		case constants.AUTOMATIC_TEST_SUITE_URL:
-			this.page.automatic_test_suite(request);
+			this.page.automatic_test_suite(request, false);
+			break;
+		case constants.AUTOTESTER_TEST_SUITE_URL:
+			this.page.automatic_test_suite(request, true);
 			break;
 		case constants.TIMING_TEST_SUITE_URL:
 			this.page.timing_test_suite(request);
@@ -3786,7 +3789,7 @@ _extend(PageController.prototype, {
 
 	/// run tester tests (mutates db) and checker checks 
 	/// (checks db) on test database
-	automatic_test_suite: function(request) {
+	automatic_test_suite: function(request, is_autotester) {
 		var tester = new PDTests(this.pddb, this.prefs);
 		var checker = new PDChecks(this.pddb, this.prefs);
 		
@@ -3844,7 +3847,9 @@ _extend(PageController.prototype, {
 		
 		self.pddb = original_pddb;
 		
-		self.display_test_results(testrunner);
+		self.display_test_results(testrunner, is_autotester);
+
+		logger("automatic test suite done");
 	},
 	
 	/// run TIMING tester tests (mutates db) and checker checks 
@@ -3893,9 +3898,14 @@ _extend(PageController.prototype, {
 		self.display_test_results(testrunner);
 	},
 	
-	display_test_results: function(testrunner) {
-		var inner_display = new TestRunnerConsoleDisplay();
-		var display = new TestRunnerPDDisplay(inner_display, this.pddb);
+	display_test_results: function(testrunner, is_autotester) {
+		var display = null;
+		if (is_autotester) {
+		    display = new TestRunnerPDDBDisplay(this.pddb);
+		} else {
+		    var inner_display = new TestRunnerConsoleDisplay();
+		    display = new TestRunnerPDDisplay(inner_display, this.pddb);
+		}
 		for (var name in testrunner.test_modules) {
 			var test_module = testrunner.test_modules[name];
 			for (var i = 0; i < test_module.test_groups.length; i++) {

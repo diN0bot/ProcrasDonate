@@ -40,6 +40,7 @@ function generated_input() {
         data = {"constants_PD_URL": DOMAIN,
                  "constants_PD_API_URL": API_DOMAIN,
                  "is_update": is_update}
+        print "DATA: ", data
         
         private_key = "__no_private_key_for_update__"
         
