@@ -1,6 +1,4 @@
 
-
-
 function PageRequest(url, event) {
 	this.url = url;
 	this.event = event;

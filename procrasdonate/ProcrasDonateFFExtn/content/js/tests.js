@@ -29,9 +29,9 @@
  * TESTS: may mutate database. checks that logic inserts appropriate objects into database.
  * CHECKS: checks database is well formed, not corrupted
  */
-var PDChecks = function PDChecks(prefs, pddb) {
-	this.prefs = prefs;
+var PDChecks = function PDChecks(pddb, prefs) {
 	this.pddb = pddb;
+	this.prefs = prefs;
 };
 PDChecks.prototype = {};
 _extend(PDChecks.prototype, {
@@ -186,9 +186,9 @@ _extend(PDChecks.prototype, {
 	},
 });
 
-var PDTests = function PDTests(prefs, pddb) {
-	this.prefs = prefs;
+var PDTests = function PDTests(pddb, prefs) {
 	this.pddb = pddb;
+	this.prefs = prefs;
 };
 PDTests.prototype = {};
 _extend(PDTests.prototype, {

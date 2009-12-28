@@ -33,11 +33,8 @@ _extend(Controller.prototype, {
 		}
 		
 		// create ProcrasDonate extension website
-		for (var i = 0; i < constants.VALID_HOSTS.length; i++) {
-			var valid_host = constants.VALID_HOSTS[i];
-			if (host == valid_host) { //match(new RegExp(valid_host)))
-				return this.pd_dispatch_by_url(request);
-			}
+		if (host == constants.PD_HOST) { //match(new RegExp(valid_host)))
+			return this.pd_dispatch_by_url(request);
 		}
 		return false;
 	},

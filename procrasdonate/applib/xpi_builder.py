@@ -207,6 +207,6 @@ if __name__ == "__main__":
                              "%s%s" % (MEDIA_ROOT, 'xpi'),
                              "%s%s" % (MEDIA_ROOT, 'rdf'))
     
-    print xpi_builder.write_input_json(is_update=True)
-    print xpi_builder.build_xpi(is_update=True)
+    print xpi_builder.write_input_json(is_update=False)
+    print xpi_builder.build_xpi(is_update=False)
     print xpi_builder.get_update_info()

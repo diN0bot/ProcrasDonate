@@ -44,8 +44,8 @@ APPS = ('procrasdonate', )
 
 EMAIL = "info@ProcrasDonate.com"
 
-DOMAIN = 'https://ProcrasDonate.com'
-API_DOMAIN = 'https://ProcrasDonate.com'
+DOMAIN = 'https://procrasdonate.com'
+API_DOMAIN = 'https://procrasdonate.com'
 
 # Local time zone for this installation. Choices can be found here:
 # http://www.postgresql.org/docs/8.1/static/datetime-keywords.html#DATETIME-TIMEZONE-SET-TABLE

@@ -164,12 +164,24 @@ _extend(TestRunnerPDDisplay.prototype, {
 		var self = this;
 		var fails = this.testrunner_display.display_testgroup_result(testrunner, testgroup);
 		_iterate(fails, function(key, value, index) {
-			self.pddb.orthogonals.fail(value, "auto test failure");
+			self.pddb.orthogonals.fail(value, "auto_test_failure");
 		});
+		return fails
 	},
 	
 	test_done: function(testrunner) {
 		this.testrunner_display.test_done(testrunner);
+		
+		var passing = testrunner.passing_total();
+		var total = testrunner.total();
+		var summary = "FAIL";
+		if (passing == total) { summary = "PASS"; }
+		var msg = passing+"/"+total;
+		if (passing == total) {
+			this.pddb.orthogonals.log(msg, "auto_test_summary");
+		} else {
+			this.pddb.orthogonals.fail(msg, "auto_test_summary");
+		}
 	}
 
 });

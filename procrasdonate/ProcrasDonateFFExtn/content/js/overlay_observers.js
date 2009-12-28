@@ -162,6 +162,7 @@ _extend(InitListener.prototype, {
 		var data = generated_input()[0];
 		
 		constants.PD_URL = data.constants_PD_URL;
+		constants.PD_HOST = _host(constants.PD_URL);
 		constants.PD_API_URL = data.constants_PD_API_URL;
 		
 		if (!data.is_update) {
