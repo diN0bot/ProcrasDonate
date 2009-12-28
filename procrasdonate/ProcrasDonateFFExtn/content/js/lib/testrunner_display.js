@@ -185,3 +185,61 @@ _extend(TestRunnerPDDisplay.prototype, {
 	}
 
 });
+
+///
+/// Logs test results to database only (does not rely on Firebug)
+///
+var TestRunnerPDDBDisplay = function(pddb) {
+	this.pddb = pddb;
+};
+TestRunnerPDDBDisplay.prototype = new TestRunnerDisplay();
+_extend(TestRunnerPDDBDisplay.prototype, {
+
+	display_testgroup_result: function(testrunner, testgroup) {
+		var fails = [];
+		
+		var passing = 0;
+		for (var i = 0; i < testgroup.assertions.length; i++) {
+			var assertion = testgroup.assertions[i];
+			if (assertion.result) {
+				passing += 1;
+			}
+		}
+		var total = 0;
+		if (testgroup.expected) {
+			total = testgroup.expected;
+		} else {
+			total = testgroup.assertions.length;
+		}
+		var summary = "FAIL";
+		if (passing == total) {
+			summary = "PASS";
+		}
+		this.pddb.orthogonals.log(passing+"/"+total+" pass. "+summary+" for "+testgroup.name], null, "group", null, false);
+		for (var i = 0; i < testgroup.assertions.length; i++) {
+			var assertion = testgroup.assertions[i];
+			if (assertion.result) {
+				// don't display passing tests
+				// Firebug.Console.log(i+". ("+assertion.result+") "+assertion.msg);
+			} else {
+				var msg = i+". *"+assertion.result+"* "+assertion.msg;
+				Firebug.Console.log(msg);
+				fails.push(msg);
+			}
+		}
+		Firebug.Console.closeGroup();
+		return fails;
+	},
+	
+	test_done: function(testrunner) {
+		var passing = testrunner.passing_total();
+		var total = testrunner.total();
+		var summary = "FAIL";
+		if (passing == total) {
+			summary = "PASS";
+		}
+		Firebug.Console.openGroup(["SUMMARY: "+passing+"/"+total+" = "+summary], null, "group", null, false);
+		Firebug.Console.closeGroup();
+	}
+
+});

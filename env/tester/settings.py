@@ -1,7 +1,7 @@
 # Default Django settings for sqlite3 development
 
-DOMAIN = "http://localhost:8000"
-API_DOMAIN = "http://localhost:8000"
+DOMAIN = "http://localhost:8282"
+API_DOMAIN = "http://localhost:8282"
 
 DEBUG = True
 DEBUG_SQL = True
