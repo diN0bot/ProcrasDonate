@@ -171,17 +171,6 @@ _extend(TestRunnerPDDisplay.prototype, {
 	
 	test_done: function(testrunner) {
 		this.testrunner_display.test_done(testrunner);
-		
-		var passing = testrunner.passing_total();
-		var total = testrunner.total();
-		var summary = "FAIL";
-		if (passing == total) { summary = "PASS"; }
-		var msg = passing+"/"+total;
-		if (passing == total) {
-			this.pddb.orthogonals.log(msg, "auto_test_summary");
-		} else {
-			this.pddb.orthogonals.fail(msg, "auto_test_summary");
-		}
 	}
 
 });
@@ -211,35 +200,37 @@ _extend(TestRunnerPDDBDisplay.prototype, {
 		} else {
 			total = testgroup.assertions.length;
 		}
-		var summary = "FAIL";
 		if (passing == total) {
-			summary = "PASS";
+			var summary = "PASS";
+			var msg = passing+"/"+total+" pass. "+summary+" for "+testgroup.name;
+			this.pddb.orthogonals.log(msg, "auto_test_groupsummary");
+		} else {
+			var summary = "FAIL";
+			var msg = passing+"/"+total+" pass. "+summary+" for "+testgroup.name;
+			this.pddb.orthogonals.fail(msg, "auto_test_groupsummary");
 		}
-		this.pddb.orthogonals.log(passing+"/"+total+" pass. "+summary+" for "+testgroup.name], null, "group", null, false);
 		for (var i = 0; i < testgroup.assertions.length; i++) {
 			var assertion = testgroup.assertions[i];
 			if (assertion.result) {
 				// don't display passing tests
-				// Firebug.Console.log(i+". ("+assertion.result+") "+assertion.msg);
 			} else {
 				var msg = i+". *"+assertion.result+"* "+assertion.msg;
-				Firebug.Console.log(msg);
+				this.pddb.orthogonals.fail(msg, "auto_test_failure");
 				fails.push(msg);
 			}
 		}
-		Firebug.Console.closeGroup();
 		return fails;
 	},
 	
 	test_done: function(testrunner) {
 		var passing = testrunner.passing_total();
 		var total = testrunner.total();
-		var summary = "FAIL";
+		var msg = passing+"/"+total;
 		if (passing == total) {
-			summary = "PASS";
+			this.pddb.orthogonals.log(msg, "auto_test_summary");
+		} else {
+			this.pddb.orthogonals.fail(msg, "auto_test_summary");
 		}
-		Firebug.Console.openGroup(["SUMMARY: "+passing+"/"+total+" = "+summary], null, "group", null, false);
-		Firebug.Console.closeGroup();
 	}
 
 });
