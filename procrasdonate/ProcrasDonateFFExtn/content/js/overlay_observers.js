@@ -178,7 +178,7 @@ _extend(InitListener.prototype, {
 				});
 			}
 			
-			_pprint(data, "install generated input - not update");
+			_pprint(data, "install generated input - not update\n");
 		} else {
 			logger("install generated input - update");
 		}
@@ -346,7 +346,7 @@ _extend(InitListener.prototype, {
 		}
 		if (!date) { date = new Date(); }
 		
-		var pd = self.pddb.Recipient.get_or_null({ slug: "PD" });
+		var pd = self.pddb.Recipient.get_or_create({ slug: "PD" });
 		var report = this.pddb.Report.create({
 			datetime: _dbify_date(date),
 			type: self.pddb.Report.ANNOUNCEMENT,
