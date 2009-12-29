@@ -215,7 +215,7 @@ _extend(PDTests.prototype, {
 		_iterate(['Unsorted', 'ProcrasDonate', 'TimeWellSpent'], function(key, value, index) {
 			testrunner.ok( true, "---------------- new "+ value +" url ----");
 			var before_totals = self.retrieve_totals(testrunner, url, self.pddb[value]);
-			var url = self.visit_new_site(self.pddb[value], duration);
+			var url = self.visit_new_site(self, self.pddb[value], duration);
 			self.check_totals(testrunner, url, duration, before_totals);
 		});
 	},
@@ -271,9 +271,9 @@ _extend(PDTests.prototype, {
 	// specified tag is not Unosrted
 	// @param tag: tag instance
 	//
-	visit_new_site: function(tag, seconds) {
-		var site = this.new_site(tag);
-		this.pddb.store_visit(site.url, _dbify_date(new Date()), seconds);
+	visit_new_site: function(self, tag, seconds) {
+		var site = self.new_site(tag);
+		self.pddb.store_visit(site.url, _dbify_date(new Date()), seconds);
 		return site.url
 	},
 	
