@@ -100,7 +100,7 @@ function generated_input() {
         print
         print "XPI_FN", xpi_fn
         print "EXTN_DIR", self.extn_dir
-        print os.popen('zip -r %s *' % xpi_fn)
+        print os.popen('zip -r "%s" *' % xpi_fn)
         print
         
         xpi_url = "%s%s/%s" % (MEDIA_URL, 'xpi', xpi_nm)
