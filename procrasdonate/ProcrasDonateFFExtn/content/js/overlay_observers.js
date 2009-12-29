@@ -178,7 +178,7 @@ _extend(InitListener.prototype, {
 				});
 			}
 			
-			_pprint(data, "install generated input - not update");
+			_pprint(data, "install generated input - not update\n");
 		} else {
 			logger("install generated input - update");
 		}
