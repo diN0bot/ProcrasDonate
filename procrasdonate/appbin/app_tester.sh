@@ -32,9 +32,11 @@ echo -e "\n============ ${timeslot} ============" >> ff.log
 
 cd ProcrasDonate
 git pull
+echo -e "\n -> updated repo"
+exit
 python procrasdonate/ProcrasDonateFFExtn/content/bin/safe_globals.py
-python procrasdonate/applib/xpi_builder.py
-echo -e "\n -> updated repo, built xpi"
+python procrasdonate/applib/xpi_builder.py --install
+echo -e "\n -> built xpi"
 
 echo 
 ./manage.py runserver 8282 >> django_server.log &
@@ -51,12 +53,19 @@ cp -rf freshly_made/prefs.js install_pd_${timeslot}/
 ln -s /Users/lucy/Library/Application\ Support/Firefox/Profiles/ProcrasDonate/procrasdonate/ProcrasDonateFFExtn install_pd_${timeslot}/extensions/extension@procrasdonate.com 
 echo -e " -> created new profile and linked extension"
 
-/Applications/Firefox3.5/Firefox.app/Contents/MacOS/firefox -P install_pd_${timeslot} -jsconsole http://procrasdonate.com/dev/automatic_test_suite >> ff.log &
-echo -e "\n -> opened FF"
-sleep 20
+/Applications/Firefox3.5/Firefox.app/Contents/MacOS/firefox -P install_pd_${timeslot} >> ff.log &
+echo -e "\n -> opened FF after install"
+sleep 15
 pid_ff2=`ps aux | grep install_pd_${timeslot} | grep -v grep | awk '{ print $2 }'`
 kill $pid_ff2
 
+/Applications/Firefox3.5/Firefox.app/Contents/MacOS/firefox -P install_pd_${timeslot} -jsconsole http://procrasdonate.com/dev/automatic_test_suite >> ff.log &
+echo -e "\n -> opened FF to run autotester"
+sleep 15
+pid_ff3=`ps aux | grep install_pd_${timeslot} | grep -v grep | awk '{ print $2 }'`
+kill $pid_ff3
+
+sleep 2
 for pid_rs in `ps aux | grep runserver.8282 | grep -v grep | awk '{ print $2 }'`
 do
     kill $pid_rs
