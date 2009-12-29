@@ -25,7 +25,6 @@
 
 cd /Users/lucy/Library/Application\ Support/Firefox/Profiles
 timeslot=`date '+%d_%b_%Y__%H_%M'`
-touch tester.log
 echo -e "\n============ ${timeslot} ============" >> tester.log
 echo -e "\n============ ${timeslot} ============" >> django_server.log
 echo -e "\n============ ${timeslot} ============" >> ff.log
@@ -33,13 +32,13 @@ echo -e "\n============ ${timeslot} ============" >> ff.log
 cd ProcrasDonate
 git pull
 echo -e "\n -> updated repo"
-exit
+
 python procrasdonate/ProcrasDonateFFExtn/content/bin/safe_globals.py
 python procrasdonate/applib/xpi_builder.py --install
 echo -e "\n -> built xpi"
 
 echo 
-./manage.py runserver 8282 >> django_server.log &
+./manage.py runserver 8282 &> ../django_server.log.tmp &
 
 cd ..
 /Applications/Firefox3.5/Firefox.app/Contents/MacOS/firefox -CreateProfile "install_pd_${timeslot} /Users/lucy/Library/Application Support/Firefox/Profiles/install_pd_${timeslot}"
@@ -59,7 +58,7 @@ sleep 15
 pid_ff2=`ps aux | grep install_pd_${timeslot} | grep -v grep | awk '{ print $2 }'`
 kill $pid_ff2
 
-/Applications/Firefox3.5/Firefox.app/Contents/MacOS/firefox -P install_pd_${timeslot} -jsconsole http://procrasdonate.com/dev/automatic_test_suite >> ff.log &
+/Applications/Firefox3.5/Firefox.app/Contents/MacOS/firefox -P install_pd_${timeslot} -jsconsole http://localhost:8282/dev/autotester_test_suite >> ff.log &
 echo -e "\n -> opened FF to run autotester"
 sleep 15
 pid_ff3=`ps aux | grep install_pd_${timeslot} | grep -v grep | awk '{ print $2 }'`
@@ -70,15 +69,17 @@ for pid_rs in `ps aux | grep runserver.8282 | grep -v grep | awk '{ print $2 }'`
 do
     kill $pid_rs
 done
+# append temp log to django_server.log
+cat django_server.log.tmp >> django_server.log
 
 # 1121|1261973311|FAIL|auto_test_summary|239/250
-R=`echo -e "select * from logs where detail_type='auto_test_summary' order by -datetime limit 1;" | sqlite3 /Users/lucy/Library/Application\ Support/Firefox/Profiles/install_pd_${timeslot}/procrasdonate.0.sqlite`
+R=`echo -e "select message from logs where detail_type='auto_test_summary' order by -datetime limit 1;" | sqlite3 /Users/lucy/Library/Application\ Support/Firefox/Profiles/install_pd_${timeslot}/procrasdonate.0.sqlite`
 echo -e "\n pass/total -> $R"
 if [ $R ]
 then
     pass=`echo $R | sed 's/\/.*//'`
     total=`echo $R | sed 's/\S*\/*//'`
-    if [ $pass = $total]
+    if [ $pass = $total ]
     then
 	echo -e "\n            pass equals total: ${PASS}, total = ${PASS}"
     else
@@ -92,3 +93,5 @@ fi
 #    --> will compile bugs prevent this from running after an install?
 #2. after upgrade or during a regression test, new
 #   auto_test_summary should be created.
+
+exit 0
