@@ -1,0 +1,35 @@
+[
+  {
+    "pk": 1, 
+    "model": "crosstester.testtype", 
+    "fields": {
+      "os_version": "a", 
+      "os_type": "W", 
+      "ff_version": "b", 
+      "slug": "windows7_ff35", 
+      "name": "Windows 7, FF 3.5"
+    }
+  }, 
+  {
+    "pk": 2, 
+    "model": "crosstester.testtype", 
+    "fields": {
+      "os_version": "e", 
+      "os_type": "U", 
+      "ff_version": "b", 
+      "slug": "ubuntu804_ff35", 
+      "name": "Ubuntu 8.04, FF 3.5"
+    }
+  }, 
+  {
+    "pk": 3, 
+    "model": "crosstester.testtype", 
+    "fields": {
+      "os_version": "c", 
+      "os_type": "M", 
+      "ff_version": "b", 
+      "slug": "macX5_ff35", 
+      "name": "Mac OS X.5, FF 3.5"
+    }
+  }
+]
