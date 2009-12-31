@@ -963,12 +963,73 @@ _extend(TestRunnerPDDisplay.prototype, {
 		var self = this;
 		var fails = this.testrunner_display.display_testgroup_result(testrunner, testgroup);
 		_iterate(fails, function(key, value, index) {
-			self.pddb.orthogonals.fail(value, "auto test failure");
+			self.pddb.orthogonals.fail(value, "auto_test_failure");
 		});
+		return fails
 	},
 	
 	test_done: function(testrunner) {
 		this.testrunner_display.test_done(testrunner);
+	}
+
+});
+
+///
+/// Logs test results to database only (does not rely on Firebug)
+///
+var TestRunnerPDDBDisplay = function(pddb) {
+	this.pddb = pddb;
+};
+TestRunnerPDDBDisplay.prototype = new TestRunnerDisplay();
+_extend(TestRunnerPDDBDisplay.prototype, {
+
+	display_testgroup_result: function(testrunner, testgroup) {
+		var fails = [];
+		
+		var passing = 0;
+		for (var i = 0; i < testgroup.assertions.length; i++) {
+			var assertion = testgroup.assertions[i];
+			if (assertion.result) {
+				passing += 1;
+			}
+		}
+		var total = 0;
+		if (testgroup.expected) {
+			total = testgroup.expected;
+		} else {
+			total = testgroup.assertions.length;
+		}
+		if (passing == total) {
+			var summary = "PASS";
+			var msg = passing+"/"+total+" pass. "+summary+" for "+testgroup.name;
+			this.pddb.orthogonals.log(msg, "auto_test_groupsummary");
+		} else {
+			var summary = "FAIL";
+			var msg = passing+"/"+total+" pass. "+summary+" for "+testgroup.name;
+			this.pddb.orthogonals.fail(msg, "auto_test_groupsummary");
+		}
+		for (var i = 0; i < testgroup.assertions.length; i++) {
+			var assertion = testgroup.assertions[i];
+			if (assertion.result) {
+				// don't display passing tests
+			} else {
+				var msg = i+". *"+assertion.result+"* "+assertion.msg;
+				this.pddb.orthogonals.fail(msg, "auto_test_failure");
+				fails.push(msg);
+			}
+		}
+		return fails;
+	},
+	
+	test_done: function(testrunner) {
+		var passing = testrunner.passing_total();
+		var total = testrunner.total();
+		var msg = passing+"/"+total;
+		if (passing == total) {
+			this.pddb.orthogonals.log(msg, "auto_test_summary");
+		} else {
+			this.pddb.orthogonals.fail(msg, "auto_test_summary");
+		}
 	}
 
 });
@@ -1785,9 +1846,9 @@ _extend(TestRunner.prototype, {
  * TESTS: may mutate database. checks that logic inserts appropriate objects into database.
  * CHECKS: checks database is well formed, not corrupted
  */
-var PDChecks = function PDChecks(prefs, pddb) {
-	this.prefs = prefs;
+var PDChecks = function PDChecks(pddb, prefs) {
 	this.pddb = pddb;
+	this.prefs = prefs;
 };
 PDChecks.prototype = {};
 _extend(PDChecks.prototype, {
@@ -1942,9 +2003,9 @@ _extend(PDChecks.prototype, {
 	},
 });
 
-var PDTests = function PDTests(prefs, pddb) {
-	this.prefs = prefs;
+var PDTests = function PDTests(pddb, prefs) {
 	this.pddb = pddb;
+	this.prefs = prefs;
 };
 PDTests.prototype = {};
 _extend(PDTests.prototype, {
@@ -1971,7 +2032,7 @@ _extend(PDTests.prototype, {
 		_iterate(['Unsorted', 'ProcrasDonate', 'TimeWellSpent'], function(key, value, index) {
 			testrunner.ok( true, "---------------- new "+ value +" url ----");
 			var before_totals = self.retrieve_totals(testrunner, url, self.pddb[value]);
-			var url = self.visit_new_site(self.pddb[value], duration);
+			var url = self.visit_new_site(self, self.pddb[value], duration);
 			self.check_totals(testrunner, url, duration, before_totals);
 		});
 	},
@@ -2027,9 +2088,9 @@ _extend(PDTests.prototype, {
 	// specified tag is not Unosrted
 	// @param tag: tag instance
 	//
-	visit_new_site: function(tag, seconds) {
-		var site = this.new_site(tag);
-		this.pddb.store_visit(site.url, _dbify_date(new Date()), seconds);
+	visit_new_site: function(self, tag, seconds) {
+		var site = self.new_site(tag);
+		self.pddb.store_visit(site.url, _dbify_date(new Date()), seconds);
 		return site.url
 	},
 	
@@ -3452,7 +3513,7 @@ Template.register_template_class(DjangoTemplate, function(obj) {
     
     Template.compile(["<table id=\"user_messages\">\n<tbody><tr><td>\n\t<ul>\n    \t<li class=\"message\">", ["var", ["message"], []], "</li>\n\t</ul>\n</td></tr></tbody>\n</table>\n"], "user_messages");
     
-    Template.compile([["nop"], "\n\n", ["if", [[false, ["var", ["match"], []]]], 1, ["\n\t<p>\n\t\tIt's a match! You ProcrasDonated for exactly\n\t\t", ["var", ["pd_hrs_one_week"], []], " hours two weeks in a row!\n\t\tThat would win you a free game if we were playing pinball.\n\t\t", ["if", [[false, ["var", ["met_goal"], []]]], 1, ["\n\t\t\tYou would also get extra points for meeting your goal of\n\t\t\t", ["var", ["pd_hr_per_week_goal"], []], " hours per week.\n\t\t"], ["\n\t\t\tUnfortunately, you'd lose points a turn for exceeding\n\t\t\tur goal of ", ["var", ["pd_hr_per_week_goal"], []], " hours per week.\n\t\t"]], "\n\t</p>\n"], ["\n", ["if", [[false, ["var", ["no_data"], []]]], 1, ["\n\t<p>You haven't visited any websites tagged as ProcrasDonate. You can tag sites by clicking the \"?\" icon in your\n\tFirefox toolbar next to the URL address bar, or by visiting the \"Sites\" tab of \n\t<a href=\"", ["var", ["constants", "PD_URL"], []], ["var", ["constants", "PROGRESS_URL"], []], "\">My Progress</a>.</p>\n"], ["\n", ["if", [[false, ["var", ["one_week_good"], []]]], 1, ["\n\t<p>\n\t\tCongratulations", ["if", [[false, ["var", ["name"], []]]], 1, [", ", ["var", ["name"], []], "!"], ["!"]], "\n\t\tYou ProcrasDonated less than your goal of ", ["var", ["pd_hr_per_week_goal"], []], " hours.\n\t\tKeep up the good work!\n\t</p>\n"], ["\n", ["if", [[false, ["var", ["one_week_bad"], []]]], 1, ["\n\t<p>\n\t\tToo bad", ["if", [[false, ["var", ["name"], []]]], 1, [", ", ["var", ["name"], []], "."], ["."]], "\n\t\tYou ProcrasDonated more than your goal of ", ["var", ["pd_hr_per_week_goal"], []], " hours.\n\t\tWe know you can do better!\n\t</p>\n"], ["\n", ["if", [[false, ["var", ["good_in_a_row"], []]]], 1, ["\n\t<p>\n\t\tYou're on a roll", ["if", [[false, ["var", ["name"], []]]], 1, [", ", ["var", ["name"], []], "!"], ["!"]], "\n\t\tYou ProcrasDonated less than your goal of ", ["var", ["pd_hr_per_week_goal"], []], " hours\n\t\tfor at least ", ["var", ["weeks_in_a_row_met"], []], " weeks in a row. ProcrasDonating less means donating less.\n\t\tWould you like to celebrate by <a href=\"", ["var", ["constants", "PD_URL"], []], ["var", ["constants", "SETTINGS_URL"], []], "\">\n\t\traising your hourly giving</a> to ", ["var", ["top_charity", "name"], []], "? Woohoo!</p>\n"], ["\n", ["if", [[false, ["var", ["good"], []]]], 1, ["\n\t<p>\n\t\tCongratulations", ["if", [[false, ["var", ["name"], []]]], 1, [", ", ["var", ["name"], []], "!"], ["!"]], "\n\t\tYou ProcrasDonated less than your goal of ", ["var", ["pd_hr_per_week_goal"], []], " hours.\n\t\tKeep up the good work!\n\t</p>\n"], ["\n", ["if", [[false, ["var", ["sudden_bad"], []]]], 1, ["\n\t<p>\n\t", ["if", [[false, ["var", ["name"], []]]], 1, [["var", ["name"], []], ", your"], ["Your"]], " streak has ended.  \n\tYou had met your goal for at least ", ["var", ["weeks_in_a_row_met"], []], " weeks in a row.\n\tThis week you ProcrasDonated ", ["var", ["pd_hrs_one_week"], []], " hours, exceeding \n\tyour goal of ", ["var", ["pd_hr_per_week_goal"], []], " hours by ", ["var", ["pd_hrs_one_week_diff"], []], ".\n\tWe know you can get back on track!\n\t</p>\n"], ["\n", ["if", [[false, ["var", ["getting_worse"], []]]], 1, ["\n\t<p>\n\t\tWhat happened", ["if", [[false, ["var", ["name"], []]]], 1, [", ", ["var", ["name"], []], "?"], ["?"]], "\n\t\tYou ProcrasDonated ", ["var", ["pd_hrs_one_week_two_week_diff"], []], " hours more than the week before.\n\t\tThat's a total of ", ["var", ["pd_hrs_one_week_diff"], []], " hours more than your goal\n\t\tof ", ["var", ["pd_hr_per_week_goal"], []], " hours.\n\t\tWhat are you going to do about this?\n\t</p>\n"], ["\n", ["if", [[false, ["var", ["getting_better"], []]]], 1, ["\n\t<p>\n\tYou're getting closer to your goal", ["if", [[false, ["var", ["name"], []]]], 1, [", ", ["var", ["name"], []], "."], ["."]], "\n\tAwesome!\n\tYou ProcrasDonated ", ["var", ["pd_hrs_one_week_two_week_diff"], []], " hours less than the week before,\n\twhich means you're on track to meeting your goal of ", ["var", ["pd_hr_per_week_goal"], []], " hours per week.\n\tKeep it up! You can do it!\n\t</p>\n"], []]]]]]]]]]]]]]]]]], "\n\n<p>Hours ProcrasDonated</p>\n<ul>\n\t<li>this week: ", ["var", ["pd_hrs_one_week"], []], " hours \n\t\t(", ["var", ["pd_culprit_one_week", "hours_int"], []], " hours from ", ["var", ["pd_culprit_one_week", "sitegroup", "host"], []], ")</li>\n\t", ["if", [[false, ["var", ["pd_hrs_two_week"], []]]], 1, ["<li>last week: ", ["var", ["pd_hrs_two_week"], []], " hours \n\t\t(", ["var", ["pd_culprit_two_week", "hours_int"], []], " hours from ", ["var", ["pd_culprit_two_week", "sitegroup", "host"], []], ")</li>"], []], "\n\t", ["if", [[false, ["var", ["pd_hrs_three_week"], []]]], 1, ["<li>two weeks ago: ", ["var", ["pd_hrs_three_week"], []], " hours \n\t\t(", ["var", ["pd_culprit_three_week", "hours_int"], []], " hours from ", ["var", ["pd_culprit_three_week", "sitegroup", "host"], []], ")</li>"], []], "\n\t<br/>\n\t<li>goal: ", ["var", ["pd_hr_per_week_goal"], []], " hours</li>\n\t<li>limit: ", ["var", ["pd_hr_per_week_max"], []], " hours</li>\n\t<li>rate: $", ["var", ["pd_dollars_per_hr"], []], "/hour</li>\n</ul>\n\n<p>TimeWellSpent Hours</p>\n<ul>\n\t<li>this week: ", ["var", ["tws_hrs_one_week"], []], " hours\n\t\t(", ["var", ["tws_culprit_one_week", "hours_int"], []], " hours from ", ["var", ["tws_culprit_one_week", "sitegroup", "host"], []], ")</li>\n\t", ["if", [[false, ["var", ["tws_hrs_two_week"], []]]], 1, ["<li>last week: ", ["var", ["tws_hrs_two_week"], []], " hours\n\t\t(", ["var", ["tws_culprit_two_week", "hours_int"], []], " hours from ", ["var", ["tws_culprit_two_week", "sitegroup", "host"], []], ")</li>"], []], "\n\t", ["if", [[false, ["var", ["tws_hrs_three_week"], []]]], 1, ["<li>two weeks ago: ", ["var", ["tws_hrs_three_week"], []], " hours\n\t\t(", ["var", ["tws_culprit_three_week", "hours_int"], []], " hours from ", ["var", ["tws_culprit_three_week", "sitegroup", "host"], []], ")</li>"], []], "\n\t<br />\n\t<li>limit: ", ["var", ["tws_hr_per_week_max"], []], " hours</li>\n\t<li>rate: $", ["var", ["tws_dollars_per_hr"], []], "/hour</li>\n</ul>\n\n<p>Unclassified Hours</p>\n<ul>\n\t<li>this week: ", ["var", ["u_hrs_one_week"], []], " hours\n\t\t(", ["var", ["u_culprit_one_week", "hours_int"], []], " hours from ", ["var", ["u_culprit_one_week", "sitegroup", "host"], []], ")</li>\n\t", ["if", [[false, ["var", ["u_hrs_two_week"], []]]], 1, ["<li>last week: ", ["var", ["u_hrs_two_week"], []], " hours\n\t\t(", ["var", ["u_culprit_two_week", "hours_int"], []], " hours from ", ["var", ["u_culprit_two_week", "sitegroup", "host"], []], ")</li>"], []], "\n\t", ["if", [[false, ["var", ["u_hrs_three_week"], []]]], 1, ["<li>two weeks ago: ", ["var", ["u_hrs_three_week"], []], " hours\n\t\t(", ["var", ["u_culprit_three_week", "hours_int"], []], " hours from ", ["var", ["u_culprit_three_week", "sitegroup", "host"], []], ")</li>"], []], "\n</ul>\n\n", ["if", [[false, ["var", ["pledges"], []]]], 1, ["\n\t<p>This week you pledged:</p>\n\t<ul>\n\t", ["for", ["pledge"], ["var", ["pledges"], []], false, ["\n\t    <li>$", ["var", ["pledge", "amount"], []], " to ", ["var", ["pledge", "charity"], []], "</li>\n\t"]], "\n\t</ul>\n"], []], "\n\n", ["if", [[false, ["var", ["payments"], []]]], 1, ["\n\t<p>This week you turned pledges into donations!</p>\n\t<ul>\n\t", ["for", ["payment"], ["var", ["payments"], []], false, ["\n\t    <li>$", ["var", ["payment", "amount"], []], " to ", ["var", ["payment", "charity"], []], "</li>\n\t"]], "\n\t</ul>\n"], []], "\n\n<p><a href=\"", ["var", ["constants", "PD_URL"], []], ["var", ["constants", "MESSAGES_URL"], []], "\">View all messages</a></p>\n"], "weekly_report");
+    Template.compile([["nop"], "\n\n", ["if", [[false, ["var", ["match"], []]]], 1, ["\n\t<p>\n\t\tIt's a match! You ProcrasDonated for exactly\n\t\t", ["var", ["pd_hrs_one_week"], []], " hours two weeks in a row!\n\t\tThat would win you a free game if we were playing pinball.\n\t\t", ["if", [[false, ["var", ["met_goal"], []]]], 1, ["\n\t\t\tYou would also get extra points for meeting your goal of\n\t\t\t", ["var", ["pd_hr_per_week_goal"], []], " hours per week.\n\t\t"], ["\n\t\t\tUnfortunately, you'd lose a turn for exceeding\n\t\t\tyour goal of ", ["var", ["pd_hr_per_week_goal"], []], " hours per week.\n\t\t"]], "\n\t</p>\n"], ["\n", ["if", [[false, ["var", ["no_data"], []]]], 1, ["\n\t<p>You haven't visited any websites tagged as ProcrasDonate. You can tag sites by clicking the \"?\" icon in your\n\tFirefox toolbar next to the URL address bar, or by visiting the \"Sites\" tab of \n\t<a href=\"", ["var", ["constants", "PD_URL"], []], ["var", ["constants", "PROGRESS_URL"], []], "\">My Progress</a>.</p>\n"], ["\n", ["if", [[false, ["var", ["one_week_good"], []]]], 1, ["\n\t<p>\n\t\tCongratulations", ["if", [[false, ["var", ["name"], []]]], 1, [", ", ["var", ["name"], []], "!"], ["!"]], "\n\t\tYou ProcrasDonated less than your goal of ", ["var", ["pd_hr_per_week_goal"], []], " hours.\n\t\tKeep up the good work!\n\t</p>\n"], ["\n", ["if", [[false, ["var", ["one_week_bad"], []]]], 1, ["\n\t<p>\n\t\tToo bad", ["if", [[false, ["var", ["name"], []]]], 1, [", ", ["var", ["name"], []], "."], ["."]], "\n\t\tYou ProcrasDonated more than your goal of ", ["var", ["pd_hr_per_week_goal"], []], " hours.\n\t\tWe know you can do better!\n\t</p>\n"], ["\n", ["if", [[false, ["var", ["good_in_a_row"], []]]], 1, ["\n\t<p>\n\t\tYou're on a roll", ["if", [[false, ["var", ["name"], []]]], 1, [", ", ["var", ["name"], []], "!"], ["!"]], "\n\t\tYou ProcrasDonated less than your goal of ", ["var", ["pd_hr_per_week_goal"], []], " hours\n\t\tfor at least ", ["var", ["weeks_in_a_row_met"], []], " weeks in a row. ProcrasDonating less means donating less.\n\t\tWould you like to celebrate by <a href=\"", ["var", ["constants", "PD_URL"], []], ["var", ["constants", "SETTINGS_URL"], []], "\">\n\t\traising your hourly giving</a> to ", ["var", ["top_charity", "name"], []], "? Woohoo!</p>\n"], ["\n", ["if", [[false, ["var", ["good"], []]]], 1, ["\n\t<p>\n\t\tCongratulations", ["if", [[false, ["var", ["name"], []]]], 1, [", ", ["var", ["name"], []], "!"], ["!"]], "\n\t\tYou ProcrasDonated less than your goal of ", ["var", ["pd_hr_per_week_goal"], []], " hours.\n\t\tKeep up the good work!\n\t</p>\n"], ["\n", ["if", [[false, ["var", ["sudden_bad"], []]]], 1, ["\n\t<p>\n\t", ["if", [[false, ["var", ["name"], []]]], 1, [["var", ["name"], []], ", your"], ["Your"]], " streak has ended.  \n\tYou had met your goal for at least ", ["var", ["weeks_in_a_row_met"], []], " weeks in a row.\n\tThis week you ProcrasDonated ", ["var", ["pd_hrs_one_week"], []], " hours, exceeding \n\tyour goal of ", ["var", ["pd_hr_per_week_goal"], []], " hours by ", ["var", ["pd_hrs_one_week_diff"], []], ".\n\tWe know you can get back on track!\n\t</p>\n"], ["\n", ["if", [[false, ["var", ["getting_worse"], []]]], 1, ["\n\t<p>\n\t\tWhat happened", ["if", [[false, ["var", ["name"], []]]], 1, [", ", ["var", ["name"], []], "?"], ["?"]], "\n\t\tYou ProcrasDonated ", ["var", ["pd_hrs_one_week_two_week_diff"], []], " hours more than the week before.\n\t\tThat's a total of ", ["var", ["pd_hrs_one_week_diff"], []], " hours more than your goal\n\t\tof ", ["var", ["pd_hr_per_week_goal"], []], " hours.\n\t\tWhat are you going to do about this?\n\t</p>\n"], ["\n", ["if", [[false, ["var", ["getting_better"], []]]], 1, ["\n\t<p>\n\tYou're getting closer to your goal", ["if", [[false, ["var", ["name"], []]]], 1, [", ", ["var", ["name"], []], "."], ["."]], "\n\tAwesome!\n\tYou ProcrasDonated ", ["var", ["pd_hrs_one_week_two_week_diff"], []], " hours less than the week before,\n\twhich means you're on track to meeting your goal of ", ["var", ["pd_hr_per_week_goal"], []], " hours per week.\n\tKeep it up! You can do it!\n\t</p>\n"], []]]]]]]]]]]]]]]]]], "\n\n<p>Hours ProcrasDonated</p>\n<ul>\n\t<li>this week: ", ["var", ["pd_hrs_one_week"], []], " hours \n\t\t(", ["var", ["pd_culprit_one_week", "hours_int"], []], " hours from ", ["var", ["pd_culprit_one_week", "sitegroup", "host"], []], ")</li>\n\t", ["if", [[false, ["var", ["pd_hrs_two_week"], []]]], 1, ["<li>last week: ", ["var", ["pd_hrs_two_week"], []], " hours \n\t\t(", ["var", ["pd_culprit_two_week", "hours_int"], []], " hours from ", ["var", ["pd_culprit_two_week", "sitegroup", "host"], []], ")</li>"], []], "\n\t", ["if", [[false, ["var", ["pd_hrs_three_week"], []]]], 1, ["<li>two weeks ago: ", ["var", ["pd_hrs_three_week"], []], " hours \n\t\t(", ["var", ["pd_culprit_three_week", "hours_int"], []], " hours from ", ["var", ["pd_culprit_three_week", "sitegroup", "host"], []], ")</li>"], []], "\n\t<br/>\n\t<li>goal: ", ["var", ["pd_hr_per_week_goal"], []], " hours</li>\n\t<li>limit: ", ["var", ["pd_hr_per_week_max"], []], " hours</li>\n\t<li>rate: $", ["var", ["pd_dollars_per_hr"], []], "/hour</li>\n</ul>\n\n<p>TimeWellSpent Hours</p>\n<ul>\n\t<li>this week: ", ["var", ["tws_hrs_one_week"], []], " hours\n\t\t(", ["var", ["tws_culprit_one_week", "hours_int"], []], " hours from ", ["var", ["tws_culprit_one_week", "sitegroup", "host"], []], ")</li>\n\t", ["if", [[false, ["var", ["tws_hrs_two_week"], []]]], 1, ["<li>last week: ", ["var", ["tws_hrs_two_week"], []], " hours\n\t\t(", ["var", ["tws_culprit_two_week", "hours_int"], []], " hours from ", ["var", ["tws_culprit_two_week", "sitegroup", "host"], []], ")</li>"], []], "\n\t", ["if", [[false, ["var", ["tws_hrs_three_week"], []]]], 1, ["<li>two weeks ago: ", ["var", ["tws_hrs_three_week"], []], " hours\n\t\t(", ["var", ["tws_culprit_three_week", "hours_int"], []], " hours from ", ["var", ["tws_culprit_three_week", "sitegroup", "host"], []], ")</li>"], []], "\n\t<br />\n\t<li>limit: ", ["var", ["tws_hr_per_week_max"], []], " hours</li>\n\t<li>rate: $", ["var", ["tws_dollars_per_hr"], []], "/hour</li>\n</ul>\n\n<p>Unclassified Hours</p>\n<ul>\n\t<li>this week: ", ["var", ["u_hrs_one_week"], []], " hours\n\t\t(", ["var", ["u_culprit_one_week", "hours_int"], []], " hours from ", ["var", ["u_culprit_one_week", "sitegroup", "host"], []], ")</li>\n\t", ["if", [[false, ["var", ["u_hrs_two_week"], []]]], 1, ["<li>last week: ", ["var", ["u_hrs_two_week"], []], " hours\n\t\t(", ["var", ["u_culprit_two_week", "hours_int"], []], " hours from ", ["var", ["u_culprit_two_week", "sitegroup", "host"], []], ")</li>"], []], "\n\t", ["if", [[false, ["var", ["u_hrs_three_week"], []]]], 1, ["<li>two weeks ago: ", ["var", ["u_hrs_three_week"], []], " hours\n\t\t(", ["var", ["u_culprit_three_week", "hours_int"], []], " hours from ", ["var", ["u_culprit_three_week", "sitegroup", "host"], []], ")</li>"], []], "\n</ul>\n\n", ["if", [[false, ["var", ["pledges"], []]]], 1, ["\n\t<p>This week you pledged:</p>\n\t<ul>\n\t", ["for", ["pledge"], ["var", ["pledges"], []], false, ["\n\t    <li>$", ["var", ["pledge", "amount"], []], " to ", ["var", ["pledge", "charity"], []], "</li>\n\t"]], "\n\t</ul>\n"], []], "\n\n", ["if", [[false, ["var", ["payments"], []]]], 1, ["\n\t<p>This week you turned pledges into donations!</p>\n\t<ul>\n\t", ["for", ["payment"], ["var", ["payments"], []], false, ["\n\t    <li>$", ["var", ["payment", "amount"], []], " to ", ["var", ["payment", "charity"], []], "</li>\n\t"]], "\n\t</ul>\n"], []], "\n\n<p><a href=\"", ["var", ["constants", "PD_URL"], []], ["var", ["constants", "MESSAGES_URL"], []], "\">View all messages</a></p>\n"], "weekly_report");
     
     Template.compile(["<p>Thanks for using <a href=\"", ["var", ["constants", "PD_URL"], []], ["var", ["constants", "SPLASH_URL"], []], "\">ProcrasDonate</a>\n\t", ["if", [[false, ["var", ["name"], []]]], 1, [", ", ["var", ["name"], []], "!"], ["!"]], "\n\tWe hope you have fun.\n</p>\n\t\t\n<p>Below are some tips to get you started. You can find more information\n\tin the <a href=\"", ["var", ["constants", "PD_URL"], []], ["var", ["constants", "FAQ_URL"], []], "\">FAQ</a>. If you have questions\n\tor suggestions please let us know on the <a href=\"", ["var", ["constants", "PD_URL"], []], ["var", ["constants", "FEEDBACK_URL"], []], "\">\n\tFeedback Forum</a> or by sending us <a href=\"mailto:", ["var", ["constants", "EMAIL_ADDRESS"], []], "\">email: </a>\n\t", ["var", ["constants", "EMAIL_ADDRESS"], []], ".\n</p>\n\n\t<h3>\n\t\t1. Categorize websites\n\t\t<img src=\"", ["var", ["constants", "PD_URL"], []], ["var", ["constants", "MEDIA_URL"], []], "img/ToolbarImages/UnsortedIcon.png\" class=\"icon-image\" />\n\t\t<img src=\"", ["var", ["constants", "PD_URL"], []], ["var", ["constants", "MEDIA_URL"], []], "img/ToolbarImages/ProcrasDonateIcon.png\" class=\"icon-image\" />\n\t\t<img src=\"", ["var", ["constants", "PD_URL"], []], ["var", ["constants", "MEDIA_URL"], []], "img/ToolbarImages/TimeWellSpentIcon.png\" class=\"icon-image\" />\n\t</h3>\n\t\n\t<p>Click the \n\t\t<img src=\"", ["var", ["constants", "PD_URL"], []], ["var", ["constants", "MEDIA_URL"], []], "img/ToolbarImages/UnsortedIcon.png\" class=\"icon-image\" />\n\t\ticon that appears in Firefox's toolbar <b>next</b> to your browser's website address bar.</p>\n\t  \n\t<p>Click <b>once</b> to classify the currently viewed website as ProcrasDonation\t\t\n\t\t<img src=\"", ["var", ["constants", "PD_URL"], []], ["var", ["constants", "MEDIA_URL"], []], "img/ToolbarImages/ProcrasDonateIcon.png\" class=\"icon-image\" />, \n\t\t<b>twice</b> for TimeWellSpent\t\t\n\t\t<img src=\"", ["var", ["constants", "PD_URL"], []], ["var", ["constants", "MEDIA_URL"], []], "img/ToolbarImages/TimeWellSpentIcon.png\" class=\"icon-image\" />.\n\t\t</p>\n\t\n\t<h3>\n\t\t2. <img src=\"", ["var", ["constants", "PD_URL"], []], ["var", ["constants", "MEDIA_URL"], []], "img/StepCircle6Done.png\" class=\"right-image\" />\n\t\t<a href=\"", ["var", ["constants", "PD_URL"], []], ["var", ["constants", "REGISTER_URL"], []], "\">Complete Registration</a>\n\t</h3>\n\t\n\t<p><a href=\"", ["var", ["constants", "PD_URL"], []], ["var", ["constants", "REGISTER_URL"], []], "\">Customize your account</a> to create charitable incentives\n\t\tand get feedback.</p>\n\t\n\t<h3>\n\t\t3. Monitor your weekly web usage \n\t\t<img src=\"", ["var", ["constants", "PD_URL"], []], ["var", ["constants", "MEDIA_URL"], []], "img/ToolbarImages/IconBar40.png\" class=\"icon-image\" />\n\t</h3>\n\t\n\t<p>Click the \n\t\t<img src=\"", ["var", ["constants", "PD_URL"], []], ["var", ["constants", "MEDIA_URL"], []], "img/ToolbarImages/IconBar20.png\" class=\"icon-image\" />\n\t\tmeter view your <a href=\"", ["var", ["constants", "PD_URL"], []], ["var", ["constants", "PROGRESS_URL"], []], "\">Progress</a> in more detail.</p>\n\t\n\t<p>Your <img src=\"", ["var", ["constants", "PD_URL"], []], ["var", ["constants", "MEDIA_URL"], []], "img/ToolbarImages/IconBar90.png\" class=\"icon-image\" />\n\t\tmeter will remain on default settings <b>until</b> you \n\t\t<a href=\"", ["var", ["constants", "PD_URL"], []], ["var", ["constants", "REGISTER_URL"], []], "\">Complete Registration</a> to set <i>your own goals</i>.</p>\n\n\t<h3>\n\t\t4. Look for weekly emails\n\t\t<img style=\"width:8em\" src=\"", ["var", ["constants", "PD_URL"], []], ["var", ["constants", "MEDIA_URL"], []], "img/laptophappy.png\" class=\"right-image\" />\n\t</h3>\n\t\n\t<p>Each week you will receive affirming summaries of your progress.</p>\n\t\n\t<h3>\n\t\t5. Tell your friends!\n\t</h3>\n\t<p>\n\t\t<img style=\"width:6em\" src=\"", ["var", ["constants", "PD_URL"], []], ["var", ["constants", "MEDIA_URL"], []], "img/laptophappy.png\" />\n\t\t<img style=\"width:6em\" src=\"", ["var", ["constants", "PD_URL"], []], ["var", ["constants", "MEDIA_URL"], []], "img/laptophappy.png\" />\n\t\t<img style=\"width:6em\" src=\"", ["var", ["constants", "PD_URL"], []], ["var", ["constants", "MEDIA_URL"], []], "img/laptophappy.png\" />\n\t</p>\n\t\n\t"], "welcome_message");
     
@@ -4742,8 +4803,6 @@ _extend(HttpRequest.prototype, {
 
 /**************** content/js/lib/request.js *****************/
 
-
-
 function PageRequest(url, event) {
 	this.url = url;
 	this.event = event;
@@ -4902,13 +4961,18 @@ _extend(PageRequest.prototype, {
 	
 });
 
+
 /**************** content/js/generated_input.js *****************/
 
 /**
  * Generated by xpi builder on the fly when user downloads extension.
  */
 function generated_input() {
+<<<<<<< HEAD:procrasdonate/ProcrasDonateFFExtn/content/js/generated_javascript.js
+    return [{"constants_PD_URL": "http://localhost:8282", "constants_PD_API_URL": "http://localhost:8282", "private_key": "RDifQN5mVRVkEYbCmqf9Vk", "preselected_charities": [{"percent": 0.0, "recipient_slug": "bilumi"}], "is_update": false}]
+=======
     return [{"constants_PD_URL": "http://localhost:8000", "constants_PD_API_URL": "http://localhost:8000", "is_update": true}]
+>>>>>>> 64fc79458bc6a293580884b91721a460688de8ca:procrasdonate/ProcrasDonateFFExtn/content/js/generated_javascript.js
 }
 
 
@@ -4933,12 +4997,12 @@ var constants = {};
 	constants.ProcrasDonate__UUID="extension@procrasdonate.com";
 
 	constants.MEDIA_URL = '/procrasdonate_media/';
-	constants.PD_HOST = 'ProcrasDonate.com';
+	constants.PD_HOST = 'procrasdonate.com';
 	constants.PD_URL = 'https://' + constants.PD_HOST;
 	constants.PD_API_URL = 'https://' + constants.PD_HOST;
 	//constants.PD_URL = 'http://localhost:8000';
 	//constants.PD_API_URL = 'http://localhost:8000';
-	constants.VALID_HOSTS = ['localhost:8000', 'procrasdonate.com'];
+	//constants.VALID_HOSTS = ['localhost:8000', 'procrasdonate.com'];
 	
 	constants.PROCRASDONATE_URL = '/';
 	constants.REGISTER_URL = '/register/';
@@ -4982,6 +5046,7 @@ var constants = {};
 	// used for development and testing
 	constants.MANUAL_TEST_SUITE_URL = '/dev/manual_test_suite/';
 	constants.AUTOMATIC_TEST_SUITE_URL = '/dev/automatic_test_suite/';
+	constants.AUTOTESTER_TEST_SUITE_URL = '/dev/autotester_test_suite/';
 	constants.TIMING_TEST_SUITE_URL = '/dev/timing_test_suite/';
 	
 	constants.AMAZON_USER_URL = "https://payments.amazon.com";
@@ -7296,11 +7361,8 @@ _extend(Controller.prototype, {
 		}
 		
 		// create ProcrasDonate extension website
-		for (var i = 0; i < constants.VALID_HOSTS.length; i++) {
-			var valid_host = constants.VALID_HOSTS[i];
-			if (host == valid_host) { //match(new RegExp(valid_host)))
-				return this.pd_dispatch_by_url(request);
-			}
+		if (host == constants.PD_HOST) { //match(new RegExp(valid_host)))
+			return this.pd_dispatch_by_url(request);
 		}
 		return false;
 	},
@@ -7387,7 +7449,10 @@ _extend(Controller.prototype, {
 			this.page.manual_test_suite(request);
 			break;
 		case constants.AUTOMATIC_TEST_SUITE_URL:
-			this.page.automatic_test_suite(request);
+			this.page.automatic_test_suite(request, false);
+			break;
+		case constants.AUTOTESTER_TEST_SUITE_URL:
+			this.page.automatic_test_suite(request, true);
 			break;
 		case constants.TIMING_TEST_SUITE_URL:
 			this.page.timing_test_suite(request);
@@ -11049,7 +11114,7 @@ _extend(PageController.prototype, {
 
 	/// run tester tests (mutates db) and checker checks 
 	/// (checks db) on test database
-	automatic_test_suite: function(request) {
+	automatic_test_suite: function(request, is_autotester) {
 		var tester = new PDTests(this.pddb, this.prefs);
 		var checker = new PDChecks(this.pddb, this.prefs);
 		
@@ -11107,7 +11172,9 @@ _extend(PageController.prototype, {
 		
 		self.pddb = original_pddb;
 		
-		self.display_test_results(testrunner);
+		self.display_test_results(testrunner, is_autotester);
+
+		logger("automatic test suite done");
 	},
 	
 	/// run TIMING tester tests (mutates db) and checker checks 
@@ -11156,9 +11223,14 @@ _extend(PageController.prototype, {
 		self.display_test_results(testrunner);
 	},
 	
-	display_test_results: function(testrunner) {
-		var inner_display = new TestRunnerConsoleDisplay();
-		var display = new TestRunnerPDDisplay(inner_display, this.pddb);
+	display_test_results: function(testrunner, is_autotester) {
+		var display = null;
+		if (is_autotester) {
+		    display = new TestRunnerPDDBDisplay(this.pddb);
+		} else {
+		    var inner_display = new TestRunnerConsoleDisplay();
+		    display = new TestRunnerPDDisplay(inner_display, this.pddb);
+		}
 		for (var name in testrunner.test_modules) {
 			var test_module = testrunner.test_modules[name];
 			for (var i = 0; i < test_module.test_groups.length; i++) {
@@ -12800,6 +12872,7 @@ _extend(InitListener.prototype, {
 		var data = generated_input()[0];
 		
 		constants.PD_URL = data.constants_PD_URL;
+		constants.PD_HOST = _host(constants.PD_URL);
 		constants.PD_API_URL = data.constants_PD_API_URL;
 		
 		if (!data.is_update) {
@@ -12815,7 +12888,7 @@ _extend(InitListener.prototype, {
 				});
 			}
 			
-			_pprint(data, "install generated input - not update");
+			_pprint(data, "install generated input - not update\n");
 		} else {
 			logger("install generated input - update");
 		}
@@ -12983,7 +13056,7 @@ _extend(InitListener.prototype, {
 		}
 		if (!date) { date = new Date(); }
 		
-		var pd = self.pddb.Recipient.get_or_null({ slug: "PD" });
+		var pd = self.pddb.Recipient.get_or_create({ slug: "PD" });
 		var report = this.pddb.Report.create({
 			datetime: _dbify_date(date),
 			type: self.pddb.Report.ANNOUNCEMENT,

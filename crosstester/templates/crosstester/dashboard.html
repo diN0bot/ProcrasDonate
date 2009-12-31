@@ -1,0 +1,45 @@
+{% extends 'procrasdonate/superbase.html' %}
+
+{% block head %}
+	{{ block.super }}
+	<link rel="stylesheet" type="text/css" href="{{ MEDIA_URL }}css/crosstester.css">
+{% endblock %}
+
+{% block supermiddle %}
+<div id="supermiddle">
+	<h2>Cross Tester</h2>
+
+	<div class="row">
+		<div class="cell header"></div>
+		{% for d in dates %}
+			<div class="cell header">{{ d|date:"M d" }}</div>
+		{% endfor %}
+	</div>
+	
+	{% for type in test_types %}
+	<div class="row">
+		<div class="cell header">{{ type.name }}</div>
+		{% for runs in type.test_runs_by_day %}
+			<div class="cell">
+				{% for run in runs %}
+					<div
+						class="run {% if run.is_pass %}pass{% else %}fail{% endif %}"
+						title="{{ run.dtime|date:"H:i" }}">
+						{{ run.dtime }}
+						<br />
+						{{ run.number_fail }}/{{ run.total }}
+						<br />
+						{% ifnotequal run.duration -1 %}
+							{{ run.duration }} sec
+						{% endifnotequal %}
+						
+					</div>
+				{% empty %}
+					<div class="absent"></div>
+				{% endfor %}
+			</div>
+		{% endfor %}
+	</div>
+	{% endfor %}
+</div>
+{% endblock %}

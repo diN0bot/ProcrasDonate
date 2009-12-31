@@ -10,15 +10,19 @@ def path(p):
     """
     return os.sep.join(p.split("/"))
 
+import re
+_space_replace = re.compile("([^\\\])( )")
 def pathify(lst, file_extension=False):
     """
     @param lst: list of path components
     @return: string with os-specific path separator between components 
     """
+    # replaces spaces with raw spaces so that spaces in file names work
+    repl = r"\g<1> "
     if file_extension:
-        return os.sep.join([el != lst[-1] and el.replace('.', os.sep) or el for el in lst])
+        return os.sep.join([el != lst[-1] and _space_replace.sub(repl, el.replace('.', os.sep)) or _space_replace.sub(repl, el) for el in lst])
     else:
-        return os.sep.join([el.replace('.', os.sep) for el in lst])
+        return os.sep.join([_space_replace.sub(repl, el.replace('.', os.sep)) for el in lst])
 
 import sys
 if not sys.stdout:
@@ -40,12 +44,12 @@ ADMINS = (
 )
 MANAGERS = ADMINS
 
-APPS = ('procrasdonate', )
+APPS = ('procrasdonate', 'crosstester')
 
 EMAIL = "info@ProcrasDonate.com"
 
-DOMAIN = 'https://ProcrasDonate.com'
-API_DOMAIN = 'https://ProcrasDonate.com'
+DOMAIN = 'https://procrasdonate.com'
+API_DOMAIN = 'https://procrasdonate.com'
 
 # Local time zone for this installation. Choices can be found here:
 # http://www.postgresql.org/docs/8.1/static/datetime-keywords.html#DATETIME-TIMEZONE-SET-TABLE

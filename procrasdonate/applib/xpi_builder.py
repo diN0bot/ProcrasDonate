@@ -1,7 +1,7 @@
 from lib.xml_utils import ConvertXmlToDict
 from settings import pathify, path, PROJECT_PATH, MEDIA_ROOT, MEDIA_URL, DOMAIN, API_DOMAIN
 
-from procrasdonate.models import Recipient
+from procrasdonate.models import Recipient, User, Log
 
 from django.utils import simplejson as json
 
@@ -40,6 +40,7 @@ function generated_input() {
         data = {"constants_PD_URL": DOMAIN,
                  "constants_PD_API_URL": API_DOMAIN,
                  "is_update": is_update}
+        print "DATA: ", data
         
         private_key = "__no_private_key_for_update__"
         
@@ -99,7 +100,7 @@ function generated_input() {
         print
         print "XPI_FN", xpi_fn
         print "EXTN_DIR", self.extn_dir
-        print os.popen('zip -r %s *' % xpi_fn)
+        print os.popen('zip -r "%s" *' % xpi_fn)
         print
         
         xpi_url = "%s%s/%s" % (MEDIA_URL, 'xpi', xpi_nm)
@@ -203,10 +204,30 @@ function generated_input() {
         write_rdf_f.close()
             
 if __name__ == "__main__":
+    is_update = True
+    slug = '__none__'
+    recipient = None
+    for arg in sys.argv:
+        if arg == '--install':
+            is_update = False
+            slug_idx = sys.argv.index(arg) + 1
+            if len(sys.argv) > slug_idx:
+                slug = sys.argv[slug_idx]
+            recipient = slug != '__none__' and Recipient.get_or_none(slug=slug) or None
+            
     xpi_builder = XpiBuilder(pathify([PROJECT_PATH, 'procrasdonate', 'ProcrasDonateFFExtn']),
                              "%s%s" % (MEDIA_ROOT, 'xpi'),
-                             "%s%s" % (MEDIA_ROOT, 'rdf'))
+                             "%s%s" % (MEDIA_ROOT, 'rdf'),
+                             recipient)
     
-    print xpi_builder.write_input_json(is_update=True)
-    print xpi_builder.build_xpi(is_update=True)
-    print xpi_builder.get_update_info()
+    private_key = xpi_builder.write_input_json(is_update=is_update)
+    if not is_update:
+        user = User.add(private_key)
+        Log.Log("Built XPI for download", detail="usage", user=user)
+    print "private_key", private_key
+     
+    (xpi_url, xpi_hash) = xpi_builder.build_xpi(is_update=is_update)
+    print "xpi_url", xpi_url
+    print "xpi_hash", xpi_hash
+    if is_update:
+        print "update info", xpi_builder.get_update_info()

@@ -18,12 +18,12 @@ var constants = {};
 	constants.ProcrasDonate__UUID="extension@procrasdonate.com";
 
 	constants.MEDIA_URL = '/procrasdonate_media/';
-	constants.PD_HOST = 'ProcrasDonate.com';
+	constants.PD_HOST = 'procrasdonate.com';
 	constants.PD_URL = 'https://' + constants.PD_HOST;
 	constants.PD_API_URL = 'https://' + constants.PD_HOST;
 	//constants.PD_URL = 'http://localhost:8000';
 	//constants.PD_API_URL = 'http://localhost:8000';
-	constants.VALID_HOSTS = ['localhost:8000', 'procrasdonate.com'];
+	//constants.VALID_HOSTS = ['localhost:8000', 'procrasdonate.com'];
 	
 	constants.PROCRASDONATE_URL = '/';
 	constants.REGISTER_URL = '/register/';
@@ -67,6 +67,7 @@ var constants = {};
 	// used for development and testing
 	constants.MANUAL_TEST_SUITE_URL = '/dev/manual_test_suite/';
 	constants.AUTOMATIC_TEST_SUITE_URL = '/dev/automatic_test_suite/';
+	constants.AUTOTESTER_TEST_SUITE_URL = '/dev/autotester_test_suite/';
 	constants.TIMING_TEST_SUITE_URL = '/dev/timing_test_suite/';
 	
 	constants.AMAZON_USER_URL = "https://payments.amazon.com";

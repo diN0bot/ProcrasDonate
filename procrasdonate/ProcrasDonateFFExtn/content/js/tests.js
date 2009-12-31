@@ -29,9 +29,9 @@
  * TESTS: may mutate database. checks that logic inserts appropriate objects into database.
  * CHECKS: checks database is well formed, not corrupted
  */
-var PDChecks = function PDChecks(prefs, pddb) {
-	this.prefs = prefs;
+var PDChecks = function PDChecks(pddb, prefs) {
 	this.pddb = pddb;
+	this.prefs = prefs;
 };
 PDChecks.prototype = {};
 _extend(PDChecks.prototype, {
@@ -186,9 +186,9 @@ _extend(PDChecks.prototype, {
 	},
 });
 
-var PDTests = function PDTests(prefs, pddb) {
-	this.prefs = prefs;
+var PDTests = function PDTests(pddb, prefs) {
 	this.pddb = pddb;
+	this.prefs = prefs;
 };
 PDTests.prototype = {};
 _extend(PDTests.prototype, {
@@ -215,7 +215,7 @@ _extend(PDTests.prototype, {
 		_iterate(['Unsorted', 'ProcrasDonate', 'TimeWellSpent'], function(key, value, index) {
 			testrunner.ok( true, "---------------- new "+ value +" url ----");
 			var before_totals = self.retrieve_totals(testrunner, url, self.pddb[value]);
-			var url = self.visit_new_site(self.pddb[value], duration);
+			var url = self.visit_new_site(self, self.pddb[value], duration);
 			self.check_totals(testrunner, url, duration, before_totals);
 		});
 	},
@@ -271,9 +271,9 @@ _extend(PDTests.prototype, {
 	// specified tag is not Unosrted
 	// @param tag: tag instance
 	//
-	visit_new_site: function(tag, seconds) {
-		var site = this.new_site(tag);
-		this.pddb.store_visit(site.url, _dbify_date(new Date()), seconds);
+	visit_new_site: function(self, tag, seconds) {
+		var site = self.new_site(tag);
+		self.pddb.store_visit(site.url, _dbify_date(new Date()), seconds);
 		return site.url
 	},
 	
