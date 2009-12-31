@@ -47,6 +47,7 @@ def report_testrun(request):
     
     dtime = datetime.datetime.strptime(response['dtime'], "%Y_%m_%d_%H_%M_%S")
     is_pass = 'is_pass' in response and response['is_pass'] or None
+    is_pass = (is_pass == "True") and True or False
     number_fail = 'number_fail' in response and response['number_fail'] or None
     total = 'total' in response and response['total'] or None
     duration = 'duration' in response and response['duration'] or None
