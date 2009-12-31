@@ -44,7 +44,7 @@ ADMINS = (
 )
 MANAGERS = ADMINS
 
-APPS = ('procrasdonate', )
+APPS = ('procrasdonate', 'crosstester')
 
 EMAIL = "info@ProcrasDonate.com"
 

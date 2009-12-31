@@ -9,7 +9,7 @@ import re
 class Log(models.Model):
     """
     """
-    LOG_TYPES_LIST = ["DEBUG", "INFO", "LOG", "WARN", "FAIL", "ERROR"]
+    LOG_TYPES_LIST = ["DEBUG", "INFO", "LOG", "WARN", "ERROR"]
     log_max_len, LOG_TYPES, LOG_TYPE_CHOICES = model_utils.convert_to_choices(LOG_TYPES_LIST)
         
     #DETAIL_TYPES_LIST = ["GENERAL", "UNKNOWN", "DATA_FROM_EXTN", "AMAZON_RESPONSE"]

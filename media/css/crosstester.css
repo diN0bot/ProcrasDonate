@@ -1,0 +1,21 @@
+
+#supermiddle {
+	margin: 1em;
+	overflow: clipped;
+}
+
+.row {
+	margin: .3em;
+	border-bottom: 1px #CDBCEF solid;
+	clear: both;
+}
+.row .cell {
+	float: left;
+	padding: 1em;
+	width: 7em;
+}
+.row .run:odd { background: #DDDDDD; }
+.row .header { font-weight: bold; }
+.row .pass { color: green; }
+.row .fail { color: red; }
+.row .absent { color: black; }
