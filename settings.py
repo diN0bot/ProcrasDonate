@@ -19,10 +19,11 @@ def pathify(lst, file_extension=False):
     """
     # replaces spaces with raw spaces so that spaces in file names work
     repl = r"\g<1> "
-    if file_extension:
-        return os.sep.join([el != lst[-1] and _space_replace.sub(repl, el.replace('.', os.sep)) or _space_replace.sub(repl, el) for el in lst])
-    else:
-        return os.sep.join([_space_replace.sub(repl, el.replace('.', os.sep)) for el in lst])
+    return os.sep.join([_space_replace.sub(repl, el) for el in lst])
+    #if file_extension:
+    #    return os.sep.join([el != lst[-1] and _space_replace.sub(repl, el.replace('.', os.sep)) or _space_replace.sub(repl, el) for el in lst])
+    #else:
+    #    return os.sep.join([_space_replace.sub(repl, el.replace('.', os.sep)) for el in lst])
 
 import sys
 if not sys.stdout:

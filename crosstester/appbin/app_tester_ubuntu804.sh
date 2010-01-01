@@ -1,5 +1,9 @@
 #!/bin/bash
 
+# about:config browser.sessionstore.enabled = false
+# otherwise always asks to restore session after a kill
+# (kill probably does not stop timer...)
+
 # == SETUP ==
 # cd Profiles
 # git clone git@github.com:diN0bot/ProcrasDonate.git
@@ -16,6 +20,7 @@
 # user_pref("javascript.options.strict", true);
 # user_pref("extensions.logging.enabled", true);
 # user_pref("dom.report_all_js_exceptions", true);
+# user_pref("browser.sessionstore.enabled", false);
 
 # == RUN TEST ==
 # notes
@@ -23,7 +28,7 @@
 # when start Firefox, need to wait a bit for PID's to settle
 # 
 
-cd /Users/lucy/Library/Application\ Support/Firefox/Profiles
+cd /home/lucy/.mozilla/firefox
 timeslot=`date '+%d_%b_%Y__%H_%M'`
 dtime=`date '+%Y_%m_%d_%H_%M_%S'`
 echo -e "\n============ ${timeslot} ============" >> tester.log
@@ -42,24 +47,24 @@ echo
 ./manage.py runserver 8282 &> ../django_server.log.tmp &
 
 cd ..
-/Applications/Firefox3.5/Firefox.app/Contents/MacOS/firefox -CreateProfile "install_pd_${timeslot} /Users/lucy/Library/Application Support/Firefox/Profiles/install_pd_${timeslot}"
-/Applications/Firefox3.5/Firefox.app/Contents/MacOS/firefox -P install_pd_${timeslot} &
+firefox -CreateProfile "install_pd_${timeslot} /home/lucy/.mozilla/firefox/install_pd_${timeslot}"
+firefox -P install_pd_${timeslot} &
 
 sleep 6
 pid_ff1=`ps aux | grep install_pd_${timeslot} | grep -v grep | awk '{ print $2 }'`
 kill $pid_ff1
 
 cp -rf freshly_made/prefs.js install_pd_${timeslot}/
-ln -s /Users/lucy/Library/Application\ Support/Firefox/Profiles/ProcrasDonate/procrasdonate/ProcrasDonateFFExtn install_pd_${timeslot}/extensions/extension@procrasdonate.com 
+ln -s /home/lucy/.mozilla/firefox/ProcrasDonate/procrasdonate/ProcrasDonateFFExtn install_pd_${timeslot}/extensions/extension@procrasdonate.com 
 echo -e " -> created new profile and linked extension"
 
-/Applications/Firefox3.5/Firefox.app/Contents/MacOS/firefox -P install_pd_${timeslot} >> ff.log &
+firefox -P install_pd_${timeslot} >> ff.log &
 echo -e "\n -> opened FF after install"
 sleep 15
 pid_ff2=`ps aux | grep install_pd_${timeslot} | grep -v grep | awk '{ print $2 }'`
 kill $pid_ff2
 
-/Applications/Firefox3.5/Firefox.app/Contents/MacOS/firefox -P install_pd_${timeslot} -jsconsole http://localhost:8282/dev/autotester_test_suite >> ff.log &
+firefox -P install_pd_${timeslot} -jsconsole http://localhost:8282/dev/autotester_test_suite >> ff.log &
 echo -e "\n -> opened FF to run autotester"
 sleep 15
 pid_ff3=`ps aux | grep install_pd_${timeslot} | grep -v grep | awk '{ print $2 }'`
@@ -74,7 +79,7 @@ done
 cat django_server.log.tmp >> django_server.log
 
 # 1121|1261973311|FAIL|auto_test_summary|239/250
-R=`echo -e "select message from logs where detail_type='auto_test_summary' order by -datetime limit 1;" | sqlite3 /Users/lucy/Library/Application\ Support/Firefox/Profiles/install_pd_${timeslot}/procrasdonate.0.sqlite`
+R=`echo -e "select message from logs where detail_type='auto_test_summary' order by -datetime limit 1;" | sqlite3 /home/lucy/.mozilla/firefox/install_pd_${timeslot}/procrasdonate.0.sqlite`
 echo -e "\n pass/total -> $R"
 if [ $R ]
 then
@@ -84,14 +89,14 @@ then
     if [ $pass = $total ]
     then
 	echo -e "\n            pass equals total: ${pass}, total = ${total}, fail = ${fail}"
-	curl "https://procrasdonate.com/crosstester/report/testrun?test_type=macX5_ff35&dtime=${dtime}&is_pass=True&number_fail=${fail}&total=${total}"
+	curl "https://procrasdonate.com/crosstester/report/testrun?test_type=ubuntu804_ff35&dtime=${dtime}&is_pass=True&number_fail=${fail}&total=${total}"
     else
 	echo -e "\n            pass does not equal total: ${pass}, total = ${total}, fail = ${fail}"
-	curl "https://procrasdonate.com/crosstester/report/testrun?test_type=macX5_ff35&dtime=${dtime}&is_pass=False&number_fail=${fail}&total=${total}"
+	curl "https://procrasdonate.com/crosstester/report/testrun?test_type=ubuntu804_ff35&dtime=${dtime}&is_pass=False&number_fail=${fail}&total=${total}"
     fi
 else
     echo -e "\n            tests didn't run"
-    curl "https://procrasdonate.com/crosstester/report/testrun?test_type=macX5_ff35&dtime=${dtime}&is_pass=False"
+    curl "https://procrasdonate.com/crosstester/report/testrun?test_type=ubuntu804_ff35&dtime=${dtime}&is_pass=False"
 fi
 
 #1. after install, auto_test_summary should exist
