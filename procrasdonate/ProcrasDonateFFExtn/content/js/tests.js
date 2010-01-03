@@ -213,9 +213,16 @@ _extend(PDTests.prototype, {
 		var duration = 60;
 		
 		_iterate(['Unsorted', 'ProcrasDonate', 'TimeWellSpent'], function(key, value, index) {
-			testrunner.ok( true, "---------------- new "+ value +" url ----");
+			testrunner.ok( true, "---------------- new "+ value +" url ----"+self.pddb[value]);
+			logger(">>>>>> pddb is "+self.pddb+" <<<<<<");
+			var s = "";
+			for (var k in self.pddb) { s += "\n"+k; }
+			logger(">>>>>> pddb contents "+s);
 			var before_totals = self.retrieve_totals(testrunner, url, self.pddb[value]);
-			var url = self.visit_new_site(self, self.pddb[value], duration);
+			// var url = self.visit_new_site(self, self.pddb[value], duration);
+			var site = self.new_site(self.pddb[value]);
+			var url = self.pddb.store_visit(site.url, _dbify_date(new Date()), duration);
+			//
 			self.check_totals(testrunner, url, duration, before_totals);
 		});
 	},

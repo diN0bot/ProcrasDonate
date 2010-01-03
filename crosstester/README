@@ -1,0 +1,48 @@
+== SETUP ==
+
+-1. Dependencies
+    Python 2.5 or 2.6
+    PIL
+        http://code.google.com/appengine/docs/python/images/installingPIL.html
+    Django
+        svn co http://code.djangoproject.com/svn/django/trunk django_src
+	ln -s <external projects>/django_src/django <python site packages>/django
+    Sqlite3
+
+0. Change directory to Firefox Profiles directory
+    mac: ~/Library/Application\ Support/Firefox/Profiles
+    nix: ~/.mozilla/firefox
+    win: ~/AppData/Roaming/Mozilla/Firefox/Profiles
+
+1. Clone ProcrasDonate repository
+    git clone git@github.com:diN0bot/ProcrasDonate.git
+
+2. Setup Django project
+    echo "tester" > env/CURRENT
+    ./manage.py syncdb
+        admin username and password: tester
+    ./manage.py loaddata procrasdonate/fixtures/production_0.3.1.json
+    ./manage.py loaddata crosstester/fixtures/testtypes.json
+
+3. Setup freshly_made Firefox profile
+    firefox -ProfileManager
+        name: freshly_made
+        location: <profiles directory>/freshly_made
+    firefox -P freshly_made
+    
+    -- add the following to freshly_made/prefs.js --
+    user_pref("javascript.options.showInConsole", true);
+    user_pref("nglayout.debug.disable_xul_cache", true);
+    user_pref("browser.dom.window.dump.enabled", true);
+    user_pref("javascript.options.strict", true);
+    user_pref("extensions.logging.enabled", true);
+    user_pref("dom.report_all_js_exceptions", true);
+    user_pref("browser.sessionstore.enabled", false);
+
+4. Test that it works
+    ./crosstester/app_bin/app_tester_<testtype>.sh
+
+5. Add cron job
+    see example crontabs in crosstester/cron
+
+6. Parallels cron
