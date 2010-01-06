@@ -386,3 +386,20 @@ def convert_to_choices(choice_names, visible_names=None):
         choice_idx += 1
             
     return max_length, ENUM, CHOICES
+
+
+def send_email(self, subject, message, to_email, from_email=None):
+    """
+    Sends an e-mail.
+    If DJANGO_SERVER is true, then prints email to console instead
+    """
+    print "send_email"
+    if settings.DJANGO_SERVER:
+        print "="*60
+        print "FROM:", from_email
+        print "TO:", to_email
+        print "SUBJECT:", subject
+        print "MESSAGE:", message
+    else:
+        from django.core.mail import send_mail
+        send_mail(subject, message, from_email, [to_email])

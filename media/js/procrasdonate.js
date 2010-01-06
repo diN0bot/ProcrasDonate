@@ -119,20 +119,27 @@ function install(anchor_class) {
 		$.post("/generate_xpi/"+slug+"/",
 				{},
 				function(data) {
-					if (data && data.xpi_url && data.xpi_hash) {
-						xpi_url = data.xpi_url;
-						xpi_hash = data.xpi_hash;
-						var params = {
-							"ProcrasDonate, a charitable incentive for good time management": {
-								URL: xpi_url,
-								IconURL: "/procrasdonate_media/img/ToolbarImages/ProcrasDonateIcon.png",
-								Hash: xpi_hash,
-								toString: function() { return "ProcrasDonate Add-On For Proud ProcrasDonators!" }
-							}
-						};
-						InstallTrigger.install( params );
+					//s = "";
+					//for (var k in data) { s += k+"="+data[k]+"\n"; }
+					//alert(s);
+					if (data && !data.wait_list) {
+						if (data.xpi_url && data.xpi_hash) {
+							xpi_url = data.xpi_url;
+							xpi_hash = data.xpi_hash;
+							var params = {
+								"ProcrasDonate, a charitable incentive for good time management": {
+									URL: xpi_url,
+									IconURL: "/procrasdonate_media/img/ToolbarImages/ProcrasDonateIcon.png",
+									Hash: xpi_hash,
+									toString: function() { return "ProcrasDonate Add-On For Proud ProcrasDonators!" }
+								}
+							};
+							InstallTrigger.install( params );
+						} else {
+							alert("Problem occured while downloading ProcrasDonate.");
+						}
 					} else {
-						alert("Problem occured while downloading ProcrasDonate.");
+						location.href = data.wait_list_url;
 					}
 				},
 				"json");

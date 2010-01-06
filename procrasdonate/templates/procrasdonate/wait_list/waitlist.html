@@ -1,0 +1,41 @@
+{% extends 'procrasdonate/base.html' %}
+
+{% block content %}
+	<h2>ProcrasDonate Beta Testor Waitlist</h2>
+	
+	<h3>Add yourself to the waitlist</h3>
+	
+	{% if is_added %}
+		<p class="added_to_waitlist_success">Successfully added {{ email }} to our Beta Tester waitlist.
+			You will be notified for our next testing wave!</p>
+	{% else %}
+		<form method="post" action="{% url add_to_waitlist %}">
+			<table><tbody><tr>
+				<td><label>email address</label></td>
+				<td><input type="text" value="{{ email }}" name="email"/></td>
+			</tr><tr>
+				<td><label>notes</label></td>
+				<td><textarea name="note"></textarea></td>
+			</tr><tr>
+				<td colspan='2'><input type="submit" value="Add"/></td>
+			</tr></tbody></table>
+		</form>
+	{% endif %}
+	
+	<h3>Remove yourself from the waitlist</h3>
+	
+	{% if is_removed %}
+		<p class="removed_from_waitlist_success">Successfully removed {{ email }} from our Beta Tester waitlist.
+			You will not received anymore emails from us.</p>
+	{% else %}
+		<form method="post" action="{% url remove_from_waitlist_form %}">
+			<table><tbody><tr>
+				<td><label>email address on waitlist</label></td>
+				<td><input type="text" value="{{ email }}" name="remove_email"/></td>
+			</tr><tr>
+				<td colspan='2'><input type="submit" value="Remove"/></td>
+			</tr></tbody></table>
+		</form>
+	{% endif %}
+	
+{% endblock %}

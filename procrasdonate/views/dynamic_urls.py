@@ -77,6 +77,10 @@ urlpatterns += patterns('',
     
     # generate xpi
     url(r'^generate_xpi/(?P<slug>%s)/$' % slug_re, dataflow.generate_xpi, name='generate_xpi'), 
+    url(r'^add_to_waitlist/$', dataflow.add_to_waitlist, name='add_to_waitlist'), 
+    url(r'^remove_from_waitlist/(?P<remove_key>%s)/$' % slug_re, dataflow.remove_from_waitlist, name='remove_from_waitlist'),
+    url(r'^remove_from_waitlist/$', dataflow.remove_from_waitlist_form, name='remove_from_waitlist_form'),
+    url(r'^waitlist/$', dataflow.waitlist, name='waitlist'), 
 )
 
 urlpatterns += patterns('',

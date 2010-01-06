@@ -9,7 +9,9 @@ import urllib, urllib2
 from django.utils import simplejson as json
 
 from django.core.urlresolvers import reverse
+from django.template import loader, Context
 
+import settings
 from settings import pathify, path, PROJECT_PATH, MEDIA_ROOT
 
 def _POST(url, values):
@@ -209,17 +211,90 @@ def return_data(request):
                          'update_hash': info['update_hash']})
 
 def generate_xpi(request, slug):
-    recipient = slug != '__none__' and Recipient.get_or_none(slug=slug) or None
-    xpi_builder = XpiBuilder(pathify([PROJECT_PATH, 'procrasdonate', 'ProcrasDonateFFExtn'], file_extension=True),
-                             "%s%s" % (MEDIA_ROOT, 'xpi'),
-                             "%s%s" % (MEDIA_ROOT, 'rdf'),
-                             recipient)
-    
-    private_key = xpi_builder.write_input_json(is_update=False)
-    user = User.add(private_key)
-    Log.Log("Built XPI for download", detail="usage", user=user)
-    
-    (xpi_url, xpi_hash) = xpi_builder.build_xpi(is_update=False)
-    return json_success({'xpi_url': xpi_url,
-                         'xpi_hash': xpi_hash})
+    if not hasattr(settings, "MAX_USERS") or User.objects.count() < settings.MAX_USERS:
+        recipient = slug != '__none__' and Recipient.get_or_none(slug=slug) or None
+        xpi_builder = XpiBuilder(pathify([PROJECT_PATH, 'procrasdonate', 'ProcrasDonateFFExtn'], file_extension=True),
+                                 "%s%s" % (MEDIA_ROOT, 'xpi'),
+                                 "%s%s" % (MEDIA_ROOT, 'rdf'),
+                                 recipient)
+        
+        private_key = xpi_builder.write_input_json(is_update=False)
+        user = User.add(private_key)
+        Log.Log("Built XPI for download", detail="usage", user=user)
+        
+        (xpi_url, xpi_hash) = xpi_builder.build_xpi(is_update=False)
+        return json_success({'xpi_url': xpi_url,
+                             'xpi_hash': xpi_hash,
+                             'wait_list': False,
+                             'wait_list_url': reverse('waitlist') })
+    else:
+        return json_success({'xpi_url': None,
+                             'xpi_hash': None,
+                             'wait_list': True,
+                             'wait_list_url': reverse('waitlist') })
 
+def waitlist(request):
+    email = request.GET and request.GET.get('email', '') or ''
+    is_added = request.GET and request.GET.get('is_added', '') or ''
+    is_removed = request.GET and request.GET.get('is_removed', '') or ''
+    email = request.POST and request.POST.get('email', email) or email
+    is_added = request.POST and request.POST.get('is_added', is_added) or is_added
+    is_removed = request.POST and request.POST.get('is_removed', is_removed) or is_removed
+    return render_response(request, 'procrasdonate/wait_list/waitlist.html', locals())
+
+def add_to_waitlist(request):
+    if request.POST:
+        expected_parameters = ["email"]
+        optional_parameters = ["note"]
+
+        response = extract_parameters(request, "POST", expected_parameters, optional_parameters)
+        if not response['success']:
+            Log.Error("add_to_waitlist::Something went wrong extracting parameters (no email?): %s for %s" % (response['reason'], request.GET), "waitlist")
+            return HttpResponseRedirect(reverse('waitlist'))
+            #return json_failure("oops")
+        
+        parameters = response['parameters']
+        note = 'note' in parameters and parameters['note'] or None
+        
+        w = WaitList.get_or_none(email__email=parameters['email'])
+        if not w:
+            w = WaitList.add(parameters['email'], note)
+        else:
+            Log.Log("Same email address added to waitlist. Note NOT updated from waitlist, %s. New note: %s" % (w, note), "waitlist_duplicate")
+        
+        # send email for recipient user to reset password
+        c = Context({'waiter': w,
+                     'remove_link': reverse('remove_from_waitlist', args=(w.remove_key,))})
+        t = loader.get_template('procrasdonate/wait_list/added_to_waitlist_email.txt')
+        try:
+            w.email.send_email("Welcome ProcrasDonate Beta Tester",
+                               t.render(c),
+                               from_email=settings.EMAIL)
+            return HttpResponseRedirect("%s?email=%s&is_added=True" % (reverse('waitlist'),
+                                                                       w.email.email))
+            #return json_success()
+        except:
+            Log.Error("add_to_waitlist::Problem sending added-to-waitlist email to %s." % w, "waitlist")
+            return HttpResponseRedirect(reverse('waitlist'))
+            #return json_failure("oops")
+
+def remove_from_waitlist(request, remove_key):
+    w = WaitList.get_or_none(remove_key=remove_key)
+    if w:
+        Log.Log("Remove from waitlist: %s" % w, "waitlist_remove")
+        w.delete()
+        return HttpResponseRedirect("%s?email=%s&is_removed=True" % (reverse('waitlist'),
+                                                                     w.email.email))
+    return HttpResponseRedirect("%s?email=%s" % (reverse('waitlist'),
+                                                 w and w.email.email or ''))
+
+def remove_from_waitlist_form(request):
+    email = request.POST and request.POST.get('remove_email', '') or ''
+    w = WaitList.get_or_none(email__email=email)
+    if w:
+        Log.Log("Remove from waitlist: %s" % w, "waitlist_remove")
+        w.delete()
+        return HttpResponseRedirect("%s?email=%s&is_removed=True" % (reverse('waitlist'),
+                                                                     w.email.email))
+    return HttpResponseRedirect("%s?email=%s" % (reverse('waitlist'),
+                                                 email))
