@@ -1,40 +1,44 @@
 {% extends 'procrasdonate/base.html' %}
 
 {% block content %}
-	<h2>ProcrasDonate Beta Testor Waitlist</h2>
+	<h2>Beta Tester Waitlist</h2>
 	
-	<h3>Add yourself to the waitlist</h3>
-	<p>You're going to love ProcrasDonate,
-	and we're really looking forward to your feedback!!</p>
-	
-	<p>We'll email you as soon as the next round of beta testing begins!</p>
+	<h3>Please add yourself to the waitlist</h3>
 	
 	{% if is_added %}
-		<p class="added_to_waitlist_success">Successfully added {{ email }} to our Beta Tester waitlist.
-			You will be notified for our next testing wave!</p>
+		<p class="added_to_waitlist_success">{{ email }}, you have been added to our Beta Tester waitlist.
+			We'll send you an <b>email</b> as soon as there is space for you to download ProcrasDonate!</p>
 	{% else %}
+		<p> We are now accepting a limited number of beta testers per week.
+			You're going to love ProcrasDonate, and we're really looking forward to your feedback!</p>
+		<p>Please <b>add</b> your email address and an optional note about why you want to use ProcrasDonate.
+			We'll let you know when the next round of beta testing is available.</p>
+
 		<form method="post" action="{% url add_to_waitlist %}">
 			<table><tbody><tr>
-				<td><label>email address</label></td>
+				<td><label>email address:</label></td>
 				<td><input type="text" value="{{ email }}" name="email"/></td>
 			</tr><tr>
-				<td><label>notes</label></td>
+				<td><label><i>optional</i> note:</label></td>
 				<td><textarea name="note"></textarea></td>
 			</tr><tr>
 				<td colspan='2'><input type="submit" value="Add"/></td>
 			</tr></tbody></table>
 		</form>
 	{% endif %}
-	
-	<h3>Remove yourself from the waitlist</h3>
+	<br>
+	<br>
+	<h3>Removing oneself from the waitlist</h3>
 	
 	{% if is_removed %}
-		<p class="removed_from_waitlist_success">Successfully removed {{ email }} from our Beta Tester waitlist.
-			You will not received anymore emails from us.</p>
+		<p class="removed_from_waitlist_success">{{ email }}, your email address has been <b>removed</b> from our Beta Tester waitlist and you will not receive emails from us.
+			Please provide your email <b>above</b> if this is a mistake.</p>
 	{% else %}
+		<p>If you are on our waitlist and would like to <b>remove</b> yourself then fill in the form below.  
+			If you do so then you will loose your place in the Beta Tester queue.</p>
 		<form method="post" action="{% url remove_from_waitlist_form %}">
 			<table><tbody><tr>
-				<td><label>email address on waitlist</label></td>
+				<td><label>email address currently on waitlist</label></td>
 				<td><input type="text" value="{{ email }}" name="remove_email"/></td>
 			</tr><tr>
 				<td colspan='2'><input type="submit" value="Remove"/></td>
