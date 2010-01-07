@@ -1,10 +1,10 @@
-Hi,
-
+Hi!
+    
 You've been added to the ProcrasDonate waitlist.
-
-To unsubscribe click <a href="{% url remove_from_waitlist waiter.remove_key %}">here</a> or
-copy and paste the following URL into your browser's address bar:
-
-{% url remove_from_waitlist waiter.remove_key %}
-
-Thanks!
+    
+To unsubscribe copy and paste the following URL into your browser's address bar:
+		
+	{% url remove_from_waitlist waiter.remove_key %}
+	
+Thanks,
+PD Team

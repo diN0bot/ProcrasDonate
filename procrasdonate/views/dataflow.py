@@ -1,5 +1,6 @@
 from lib.view_utils import render_response, HttpResponseRedirect, extract_parameters
 from lib.json_utils import json_success, json_failure
+from lib import html_emailer
 from procrasdonate.applib.xpi_builder import XpiBuilder
 from procrasdonate.models import *
 
@@ -265,11 +266,21 @@ def add_to_waitlist(request):
         # send email for recipient user to reset password
         c = Context({'waiter': w,
                      'remove_link': reverse('remove_from_waitlist', args=(w.remove_key,))})
-        t = loader.get_template('procrasdonate/wait_list/added_to_waitlist_email.txt')
+        txt_email = loader.get_template('procrasdonate/wait_list/added_to_waitlist_email.txt')
+        html_email = loader.get_template('procrasdonate/wait_list/added_to_waitlist_email.html')
+        """
+        html_emailer.send_email(sender=settings.EMAIL,
+                                    recipient=w.email.email,
+                                    subject="Welcome ProcrasDonate Beta Tester",
+                                    text=txt_email.render(c),
+                                    html=html_email.render(c))
+        """
         try:
-            w.email.send_email("Welcome ProcrasDonate Beta Tester",
-                               t.render(c),
-                               from_email=settings.EMAIL)
+            html_emailer.send_email(sender=settings.EMAIL,
+                                    recipient=w.email.email,
+                                    subject="Welcome ProcrasDonate Beta Tester",
+                                    text=txt_email.render(c),
+                                    html=html_email.render(c))
             return HttpResponseRedirect("%s?email=%s&is_added=True" % (reverse('waitlist'),
                                                                        w.email.email))
             #return json_success()

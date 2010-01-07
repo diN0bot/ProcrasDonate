@@ -1,0 +1,16 @@
+<html>
+  <head></head>
+  <body>
+    <p>Hi!</p>
+    
+    <p>You've been added to the ProcrasDonate waitlist.</p>
+    
+	<p>To unsubscribe click <b><a href="{% url remove_from_waitlist waiter.remove_key %}">
+		here</a></b> or copy and paste the following URL into your browser's address bar:</p>
+		
+	<p>{% url remove_from_waitlist waiter.remove_key %}</p>
+	
+	<p>Thanks,<br />
+		PD Team</p>
+  </body>
+</html>
