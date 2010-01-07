@@ -1,16 +1,27 @@
 <html>
   <head></head>
   <body>
-    <p>Hi!</p>
-    
-    <p>You've been added to the ProcrasDonate waitlist.</p>
-    
-	<p>To unsubscribe click <b><a href="{% url remove_from_waitlist waiter.remove_key %}">
-		here</a></b> or copy and paste the following URL into your browser's address bar:</p>
-		
-	<p>{% url remove_from_waitlist waiter.remove_key %}</p>
+    <p>Hi, thanks for signing up for the ProcrasDonate waitlist.</p>
+
+	<p>We'll let you know when there is space available for you to download 
+	ProcrasDonate.  While you're on the waitlist you'll get the same email updates 
+	about our progress as beta testers.</p>
 	
-	<p>Thanks,<br />
-		PD Team</p>
+	<p>You can also check out our blogs if you are interested in <a href="http://procrastinateless.wordpress.com">
+	stories and lessons	of procrastination</a> or <a href="http://proudly.procrasdonate.com">
+	technical thoughts on our progress</a>.</p>
+	
+	<p>To unsubscribe from the waitlist, copy and paste the following URL into 
+	Firefox's address bar:</p>
+	
+	<p><a href="{{ settings.DOMAIN }}/{% url remove_from_waitlist waiter.remove_key %}">
+		{{ settings.DOMAIN }}/{% url remove_from_waitlist waiter.remove_key %}</a></p>
+	
+	<p>woo!</p>
+	
+	<p>The ProcrasDonate Team
+	<br />info@procrasdonate.com
+	<br />http://ProcrasDonate.com</p>
+	    
   </body>
 </html>
