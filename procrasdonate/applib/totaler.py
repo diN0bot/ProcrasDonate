@@ -119,6 +119,25 @@ def compute_goals_from_reports():
     print "----"
     for k in KeyValue.objects.all():
         print k
+        
+def remove_duplicate_reports():
+    # user_id$dtime.isoformat()$type
+    v = {}
+    i = 0
+    for r in Report.objects.all():
+        idx = "%s$%s$%s" % (r.user.id,
+                            r.dtime.isoformat(),
+                            r.type)
+        if idx in v:
+            r.delete()
+            #print i, len(v.keys()), idx, "%s", r.message[:70].replace('\n', '')
+        else:
+            v[idx] = r.id
+            print "-> added", idx
+        i += 1
+
+def fix_nonhostname_sitegroups():
+    pass
 
 if __name__ == "__main__":
     #compute_totals_from_scratch()
@@ -128,4 +147,5 @@ if __name__ == "__main__":
     #test_goals()
     delete_all_goals()
     compute_goals_from_reports()
+    #remove_duplicate_reports()
     
