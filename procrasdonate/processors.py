@@ -39,6 +39,7 @@ class Processor(object):
         @param user: User
         @param total: dict of total obj, eg
         {
+            "id": 3,
             "total_time": 6333, 
             "contenttype": "SiteGroup", 
             "total_amount": 24.994236111110901, 
@@ -54,13 +55,12 @@ class Processor(object):
         }
 
         """
+        print "\nPROCESS TOTAL\n", json.dumps(total, indent=2)
         ret = None
         
         total_amount = float( total['total_amount'] )
         total_time   = float( total['total_time'] )
         dtime         = Processor.parse_seconds(int(total['datetime']))
-        
-        from django.utils import simplejson as json
             
         if 'Recipient' == total['contenttype']:
             category     = total['content']['category']
@@ -84,6 +84,8 @@ class Processor(object):
                                          total_amount,
                                          user,
                                          extn_id)
+                # adjust totals
+                TotalRecipient.process(recipient, total_amount, total_time, dtime)
             
         elif 'SiteGroup' == total['contenttype']:
             host    = total['content']['host']
@@ -104,6 +106,8 @@ class Processor(object):
                                      extn_id)
             
             SiteGroupTagging.add(tag, sitegroup, user)
+            # adjust totals
+            TotalSiteGroup.process(sitegroup, total_amount, total_time, dtime)
             
         elif 'Site' == total['contenttype']:
             url     = total['content']['url']
@@ -112,6 +116,8 @@ class Processor(object):
             site = Site.get_or_create(url=url)
             
             ret = SiteVisit.add(site, dtime, total_time, total_amount, user, extn_id)
+            # adjust totals
+            TotalSite.process(site, total_amount, total_time, dtime)
         
         elif 'Tag' == total['contenttype']:
             tagtag     = total['content']['tag']
@@ -122,7 +128,11 @@ class Processor(object):
                 tag = Tag.add(tag=tagtag)
             
             ret = TagVisit.add(tag, dtime, total_time, total_amount, user, extn_id)
-            
+            # adjust totals
+            TotalTag.process(tag, total_amount, total_time, dtime)
+        
+        # adjust totals
+        TotalUser.process(user, total_amount, total_time, dtime)
         return ret
     
     @classmethod
@@ -140,10 +150,18 @@ class Processor(object):
         """
         type        = report['type']
         message     = report['message']
-        subject     = report['subject']
+        subject     = 'subject' in report and report['subject'] or 'no subject'
         is_read     = report['is_read']
         is_sent     = report['is_sent']
         dtime       = Processor.parse_seconds(int(report['datetime']))
+        
+        if "weekly" == type:
+            if 'has_met_goal' in report:
+                is_met = report['has_met_goal']
+                difference = report['difference']
+                seconds_saved = report['seconds_saved']
+                
+                user.add_goal(is_met, difference, float(seconds_saved) / 3600.0, Period.week(dtime))
         
         if (type == "weekly"):
             return Report.add(user, subject, message, type, is_read, is_sent, dtime)

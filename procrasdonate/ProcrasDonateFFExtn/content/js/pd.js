@@ -11,9 +11,7 @@ ProcrasDonate_API.prototype = new API();
 _extend(ProcrasDonate_API.prototype, {
 	/*
 	 * 
-	 * 
 	 */
-	
 	send_data: function() {
 		var self = this;
 		var models_to_methods = {
@@ -50,6 +48,78 @@ _extend(ProcrasDonate_API.prototype, {
 			},
 			function(r) { //onerror
 				self.pddb.orthogonals.log("pd.js::send_data: communication error", "dataflow");
+			}
+		);
+	},
+	
+	send_fake_data: function() {
+		var self = this;
+		
+		var time_tracker = new TimeTracker(this.pddb, this.prefs);
+
+		var totals = [];
+		var now = _dbify_date(new Date());
+		var total_ids = time_tracker.store_visit(
+			"http://"+now+"/send_fake_data_test",
+			now,
+			3600,
+			this.pddb.Visit.TEST,
+			this.pddb.Visit.TEST);
+		_pprint(total_ids, "TOTAL IDS: ");
+		
+		_iterate(total_ids, function(key, value, index) {
+			logger("    "+value);
+			var t = self.pddb.Total.get_or_null({
+				id: value,
+				timetype_id: self.pddb.Daily.id
+			});
+			if (t) {
+				logger("    total = "+t);
+				totals.push(t.deep_dict());
+			}
+		});
+		
+		var total_ids = time_tracker.store_visit(
+				"http://localhost:8000/send_fake_data_test",
+				now,
+				3600,
+				this.pddb.Visit.TEST,
+				this.pddb.Visit.TEST);
+			_pprint(total_ids, "TOTAL IDS: ");
+			
+			_iterate(total_ids, function(key, value, index) {
+				logger("    "+value);
+				var t = self.pddb.Total.get_or_null({
+					id: value,
+					timetype_id: self.pddb.Daily.id
+				});
+				if (t) {
+					logger("    total = "+t);
+					totals.push(t.deep_dict());
+				}
+			});
+		
+		var data = {
+			private_key: self.prefs.get('private_key', constants.DEFAULT_PRIVATE_KEY),
+			prefs: JSON.stringify([self.prefs.get_all()]),
+			totals: JSON.stringify(totals)
+		}
+		
+		var url = constants.PD_API_URL + constants.SEND_DATA_URL;
+		self.pddb.orthogonals.log("pd.js:: about to send fake data to "+url, "dataflow");
+
+		this._hello_operator_give_me_procrasdonate(
+			url,
+			data,
+			"POST",
+			function(r) { //onsuccess
+				self.pddb.orthogonals.log("pd.js::send_fake_data: server says successfully processed "+r.process_success_count+" items", "dataflow");
+			},
+			function(r) { //onfailure
+				self.pddb.orthogonals.warn("pd.js::send_fake_data: server says receiving data failed because "+r.reason, "dataflow");
+			},
+			function(r) { //onerror
+				self.pddb.orthogonals.warn("pd.js::send_fake_data: communication error", "dataflow");
 			}
 		);
 	},

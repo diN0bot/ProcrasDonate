@@ -58,9 +58,10 @@
 	<table id="community">
 	<tbody>
 	<tr>
-		<td id="community_left"><i>${{ total_amount|default:"0" }}</i> raised for <i>{{ total_recipients|default:"0" }}</i> good causes.</td> 
-		<td id="community_center"><i>{{ total_hours|default:"0" }}</i> hours saved.</td>
-		<td id="community_right"><i>{{ total_users|default:"0" }}</i> goals met.</td>
+		<td id="community_left"><i>${{ sum_total_pledged|default:"0"|floatformat:"2" }}</i> 
+			raised for <i>{{ sum_total_count|default:"0" }}</i> good causes.</td> 
+		<td id="community_center"><i>{{ total_hours_saved|default:"0"|floatformat:"0" }}</i> hours saved.</td>
+		<td id="community_right"><i>{{ total_goals_met|default:"0"|floatformat:"0" }}</i> goals met.</td>
 	</tr>
 	</tbody>
 	</table>

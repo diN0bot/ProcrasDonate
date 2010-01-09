@@ -296,7 +296,9 @@ function load_models(db, pddb) {
 	var Report = new Model(db, "Report", {
 		table_name: "reports",
 		columns: {
-			_order: ["id", "datetime", "type", "message", "read", "sent", "subject", "recipient_id"],
+			_order: ["id", "datetime", "type", "message", "read", 
+			         "sent", "subject", "recipient_id"]n,
+			         //"met_goal", "difference", "seconds_saved"],
 			id: "INTEGER PRIMARY KEY",
 			datetime: "INTEGER", //"DATETIME",
 			type: "VARCHAR", // 
@@ -304,7 +306,13 @@ function load_models(db, pddb) {
 			read: "INTEGER", // bool
 			sent: "INTEGER", // bool
 			subject: "VARCHAR",
-			recipient_id: "INTEGER"
+			// this only makes sense for announcements, thankyous and newsletters
+			recipient_id: "INTEGER", 
+			
+			// these only make sense for weekly reports
+			//met_goal: "INTEGER", // bool
+			//difference: "INTEGER", // seconds
+			//seconds_saved: "INTEGER", // seconds
 		},
 		indexes: []
 	}, {
@@ -324,6 +332,9 @@ function load_models(db, pddb) {
 		is_sent: function() {
 			return _un_dbify_bool(this.sent)
 		},
+		has_met_goal: function() {
+			return _un_dbify_bool(this.met_goal)
+		}
 		
 		friendly_datetime: function() {
 			return _un_dbify_date(this.datetime).strftime("%b %d, %Y")
@@ -348,7 +359,10 @@ function load_models(db, pddb) {
 				message: this.message,
 				recipient: this.recipient(),
 				is_read: this.is_read(),
-				is_sent: this.is_sent()
+				is_sent: this.is_sent(),
+				//has_met_goal: this.has_met_goal(),
+				//difference: this.difference,
+				//seconds_saved: this.seconds_saved
 			}
 		}
 	}, {
@@ -613,6 +627,8 @@ function load_models(db, pddb) {
 				return "Entered new URL into address bar"
 			case(Visit.UNKNOWN):
 				return "Unknown"
+			case(Visit.TEST):
+				return "Test"
 			default:
 				return "-"
 			}
@@ -655,6 +671,8 @@ function load_models(db, pddb) {
 		URL_WINDOW: "UW", // switch to a new window
 		URL_LINK: "UL", // click a link
 		URL_BAR: "UB", // type/paste a new url into the url bar
+		
+		TEST: "T", // created by a test
 		
 		by_tag: function(tag_id) {
 			//SELECT  Artists.ArtistName, CDs.Title FROM Artists INNER JOIN CDs ON Artists.ArtistID=CDs.ArtistID; 

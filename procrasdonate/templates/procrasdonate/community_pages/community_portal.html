@@ -10,6 +10,38 @@
 
 <h3>This week in ProcrasDonation:</h3>
 
+<h4>Overview</h4>
+<ol>
+	<li>Total $
+		<ul>
+			<li>PD: {{ pd_total_pledged|floatformat:"2" }}</li>
+			<li>TWS: {{ tws_total_pledged|floatformat:"2" }}</li>
+			<li>U: {{ u_total_pledged|floatformat:"2" }}</li>
+			<li>Sum: {{ sum_total_pledged|floatformat:"2" }}</li>
+		</ul>
+	</li>
+	<li>Total # causes that have received pledges
+		<ul>
+			<li>Recips: {{ recip_totals_count }}</li>
+			<li>SiteGroups: {{ sitegroup_totals_count }}</li>
+			<li>SiteGroups Raw: {{ sitegroup_raw_totals_count }}</li>
+			<li>Sum: {{ sum_total_count }}</li>
+		</ul>
+	</li>
+	<li>Total # users: {{ user_totals_count }}</li>
+	<li>Total hrs
+		<ul>
+			<li>PD: {{ pd_total_time|floatformat:"2" }}</li>
+			<li>TWS: {{ tws_total_time|floatformat:"2" }}</li>
+			<li>U: {{ u_total_time|floatformat:"2" }}</li>
+			<li>Sum: {{ sum_total_time|floatformat:"2" }}</li>
+		</ul>
+	</li>
+	<li>Total goals met: {{ total_goals_met|floatformat:"0" }} / {{ total_goals|floatformat:"0" }}</li>
+	<li>Total hours saved: {{ total_hours_saved|floatformat:"0" }}</li>
+</ol>
+
+
 <h4>Most Popular Charity: <span class="subheader">{{ most_donators.recipient.name }}</span></h4>
 <p><b>{{ most_donators.total_donors }}</b> of us have made pledges to <b>{{ most_donators.recipient.name }}</b> so far this week.
 </p>

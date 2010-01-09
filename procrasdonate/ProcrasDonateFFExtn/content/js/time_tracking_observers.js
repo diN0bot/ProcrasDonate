@@ -70,6 +70,9 @@ _extend(TimeTracker.prototype, {
 		}
 	},
 	
+	/**
+	 * @return: list of Total ids effected
+	 */
 	store_visit: function(url, start_time, duration, enter_type, leave_type) {
 		var site = this.pddb.Site.get_or_null({url__eq: url });
 		
@@ -99,11 +102,15 @@ _extend(TimeTracker.prototype, {
 			leave_type: leave_type
 		});
 		
-		this.update_totals(site, visit);
+		return this.update_totals(site, visit);
 	},
-		
+	
+	/**
+	 * @return: list of Total ids effected
+	 */
 	update_totals: function(site, visit) {
 		var self = this;
+		var ret = [];
 		
 		var sitegroup = site.sitegroup();
 		var tag = site.tag();
@@ -266,6 +273,7 @@ _extend(TimeTracker.prototype, {
 					total_time: 0,
 					total_amount: 0,
 				});
+				ret.push(total.id);
 				if (STORE_VISIT_LOGGING) logger(" .....before.. total... ="+total);
 				
 				var new_total_time = parseInt(total.total_time) + time_delta;
@@ -289,6 +297,7 @@ _extend(TimeTracker.prototype, {
 				}
 			}
 		}
+		return ret
 	},
 	
 	check_limit: function( limit, time_delta, end_of_week, contenttype, tag ) {

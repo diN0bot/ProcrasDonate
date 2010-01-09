@@ -3731,19 +3731,28 @@ _extend(PageController.prototype, {
 		logger(">>>>>>>>> "+fails+" failures");
 	},
 	
+	/**
+	 * Sends a specific set of data to check that everything goes through exactly right,
+	 * and so that data reception can be tested manually by server.
+	 */
+	send_fake_data: function() {
+		this.pd_api.send_fake_data();
+	},
+	
 	manual_test_suite: function(request) {
 		var actions = ["trigger_daily_cycle",
 		               "trigger_weekly_cycle",
 		               "trigger_schedule_run",
-		               "",
+		               "send_fake_data",
+		               ".",
 		               "trigger_payment",
-		               "",
+		               ".",
 		               "trigger_on_install",
 		               "trigger_on_upgrade",
 		               "trigger_init_db",
-		               "",
+		               ".",
 		               "test_messages",
-		               "",
+		               ".",
 		               "reset_state_to_defaults",
 		               "reset_account_to_defaults",
 		               "initialize_state",

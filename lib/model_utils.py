@@ -23,7 +23,11 @@ def mixin(mixin, klasses, last=0):
             if last:
                 klass.__bases__ = klass.__bases__+(mixin,)
             else:
-                klass.__bases__ = (mixin,)+klass.__bases__
+                # sometimes this fails, but if change order seems to work
+                try:
+                    klass.__bases__ = (mixin,)+klass.__bases__
+                except:
+                    klass.__bases__ = klass.__bases__+(mixin,)
 
 def mixin_method(klasses):
     if not isinstance(klasses, (list, tuple)):
