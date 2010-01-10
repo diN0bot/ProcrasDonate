@@ -285,8 +285,10 @@ def add_to_waitlist(request):
                                                                        w.email.email))
             #return json_success()
         except:
-            Log.Error("add_to_waitlist::Problem sending added-to-waitlist email to %s." % w, "waitlist")
-            return HttpResponseRedirect(reverse('waitlist'))
+            Log.Error("add_to_waitlist::Problem sending added-to-waitlist email to %s (does email address exist?)" % w, "waitlist")
+            #return HttpResponseRedirect(reverse('waitlist'))
+            return HttpResponseRedirect("%s?email=%s&is_added=True" % (reverse('waitlist'),
+                                                                       w.email.email))
             #return json_failure("oops")
 
 def remove_from_waitlist(request, remove_key):

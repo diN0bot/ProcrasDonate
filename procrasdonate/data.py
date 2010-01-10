@@ -89,7 +89,7 @@ class Site(models.Model):
     This is not a website that someone simple visited, 
     but rather a content provider that someone paid to visit.
     """
-    url = models.URLField(max_length=400)
+    url = models.URLField(max_length=400, db_index=True)
     sitegroup = models.ForeignKey('SiteGroup')
     
     @classmethod

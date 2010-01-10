@@ -34,5 +34,5 @@ def send_email(sender, recipient, subject, text, html):
         s = smtplib.SMTP('localhost')
         # sendmail function takes 3 arguments: sender's address, recipient's address
         # and message to send - here it is sent as one string.
-        s.sendmail(me, you, msg.as_string())
+        s.sendmail(sender, recipient, msg.as_string())
         s.quit()
