@@ -59,45 +59,25 @@ _extend(ProcrasDonate_API.prototype, {
 
 		var totals = [];
 		var now = _dbify_date(new Date());
+		var url = "http://"+now+"/send_fake_data_test";
+		this.pddb.SiteGroup.create_from_url(url, self.pddb.ProcrasDonate);
+		
 		var total_ids = time_tracker.store_visit(
-			"http://"+now+"/send_fake_data_test",
+			url,
 			now,
 			3600,
 			this.pddb.Visit.TEST,
 			this.pddb.Visit.TEST);
-		_pprint(total_ids, "TOTAL IDS: ");
 		
 		_iterate(total_ids, function(key, value, index) {
-			logger("    "+value);
 			var t = self.pddb.Total.get_or_null({
 				id: value,
 				timetype_id: self.pddb.Daily.id
 			});
 			if (t) {
-				logger("    total = "+t);
 				totals.push(t.deep_dict());
 			}
 		});
-		
-		var total_ids = time_tracker.store_visit(
-				"http://localhost:8000/send_fake_data_test",
-				now,
-				3600,
-				this.pddb.Visit.TEST,
-				this.pddb.Visit.TEST);
-			_pprint(total_ids, "TOTAL IDS: ");
-			
-			_iterate(total_ids, function(key, value, index) {
-				logger("    "+value);
-				var t = self.pddb.Total.get_or_null({
-					id: value,
-					timetype_id: self.pddb.Daily.id
-				});
-				if (t) {
-					logger("    total = "+t);
-					totals.push(t.deep_dict());
-				}
-			});
 		
 		var data = {
 			private_key: self.prefs.get('private_key', constants.DEFAULT_PRIVATE_KEY),

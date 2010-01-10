@@ -295,14 +295,8 @@ _extend(ToolbarManager.prototype, {
 		var tag = null;
 
 		var self = this;
-		sitegroup = this.pddb.SiteGroup.get_or_create(
-			{ host: host },
-			{ name: host,
-			  host: host,
-			  tag_id: 1
-			}
-		);
-		tag = this.pddb.Tag.get_or_null({ id: sitegroup.tag_id })
+		var sitegroup = this.pddb.SiteGroup.create_from_url(url);
+		tag = sitegroup.tag();
 		
 		return { sitegroup: sitegroup, tag: tag }
 

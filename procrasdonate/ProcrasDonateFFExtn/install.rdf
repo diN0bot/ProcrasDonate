@@ -6,7 +6,7 @@
   <Description about="urn:mozilla:install-manifest">
     <em:id>extension@procrasdonate.com</em:id>
     <em:name>ProcrasDonate</em:name>
-    <em:version>0.3.7</em:version>
+    <em:version>0.3.8</em:version>
     <em:description>Monitor and support your internet addiction</em:description>
     <em:creator>ProcrasDonate</em:creator>
     <em:contributor>http://www.bilumi.org/</em:contributor>

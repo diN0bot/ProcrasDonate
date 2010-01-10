@@ -55,7 +55,7 @@ class Processor(object):
         }
 
         """
-        print "\nPROCESS TOTAL\n", json.dumps(total, indent=2)
+        #print "\nPROCESS TOTAL\n", json.dumps(total, indent=2)
         ret = None
         
         total_amount = float( total['total_amount'] )
@@ -148,6 +148,7 @@ class Processor(object):
             "datetime": "1252539581"
           }
         """
+        #print "\nPROCESS REPORT\n", json.dumps(report, indent=2)
         type        = report['type']
         message     = report['message']
         subject     = 'subject' in report and report['subject'] or 'no subject'

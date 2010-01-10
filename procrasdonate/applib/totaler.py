@@ -137,6 +137,9 @@ def remove_duplicate_reports():
         i += 1
 
 def fix_nonhostname_sitegroups():
+    # SiteGroup.objects.filter(host__startswith="https").count()
+    # 547
+    # meh, let's ignore for now.
     pass
 
 if __name__ == "__main__":

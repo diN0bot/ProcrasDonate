@@ -115,19 +115,28 @@ class Goal(models.Model):
     """
     is_met = models.BooleanField()
     difference = models.FloatField()
+    #hours_saved = models.FloatField(default=0.0)
     period = models.ForeignKey(Period) # weekly type
     user = models.ForeignKey(User)
     
     @classmethod
-    def make(klass, is_met, difference, period, user):
+    def make(klass, is_met, difference, hours_saved, period, user):
         return Goal(is_met=is_met,
                     difference=difference,
+                    hours_saved=hours_saved,
                     period=period,
                     user=user)
     
     @classmethod
     def Initialize(klass):
         model_utils.mixin(GoalMixin, User)
+    
+    def __unicode__(self):
+        return "%s - %s: %s %s %s" % (self.user,
+                                      self.period,
+                                      self.is_met,
+                                      self.difference,
+                                      self.hours_saved)
         
 class GoalMixin(object):
     
@@ -136,7 +145,7 @@ class GoalMixin(object):
     
     def add_goal(self, is_met, difference, hours_saved, period):
         #print "ADD GOAL:", is_met, difference, hours_saved, period
-        g = Goal.add(is_met, difference, period, self)
+        g = Goal.add(is_met, difference, hours_saved, period, self)
         if is_met:
             KeyValue.increment(KeyValue.KEYS['total_goals_met'])
         KeyValue.increment(KeyValue.KEYS['total_goals'])

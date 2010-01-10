@@ -979,7 +979,7 @@ _extend(PageController.prototype, {
 		    table_rows[0][4] + table_rows[1][4],
 		    /**/
 		]);
-		_pprint(table_rows);
+
 		_iterate(table_rows, function(k1, row, i1) {
 			_iterate(row, function(k2, cell, i2) {
 				if (isNumber(cell)) {
@@ -3526,18 +3526,8 @@ _extend(PageController.prototype, {
 	add_random_visits: function() {
 		var self = this;
 		
-		var test1 = this.pddb.SiteGroup.get_or_create({
-			host: "test_pd.com"
-		}, {
-			name: "test_pd.com",
-			tag_id: self.pddb.ProcrasDonate.id
-		});
-		var test2 = this.pddb.SiteGroup.get_or_create({
-			host: "test_tws.com"
-		}, {
-			name: "test_tws.com",
-			tag_id: self.pddb.TimeWellSpent.id
-		});
+		var test1 = this.pddb.SiteGroup.create_from_url("test_pd.com", self.pddb.ProcrasDonate);
+		var test2 = this.pddb.SiteGroup.create_from_url("test_tws.com", self.pddb.TimeWellSpent);
 		
 		// add visits for last four weeks
 		// this week
@@ -3581,7 +3571,7 @@ _extend(PageController.prototype, {
 	trigger_schedule_run: function() {
 		logger("triggering schedule run...");
 		this.schedule.run();
-		logger("...daily schedule run");
+		logger("...daily schedule done");
 	},
 	
 	///
@@ -3935,7 +3925,9 @@ _extend(Schedule.prototype, {
 		if ( this.is_new_week_period() ) {
 			this.pddb.orthogonals.log("Do weekly tasks on "+(new Date())+" for "+_un_dbify_date(this.prefs.get('last_week_mark', 0)), "schedule");
 			this.do_once_weekly_tasks();
+			this.pddb.orthogonals.log("Do weekly tasks on "+(new Date())+" for "+_un_dbify_date(this.prefs.get('last_week_mark', 0))+" !! once_weekly_tasks done", "schedule");
 			this.do_make_payment();
+			this.pddb.orthogonals.log("Do weekly tasks on "+(new Date())+" for "+_un_dbify_date(this.prefs.get('last_week_mark', 0))+" !! make_payments done", "schedule");
 			this.reset_week_period();
 		}
 		if ( this.is_new_24hr_period() ) {
@@ -3993,8 +3985,12 @@ _extend(Schedule.prototype, {
 	is_new_week_period: function() {
 		/** @returns: true if the last marked week is over */
 		var last_week = _un_dbify_date(this.prefs.get('last_week_mark', 0));
+		this.pddb.orthogonals.log("Do weekly tasks on "+(new Date())+" for "+_un_dbify_date(this.prefs.get('last_week_mark', 0))+" !! last_week = "+last_week, "schedule");
 		var start_of_last_week = _start_of_week(last_week);
+		this.pddb.orthogonals.log("Do weekly tasks on "+(new Date())+" for "+_un_dbify_date(this.prefs.get('last_week_mark', 0))+" !! start_of_last_week = "+start_of_last_week, "schedule");
 		var start_of_week = _start_of_week();
+		this.pddb.orthogonals.log("Do weekly tasks on "+(new Date())+" for "+_un_dbify_date(this.prefs.get('last_week_mark', 0))+" !! start_of_week = "+start_of_week, "schedule");
+		this.pddb.orthogonals.log("Do weekly tasks on "+(new Date())+" for "+_un_dbify_date(this.prefs.get('last_week_mark', 0))+" !! (start_of_last_week < start_of_week) = "+(start_of_last_week < start_of_week), "schedule");
 		return start_of_last_week < start_of_week
 	},
 	
@@ -4225,7 +4221,11 @@ _extend(Schedule.prototype, {
 				"\n"+u_culprit_three_week);
 		*/
 		
-		[message, subject] = this.create_message_logic(
+		var met_goal = null;
+		var difference = null;
+		var seconds_saved = null;
+		
+		[message, subject, met_goal, difference, seconds_saved] = this.create_message_logic(
 				pd_hrs_one_week, pd_hrs_two_week, pd_hrs_three_week,
 				tws_hrs_one_week, tws_hrs_two_week, tws_hrs_three_week,
 				u_hrs_one_week, u_hrs_two_week, u_hrs_three_week,
@@ -4244,7 +4244,10 @@ _extend(Schedule.prototype, {
 			message: message,
 			recipient_id: pd.id,
 			read: _dbify_bool(false),
-			sent: _dbify_bool(false)
+			sent: _dbify_bool(false),
+			met_goal: met_goal,
+			difference: difference,
+			seconds_saved: seconds_saved,
 		});
 	},
 	
@@ -4271,6 +4274,42 @@ _extend(Schedule.prototype, {
 		}
 		if (pd_hrs_three_week !== null) {
 			pd_hrs_three_week_diff = Math.abs(pd_hr_per_week_goal - pd_hrs_three_week).toFixed(1);
+		}
+		
+		var met_goal = null;
+		var difference = null;
+		var seconds_saved = null;
+		
+		var pd_hrs_max_week = _un_prefify_float( this.prefs.get("pd_hrs_max_week", 0) );
+		if (pd_hrs_one_week > pd_hrs_max_week) {
+			pd_hrs_max_week = pd_hrs_one_week;
+			this.prefs.set("pd_hrs_max_week", _prefify_float(pd_hrs_max_week));
+		}
+		var tws_hrs_max_week = _un_prefify_float(this.prefs.get("tws_hrs_max_week", 0) );
+		if (tws_hrs_one_week > tws_hrs_max_week) {
+			tws_hrs_max_week = tws_hrs_one_week;
+			this.prefs.set("tws_hrs_max_week", _prefify_float(tws_hrs_max_week));
+		}
+		var u_hrs_max_week = _un_prefify_float(this.prefs.get("u_hrs_max_week", 0) );
+		if (u_hrs_one_week > u_hrs_max_week) {
+			u_hrs_max_week = u_hrs_one_week;
+			this.prefs.set("u_hrs_max_week", _prefify_float(u_hrs_max_week));
+		}
+		
+		if (pd_hrs_one_week) {
+			if (pd_hrs_one_week < pd_hr_per_week_goal) {
+				met_goal = true;
+				difference = pd_hr_per_week_goal - pd_hrs_one_week;
+				seconds_saved = (pd_hrs_max_week - pd_hrs_one_week) * 3600.0;
+			} else {
+				met_goal = false;
+				difference = pd_hr_per_week_goal - pd_hrs_one_week;
+				seconds_saved = 0;
+			}
+		} else {
+			met_goal = true;
+			difference = 0;
+			seconds_saved = pd_hrs_max_week;
 		}
 		
 		var no_data, one_week_good, one_week_bad, match, good_in_a_row, good, sudden_bad, getting_worse, getting_better = false;
@@ -4384,7 +4423,7 @@ _extend(Schedule.prototype, {
 			})
 		);
 		
-		return [message, subject]
+		return [message, subject, met_goal, difference, seconds_saved]
 	},
 
 });

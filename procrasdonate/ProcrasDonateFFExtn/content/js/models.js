@@ -149,6 +149,18 @@ function load_models(db, pddb) {
 		}
 	}, {
 		// class methods
+		create_from_url: function(url, tag) {
+			if (!tag) { tag = pddb.Unsorted; }
+			var host = _host(url);
+			var sitegroup = SiteGroup.get_or_create({
+				host: host
+			}, {
+				name: host,
+				host: host,
+				tag_id: tag.id
+			});
+			return sitegroup
+		}
 	});
 	
 	var Recipient = new Model(db, "Recipient", {
@@ -297,8 +309,8 @@ function load_models(db, pddb) {
 		table_name: "reports",
 		columns: {
 			_order: ["id", "datetime", "type", "message", "read", 
-			         "sent", "subject", "recipient_id"]n,
-			         //"met_goal", "difference", "seconds_saved"],
+			         "sent", "subject", "recipient_id",
+			         "met_goal", "difference", "seconds_saved"],
 			id: "INTEGER PRIMARY KEY",
 			datetime: "INTEGER", //"DATETIME",
 			type: "VARCHAR", // 
@@ -306,13 +318,14 @@ function load_models(db, pddb) {
 			read: "INTEGER", // bool
 			sent: "INTEGER", // bool
 			subject: "VARCHAR",
-			// this only makes sense for announcements, thankyous and newsletters
+			// points to recipient for thankyous and newsletters
+			// otherwise points to ProcrasDonate recipient
 			recipient_id: "INTEGER", 
 			
 			// these only make sense for weekly reports
-			//met_goal: "INTEGER", // bool
-			//difference: "INTEGER", // seconds
-			//seconds_saved: "INTEGER", // seconds
+			met_goal: "INTEGER", // bool
+			difference: "INTEGER", // seconds
+			seconds_saved: "INTEGER", // seconds
 		},
 		indexes: []
 	}, {
@@ -334,7 +347,7 @@ function load_models(db, pddb) {
 		},
 		has_met_goal: function() {
 			return _un_dbify_bool(this.met_goal)
-		}
+		},
 		
 		friendly_datetime: function() {
 			return _un_dbify_date(this.datetime).strftime("%b %d, %Y")
@@ -360,9 +373,9 @@ function load_models(db, pddb) {
 				recipient: this.recipient(),
 				is_read: this.is_read(),
 				is_sent: this.is_sent(),
-				//has_met_goal: this.has_met_goal(),
-				//difference: this.difference,
-				//seconds_saved: this.seconds_saved
+				has_met_goal: this.has_met_goal(),
+				difference: this.difference,
+				seconds_saved: this.seconds_saved
 			}
 		}
 	}, {
