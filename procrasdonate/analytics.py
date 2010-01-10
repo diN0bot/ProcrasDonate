@@ -115,7 +115,7 @@ class Goal(models.Model):
     """
     is_met = models.BooleanField()
     difference = models.FloatField()
-    #hours_saved = models.FloatField(default=0.0)
+    hours_saved = models.FloatField(default=0.0)
     period = models.ForeignKey(Period) # weekly type
     user = models.ForeignKey(User)
     

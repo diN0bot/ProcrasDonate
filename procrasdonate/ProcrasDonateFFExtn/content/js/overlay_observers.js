@@ -502,11 +502,11 @@ _extend(URLBarListener.prototype, {
 	},
 	
 	processNewURL: function(win, url) {
-		//logger(jQuery("#content", win.document.defaultView).length);
 		this.schedule.run();
 	},
 	
 	// For definitions of the remaining functions see XULPlanet.com
+	// https://developer.mozilla.org/en/Code_snippets/Progress_Listeners
 	onProgressChange: function(aWebProgress, aRequest, curSelf, maxSelf, curTot, maxTot) {
 	},
 	

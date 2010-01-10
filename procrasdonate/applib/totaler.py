@@ -101,7 +101,7 @@ def compute_goals_from_reports():
             a = a and float(a[0]) or 0
             l = l and float(l[0]) or 0
             g = g and float(g[0]) or 0
-
+            
             if l > a:
                 total_hours_saved += l - a
                 hours_saved = l - a
@@ -109,6 +109,9 @@ def compute_goals_from_reports():
                 hours_saved = 0
             
             difference = g - a
+            
+            print "    report:", a, g, l
+            print "          :", is_met, difference, hours_saved
             
             r.user.add_goal(is_met, difference, hours_saved, Period.week(r.dtime))
                 
