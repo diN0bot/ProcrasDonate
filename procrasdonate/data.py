@@ -17,6 +17,7 @@ import Image as PIL
 import re
 import random
 import os
+import datetime
 
 class Email(models.Model):
     """
@@ -113,24 +114,56 @@ class SiteGroup(models.Model):
     Domain-based group of Sites
     """
     host = models.CharField(max_length=400)
+    ##protocol = models.CharField(max_length=20)
     # describes valid urls
     url_re = models.CharField(max_length=256, null=True, blank=True)
     name = models.CharField(max_length=200, null=True, blank=True)
     
-    HOST_RE = re.compile("(https?|ftp|file)://([^/]+)")
+    # there are so many!
+    # http://en.wikipedia.org/wiki/URI_scheme#Official_IANA-registered_schemes
+    # (s?https?|ftp|file|about|chrome|mailto|gopher|feeds?|im|news|nfs|nntp|rtsp|tv|xmpp)
+    HOST_RE = re.compile("(^[\w-]+):(//)?(www\.)?([^/]+)")
+    FILE_RE = re.compile("^file://(.*)")
+    
+    """
+    expected outputs:
+    HOST_RE.match("http://www.wikipedia.org").groups()
+    ('http', '//', 'www.', 'wikipedia.org')
+
+    HOST_RE.match("http://en.wikipedia.org").groups()
+    ('http', '//', None, 'en.wikipedia.org')
+
+    HOST_RE.match("about:config").groups()
+    ('about', None, None, 'config')
+    
+    FILE_RE.match("file:///Users/lucy/SciFi/Vernor Vinge").groups()
+    ('/Users/lucy/SciFi/Vernor Vinge',)
+
+
+    """
     
     @classmethod
     def extract_host(klass, url):
+        file_match = SiteGroup.FILE_RE.match(url)
+        if file_match:
+            #return { 'protocol': 'file', 'host': file_match.groups()[0][:30] }
+            file_match.groups()[0][:30]
+        
         match = SiteGroup.HOST_RE.match(url)
         if match:
-            return match.groups()[1]
-        return url
-    
+            g = match.groups()
+            if len(g) >= 4:
+                #return { 'protocol': g[0][:19], 'host': g[3][:390] }
+                g[3][:390]
+        
+        #return { 'protocol': '', 'host': url[:390] }
+        return url[:390]
+
     @classmethod
     def get_or_create(klass, host, url_re=None, name=None):
         s = SiteGroup.get_or_none(host=host)
         if not s:
-            s = SiteGroup.add(host)
+            s = SiteGroup.add(host, url_re, name)
         return s
     
     @classmethod
@@ -140,7 +173,8 @@ class SiteGroup(models.Model):
                          name=name)
     
     def __unicode__(self):
-        return u"%s" % self.host
+        #return u"%s, %s" % (self.protocol, self.host)
+        return u"%s" % (self.host)
     
 
 # where files are stored after settings.MEDIA_ROOT
@@ -228,7 +262,30 @@ class Recipient(models.Model):
         ordering = ('name',)
 
     def deep_dict(self):
-        print self.slug, "last_modified", self.last_modified, type(self.last_modified)
+        if isinstance(self.last_modified, basestring):
+            print "unicode last modified for %s: %s (%s)" % (self.slug,
+                                                             self.last_modified,
+                                                             type(self.last_modified))
+            try:
+                lm = datetime.datetime.strptime(self.last_modified, "%Y-%m-%d %H:%M:%S")
+                print "no microseconds"
+            except ValueError, e:
+                try:
+                    lm = datetime.datetime.strptime(self.last_modified, "%Y-%m-%d %H:%M:%S.%f")
+                    print "used \%f to get microseconds"
+                except:
+                    if '.' in self.last_modified:
+                        try:
+                            lm = datetime.datetime.strptime(self.last_modified[:self.last_modified.rfind('.')],
+                                                            "%Y-%m-%d %H:%M:%S")
+                            print "removed microseconds from unicode"
+                        except:
+                            print "error: nothing worked !!!!!"
+                            lm = datetime.datetime.now()
+            print "  -> converted to datetime: %s" % lm
+        else:
+            lm = self.last_modified
+            
         return {'slug': self.slug,
                 'name': self.name,
                 'category': self.category.category,
@@ -244,7 +301,7 @@ class Recipient(models.Model):
                 'is_visible': self.is_visible,
                 'pd_registered': self.pd_registered(),
                 'tax_exempt_status': self.tax_exempt_status,
-                'last_modified': self.last_modified.ctime()}
+                'last_modified': lm}
     
     def public_information_incomplete(self):
         return not (self.name and self.category and self.mission and self.description and self.url)

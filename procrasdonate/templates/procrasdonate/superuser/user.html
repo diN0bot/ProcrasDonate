@@ -34,11 +34,6 @@
 	</ul>
 	
 	<h3>Logs</h3>
-	
-	<ul>
-		{% for log in user.logs|slice:":30" %}
-			<li>{{ log.dtime }}: {{ log.log_type }}, {{ log.detail_type }} - {{ log.message }}</li>
-		{% endfor %}
-	</ul>
+	<a href="{% url logs %}?private_key={{ user.private_key }}&log_type=E&order_by=-dtime">here</a>
 
 {% endblock %}

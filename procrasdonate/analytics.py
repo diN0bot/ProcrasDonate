@@ -204,6 +204,9 @@ class Total(models.Model):
     def dollars_pledged(self):
         return self.total_pledged / 100
     
+    def dollars_paid(self):
+        return self.total_paid / 100
+    
     class Meta:
         abstract = True
             
@@ -218,7 +221,7 @@ class Total(models.Model):
         the_inst = the_klass(period=period)
         setattr(the_inst, extn_inst_name, extn_inst)
         return the_inst
-    
+
 class TotalSiteGroup(Total):
     """
     """
@@ -239,7 +242,6 @@ class TotalSiteGroup(Total):
             t.total_pledged += total_amount
             t.total_time += total_time
             t.save()
-            t = TotalSiteGroup.get_or_none(period=period, sitegroup=sitegroup)
 
     def __unicode__(self):
         return "%s %s %s sec, %s cents" % (self.sitegroup.host,
@@ -247,6 +249,36 @@ class TotalSiteGroup(Total):
                                            self.total_time,
                                            self.total_pledged)
     
+
+class TotalPDSiteGroup(Total):
+    """
+    Incidentally tallied. ProcrasDonate SiteGroup--
+     payment goes to recipient not content provider.
+    """
+    sitegroup = models.ForeignKey(SiteGroup)
+
+    @classmethod
+    def make(klass, sitegroup, period):
+       return Total.make(period,
+                         sitegroup,
+                         "sitegroup",
+                         TotalPDSiteGroup)
+    @classmethod
+    def process(klass, sitegroup, total_amount, total_time, dtime):
+        for period in Period.periods(dtime):
+            t = TotalPDSiteGroup.get_or_none(period=period, sitegroup=sitegroup)
+            if not t:
+                t = TotalPDSiteGroup.add(sitegroup, period)
+            t.total_pledged += total_amount
+            t.total_time += total_time
+            t.save()
+
+    def __unicode__(self):
+        return "%s %s %s sec, %s cents" % (self.sitegroup.host,
+                                           self.period,
+                                           self.total_time,
+                                           self.total_pledged)
+
 class TotalSite(Total):
     """
     """
@@ -268,7 +300,6 @@ class TotalSite(Total):
             t.total_pledged += total_amount
             t.total_time += total_time
             t.save()
-            t = TotalSite.get_or_none(period=period, site=site)
     
     def __unicode__(self):
         return "%s %s %s sec, %s cents" % (self.site.url,
@@ -290,12 +321,16 @@ class TotalRecipient(Total):
     
     @classmethod
     def process(klass, recipient, total_amount, total_time, dtime):
+        print "TotalRecipient.process"
         for period in Period.periods(dtime):
+            print "period", period
             t = TotalRecipient.get_or_none(period=period, recipient=recipient)
             if not t:
                 t = TotalRecipient.add(recipient, period)
+            print "before", t
             t.total_pledged += total_amount
             t.total_time += total_time
+            print "after", t
             t.save()
     
     def __unicode__(self):
@@ -356,10 +391,19 @@ class TotalUser(Total):
             t.total_time += total_time
             t.save()
 
+    def __unicode__(self):
+        return u"%s --- %s: %s %s. %s secs, %s cents" % (self.user.private_key,
+                                                         self.user.email.email,
+                                                         self.goals_met,
+                                                         self.hours_saved,
+                                                         self.total_time,
+                                                         self.total_pledged)
+
 ALL_MODELS = [Period,
               Goal,
               KeyValue,
               TotalSiteGroup,
+              TotalPDSiteGroup,
               TotalRecipient,
               TotalTag,
               TotalSite,

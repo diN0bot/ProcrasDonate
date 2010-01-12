@@ -462,11 +462,29 @@ var _prefify_float = function(x) {
 	return x.toString();
 }
 
-// we expect wikipedia.org to split into   [,    ,wikipedia.org  ,]
-// we expect www.bluecar.com to split into [,www.,bluecar.com    ,]
-// we expect docs.google.com to split into [,    ,docs.google.com,]
-var host_regexp =  /^[\w]+:\/\/(www\.)?([^\/]+).*/g;
 
+// added \/? for file
+var host_regexp =  /^[\w]+:(\/\/)?(www\.)?([^\/]+).*/g;
+var file_regexp =  /^file:\/\/(.*)/g;
+
+/**
+ * 
+ * @param href: fully qualified url, includes http or whatever. 
+ * 	uses urlbar if no href
+ * @return just the hostname, eg procrasdonate.com
+ * 	automatically strips out www
+ * 	for file:// returns first 30 characters of path
+ * 
+ * // https://procrasdonate.com/my_messages/  ["", "", "procrasdonate.com", ""]
+ * // http://procrasdonate.com/my_messages/   ["", "", "procrasdonate.com", ""]
+ * // http://wikipedia.org/                   ["", "", "wikipedia.org", ""]
+ * // http://www.wikipedia.org/               ["", "www.", "wikipedia.org", ""]
+ * // file:///Users/lucy/SciFi                ["", "/Users/lucy/SciFi", ""]
+ * 
+ * if split fails, returns ['<< entire input >>']
+ * 
+ * always returned encodeURI result
+ */
 var _host = function(href) {
 	if (!href) {
 		var urlbar = document.getElementById('urlbar');
@@ -476,21 +494,33 @@ var _host = function(href) {
 		}
 		href = urlbar.value;
 	}
-	var splits = href.split(host_regexp);
+	href = encodeURI(href);
+	logger("_host.href = "+href);
+	
+	var splits = href.split(file_regexp);
 	if ( splits.length > 2 ) {
-		return splits[2];
+		return splits[1].substr(0, 30);
+	}
+	
+	var splits = href.split(host_regexp);
+	if ( splits.length >= 4 ) {
+		return splits[3];
 	} else {
 		return href
 	}
 };
 
+/**
+ * 
+ * @return current URL, eg http://procrasdonate.com/my_settings
+ */
 var _href = function() {
 	var urlbar = document.getElementById('urlbar');
 	if (!urlbar) {
 		logger("WARNING: urlbar is false. utils::_href is returning the empty string.");
 		return "";
 	}
-	return urlbar.value
+	return encodeURI(urlbar.value)
 };
 
 function isEmpty(ob) {

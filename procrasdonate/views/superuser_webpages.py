@@ -115,3 +115,37 @@ def link_vote(request, vote_id, recipient_slug):
         request.user.message_set.create(message='Error: could not find recipient vote %s' % vote_id)
     return HttpResponseRedirect(reverse('recipient_votes'))
 
+@user_passes_test(lambda u: u.is_superuser)
+def logs(request):
+    logs = Log.objects.all()
+    parameters = []
+    show_user = True
+    
+    if request.GET:
+        selected_private_key = request.GET.get("private_key", None)
+        if selected_private_key:
+            logs = logs.filter(user__private_key=selected_private_key)
+            parameters.append(( "private_key", selected_private_key ))
+            show_user = False
+        
+        selected_log_type = request.GET.get("log_type", None)
+        if selected_log_type:
+            logs = logs.filter(log_type=selected_log_type)
+            parameters.append(( "log_type", selected_log_type ))
+        
+        selected_detail_type = request.GET.get("detail_type", None)
+        if selected_detail_type:
+            logs = logs.filter(detail_type=selected_detail_type)
+            parameters.append(( "detail_type", selected_detail_type ))
+        
+        order_by = request.GET.get("order_by", None)
+        if order_by:
+            logs = logs.order_by(order_by)
+            parameters.append(( "order_by", order_by ))
+        else:
+            logs = logs.order_by("-dtime")
+    
+    log_types = Log.objects.values_list('log_type', flat=True).distinct()
+    detail_types = Log.objects.values_list('detail_type', flat=True).distinct()
+    tos_users = User.objects.filter(tos=True)
+    return render_response(request, 'procrasdonate/superuser/logs.html', locals())

@@ -1,3 +1,4 @@
+var IF_BUG = false;
 
 var TAGS = {
 	'nop': function(args, context, env) {
@@ -21,6 +22,7 @@ var TAGS = {
 		var parentloop = get(context, 'forloop');
 		
 		for (var i=0; i<sequence.length; i++) {
+			if (IF_BUG) logger("IS ODD "+(i%2 != 0));
 			var forloop = {
 					'parentloop' : parentloop,
 					'first' : i==0,
@@ -29,7 +31,7 @@ var TAGS = {
 					'counter0': i,
 					'revcounter': sequence.length - i,
 					'revcounter0': sequence.length - i - 1,
-					'is_odd': i%2
+					'is_odd': (i%2 != 0)
 			};
 			var new_context = { 'forloop': forloop };
 			if (vars.length > 1) {
@@ -48,28 +50,38 @@ var TAGS = {
 	},
 	'if': function(args, context, env) {
 		var AND=0, OR=1;
+		if (IF_BUG) _pprint(args, "----------------------- IF ARGS");
 		var bool_exprs = args[0];
 		var link_type = args[1];
 		var nodelist_true = args[2];
 		var nodelist_false = args[3];
 		
+		if (IF_BUG) logger("BOOL EXPRS: "+bool_exprs);
+		if (IF_BUG) logger("LINK TYPE: "+link_type);
+		
 		if (link_type == OR) {
+			if (IF_BUG) logger("OR");
 			for (var be in bool_exprs) {
 				var ifnot = bool_exprs[be][0];
 				var bool_expr = bool_exprs[be][1];
 				value = pythonTrue(this.render_filter(bool_expr, context, env));
+				if (IF_BUG) logger("value="+value);
 				if ((value && !ifnot) || (ifnot && !value))
 					return this.render_nodelist(nodelist_true, context, env);
 			}
+			if (IF_BUG) logger("false");
 			return this.render_nodelist(nodelist_false, context, env);
 		} else {
+			if (IF_BUG) logger("AND");
 			for (var be in bool_exprs) {
 				var ifnot = bool_exprs[be][0];
 				var bool_expr = bool_exprs[be][1];
 				value = pythonTrue(this.render_filter(bool_expr, context, env));
+				if (IF_BUG) logger("value="+value);
 				if (!((value && !ifnot) || (ifnot && !value)))
 					return this.render_nodelist(nodelist_false, context, env);
 			}
+			if (IF_BUG) logger("true");
 			return this.render_nodelist(nodelist_true, context, env);
 		}
 	},

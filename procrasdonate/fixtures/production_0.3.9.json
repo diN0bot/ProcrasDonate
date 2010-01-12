@@ -1,0 +1,390 @@
+[
+  {
+    "pk": 1, 
+    "model": "procrasdonate.category", 
+    "fields": {
+      "category": "Family Planning"
+    }
+  }, 
+  {
+    "pk": 2, 
+    "model": "procrasdonate.category", 
+    "fields": {
+      "category": "African-American"
+    }
+  }, 
+  {
+    "pk": 3, 
+    "model": "procrasdonate.category", 
+    "fields": {
+      "category": "AIDS"
+    }
+  }, 
+  {
+    "pk": 4, 
+    "model": "procrasdonate.category", 
+    "fields": {
+      "category": "American-Indian"
+    }
+  }, 
+  {
+    "pk": 5, 
+    "model": "procrasdonate.category", 
+    "fields": {
+      "category": "Asian-American"
+    }
+  }, 
+  {
+    "pk": 6, 
+    "model": "procrasdonate.category", 
+    "fields": {
+      "category": "Asia"
+    }
+  }, 
+  {
+    "pk": 7, 
+    "model": "procrasdonate.category", 
+    "fields": {
+      "category": "Blindness"
+    }
+  }, 
+  {
+    "pk": 8, 
+    "model": "procrasdonate.category", 
+    "fields": {
+      "category": "Cancer Research"
+    }
+  }, 
+  {
+    "pk": 9, 
+    "model": "procrasdonate.category", 
+    "fields": {
+      "category": "Child Protection"
+    }
+  }, 
+  {
+    "pk": 10, 
+    "model": "procrasdonate.category", 
+    "fields": {
+      "category": "Child Sponsorship"
+    }
+  }, 
+  {
+    "pk": 11, 
+    "model": "procrasdonate.category", 
+    "fields": {
+      "category": "Civil Rights"
+    }
+  }, 
+  {
+    "pk": 12, 
+    "model": "procrasdonate.category", 
+    "fields": {
+      "category": "Public Interest"
+    }
+  }, 
+  {
+    "pk": 13, 
+    "model": "procrasdonate.category", 
+    "fields": {
+      "category": "Consumer Impact"
+    }
+  }, 
+  {
+    "pk": 14, 
+    "model": "procrasdonate.category", 
+    "fields": {
+      "category": "Crime and Fire Prevention"
+    }
+  }, 
+  {
+    "pk": 15, 
+    "model": "procrasdonate.category", 
+    "fields": {
+      "category": "Disabled"
+    }
+  }, 
+  {
+    "pk": 16, 
+    "model": "procrasdonate.category", 
+    "fields": {
+      "category": "Drug and Alcohol Abuse"
+    }
+  }, 
+  {
+    "pk": 17, 
+    "model": "procrasdonate.category", 
+    "fields": {
+      "category": "Environmental Conservation"
+    }
+  }, 
+  {
+    "pk": 18, 
+    "model": "procrasdonate.category", 
+    "fields": {
+      "category": "Environmental Advocacy"
+    }
+  }, 
+  {
+    "pk": 19, 
+    "model": "procrasdonate.category", 
+    "fields": {
+      "category": "Health Research"
+    }
+  }, 
+  {
+    "pk": 20, 
+    "model": "procrasdonate.category", 
+    "fields": {
+      "category": "Hispanic"
+    }
+  }, 
+  {
+    "pk": 21, 
+    "model": "procrasdonate.category", 
+    "fields": {
+      "category": "Homeless"
+    }
+  }, 
+  {
+    "pk": 22, 
+    "model": "procrasdonate.category", 
+    "fields": {
+      "category": "Human Rights"
+    }
+  }, 
+  {
+    "pk": 23, 
+    "model": "procrasdonate.category", 
+    "fields": {
+      "category": "Disaster and Medical Relief"
+    }
+  }, 
+  {
+    "pk": 24, 
+    "model": "procrasdonate.category", 
+    "fields": {
+      "category": "Farming"
+    }
+  }, 
+  {
+    "pk": 25, 
+    "model": "procrasdonate.category", 
+    "fields": {
+      "category": "Hunger"
+    }
+  }, 
+  {
+    "pk": 26, 
+    "model": "procrasdonate.category", 
+    "fields": {
+      "category": "International Relief and Development"
+    }
+  }, 
+  {
+    "pk": 27, 
+    "model": "procrasdonate.category", 
+    "fields": {
+      "category": "Jewish Charity"
+    }
+  }, 
+  {
+    "pk": 28, 
+    "model": "procrasdonate.category", 
+    "fields": {
+      "category": "Literacy"
+    }
+  }, 
+  {
+    "pk": 29, 
+    "model": "procrasdonate.category", 
+    "fields": {
+      "category": "Mental Health"
+    }
+  }, 
+  {
+    "pk": 30, 
+    "model": "procrasdonate.category", 
+    "fields": {
+      "category": "Peace"
+    }
+  }, 
+  {
+    "pk": 31, 
+    "model": "procrasdonate.category", 
+    "fields": {
+      "category": "Population"
+    }
+  }, 
+  {
+    "pk": 32, 
+    "model": "procrasdonate.category", 
+    "fields": {
+      "category": "Aging"
+    }
+  }, 
+  {
+    "pk": 33, 
+    "model": "procrasdonate.category", 
+    "fields": {
+      "category": "Terminally Ill"
+    }
+  }, 
+  {
+    "pk": 34, 
+    "model": "procrasdonate.category", 
+    "fields": {
+      "category": "Veterans"
+    }
+  }, 
+  {
+    "pk": 35, 
+    "model": "procrasdonate.category", 
+    "fields": {
+      "category": "Women"
+    }
+  }, 
+  {
+    "pk": 36, 
+    "model": "procrasdonate.category", 
+    "fields": {
+      "category": "Youth"
+    }
+  }, 
+  {
+    "pk": 37, 
+    "model": "procrasdonate.category", 
+    "fields": {
+      "category": "Unspecified"
+    }
+  },
+
+  {
+    "pk": 1, 
+    "model": "procrasdonate.tag", 
+    "fields": {
+      "tag": "Unsorted"
+    }
+  }, 
+  {
+    "pk": 2, 
+    "model": "procrasdonate.tag", 
+    "fields": {
+      "tag": "TimeWellSpent"
+    }
+  }, 
+  {
+    "pk": 3, 
+    "model": "procrasdonate.tag", 
+    "fields": {
+      "tag": "ProcrasDonate"
+    }
+  }, 
+  {
+    "pk": 3, 
+    "model": "procrasdonate.recipient", 
+    "fields": {
+      "is_visible": true, 
+      "sponsoring_organization": "", 
+      "mailing_address": "", 
+      "mission": "To provide access to collaborative tools for educational discovery and communication about the real world impact of product supply chains.", 
+      "logo": "",
+      "category": 13, 
+      "city": "", 
+      "charity_navigator_score": null, 
+      "pd_experience_video": "", 
+      "state": "MA", 
+      "facebook_name": "", 
+      "tax_exempt_status": true, 
+      "is_sponsored": false, 
+      "description": "Without knowing the socially responsible impact of purchasing a product, we're all still shopping in the dark.\r\n\r\nBuy It Like You Mean It helps students and volunteers cooperate to review and rate the real world effects of industry supply chains. We provide these ratings, free of charge, to help shoppers decide which products support their own unique values.\r\n\r\nTogether we are modeling how specific companies perform on a variety of socially responsible interests.", 
+      "last_modified": "2009-11-20 00:00:00.000000", 
+      "slug": "bilumi", 
+      "name": "Buy It Like You Mean It", 
+      "url": "http://bilumi.org/", 
+      "country": "USA", 
+      "employers_identification_number": "", 
+      "office_phone": "", 
+      "twitter_name": "bilumi", 
+      "promotional_video": "http://www.youtube.com/v/K1J-cP3v2Jg"
+    }
+  }, 
+  {
+    "pk": 1, 
+    "model": "procrasdonate.recipient", 
+    "fields": {
+      "is_visible": false, 
+      "sponsoring_organization": null, 
+      "mailing_address": null, 
+      "mission": "Charitable time management", 
+      "logo": "", 
+      "category": 1, 
+      "city": null, 
+      "charity_navigator_score": null, 
+      "pd_experience_video": null, 
+      "state": null, 
+      "facebook_name": null, 
+      "tax_exempt_status": false, 
+      "is_sponsored": false, 
+      "description": "Coming soon!", 
+      "last_modified": "2009-11-18 00:00:00.000000", 
+      "slug": "PD", 
+      "name": "ProcrasDonate", 
+      "url": "http://procrasdonate.com", 
+      "country": "USA", 
+      "employers_identification_number": null, 
+      "office_phone": null, 
+      "twitter_name": "ProcrasDonate", 
+      "promotional_video": "http://www.youtube.com/v/kyBR5UL8nRs"
+    }
+  }, 
+  {
+    "pk": 4, 
+    "model": "procrasdonate.recipient", 
+    "fields": {
+      "is_visible": true, 
+      "sponsoring_organization": "", 
+      "mailing_address": "", 
+      "mission": "", 
+      "logo": "", 
+      "category": 37, 
+      "city": "", 
+      "charity_navigator_score": null, 
+      "pd_experience_video": "", 
+      "state": "", 
+      "facebook_name": "", 
+      "tax_exempt_status": false, 
+      "is_sponsored": false, 
+      "description": "", 
+      "last_modified": "2009-11-20 00:00:00.000000", 
+      "slug": "sSTEP", 
+      "name": "Society for Social Transformation and Environmental Protection", 
+      "url": "", 
+      "country": "USA", 
+      "employers_identification_number": "", 
+      "office_phone": "", 
+      "twitter_name": "", 
+      "promotional_video": ""
+    }
+  }, 
+  {
+    "pk": 1, 
+    "model": "procrasdonate.recipientusertagging", 
+    "fields": {
+      "blog_post": "T", 
+      "mailed_postcard": "T", 
+      "event_postcard": "T", 
+      "is_confirmed": true, 
+      "confirmation_code": "", 
+      "other_mailing": "T", 
+      "mailed_letter": "T", 
+      "homepage_link": "T", 
+      "email_to_supporters": "T", 
+      "user": 1, 
+      "newsletter_article": "T", 
+      "twitter_tweet": "T", 
+      "recipient": 3, 
+      "job_title": ""
+    }
+  }
+]

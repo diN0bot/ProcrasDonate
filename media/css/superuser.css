@@ -1,0 +1,23 @@
+
+/********** LOGS ***********/
+#parameters { font-size: 1.4em; color: #89958C; }
+#parameters td { padding: 0em 2em 0em 0em; }
+
+.log { clear:both; padding: 1em; margin: 1em 0em; }
+.log .datetime { float: left; font-size: .8em; }
+.log .datetime div { display: inline; margin-right: 1em; }
+.log .user { float: left; font-size: .8em; clear: both; }
+.log .message { background: #FFFFFF; margin: 0em; padding: 1em; clear: both; text-align: left; display: none; }
+.log .message_clip { overflow: hidden; height: 1.4em; }
+.log .detail_type { margin-right: 2em; }
+
+.E, .ERROR { background: #f4d0d8; }
+.F, .FAIL { background: #f4f3d0; }
+.W, .WARN { background: #e9d0f4; }
+.L, .LOG { background: #d4d0f4; }
+.D, .DEBUG { background: #daf4d0; }
+.I, .INFO { background: #e9d0f4; }
+
+.ddeven { background: #F7EDB4; }
+
+.next { margin: 0em 0em 0em 1em; }

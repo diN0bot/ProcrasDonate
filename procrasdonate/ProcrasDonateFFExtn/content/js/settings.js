@@ -69,6 +69,7 @@ var constants = {};
 	constants.AUTOMATIC_TEST_SUITE_URL = '/dev/automatic_test_suite/';
 	constants.AUTOTESTER_TEST_SUITE_URL = '/dev/autotester_test_suite/';
 	constants.TIMING_TEST_SUITE_URL = '/dev/timing_test_suite/';
+	constants.VISUAL_DEBUG_URL = '/dev/visual_debug/';
 	
 	constants.AMAZON_USER_URL = "https://payments.amazon.com";
 	

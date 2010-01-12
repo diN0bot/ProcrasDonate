@@ -1,9 +1,11 @@
 	
 function pythonTrue(o) {
+	// logger("o = "+o);
 	if (isString(o) && o.length == 0) 
 		return false;
 	if (isArray(o) && o.length == 0)
 		return false;
+	// logger("   !!o = "+(!!o));
 	return !!o;
 }
 

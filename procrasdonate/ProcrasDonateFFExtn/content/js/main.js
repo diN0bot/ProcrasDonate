@@ -122,7 +122,7 @@ Orthogonals.prototype = {
 		} catch (e) {
 			logger("Orthogonals ERROR: "+detail_type+": "+msg+"\n"+e.stack);
 		}
-		throw "Orthogonals ERROR: "+detail_type+": "+msg
+		//throw "Orthogonals ERROR: "+detail_type+": "+msg
 	},
 	
 	UserStudy: function(type, msg, quant) {

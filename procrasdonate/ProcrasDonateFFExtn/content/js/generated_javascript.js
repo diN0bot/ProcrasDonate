@@ -466,11 +466,29 @@ var _prefify_float = function(x) {
 	return x.toString();
 }
 
-// we expect wikipedia.org to split into   [,    ,wikipedia.org  ,]
-// we expect www.bluecar.com to split into [,www.,bluecar.com    ,]
-// we expect docs.google.com to split into [,    ,docs.google.com,]
-var host_regexp =  /^[\w]+:\/\/(www\.)?([^\/]+).*/g;
 
+// added \/? for file
+var host_regexp =  /^[\w]+:(\/\/)?(www\.)?([^\/]+).*/g;
+var file_regexp =  /^file:\/\/(.*)/g;
+
+/**
+ * 
+ * @param href: fully qualified url, includes http or whatever. 
+ * 	uses urlbar if no href
+ * @return just the hostname, eg procrasdonate.com
+ * 	automatically strips out www
+ * 	for file:// returns first 30 characters of path
+ * 
+ * // https://procrasdonate.com/my_messages/  ["", "", "procrasdonate.com", ""]
+ * // http://procrasdonate.com/my_messages/   ["", "", "procrasdonate.com", ""]
+ * // http://wikipedia.org/                   ["", "", "wikipedia.org", ""]
+ * // http://www.wikipedia.org/               ["", "www.", "wikipedia.org", ""]
+ * // file:///Users/lucy/SciFi                ["", "/Users/lucy/SciFi", ""]
+ * 
+ * if split fails, returns ['<< entire input >>']
+ * 
+ * always returned encodeURI result
+ */
 var _host = function(href) {
 	if (!href) {
 		var urlbar = document.getElementById('urlbar');
@@ -480,21 +498,33 @@ var _host = function(href) {
 		}
 		href = urlbar.value;
 	}
-	var splits = href.split(host_regexp);
+	href = encodeURI(href);
+	logger("_host.href = "+href);
+	
+	var splits = href.split(file_regexp);
 	if ( splits.length > 2 ) {
-		return splits[2];
+		return splits[1].substr(0, 30);
+	}
+	
+	var splits = href.split(host_regexp);
+	if ( splits.length >= 4 ) {
+		return splits[3];
 	} else {
 		return href
 	}
 };
 
+/**
+ * 
+ * @return current URL, eg http://procrasdonate.com/my_settings
+ */
 var _href = function() {
 	var urlbar = document.getElementById('urlbar');
 	if (!urlbar) {
 		logger("WARNING: urlbar is false. utils::_href is returning the empty string.");
 		return "";
 	}
-	return urlbar.value
+	return encodeURI(urlbar.value)
 };
 
 function isEmpty(ob) {
@@ -2077,12 +2107,7 @@ _extend(PDTests.prototype, {
 		var newpage = create_caller_reference()+".html";
 		var url = "http://"+newdomain+"/"+newpage;
 
-		var host = _host(url);
-		sitegroup = self.pddb.SiteGroup.create({
-				name: newdomain,
-				host: newdomain,
-				tag_id: tag.id
-		});
+		sitegroup = self.pddb.SiteGroup.create_from_url(url, tag);
 		return self.pddb.Site.create({
 			url: url,
 			sitegroup_id: sitegroup.id,
@@ -2108,8 +2133,7 @@ _extend(PDTests.prototype, {
 		var totals = {}
 		
 		var site = self.pddb.Site.get_or_null({ url: url })
-		var host = _host(url);
-		var sitegroup = self.pddb.SiteGroup.get_or_null({ host: host });
+		var sitegroup = self.pddb.SiteGroup.get_from_url(url);
 		var timetypes = [self.pddb.Daily, self.pddb.Weekly, self.pddb.Yearly, self.pddb.Forever];
 		var times = [_dbify_date(_end_of_day()), _dbify_date(_end_of_week()), _dbify_date(_end_of_year()), _dbify_date(_end_of_forever())];
 		
@@ -2660,6 +2684,7 @@ var FILTERS = {
 
 
 /**************** content/js/lib/template/tags/base.js *****************/
+var IF_BUG = false;
 
 var TAGS = {
 	'nop': function(args, context, env) {
@@ -2683,6 +2708,7 @@ var TAGS = {
 		var parentloop = get(context, 'forloop');
 		
 		for (var i=0; i<sequence.length; i++) {
+			if (IF_BUG) logger("IS ODD "+(i%2 != 0));
 			var forloop = {
 					'parentloop' : parentloop,
 					'first' : i==0,
@@ -2691,7 +2717,7 @@ var TAGS = {
 					'counter0': i,
 					'revcounter': sequence.length - i,
 					'revcounter0': sequence.length - i - 1,
-					'is_odd': i%2
+					'is_odd': (i%2 != 0)
 			};
 			var new_context = { 'forloop': forloop };
 			if (vars.length > 1) {
@@ -2710,28 +2736,38 @@ var TAGS = {
 	},
 	'if': function(args, context, env) {
 		var AND=0, OR=1;
+		if (IF_BUG) _pprint(args, "----------------------- IF ARGS");
 		var bool_exprs = args[0];
 		var link_type = args[1];
 		var nodelist_true = args[2];
 		var nodelist_false = args[3];
 		
+		if (IF_BUG) logger("BOOL EXPRS: "+bool_exprs);
+		if (IF_BUG) logger("LINK TYPE: "+link_type);
+		
 		if (link_type == OR) {
+			if (IF_BUG) logger("OR");
 			for (var be in bool_exprs) {
 				var ifnot = bool_exprs[be][0];
 				var bool_expr = bool_exprs[be][1];
 				value = pythonTrue(this.render_filter(bool_expr, context, env));
+				if (IF_BUG) logger("value="+value);
 				if ((value && !ifnot) || (ifnot && !value))
 					return this.render_nodelist(nodelist_true, context, env);
 			}
+			if (IF_BUG) logger("false");
 			return this.render_nodelist(nodelist_false, context, env);
 		} else {
+			if (IF_BUG) logger("AND");
 			for (var be in bool_exprs) {
 				var ifnot = bool_exprs[be][0];
 				var bool_expr = bool_exprs[be][1];
 				value = pythonTrue(this.render_filter(bool_expr, context, env));
+				if (IF_BUG) logger("value="+value);
 				if (!((value && !ifnot) || (ifnot && !value)))
 					return this.render_nodelist(nodelist_false, context, env);
 			}
+			if (IF_BUG) logger("true");
 			return this.render_nodelist(nodelist_true, context, env);
 		}
 	},
@@ -3265,10 +3301,12 @@ Template.register_template_class(FunctionTemplate, function(template) {
 /**************** content/js/lib/template/django.js *****************/
 	
 function pythonTrue(o) {
+	// logger("o = "+o);
 	if (isString(o) && o.length == 0) 
 		return false;
 	if (isArray(o) && o.length == 0)
 		return false;
+	// logger("   !!o = "+(!!o));
 	return !!o;
 }
 
@@ -3509,6 +3547,8 @@ Template.register_template_class(DjangoTemplate, function(obj) {
     
     Template.compile([["var", ["substate_menu"], []], "\n", ["var", ["arrows"], []], "\n\n<p id=\"error\"></p>\n\n<h5>Where would you like to receive weekly feedback and alerts?</h5>\n\n<ul><li>We do not share your email; not even with organizations that you donate to.</li\t\n</ul>   \n\n<p><label>Email </label><input\n\ttype=\"text\"\n\tid=\"email\"\n\tname=\"email\" \n\tvalue=\"", ["var", ["email"], []], "\" />\n</p>\n\n<h5>Do you deduct charitable donations from your taxes?</h5>\n<p></p>\n<div class=\"split_arrow_div\" class=\"left\">\n\t<img class=\"split_arrow\" src=\"", ["var", ["constants", "MEDIA_URL"], []], "img/SplitArrows.png\" />\n</div>\n\n\n<div id=\"tax_deductions_middle\">\n</div>\n\n<h2>Terms of service</h2>\n<p><input\n\ttype=\"checkbox\"\n\tid=\"tos\"\n\tname=\"tos\"\n\t", ["if", [[false, ["var", ["tos"], []]]], 1, ["checked"], []], " />\n   <span>I have read and agree to the following Terms of Service.</span>\n   </p>\n\nBy using our service you agree to the following:\n\n<p>- You agree to these terms and any updates that ProcrasDonate may make \n\twithout warning or notification.\n</p>\n<p>- You understand how our service works and are willingly participating.\n</p>\n<p>- You agree to pay all pledges made on your behalf in full.\n</p>\n<p>- Voluntary monthly fees and a percentage that you determine of each transaction will be\n\tpaid to ProcrasDonate.\n</p>\n<p>- You are solely responsible for any content that you add to this site. \n</p>\n<p>- Illegal, unfriendly, or otherwise problematic content will be removed.\n</p>\n<p>- Your individual records and settings are under your control.  \nAlthough our central server will collect your records to approve payments \nand collect community statistics - a reasonable effort will be made to keep\nyour browsing history and other records anonymous.\n</p>\n<p>- All rights are reserved including ProcrasDonate intellectual property of\n\tour business model and any software beyond the open source software \n\tthat we are using.\n</p>\n<p> Thanks for ProcrasDonating!\n</p>\n\n", ["var", ["arrows"], []], "\n"], "register_updates_middle");
     
+    Template.compile(["<ul>\n\t<li>partially paid: ", ["var", ["rp", "is_partially_paid"], []], "</li>\n\t<li>pending: ", ["var", ["rp", "is_pending"], []], "</li>\n\t<li>TOTAL:\n\t\t<ul>\n\t\t\t<li>site: ", ["var", ["rp", "total", "site", "url"], []], "</li>\n\t\t\t<li>sitegroup: ", ["var", ["rp", "total", "sitegroup", "host"], []], ", ", ["var", ["rp", "total", "sitegroup", "tag", "tag"], []], "</li>\n\t\t\t<li>recipient: ", ["var", ["rp", "total", "recipient", "name"], []], "</li>\n\t\t\t<li>tag: ", ["var", ["rp", "total", "tag", "tag"], []], "</li>\n\t\t\t<li>total_time: ", ["var", ["rp", "total", "total_time"], []], " secs, ", ["var", ["rp", "total", "hours"], []], " hours</li>\n\t\t\t<li>total_amount: ", ["var", ["rp", "total", "total_amount"], []], " cents, $", ["var", ["rp", "total", "dollars"], []], "</li>\n\t\t\t<li>timetype: ", ["var", ["rp", "total", "timetype", "timetype"], []], "</li>\n\t\t\t<li>datetime: ", ["var", ["rp", "total", "friendly_datetime"], []], "</li>\n\t\t</ul>\n\t</li>\n</ul>\n"], "requires_payment");
+    
     Template.compile(["\n<ul>\n\t", ["for", ["item"], ["var", ["substate_menu_items", "menu_items"], []], false, ["\n\t\t<li id=\"", ["var", ["item", "id"], []], "\"\n\t\t\tclass=\"", ["for", ["klass"], ["var", ["item", "klasses"], []], false, [["var", ["klass"], []], " "]], "\">\n\t\t\t", ["var", ["item", "value"], []], "</li>\n\t"]], "\n</ul>\n\n<h2>My Settings</h2>\n\n<h3>Payment Status</h3>\n<p>Estimated time until payment re-authorization is needed: \n", ["var", ["estimated_months_before_reauth", "months"], []], "</p>\n\n<h3>Selected Charities</h3>\n", ["for", ["rpct"], ["var", ["recipient_percents"], []], false, ["\n<p>\n\t", ["var", ["rpct", "display_percent"], []], "% of every hour spent ProcrasDonation goes to\n\t", ["if", [[false, ["var", ["rpct", "recipient", "is_pd_registered"], []]]], 1, ["\n\t\t<a href=\"/", ["var", ["rpct", "recipient", "slug"], []], "/\">\n\t"], []], "\n\t\t", ["var", ["rpct", "recipient", "name"], []], "\n\t", ["if", [[false, ["var", ["rpct", "recipient", "is_pd_registered"], []]]], 1, ["\n\t\t</a>\n\t"], []], "\n</p>\n"]], "\n<p><a class=\"choose_charities\" href=\"", ["var", ["constants", "REGISTER_URL"], []], "\">Change selections</a></p>\n\n<div class=\"example_gauge\">\n\t<div id=\"happy_example_gauge\"></div>\n</div>\n\n<h3>ProcrasDonate</h3>\n<p>Weekly ProcrasDonate goal: \n\t<span class=\"thevalue\" id=\"pd_hr_per_week_goal\">", ["var", ["pd_hr_per_week_goal"], []], "</span>\n\t<span class=\"units\">hrs</span>\n\t<img class=\"up_arrow\" src=\"", ["var", ["constants", "MEDIA_URL"], []], "img/UpArrow.png\" />\n\t<img class=\"down_arrow\" src=\"", ["var", ["constants", "MEDIA_URL"], []], "img/DownArrow.png\" />\n\t<span class=\"error\"></span></p>\n<p>Weekly ProcrasDonate rate:\n\t$<span class=\"thevalue\" id=\"pd_dollars_per_hr\">", ["var", ["pd_dollars_per_hr"], []], "</span>\n\t<span class=\"units\">per hr</span>\n\t<img class=\"up_arrow\" src=\"", ["var", ["constants", "MEDIA_URL"], []], "img/UpArrow.png\" />\n\t<img class=\"down_arrow\" src=\"", ["var", ["constants", "MEDIA_URL"], []], "img/DownArrow.png\" />\n\t<span class=\"error\"></span></p>\n<p>Weekly ProcrasDonate limit:\n\t<span class=\"thevalue\" id=\"pd_hr_per_week_max\">", ["var", ["pd_hr_per_week_max"], []], "</span> \n\t<span class=\"units\">hrs</span>\n\t<img class=\"up_arrow\" src=\"", ["var", ["constants", "MEDIA_URL"], []], "img/UpArrow.png\" />\n\t<img class=\"down_arrow\" src=\"", ["var", ["constants", "MEDIA_URL"], []], "img/DownArrow.png\" />\n\t<span class=\"error\"></span></p>\n\n<h3>TimeWellSpent</h3>\n<p>Weekly TimeWellSpent rate:\n\t$<span class=\"thevalue\" id=\"tws_dollars_per_hr\">", ["var", ["tws_dollars_per_hr"], []], "</span>\n\t<span class=\"units\">per hr</span>\n\t<img class=\"up_arrow\" src=\"", ["var", ["constants", "MEDIA_URL"], []], "img/UpArrow.png\" />\n\t<img class=\"down_arrow\" src=\"", ["var", ["constants", "MEDIA_URL"], []], "img/DownArrow.png\" />\n\t<span class=\"error\"></span></p>\n<p>Weekly TimeWellSpent limit\n\t<span class=\"thevalue\" id=\"tws_hr_per_week_max\">", ["var", ["tws_hr_per_week_max"], []], "</span>\n\t<span class=\"units\">hrs</span>\n\t<img class=\"up_arrow\" src=\"", ["var", ["constants", "MEDIA_URL"], []], "img/UpArrow.png\" />\n\t<img class=\"down_arrow\" src=\"", ["var", ["constants", "MEDIA_URL"], []], "img/DownArrow.png\" />\n\t<span class=\"error\"></span></p>\n\t\n<h3>Support This Service</h3>\n<p>Monthly membership fee: $<span class=\"thevalue\" id=\"monthly_fee\">", ["var", ["monthly_fee"], []], "</span> \n\t<span class=\"units\">per month</span>\n\t<img class=\"up_arrow\" src=\"", ["var", ["constants", "MEDIA_URL"], []], "img/UpArrow.png\" />\n\t<img class=\"down_arrow\" src=\"", ["var", ["constants", "MEDIA_URL"], []], "img/DownArrow.png\" />\n\t<span class=\"error\"></span></p>\n<p>Per transaction percentage charge: <span class=\"thevalue\" id=\"support_pct\">", ["var", ["support_pct"], []], "</span>\n\t<span class=\"units\">%</span>\n\t<img class=\"up_arrow\" src=\"", ["var", ["constants", "MEDIA_URL"], []], "img/UpArrow.png\" />\n\t<img class=\"down_arrow\" src=\"", ["var", ["constants", "MEDIA_URL"], []], "img/DownArrow.png\" />\n\t<span class=\"error\"></span></p>\n\n<h3>Updates</h3>\n<p>Preferred email address: <input id=\"email\" value=\"", ["var", ["email"], []], "\" /></p>\n\n<p><input id=\"weekly_affirmations\" type=\"checkbox\" ", ["if", [[false, ["var", ["weekly_affirmations"], []]]], 1, ["checked"], []], " />\nYes, I want to receive weekly affirmation on the progress I am making towards my goals.</p>\n\n<p><input id=\"org_thank_yous\" type=\"checkbox\" ", ["if", [[false, ["var", ["org_thank_yous"], []]]], 1, ["checked"], []], " />\nYes, I want to receive occasional thank you notes forwarded from the charities I support.</p>\n\n<p><input id=\"org_newsletters\" type=\"checkbox\" ", ["if", [[false, ["var", ["org_newsletters"], []]]], 1, ["checked"], []], " />\nYes, I want to receive forwarded year end newsletters from the charities I support.</p>\n"], "settings_overview_middle");
     
     Template.compile(["\n<table>\n<tbody>\n<tr>\n\t<td align=\"left\">\n\t\t<input\n\t\tclass=\"support_method_radio\"\n\t\ttype=\"radio\"\n\t\tname=\"support_method\"\n\t\tvalue=\"monthly\"\n\t\t", ["ifequal", ["var", ["support_method"], []], ["var", "monthly", []], ["checked"], []], " />\n\t<label>Monthly Subscription</label>\n\t</td>\n\t<td align=\"left\">\n\t\t\t<input\n\t\tclass=\"support_method_radio\"\n\t\ttype=\"radio\"\n\t\tname=\"support_method\"\n\t\tvalue=\"percent\"\n\t\t", ["ifequal", ["var", ["support_method"], []], ["var", "percent", []], ["checked"], []], ">Transaction Percent</input>\n\t</td>\t\n</tr>\t\n<tr>\n<td class=\"support_method_monthly ", ["ifequal", ["var", ["support_method"], []], ["var", "percent", []], ["disabled"], []], "\">\n\t<p>\"Please charge me a membership services fee of \t\n\t<input\n\t\ttype=\"text\"\n\t\tid=\"monthly_fee\"\n\t\tname=\"monthly_fee\" \n\t\tvalue=\"", ["var", ["monthly_fee"], []], "\"\n\t\tsize=\"4\"\n\t\t", ["ifequal", ["var", ["support_method"], []], ["var", "percent", []], ["disabled"], []], " />\n\t   dollars per month.\"\t\t\n\t</p>\n\t<span class=\"units\"></span>\n   <span id=\"monthly_error\" class=\"error\"></span></p>\n   <ul><li>Choosing this option benefits your charities since they'll get more out of each donation.\n\t\t</li>\n\t</ul>\n</td>\n<td class=\"support_method_percent ", ["ifequal", ["var", ["support_method"], []], ["var", "monthly", []], ["disabled"], []], "\">\n\t<p>\n\t\t\"Please subtract a \n\t\t\t<input\n\t\t\ttype=\"text\"\n\t\t\tid=\"support_pct\"\n\t\t\tname=\"support_pct\" \n\t\t\tvalue=\"", ["var", ["support_pct"], []], "\"\n\t\t\tsize=\"4\"\n\t\t\t", ["ifequal", ["var", ["support_method"], []], ["var", "monthly", []], ["disabled"], []], " />\n\t\t   <span class=\"units\"></span>\n\t\t   <span id=\"support_error\" class=\"error\"></span>\n\t  \t% transfer service fee from my donations.\" \n\t<ul><li>This is a good option if your donations may not be large enough to justify paying a monthly fee.\n\t\t</li>\n\t</ul>\t\n\t</p>\n</td>\n</tr>\n</tbody>\n</table>\n"], "support_middle");
@@ -3522,6 +3562,8 @@ Template.register_template_class(DjangoTemplate, function(obj) {
     Template.compile(["<span class='img_link move_to_procrasdonate'>\n\t<img class='Move_Site_Arrow' src='", ["var", ["constants", "MEDIA_URL"], []], "img/LeftArrow.png'>\n</span>\n", ["var", ["inner"], []], "\n<span class='img_link move_to_timewellspent'>\n\t<img class='Move_Site_Arrow' src='", ["var", ["constants", "MEDIA_URL"], []], "img/RightArrow.png'>\n</span>\n"], "unsorted_wrap");
     
     Template.compile(["<table id=\"user_messages\">\n<tbody><tr><td>\n\t<ul>\n    \t<li class=\"message\">", ["var", ["message"], []], "</li>\n\t</ul>\n</td></tr></tbody>\n</table>\n"], "user_messages");
+    
+    Template.compile(["<div id=\"visual_debug\">\n\t", ["for", ["action"], ["var", ["actions"], []], false, ["\n\t\t<p class=\"link\" id=\"", ["var", ["action"], []], "\">", ["var", ["action"], []], "</p>\n\t"]], "\n</div>\n\n<div id=\"theatre\">\n</div>\n"], "visual_debug");
     
     Template.compile([["nop"], "\n\n", ["if", [[false, ["var", ["match"], []]]], 1, ["\n\t<p>\n\t\tIt's a match! You ProcrasDonated for exactly\n\t\t", ["var", ["pd_hrs_one_week"], []], " hours two weeks in a row!\n\t\tThat would win you a free game if we were playing pinball.\n\t\t", ["if", [[false, ["var", ["met_goal"], []]]], 1, ["\n\t\t\tYou would also get extra points for meeting your goal of\n\t\t\t", ["var", ["pd_hr_per_week_goal"], []], " hours per week.\n\t\t"], ["\n\t\t\tUnfortunately, you'd lose a turn for exceeding\n\t\t\tyour goal of ", ["var", ["pd_hr_per_week_goal"], []], " hours per week.\n\t\t"]], "\n\t</p>\n"], ["\n", ["if", [[false, ["var", ["no_data"], []]]], 1, ["\n\t<p>You haven't visited any websites tagged as ProcrasDonate. You can tag sites by clicking the \"?\" icon in your\n\tFirefox toolbar next to the URL address bar, or by visiting the \"Sites\" tab of \n\t<a href=\"", ["var", ["constants", "PD_URL"], []], ["var", ["constants", "PROGRESS_URL"], []], "\">My Progress</a>.</p>\n"], ["\n", ["if", [[false, ["var", ["one_week_good"], []]]], 1, ["\n\t<p>\n\t\tCongratulations", ["if", [[false, ["var", ["name"], []]]], 1, [", ", ["var", ["name"], []], "!"], ["!"]], "\n\t\tYou ProcrasDonated less than your goal of ", ["var", ["pd_hr_per_week_goal"], []], " hours.\n\t\tKeep up the good work!\n\t</p>\n"], ["\n", ["if", [[false, ["var", ["one_week_bad"], []]]], 1, ["\n\t<p>\n\t\tToo bad", ["if", [[false, ["var", ["name"], []]]], 1, [", ", ["var", ["name"], []], "."], ["."]], "\n\t\tYou ProcrasDonated more than your goal of ", ["var", ["pd_hr_per_week_goal"], []], " hours.\n\t\tWe know you can do better!\n\t</p>\n"], ["\n", ["if", [[false, ["var", ["good_in_a_row"], []]]], 1, ["\n\t<p>\n\t\tYou're on a roll", ["if", [[false, ["var", ["name"], []]]], 1, [", ", ["var", ["name"], []], "!"], ["!"]], "\n\t\tYou ProcrasDonated less than your goal of ", ["var", ["pd_hr_per_week_goal"], []], " hours\n\t\tfor at least ", ["var", ["weeks_in_a_row_met"], []], " weeks in a row. ProcrasDonating less means donating less.\n\t\tWould you like to celebrate by <a href=\"", ["var", ["constants", "PD_URL"], []], ["var", ["constants", "SETTINGS_URL"], []], "\">\n\t\traising your hourly giving</a> to ", ["var", ["top_charity", "name"], []], "? Woohoo!</p>\n"], ["\n", ["if", [[false, ["var", ["good"], []]]], 1, ["\n\t<p>\n\t\tCongratulations", ["if", [[false, ["var", ["name"], []]]], 1, [", ", ["var", ["name"], []], "!"], ["!"]], "\n\t\tYou ProcrasDonated less than your goal of ", ["var", ["pd_hr_per_week_goal"], []], " hours.\n\t\tKeep up the good work!\n\t</p>\n"], ["\n", ["if", [[false, ["var", ["sudden_bad"], []]]], 1, ["\n\t<p>\n\t", ["if", [[false, ["var", ["name"], []]]], 1, [["var", ["name"], []], ", your"], ["Your"]], " streak has ended.  \n\tYou had met your goal for at least ", ["var", ["weeks_in_a_row_met"], []], " weeks in a row.\n\tThis week you ProcrasDonated ", ["var", ["pd_hrs_one_week"], []], " hours, exceeding \n\tyour goal of ", ["var", ["pd_hr_per_week_goal"], []], " hours by ", ["var", ["pd_hrs_one_week_diff"], []], ".\n\tWe know you can get back on track!\n\t</p>\n"], ["\n", ["if", [[false, ["var", ["getting_worse"], []]]], 1, ["\n\t<p>\n\t\tWhat happened", ["if", [[false, ["var", ["name"], []]]], 1, [", ", ["var", ["name"], []], "?"], ["?"]], "\n\t\tYou ProcrasDonated ", ["var", ["pd_hrs_one_week_two_week_diff"], []], " hours more than the week before.\n\t\tThat's a total of ", ["var", ["pd_hrs_one_week_diff"], []], " hours more than your goal\n\t\tof ", ["var", ["pd_hr_per_week_goal"], []], " hours.\n\t\tWhat are you going to do about this?\n\t</p>\n"], ["\n", ["if", [[false, ["var", ["getting_better"], []]]], 1, ["\n\t<p>\n\tYou're getting closer to your goal", ["if", [[false, ["var", ["name"], []]]], 1, [", ", ["var", ["name"], []], "."], ["."]], "\n\tAwesome!\n\tYou ProcrasDonated ", ["var", ["pd_hrs_one_week_two_week_diff"], []], " hours less than the week before,\n\twhich means you're on track to meeting your goal of ", ["var", ["pd_hr_per_week_goal"], []], " hours per week.\n\tKeep it up! You can do it!\n\t</p>\n"], []]]]]]]]]]]]]]]]]], "\n\n<p>Hours ProcrasDonated</p>\n<ul>\n\t<li>this week: ", ["var", ["pd_hrs_one_week"], []], " hours \n\t\t(", ["var", ["pd_culprit_one_week", "hours_int"], []], " hours from ", ["var", ["pd_culprit_one_week", "sitegroup", "host"], []], ")</li>\n\t", ["if", [[false, ["var", ["pd_hrs_two_week"], []]]], 1, ["<li>last week: ", ["var", ["pd_hrs_two_week"], []], " hours \n\t\t(", ["var", ["pd_culprit_two_week", "hours_int"], []], " hours from ", ["var", ["pd_culprit_two_week", "sitegroup", "host"], []], ")</li>"], []], "\n\t", ["if", [[false, ["var", ["pd_hrs_three_week"], []]]], 1, ["<li>two weeks ago: ", ["var", ["pd_hrs_three_week"], []], " hours \n\t\t(", ["var", ["pd_culprit_three_week", "hours_int"], []], " hours from ", ["var", ["pd_culprit_three_week", "sitegroup", "host"], []], ")</li>"], []], "\n\t<br/>\n\t<li>goal: ", ["var", ["pd_hr_per_week_goal"], []], " hours</li>\n\t<li>limit: ", ["var", ["pd_hr_per_week_max"], []], " hours</li>\n\t<li>rate: $", ["var", ["pd_dollars_per_hr"], []], "/hour</li>\n</ul>\n\n<p>TimeWellSpent Hours</p>\n<ul>\n\t<li>this week: ", ["var", ["tws_hrs_one_week"], []], " hours\n\t\t(", ["var", ["tws_culprit_one_week", "hours_int"], []], " hours from ", ["var", ["tws_culprit_one_week", "sitegroup", "host"], []], ")</li>\n\t", ["if", [[false, ["var", ["tws_hrs_two_week"], []]]], 1, ["<li>last week: ", ["var", ["tws_hrs_two_week"], []], " hours\n\t\t(", ["var", ["tws_culprit_two_week", "hours_int"], []], " hours from ", ["var", ["tws_culprit_two_week", "sitegroup", "host"], []], ")</li>"], []], "\n\t", ["if", [[false, ["var", ["tws_hrs_three_week"], []]]], 1, ["<li>two weeks ago: ", ["var", ["tws_hrs_three_week"], []], " hours\n\t\t(", ["var", ["tws_culprit_three_week", "hours_int"], []], " hours from ", ["var", ["tws_culprit_three_week", "sitegroup", "host"], []], ")</li>"], []], "\n\t<br />\n\t<li>limit: ", ["var", ["tws_hr_per_week_max"], []], " hours</li>\n\t<li>rate: $", ["var", ["tws_dollars_per_hr"], []], "/hour</li>\n</ul>\n\n<p>Unclassified Hours</p>\n<ul>\n\t<li>this week: ", ["var", ["u_hrs_one_week"], []], " hours\n\t\t(", ["var", ["u_culprit_one_week", "hours_int"], []], " hours from ", ["var", ["u_culprit_one_week", "sitegroup", "host"], []], ")</li>\n\t", ["if", [[false, ["var", ["u_hrs_two_week"], []]]], 1, ["<li>last week: ", ["var", ["u_hrs_two_week"], []], " hours\n\t\t(", ["var", ["u_culprit_two_week", "hours_int"], []], " hours from ", ["var", ["u_culprit_two_week", "sitegroup", "host"], []], ")</li>"], []], "\n\t", ["if", [[false, ["var", ["u_hrs_three_week"], []]]], 1, ["<li>two weeks ago: ", ["var", ["u_hrs_three_week"], []], " hours\n\t\t(", ["var", ["u_culprit_three_week", "hours_int"], []], " hours from ", ["var", ["u_culprit_three_week", "sitegroup", "host"], []], ")</li>"], []], "\n</ul>\n\n", ["if", [[false, ["var", ["pledges"], []]]], 1, ["\n\t<p>This week you pledged:</p>\n\t<ul>\n\t", ["for", ["pledge"], ["var", ["pledges"], []], false, ["\n\t    <li>$", ["var", ["pledge", "amount"], []], " to ", ["var", ["pledge", "charity"], []], "</li>\n\t"]], "\n\t</ul>\n"], []], "\n\n", ["if", [[false, ["var", ["payments"], []]]], 1, ["\n\t<p>This week you turned pledges into donations!</p>\n\t<ul>\n\t", ["for", ["payment"], ["var", ["payments"], []], false, ["\n\t    <li>$", ["var", ["payment", "amount"], []], " to ", ["var", ["payment", "charity"], []], "</li>\n\t"]], "\n\t</ul>\n"], []], "\n\n<p><a href=\"", ["var", ["constants", "PD_URL"], []], ["var", ["constants", "MESSAGES_URL"], []], "\">View all messages</a></p>\n"], "weekly_report");
     
@@ -4978,7 +5020,7 @@ _extend(PageRequest.prototype, {
  * Generated by xpi builder on the fly when user downloads extension.
  */
 function generated_input() {
-    return [{"constants_PD_URL": "http://localhost:8000", "constants_PD_API_URL": "http://localhost:8000", "private_key": "Fdcz6Ig4yNCS00llEI7sXR", "preselected_charities": [{"percent": 0.0, "recipient_slug": "bilumi"}], "is_update": false}]
+    return [{"constants_PD_URL": "http://localhost:8000", "constants_PD_API_URL": "http://localhost:8000", "is_update": true}]
 }
 
 
@@ -5054,6 +5096,7 @@ var constants = {};
 	constants.AUTOMATIC_TEST_SUITE_URL = '/dev/automatic_test_suite/';
 	constants.AUTOTESTER_TEST_SUITE_URL = '/dev/autotester_test_suite/';
 	constants.TIMING_TEST_SUITE_URL = '/dev/timing_test_suite/';
+	constants.VISUAL_DEBUG_URL = '/dev/visual_debug/';
 	
 	constants.AMAZON_USER_URL = "https://payments.amazon.com";
 	
@@ -5473,8 +5516,19 @@ _extend(ProcrasDonate_API.prototype, {
 	},
 	
 	_get_totals: function() {
+		var self = this;
 		return this._get_data("Total", function(row) {
-			return row.deep_dict();
+			var d = row.deep_dict();
+			var week_total = self.pddb.Total.get_or_null({
+				timetype_id: self.pddb.Weekly.id,
+				contenttype_id: row.contenttype_id,
+				content_id: row.content_id,
+				datetime: _dbify_date(_end_of_week(_un_dbify_date(row.datetime)))
+			});
+			return _extend(d, {
+				weekly_requires_payment: week_total.requires_payment_dict(),
+				weekly_payments: week_total.payments_dict()
+			});
 		}, {
 			timetype_id: this.pddb.Daily.id
 		});
@@ -5974,14 +6028,8 @@ function load_models(db, pddb) {
 				tag_id = pddb.Unsorted.id;
 			}
 			if (!site) {
-				var host = _host(url);
-				var sitegroup = SiteGroup.get_or_create({
-					host: host
-				}, {
-					name: host,
-					host: host,
-					tag_id: tag_id
-				});
+				var tag = Tag.get_or_null({ id: tag_id });
+				var sitegroup = SiteGroup.create_from_url(url, tag);
 	
 				site = this.create({
 					url: url,
@@ -6042,6 +6090,10 @@ function load_models(db, pddb) {
 			return _un_dbify_bool(this.tax_exempt_status);
 		},
 		
+		display_host: function() {
+			return decodeURI(this.host);
+		},
+		
 		deep_dict: function() {
 			return {
 				id: this.id,
@@ -6055,14 +6107,25 @@ function load_models(db, pddb) {
 	}, {
 		// class methods
 		create_from_url: function(url, tag) {
+			logger("create from url: "+url);
 			if (!tag) { tag = pddb.Unsorted; }
-			var host = _host(url);
+			var host = decodeURI(_host(url));
+			logger("  ---------- host --------- "+host);
 			var sitegroup = SiteGroup.get_or_create({
 				host: host
 			}, {
-				name: host,
+				name: decodeURI(host),
 				host: host,
 				tag_id: tag.id
+			});
+			logger("  sitegroup="+sitegroup);
+			return sitegroup
+		},
+		
+		get_from_url: function(url) {
+			var host = _host(url);
+			var sitegroup = SiteGroup.get_or_null({
+				host: host
 			});
 			return sitegroup
 		}
@@ -6699,6 +6762,10 @@ function load_models(db, pddb) {
 			return timetype
 		},
 		
+		friendly_datetime: function() {
+			return _un_dbify_date(this.datetime).strftime("%b %d, %Y")
+		},
+		
 		_payments: function(deep_dictify) {
 			// Totals may have Payments
 			// @returns list of Payment row factories
@@ -6719,12 +6786,25 @@ function load_models(db, pddb) {
 			return this._payments(false);
 		},
 		
-		payment_dicts: function() {
+		payments_dict: function() {
 			return this._payments(true);
 		},
 		
 		requires_payment: function() {
-			return RequiresPayment.get_or_null({ total_id: this.id });
+			var self = this;
+			return RequiresPayment.get_or_null({ total_id: self.id });
+		},
+		
+		requires_payment_dict: function() {
+			var rp = this.requires_payment();
+			if (rp) {
+				return {
+					partially_paid: rp.is_partially_paid(),
+					pending: rp.is_pending()
+				}
+			} else {
+				return {}
+			}
 		},
 		
 		deep_dict: function() {
@@ -6740,7 +6820,8 @@ function load_models(db, pddb) {
 				total_amount: parseFloat(this.total_amount),
 				datetime: parseInt(this.datetime),
 				timetype: this.timetype().timetype,
-				payments: this.payment_dicts()
+				payments: this.payments_dict(),
+				requires_payment: this.requires_payment_dict()
 			}
 		}
 	}, {
@@ -7436,7 +7517,7 @@ _extend(Controller.prototype, {
 		//    if visiting first ProcrasDonate website of the day
 		if (!this.prefs.get("inserted_top_bar_today", false)) {
 			if (this.page.top_bar_has_content()) {
-				var sitegroup = this.pddb.SiteGroup.get_or_null({ host: host });
+				var sitegroup = this.pddb.SiteGroup.get_from_url(request.url);
 				if (sitegroup) {
 					if (sitegroup.tag_id == this.pddb.ProcrasDonate.id) {
 						this.page.insert_top_bar(request);
@@ -7543,6 +7624,9 @@ _extend(Controller.prototype, {
 			break;
 		case constants.TIMING_TEST_SUITE_URL:
 			this.page.timing_test_suite(request);
+			break;
+		case constants.VISUAL_DEBUG_URL:
+			this.page.visual_debug(request);
 			break;
 		case constants.AUTHORIZE_PAYMENTS:
 			break;
@@ -8312,89 +8396,97 @@ _extend(PageController.prototype, {
 	/******************************** IMPACT *********************************/
 	
 	insert_impact_totals: function(request) {
+		/*
+		 * Iterate through all RequiresPayment to determine pledges.
+		 * Iterate through all Payment to determine paid.
+		 *  -> put in right bucket based on _end_of_year( datetime )
+		 */
+		
 		var self = this;
 		this.prefs.set('impact_state', 'totals');
 		
 		var substate_menu_items = this.make_substate_menu_items('totals',
 			constants.IMPACT_STATE_ENUM, constants.IMPACT_STATE_TAB_NAMES);
 
-		var recipient_contenttype = self.pddb.ContentType.get_or_null({ modelname: "Recipient" });
-		var sitegroup_contenttype = self.pddb.ContentType.get_or_null({ modelname: "SiteGroup" });
+		var end_of_year = _end_of_year();
+		var end_of_last_year = _end_of_last_year();
 		
-		// total $$ PLEDGED for [this year, last year]
-		var taxdeduct_total_amounts = [0.0, 0.0];
-		var NOT_taxdeduct_total_amounts = [0.0, 0.0];
-		// payment {id: row, ...} for [this year, last year]
-		var taxdeduct_payments = [{}, {}];
-		var NOT_taxdeduct_payments = [{}, {}];
-		// total $$ PAID for [this year, last year]
-		var taxdeduct_payment_totals = [0.0, 0.0];
-		var NOT_taxdeduct_payment_totals = [0.0, 0.0];
+		var pledges_taxdeduct = 0.0;
+		var pledges_not = 0.0;
 
-		_iterate([recipient_contenttype, sitegroup_contenttype], function(key, contenttype, index) {
-			_iterate([_end_of_year(), _end_of_last_year()], function(key2, endtime, YEAR_INDEX) {
-				// iterate through all recipients and sitegroups for this or last year
-				self.pddb.Total.select({
-					contenttype_id: contenttype.id,
-					datetime: _dbify_date(endtime),
-					timetype_id: self.pddb.Yearly.id
-				}, function(row) {
-					var amt = row.dollars()
-					if (row.recipient() && row.recipient().has_tax_exempt_status()) {
-						taxdeduct_total_amounts[index] += amt;
-						_iterate(row.payments(), function(key3, payment, index3) {
-							taxdeduct_payments[YEAR_INDEX][payment.id] += payment;
-						});
-					} else {
-						NOT_taxdeduct_total_amounts[index] += amt;
-						_iterate(row.payments(), function(key3, payment, index3) {
-							NOT_taxdeduct_payments[YEAR_INDEX][payment.id] += payment;
-						});
-					}
-				});
-			});
+		var payments_taxdeduct = {
+				total: 0.0,
+				end_of_year: 0.0,
+				end_of_last_year: 0.0};
+		
+		var payments_not = {
+				total: 0.0,
+				end_of_year: 0.0,
+				end_of_last_year: 0.0};
+		
+		this.pddb.RequiresPayment.select({}, function(row) {
+			var total = row.total();
+			var sitegroup = total.sitegroup();
+			var recipient = total.recipient();
+			if (!sitegroup && !recipient) {
+				self.pddb.orthogonals.warn("Expected RequiresPayment for sitegroup or recipient. Found this instead: "+total+" requires_payment: "+row);
+				return
+			}
+
+			if (total.content().has_tax_exempt_status()) {
+				pledges_taxdeduct += total.dollars();
+			} else {
+				pledges_not += total.dollars();
+			}
 		});
 		
-		_iterate([0, 1], function(key, year_idx, idx) {
-			_iterate(taxdeduct_payments[idx], function(key, payment, index) {
-				taxdeduct_payment_totals[idx] += parseFloat(payment.total_amount_paid);
-			});
-			
-			_iterate(NOT_taxdeduct_payments[idx], function(key, payment, index) {
-				NOT_taxdeduct_payment_totals[idx] += parseFloat(payment.total_amount_paid);
-			});
+		/* todo for Payment
+		this.pddb.RequiresPayment.select({}, function(row) {
+			var total = row.total();
+			var date_idx = _end_of_year( _un_dbify_date(total.datetime) );
+			var sitegroup = total.sitegroup();
+			var recipient = total.recipient();
+			if (!sitegroup && !recipient) {
+				self.pddb.orthogonals.warn("Expected RequiresPayment for sitegroup or recipient. Found this instead: "+total+" requires_payment: "+row);
+				return
+			}
+			var d = taxdeduct_total_amounts;
+			if (!total.content().has_tax_exempt_status()) {
+				d = NOT_taxdeduct_total_amounts;
+			}
+			if (!d[date_idx]) { d[date_idx] = 0.0; }
+			d[date_idx] += total.dollars();
 		});
-		
+		 */
+
 		var table_headers = ["Recipients",
 		                     "Current Pledges",
-		                     "2009 Donations To Date",
-		                     "2008 All Donations",
-		                     "All Time Donations",
-		                     /*"Messages"*/];
+		                     _end_of_year().strftime("%Y Donations To Date"),
+		                     _end_of_last_year().strftime("%Y All Donations"),
+		                     "All Time Donations"];
 		var table_rows = [
 			["Total, tax-deductible recipients",
-			 (taxdeduct_total_amounts[0]+taxdeduct_total_amounts[1]) - (taxdeduct_payment_totals[0]+taxdeduct_payment_totals[1]),
-			 taxdeduct_payment_totals[0],
-			 taxdeduct_payment_totals[1],
-			 taxdeduct_payment_totals[0] + taxdeduct_payment_totals[1],
-			 /**/],
+			 pledges_taxdeduct,
+			 payments_taxdeduct[end_of_year],
+			 payments_taxdeduct[end_of_last_year],
+			 payments_taxdeduct.total
+			],
 			 
 		    ["Total, other recipients",
-		     (NOT_taxdeduct_total_amounts[0]+NOT_taxdeduct_total_amounts[1]) - (NOT_taxdeduct_payment_totals[0]+NOT_taxdeduct_payment_totals[1]),
-			 NOT_taxdeduct_payment_totals[0],
-			 NOT_taxdeduct_payment_totals[1],
-			 NOT_taxdeduct_payment_totals[0] + NOT_taxdeduct_payment_totals[1],
-			 /**/]
+		     pledges_not,
+		     payments_not[end_of_year],
+			 payments_not[end_of_last_year],
+			 payments_not.total
+			],
 		];
 		table_rows.push([
 		    "Combined total of all recipients",
 		    table_rows[0][1] + table_rows[1][1],
 		    table_rows[0][2] + table_rows[1][2],
 		    table_rows[0][3] + table_rows[1][3],
-		    table_rows[0][4] + table_rows[1][4],
-		    /**/
+		    table_rows[0][4] + table_rows[1][4]
 		]);
-
+		
 		_iterate(table_rows, function(k1, row, i1) {
 			_iterate(row, function(k2, cell, i2) {
 				if (isNumber(cell)) {
@@ -8431,83 +8523,119 @@ _extend(PageController.prototype, {
 		var recipient_contenttype = self.pddb.ContentType.get_or_null({ modelname: "Recipient" });
 		var sitegroup_contenttype = self.pddb.ContentType.get_or_null({ modelname: "SiteGroup" });
 
+		var end_of_year = _end_of_year();
+		var end_of_last_year = _end_of_last_year();
+		
 		var row_data = {};
+		// total is _paid_ today, and thus sum of years data. excludes pledges. 
 		//{
-		//	 r: { slug: {thisyear: total,  lastyear: total}, ... }
-		//	sg: { host: {thisyear: total,  lastyear: total}, ... }
+		//	 r: { slug: { name: "", logo: "", pledge: 0.0, total: 0.0, end_of_year: 0.0, end_of_last_year: 0.0, ... }, ... }
+		//	sg: { host: { pledge: 0.0, total: 0.0, end_of_year: 0.0, end_of_last_year: 0.0, ... }, ... }
 		//}
 		row_data[recipient_contenttype.id] = {};
 		row_data[sitegroup_contenttype.id] = {};
 		
-		_iterate([recipient_contenttype, sitegroup_contenttype], function(key, contenttype, index) {
-			_iterate([_end_of_year(), _end_of_last_year()], function(key2, endtime, YEAR_INDEX) {
-				// iterate through all recipients and sitegroups for this or last year
-				self.pddb.Total.select({
-					contenttype_id: contenttype.id,
-					datetime: _dbify_date(endtime),
-					timetype_id: self.pddb.Yearly.id
-				}, function(total) {
-					if (filter_fn(total)) {
-						var fieldname = "slug";
-						if (contenttype.id == sitegroup_contenttype.id) fieldname = "host";
-						
-						if (!row_data[contenttype.id][total.content()[fieldname]]) {
-							row_data[contenttype.id][total.content()[fieldname]] = {}
-						}
-						row_data[contenttype.id][total.content()[fieldname]][endtime] = total;
-					};
-				});
-			});
+		this.pddb.RequiresPayment.select({}, function(row) {
+			var total = row.total();
+			
+			if (filter_fn(total)) {
+				var date_idx = _end_of_year( _un_dbify_date(total.datetime) );
+				var sitegroup = total.sitegroup();
+				var recipient = total.recipient();
+				
+				var d = null;
+				var idx = null;
+				if (sitegroup) {
+					d = row_data[sitegroup_contenttype.id];
+					idx = sitegroup.host;
+				} else if (recipient) {
+					d = row_data[recipient_contenttype.id];
+					idx = recipient.slug;
+				} else if (!sitegroup && !recipient) {
+					self.pddb.orthogonals.warn("Expected RequiresPayment for sitegroup or recipient. Found this instead: "+total+" requires_payment: "+row);
+					return
+				}
+				
+				if (!d[idx]) {
+					d[idx] = {
+						pledge: 0.0,
+						end_of_year: 0.0,
+						end_of_last_year: 0.0,
+						total: 0.0};
+					if (recipient) {
+						d[idx].logo = recipient.logo_thumbnail;
+						d[idx].name = recipient.name;
+					}
+				}
+				d[idx].pledge += total.dollars();
+			}
 		});
 		
-		// row_data
-		// {
-		//	  r: { slug: {thisyear: total,  lastyear: total}, ... }
-		//	 sg: { host: {thisyear: total,  lastyear: total}, ... }
-		// }
+		this.pddb.Payment.select({}, function(row) {
+			var total = row.total();
+			
+			if (filter_fn(total)) {
+				var date_idx = _end_of_year( _un_dbify_date(total.datetime) );
+				var sitegroup = total.sitegroup();
+				var recipient = total.recipient();
+				
+				var d = null;
+				var idx = null;
+				if (sitegroup) {
+					d = row_data[sitegroup_contenttype.id];
+					idx = sitegroup.host;
+				} else if (recipient) {
+					d = row_data[recipient_contenttype.id];
+					idx = recipient.slug;
+				} else if (!sitegroup && !recipient) {
+					self.pddb.orthogonals.warn("Expected RequiresPayment for sitegroup or recipient. Found this instead: "+total+" requires_payment: "+row);
+					return
+				}
+				
+				if (!d[idx]) {
+					d[idx] = {
+						pledge: 0.0,
+						end_of_year: 0.0,
+						end_of_last_year: 0.0,
+						total: 0.0 };
+					if (recipient) {
+						d[idx].logo = recipient.logo_thumbnail;
+						d[idx].name = recipient.name;
+					}
+				}
+				d[idx][date_idx] += parseFloat(row.total_amount_paid);
+				d[idx].total += parseFloat(row.total_amount_paid);
+			}
+		});
 		
 		// calculate row table
+		
 		var table_rows = [];
 		_iterate([recipient_contenttype, sitegroup_contenttype], function(key, contenttype, index) {
-			_iterate(row_data[contenttype.id], function(slug, twoyears, index2) {
-				var thisyear = twoyears[_end_of_year()];
-				var lastyear = twoyears[_end_of_last_year()];
-				
-				var contentname = "recipient";
-				if (contenttype.id == sitegroup_contenttype.id) contentname = "sitegroup";
-				
-				if (!thisyear[contentname]() || 
-						(lastyear && !lastyear[contentname]()) || 
-						(lastyear && thisyear[contentname]().id != lastyear[contentname]().id)) {
-					self.pddb.orthogonals.warn("Something impossible happened on impact state "+substate+": thisyear="+thisyear+" lastyear="+lastyear);
+			var d = row_data[contenttype.id];
+			var contentname = "recipient";
+			if (contenttype.id == sitegroup_contenttype.id) { contentname = "sitegroup"; }
+			
+			_iterate(d, function(slug_or_host_name, data, idx) {
+				if (data.total > 0 || data.pledge > 0) {
+					var html_name = "";
+					if (contentname == "recipient") {
+						html_name = "<img src=\""+data.logo+"\" /><span>"+data.name+"</span>";
+					} else {
+						html_name = "<span>"+slug_or_host_name+"</span>";
+					}
+					var row = [html_name,
+					           data.pledge,
+					           data[end_of_year],
+					           data[end_of_last_year],
+					           data.total];
+					
+					table_rows.push(row);
 				}
-				
-				var thispayments = 0.0;
-				_iterate(thisyear.payments(), function(k, payment, i) {
-					thispayments += parseFloat(payment.total_amount_paid);
-				});
-				
-				var lastpayments = 0.0;
-				if (lastyear) {
-					_iterate(lastyear.payments(), function(k, payment, i) {
-						lastpayments += parseFloat(payment.total_amount_paid);
-					});
-				}
-				
-				var totalpledges = thisyear.dollars();
-				if (lastyear) totalpledges += lastyear.dollars();
-				
-				table_rows.push([thisyear[contentname](),
-				                 totalpledges - (thispayments + lastpayments),
-				                 thispayments,
-				                 lastpayments,
-				                 thispayments + lastpayments
-				                 ]);
 			});
 		});
 		
-		var new_table_rows = [];
-  		_iterate(table_rows, function(k1, row, i1) {
+		_iterate(table_rows, function(k1, row, i1) {
 			_iterate(row, function(k2, cell, i2) {
 				if (isNumber(cell)) {
 					var amt = cell.toFixed(2);
@@ -8518,6 +8646,7 @@ _extend(PageController.prototype, {
 					}
 				}
 			});
+			/*
 			// format first cell
 			var first_cell = null;
 			if (table_rows[i1][0]["host"]) {
@@ -8529,32 +8658,14 @@ _extend(PageController.prototype, {
 					table_rows[i1][0]["name"]+
 					"</span>";
 			}
-			
-			// for sitegroup rows, delete if trivial
-			if (table_rows[i1][0]["host"]) {
-				var allblank = true;
-				for (var i2 = 1; i2 < table_rows[i1].length; i2++) {
-					if (table_rows[i1][i2] != "-") {
-						allblank = false;
-					}
-				}
-				if (!allblank) {
-					table_rows[i1][0] = first_cell;
-					new_table_rows.push(table_rows[i1]);
-				}
-			} else {
-				table_rows[i1][0] = first_cell;
-				new_table_rows.push(table_rows[i1]);
-			}
+			*/
 		});
-  		table_rows = new_table_rows;
-  		
+		
 		var table_headers = ["Recipients",
 		                     "Current Pledges",
-		                     "2009 Donations To Date",
-		                     "2008 All Donations",
-		                     "All Time Donations",
-		                     /*"Messages"*/];
+		                     _end_of_year().strftime("%Y Donations To Date"),
+		                     _end_of_last_year().strftime("%Y All Donations"),
+		                     "All Time Donations"];
 		
 		var middle = Template.get("impact_middle").render(
 			new Context({
@@ -9010,7 +9121,7 @@ _extend(PageController.prototype, {
 			var new_elem = request.jQuery(
 				self.make_site_box(
 					request,
-					site.sitegroup().host,
+					site.sitegroup().name,
 					site.sitegroup().host,
 					lower_case_tag_name
 				));
@@ -11197,6 +11308,40 @@ _extend(PageController.prototype, {
 			logger("inside _self_fn for "+fnname);
 		};
 	},
+	
+	visual_debug: function(request) {
+		var actions = ["show_requires_payment"];
+		var html = Template.get("visual_debug").render(new Context({
+			actions: actions
+		}));
+		request.jQuery("#content").append( html );
+
+		var self = this;
+		for (var i = 0; i < actions.length; i++) {
+			var action = actions[i];
+			request.jQuery("#"+action).click(
+				// closure to call self[action].
+				// extra function needed to provide appropriate 'this'
+				(function(a) { return function() {
+					self[a](request);
+				}})(action)
+				//// the above code is complicated to remember, anyway.
+				//self._self_fn(action);
+			);
+		}
+	},
+	
+	show_requires_payment: function(request) {
+		var self = this;
+		var html = ["<ol>"];
+		this.pddb.RequiresPayment.select({}, function(row) {
+			var rp = Template.get("requires_payment").render(
+				new Context({ rp: row }));
+			html.push("<li>"+rp+"</li>");
+		});
+		html.push("</ol>")
+		request.jQuery("#theatre").html( html.join("\n\n") );
+	},
 
 	/// run tester tests (mutates db) and checker checks 
 	/// (checks db) on test database
@@ -11400,12 +11545,12 @@ _extend(Schedule.prototype, {
 	is_new_week_period: function() {
 		/** @returns: true if the last marked week is over */
 		var last_week = _un_dbify_date(this.prefs.get('last_week_mark', 0));
-		this.pddb.orthogonals.log("Do weekly tasks on "+(new Date())+" for "+_un_dbify_date(this.prefs.get('last_week_mark', 0))+" !! last_week = "+last_week, "schedule");
+		//this.pddb.orthogonals.log("Do weekly tasks on "+(new Date())+" for "+_un_dbify_date(this.prefs.get('last_week_mark', 0))+" !! last_week = "+last_week, "schedule");
 		var start_of_last_week = _start_of_week(last_week);
-		this.pddb.orthogonals.log("Do weekly tasks on "+(new Date())+" for "+_un_dbify_date(this.prefs.get('last_week_mark', 0))+" !! start_of_last_week = "+start_of_last_week, "schedule");
+		//this.pddb.orthogonals.log("Do weekly tasks on "+(new Date())+" for "+_un_dbify_date(this.prefs.get('last_week_mark', 0))+" !! start_of_last_week = "+start_of_last_week, "schedule");
 		var start_of_week = _start_of_week();
-		this.pddb.orthogonals.log("Do weekly tasks on "+(new Date())+" for "+_un_dbify_date(this.prefs.get('last_week_mark', 0))+" !! start_of_week = "+start_of_week, "schedule");
-		this.pddb.orthogonals.log("Do weekly tasks on "+(new Date())+" for "+_un_dbify_date(this.prefs.get('last_week_mark', 0))+" !! (start_of_last_week < start_of_week) = "+(start_of_last_week < start_of_week), "schedule");
+		//this.pddb.orthogonals.log("Do weekly tasks on "+(new Date())+" for "+_un_dbify_date(this.prefs.get('last_week_mark', 0))+" !! start_of_week = "+start_of_week, "schedule");
+		//this.pddb.orthogonals.log("Do weekly tasks on "+(new Date())+" for "+_un_dbify_date(this.prefs.get('last_week_mark', 0))+" !! (start_of_last_week < start_of_week) = "+(start_of_last_week < start_of_week), "schedule");
 		return start_of_last_week < start_of_week
 	},
 	
@@ -11990,6 +12135,7 @@ _extend(ToolbarManager.prototype, {
 	 * @param options: contains either {sitegroup, tag} or {url}
 	 */
 	updateButtons : function(options) {
+		_pprint(options, "updateButtons");
 		if (!this.initialized) { return }
 		
 		if (this.classify_button) {
@@ -12006,7 +12152,9 @@ _extend(ToolbarManager.prototype, {
 				} else {
 					url = _href();
 				}
+				logger("updateButtons url: "+url);
 				var d = this.getDbRowsForLocation(url);
+				_pprint(d, "updateButtons d:");
 				sitegroup = d.sitegroup;
 				tag = d.tag;
 			}
@@ -12135,13 +12283,13 @@ _extend(ToolbarManager.prototype, {
     	/* 
     	 * returns { sitegroup: {}, sitegrouptagging: {}, tag: {} }
     	 */
-		var href = url;
-		var host = _host(href);
+		//var host = _host(url);
+    	logger("getDbRowsForLocation url:"+url);
 		var sitegroup = null;
 		var tag = null;
 
-		var self = this;
 		var sitegroup = this.pddb.SiteGroup.create_from_url(url);
+		logger("sitegroup:"+sitegroup);
 		tag = sitegroup.tag();
 		
 		return { sitegroup: sitegroup, tag: tag }
@@ -13209,6 +13357,18 @@ _extend(InitListener.prototype, {
 			self.prefs.set("pd_hrs_max_week", _prefify_float(pd_hrs_max_week));
 		}
 		
+		if (old_version_number < _version_to_number("0.3.9")) {
+			// encodeURI all host, decodeURI all name
+			self.pddb.SiteGroup.select({}, function(sitegroup) {
+				self.pddb.SiteGroup.set({
+					host: encodeURI(sitegroup.host),
+					name: decodeURI(sitegroup.name)
+				}, {
+					id: sitegroup.id
+				});
+			});
+		}
+		
 		// initialize new state (initialize_state initializes state if necessary.
 		this.controller.initialize_state();
 		
@@ -13334,11 +13494,11 @@ _extend(URLBarListener.prototype, {
 	},
 	
 	processNewURL: function(win, url) {
-		//logger(jQuery("#content", win.document.defaultView).length);
 		this.schedule.run();
 	},
 	
 	// For definitions of the remaining functions see XULPlanet.com
+	// https://developer.mozilla.org/en/Code_snippets/Progress_Listeners
 	onProgressChange: function(aWebProgress, aRequest, curSelf, maxSelf, curTot, maxTot) {
 	},
 	
@@ -13745,7 +13905,7 @@ Orthogonals.prototype = {
 		} catch (e) {
 			logger("Orthogonals ERROR: "+detail_type+": "+msg+"\n"+e.stack);
 		}
-		throw "Orthogonals ERROR: "+detail_type+": "+msg
+		//throw "Orthogonals ERROR: "+detail_type+": "+msg
 	},
 	
 	UserStudy: function(type, msg, quant) {

@@ -11,4 +11,5 @@ urlpatterns = patterns('django.views.generic.simple',
     (r'^dev/automatic_test_suite/$', 'direct_to_template', {'template': 'procrasdonate/extension_pages/test.html'}),
     (r'^dev/autotester_test_suite/$', 'direct_to_template', {'template': 'procrasdonate/extension_pages/test.html'}),
     (r'^dev/timing_test_suite/$', 'direct_to_template', {'template': 'procrasdonate/extension_pages/test.html'}),
+    (r'^dev/visual_debug/$'   , 'direct_to_template', {'template': 'procrasdonate/extension_pages/test.html'}),
 )

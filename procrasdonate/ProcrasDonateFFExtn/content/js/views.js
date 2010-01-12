@@ -21,7 +21,7 @@ _extend(Controller.prototype, {
 		//    if visiting first ProcrasDonate website of the day
 		if (!this.prefs.get("inserted_top_bar_today", false)) {
 			if (this.page.top_bar_has_content()) {
-				var sitegroup = this.pddb.SiteGroup.get_or_null({ host: host });
+				var sitegroup = this.pddb.SiteGroup.get_from_url(request.url);
 				if (sitegroup) {
 					if (sitegroup.tag_id == this.pddb.ProcrasDonate.id) {
 						this.page.insert_top_bar(request);
@@ -128,6 +128,9 @@ _extend(Controller.prototype, {
 			break;
 		case constants.TIMING_TEST_SUITE_URL:
 			this.page.timing_test_suite(request);
+			break;
+		case constants.VISUAL_DEBUG_URL:
+			this.page.visual_debug(request);
 			break;
 		case constants.AUTHORIZE_PAYMENTS:
 			break;
@@ -897,89 +900,97 @@ _extend(PageController.prototype, {
 	/******************************** IMPACT *********************************/
 	
 	insert_impact_totals: function(request) {
+		/*
+		 * Iterate through all RequiresPayment to determine pledges.
+		 * Iterate through all Payment to determine paid.
+		 *  -> put in right bucket based on _end_of_year( datetime )
+		 */
+		
 		var self = this;
 		this.prefs.set('impact_state', 'totals');
 		
 		var substate_menu_items = this.make_substate_menu_items('totals',
 			constants.IMPACT_STATE_ENUM, constants.IMPACT_STATE_TAB_NAMES);
 
-		var recipient_contenttype = self.pddb.ContentType.get_or_null({ modelname: "Recipient" });
-		var sitegroup_contenttype = self.pddb.ContentType.get_or_null({ modelname: "SiteGroup" });
+		var end_of_year = _end_of_year();
+		var end_of_last_year = _end_of_last_year();
 		
-		// total $$ PLEDGED for [this year, last year]
-		var taxdeduct_total_amounts = [0.0, 0.0];
-		var NOT_taxdeduct_total_amounts = [0.0, 0.0];
-		// payment {id: row, ...} for [this year, last year]
-		var taxdeduct_payments = [{}, {}];
-		var NOT_taxdeduct_payments = [{}, {}];
-		// total $$ PAID for [this year, last year]
-		var taxdeduct_payment_totals = [0.0, 0.0];
-		var NOT_taxdeduct_payment_totals = [0.0, 0.0];
+		var pledges_taxdeduct = 0.0;
+		var pledges_not = 0.0;
 
-		_iterate([recipient_contenttype, sitegroup_contenttype], function(key, contenttype, index) {
-			_iterate([_end_of_year(), _end_of_last_year()], function(key2, endtime, YEAR_INDEX) {
-				// iterate through all recipients and sitegroups for this or last year
-				self.pddb.Total.select({
-					contenttype_id: contenttype.id,
-					datetime: _dbify_date(endtime),
-					timetype_id: self.pddb.Yearly.id
-				}, function(row) {
-					var amt = row.dollars()
-					if (row.recipient() && row.recipient().has_tax_exempt_status()) {
-						taxdeduct_total_amounts[index] += amt;
-						_iterate(row.payments(), function(key3, payment, index3) {
-							taxdeduct_payments[YEAR_INDEX][payment.id] += payment;
-						});
-					} else {
-						NOT_taxdeduct_total_amounts[index] += amt;
-						_iterate(row.payments(), function(key3, payment, index3) {
-							NOT_taxdeduct_payments[YEAR_INDEX][payment.id] += payment;
-						});
-					}
-				});
-			});
+		var payments_taxdeduct = {
+				total: 0.0,
+				end_of_year: 0.0,
+				end_of_last_year: 0.0};
+		
+		var payments_not = {
+				total: 0.0,
+				end_of_year: 0.0,
+				end_of_last_year: 0.0};
+		
+		this.pddb.RequiresPayment.select({}, function(row) {
+			var total = row.total();
+			var sitegroup = total.sitegroup();
+			var recipient = total.recipient();
+			if (!sitegroup && !recipient) {
+				self.pddb.orthogonals.warn("Expected RequiresPayment for sitegroup or recipient. Found this instead: "+total+" requires_payment: "+row);
+				return
+			}
+
+			if (total.content().has_tax_exempt_status()) {
+				pledges_taxdeduct += total.dollars();
+			} else {
+				pledges_not += total.dollars();
+			}
 		});
 		
-		_iterate([0, 1], function(key, year_idx, idx) {
-			_iterate(taxdeduct_payments[idx], function(key, payment, index) {
-				taxdeduct_payment_totals[idx] += parseFloat(payment.total_amount_paid);
-			});
-			
-			_iterate(NOT_taxdeduct_payments[idx], function(key, payment, index) {
-				NOT_taxdeduct_payment_totals[idx] += parseFloat(payment.total_amount_paid);
-			});
+		/* todo for Payment
+		this.pddb.RequiresPayment.select({}, function(row) {
+			var total = row.total();
+			var date_idx = _end_of_year( _un_dbify_date(total.datetime) );
+			var sitegroup = total.sitegroup();
+			var recipient = total.recipient();
+			if (!sitegroup && !recipient) {
+				self.pddb.orthogonals.warn("Expected RequiresPayment for sitegroup or recipient. Found this instead: "+total+" requires_payment: "+row);
+				return
+			}
+			var d = taxdeduct_total_amounts;
+			if (!total.content().has_tax_exempt_status()) {
+				d = NOT_taxdeduct_total_amounts;
+			}
+			if (!d[date_idx]) { d[date_idx] = 0.0; }
+			d[date_idx] += total.dollars();
 		});
-		
+		 */
+
 		var table_headers = ["Recipients",
 		                     "Current Pledges",
-		                     "2009 Donations To Date",
-		                     "2008 All Donations",
-		                     "All Time Donations",
-		                     /*"Messages"*/];
+		                     _end_of_year().strftime("%Y Donations To Date"),
+		                     _end_of_last_year().strftime("%Y All Donations"),
+		                     "All Time Donations"];
 		var table_rows = [
 			["Total, tax-deductible recipients",
-			 (taxdeduct_total_amounts[0]+taxdeduct_total_amounts[1]) - (taxdeduct_payment_totals[0]+taxdeduct_payment_totals[1]),
-			 taxdeduct_payment_totals[0],
-			 taxdeduct_payment_totals[1],
-			 taxdeduct_payment_totals[0] + taxdeduct_payment_totals[1],
-			 /**/],
+			 pledges_taxdeduct,
+			 payments_taxdeduct[end_of_year],
+			 payments_taxdeduct[end_of_last_year],
+			 payments_taxdeduct.total
+			],
 			 
 		    ["Total, other recipients",
-		     (NOT_taxdeduct_total_amounts[0]+NOT_taxdeduct_total_amounts[1]) - (NOT_taxdeduct_payment_totals[0]+NOT_taxdeduct_payment_totals[1]),
-			 NOT_taxdeduct_payment_totals[0],
-			 NOT_taxdeduct_payment_totals[1],
-			 NOT_taxdeduct_payment_totals[0] + NOT_taxdeduct_payment_totals[1],
-			 /**/]
+		     pledges_not,
+		     payments_not[end_of_year],
+			 payments_not[end_of_last_year],
+			 payments_not.total
+			],
 		];
 		table_rows.push([
 		    "Combined total of all recipients",
 		    table_rows[0][1] + table_rows[1][1],
 		    table_rows[0][2] + table_rows[1][2],
 		    table_rows[0][3] + table_rows[1][3],
-		    table_rows[0][4] + table_rows[1][4],
-		    /**/
+		    table_rows[0][4] + table_rows[1][4]
 		]);
-
+		
 		_iterate(table_rows, function(k1, row, i1) {
 			_iterate(row, function(k2, cell, i2) {
 				if (isNumber(cell)) {
@@ -1016,83 +1027,119 @@ _extend(PageController.prototype, {
 		var recipient_contenttype = self.pddb.ContentType.get_or_null({ modelname: "Recipient" });
 		var sitegroup_contenttype = self.pddb.ContentType.get_or_null({ modelname: "SiteGroup" });
 
+		var end_of_year = _end_of_year();
+		var end_of_last_year = _end_of_last_year();
+		
 		var row_data = {};
+		// total is _paid_ today, and thus sum of years data. excludes pledges. 
 		//{
-		//	 r: { slug: {thisyear: total,  lastyear: total}, ... }
-		//	sg: { host: {thisyear: total,  lastyear: total}, ... }
+		//	 r: { slug: { name: "", logo: "", pledge: 0.0, total: 0.0, end_of_year: 0.0, end_of_last_year: 0.0, ... }, ... }
+		//	sg: { host: { pledge: 0.0, total: 0.0, end_of_year: 0.0, end_of_last_year: 0.0, ... }, ... }
 		//}
 		row_data[recipient_contenttype.id] = {};
 		row_data[sitegroup_contenttype.id] = {};
 		
-		_iterate([recipient_contenttype, sitegroup_contenttype], function(key, contenttype, index) {
-			_iterate([_end_of_year(), _end_of_last_year()], function(key2, endtime, YEAR_INDEX) {
-				// iterate through all recipients and sitegroups for this or last year
-				self.pddb.Total.select({
-					contenttype_id: contenttype.id,
-					datetime: _dbify_date(endtime),
-					timetype_id: self.pddb.Yearly.id
-				}, function(total) {
-					if (filter_fn(total)) {
-						var fieldname = "slug";
-						if (contenttype.id == sitegroup_contenttype.id) fieldname = "host";
-						
-						if (!row_data[contenttype.id][total.content()[fieldname]]) {
-							row_data[contenttype.id][total.content()[fieldname]] = {}
-						}
-						row_data[contenttype.id][total.content()[fieldname]][endtime] = total;
-					};
-				});
-			});
+		this.pddb.RequiresPayment.select({}, function(row) {
+			var total = row.total();
+			
+			if (filter_fn(total)) {
+				var date_idx = _end_of_year( _un_dbify_date(total.datetime) );
+				var sitegroup = total.sitegroup();
+				var recipient = total.recipient();
+				
+				var d = null;
+				var idx = null;
+				if (sitegroup) {
+					d = row_data[sitegroup_contenttype.id];
+					idx = sitegroup.host;
+				} else if (recipient) {
+					d = row_data[recipient_contenttype.id];
+					idx = recipient.slug;
+				} else if (!sitegroup && !recipient) {
+					self.pddb.orthogonals.warn("Expected RequiresPayment for sitegroup or recipient. Found this instead: "+total+" requires_payment: "+row);
+					return
+				}
+				
+				if (!d[idx]) {
+					d[idx] = {
+						pledge: 0.0,
+						end_of_year: 0.0,
+						end_of_last_year: 0.0,
+						total: 0.0};
+					if (recipient) {
+						d[idx].logo = recipient.logo_thumbnail;
+						d[idx].name = recipient.name;
+					}
+				}
+				d[idx].pledge += total.dollars();
+			}
 		});
 		
-		// row_data
-		// {
-		//	  r: { slug: {thisyear: total,  lastyear: total}, ... }
-		//	 sg: { host: {thisyear: total,  lastyear: total}, ... }
-		// }
+		this.pddb.Payment.select({}, function(row) {
+			var total = row.total();
+			
+			if (filter_fn(total)) {
+				var date_idx = _end_of_year( _un_dbify_date(total.datetime) );
+				var sitegroup = total.sitegroup();
+				var recipient = total.recipient();
+				
+				var d = null;
+				var idx = null;
+				if (sitegroup) {
+					d = row_data[sitegroup_contenttype.id];
+					idx = sitegroup.host;
+				} else if (recipient) {
+					d = row_data[recipient_contenttype.id];
+					idx = recipient.slug;
+				} else if (!sitegroup && !recipient) {
+					self.pddb.orthogonals.warn("Expected RequiresPayment for sitegroup or recipient. Found this instead: "+total+" requires_payment: "+row);
+					return
+				}
+				
+				if (!d[idx]) {
+					d[idx] = {
+						pledge: 0.0,
+						end_of_year: 0.0,
+						end_of_last_year: 0.0,
+						total: 0.0 };
+					if (recipient) {
+						d[idx].logo = recipient.logo_thumbnail;
+						d[idx].name = recipient.name;
+					}
+				}
+				d[idx][date_idx] += parseFloat(row.total_amount_paid);
+				d[idx].total += parseFloat(row.total_amount_paid);
+			}
+		});
 		
 		// calculate row table
+		
 		var table_rows = [];
 		_iterate([recipient_contenttype, sitegroup_contenttype], function(key, contenttype, index) {
-			_iterate(row_data[contenttype.id], function(slug, twoyears, index2) {
-				var thisyear = twoyears[_end_of_year()];
-				var lastyear = twoyears[_end_of_last_year()];
-				
-				var contentname = "recipient";
-				if (contenttype.id == sitegroup_contenttype.id) contentname = "sitegroup";
-				
-				if (!thisyear[contentname]() || 
-						(lastyear && !lastyear[contentname]()) || 
-						(lastyear && thisyear[contentname]().id != lastyear[contentname]().id)) {
-					self.pddb.orthogonals.warn("Something impossible happened on impact state "+substate+": thisyear="+thisyear+" lastyear="+lastyear);
+			var d = row_data[contenttype.id];
+			var contentname = "recipient";
+			if (contenttype.id == sitegroup_contenttype.id) { contentname = "sitegroup"; }
+			
+			_iterate(d, function(slug_or_host_name, data, idx) {
+				if (data.total > 0 || data.pledge > 0) {
+					var html_name = "";
+					if (contentname == "recipient") {
+						html_name = "<img src=\""+data.logo+"\" /><span>"+data.name+"</span>";
+					} else {
+						html_name = "<span>"+slug_or_host_name+"</span>";
+					}
+					var row = [html_name,
+					           data.pledge,
+					           data[end_of_year],
+					           data[end_of_last_year],
+					           data.total];
+					
+					table_rows.push(row);
 				}
-				
-				var thispayments = 0.0;
-				_iterate(thisyear.payments(), function(k, payment, i) {
-					thispayments += parseFloat(payment.total_amount_paid);
-				});
-				
-				var lastpayments = 0.0;
-				if (lastyear) {
-					_iterate(lastyear.payments(), function(k, payment, i) {
-						lastpayments += parseFloat(payment.total_amount_paid);
-					});
-				}
-				
-				var totalpledges = thisyear.dollars();
-				if (lastyear) totalpledges += lastyear.dollars();
-				
-				table_rows.push([thisyear[contentname](),
-				                 totalpledges - (thispayments + lastpayments),
-				                 thispayments,
-				                 lastpayments,
-				                 thispayments + lastpayments
-				                 ]);
 			});
 		});
 		
-		var new_table_rows = [];
-  		_iterate(table_rows, function(k1, row, i1) {
+		_iterate(table_rows, function(k1, row, i1) {
 			_iterate(row, function(k2, cell, i2) {
 				if (isNumber(cell)) {
 					var amt = cell.toFixed(2);
@@ -1103,6 +1150,7 @@ _extend(PageController.prototype, {
 					}
 				}
 			});
+			/*
 			// format first cell
 			var first_cell = null;
 			if (table_rows[i1][0]["host"]) {
@@ -1114,32 +1162,14 @@ _extend(PageController.prototype, {
 					table_rows[i1][0]["name"]+
 					"</span>";
 			}
-			
-			// for sitegroup rows, delete if trivial
-			if (table_rows[i1][0]["host"]) {
-				var allblank = true;
-				for (var i2 = 1; i2 < table_rows[i1].length; i2++) {
-					if (table_rows[i1][i2] != "-") {
-						allblank = false;
-					}
-				}
-				if (!allblank) {
-					table_rows[i1][0] = first_cell;
-					new_table_rows.push(table_rows[i1]);
-				}
-			} else {
-				table_rows[i1][0] = first_cell;
-				new_table_rows.push(table_rows[i1]);
-			}
+			*/
 		});
-  		table_rows = new_table_rows;
-  		
+		
 		var table_headers = ["Recipients",
 		                     "Current Pledges",
-		                     "2009 Donations To Date",
-		                     "2008 All Donations",
-		                     "All Time Donations",
-		                     /*"Messages"*/];
+		                     _end_of_year().strftime("%Y Donations To Date"),
+		                     _end_of_last_year().strftime("%Y All Donations"),
+		                     "All Time Donations"];
 		
 		var middle = Template.get("impact_middle").render(
 			new Context({
@@ -1595,7 +1625,7 @@ _extend(PageController.prototype, {
 			var new_elem = request.jQuery(
 				self.make_site_box(
 					request,
-					site.sitegroup().host,
+					site.sitegroup().name,
 					site.sitegroup().host,
 					lower_case_tag_name
 				));
@@ -3782,6 +3812,40 @@ _extend(PageController.prototype, {
 			logger("inside _self_fn for "+fnname);
 		};
 	},
+	
+	visual_debug: function(request) {
+		var actions = ["show_requires_payment"];
+		var html = Template.get("visual_debug").render(new Context({
+			actions: actions
+		}));
+		request.jQuery("#content").append( html );
+
+		var self = this;
+		for (var i = 0; i < actions.length; i++) {
+			var action = actions[i];
+			request.jQuery("#"+action).click(
+				// closure to call self[action].
+				// extra function needed to provide appropriate 'this'
+				(function(a) { return function() {
+					self[a](request);
+				}})(action)
+				//// the above code is complicated to remember, anyway.
+				//self._self_fn(action);
+			);
+		}
+	},
+	
+	show_requires_payment: function(request) {
+		var self = this;
+		var html = ["<ol>"];
+		this.pddb.RequiresPayment.select({}, function(row) {
+			var rp = Template.get("requires_payment").render(
+				new Context({ rp: row }));
+			html.push("<li>"+rp+"</li>");
+		});
+		html.push("</ol>")
+		request.jQuery("#theatre").html( html.join("\n\n") );
+	},
 
 	/// run tester tests (mutates db) and checker checks 
 	/// (checks db) on test database
@@ -3985,12 +4049,12 @@ _extend(Schedule.prototype, {
 	is_new_week_period: function() {
 		/** @returns: true if the last marked week is over */
 		var last_week = _un_dbify_date(this.prefs.get('last_week_mark', 0));
-		this.pddb.orthogonals.log("Do weekly tasks on "+(new Date())+" for "+_un_dbify_date(this.prefs.get('last_week_mark', 0))+" !! last_week = "+last_week, "schedule");
+		//this.pddb.orthogonals.log("Do weekly tasks on "+(new Date())+" for "+_un_dbify_date(this.prefs.get('last_week_mark', 0))+" !! last_week = "+last_week, "schedule");
 		var start_of_last_week = _start_of_week(last_week);
-		this.pddb.orthogonals.log("Do weekly tasks on "+(new Date())+" for "+_un_dbify_date(this.prefs.get('last_week_mark', 0))+" !! start_of_last_week = "+start_of_last_week, "schedule");
+		//this.pddb.orthogonals.log("Do weekly tasks on "+(new Date())+" for "+_un_dbify_date(this.prefs.get('last_week_mark', 0))+" !! start_of_last_week = "+start_of_last_week, "schedule");
 		var start_of_week = _start_of_week();
-		this.pddb.orthogonals.log("Do weekly tasks on "+(new Date())+" for "+_un_dbify_date(this.prefs.get('last_week_mark', 0))+" !! start_of_week = "+start_of_week, "schedule");
-		this.pddb.orthogonals.log("Do weekly tasks on "+(new Date())+" for "+_un_dbify_date(this.prefs.get('last_week_mark', 0))+" !! (start_of_last_week < start_of_week) = "+(start_of_last_week < start_of_week), "schedule");
+		//this.pddb.orthogonals.log("Do weekly tasks on "+(new Date())+" for "+_un_dbify_date(this.prefs.get('last_week_mark', 0))+" !! start_of_week = "+start_of_week, "schedule");
+		//this.pddb.orthogonals.log("Do weekly tasks on "+(new Date())+" for "+_un_dbify_date(this.prefs.get('last_week_mark', 0))+" !! (start_of_last_week < start_of_week) = "+(start_of_last_week < start_of_week), "schedule");
 		return start_of_last_week < start_of_week
 	},
 	

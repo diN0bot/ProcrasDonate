@@ -69,14 +69,8 @@ function load_models(db, pddb) {
 				tag_id = pddb.Unsorted.id;
 			}
 			if (!site) {
-				var host = _host(url);
-				var sitegroup = SiteGroup.get_or_create({
-					host: host
-				}, {
-					name: host,
-					host: host,
-					tag_id: tag_id
-				});
+				var tag = Tag.get_or_null({ id: tag_id });
+				var sitegroup = SiteGroup.create_from_url(url, tag);
 	
 				site = this.create({
 					url: url,
@@ -137,6 +131,10 @@ function load_models(db, pddb) {
 			return _un_dbify_bool(this.tax_exempt_status);
 		},
 		
+		display_host: function() {
+			return decodeURI(this.host);
+		},
+		
 		deep_dict: function() {
 			return {
 				id: this.id,
@@ -150,14 +148,25 @@ function load_models(db, pddb) {
 	}, {
 		// class methods
 		create_from_url: function(url, tag) {
+			logger("create from url: "+url);
 			if (!tag) { tag = pddb.Unsorted; }
-			var host = _host(url);
+			var host = decodeURI(_host(url));
+			logger("  ---------- host --------- "+host);
 			var sitegroup = SiteGroup.get_or_create({
 				host: host
 			}, {
-				name: host,
+				name: decodeURI(host),
 				host: host,
 				tag_id: tag.id
+			});
+			logger("  sitegroup="+sitegroup);
+			return sitegroup
+		},
+		
+		get_from_url: function(url) {
+			var host = _host(url);
+			var sitegroup = SiteGroup.get_or_null({
+				host: host
 			});
 			return sitegroup
 		}
@@ -794,6 +803,10 @@ function load_models(db, pddb) {
 			return timetype
 		},
 		
+		friendly_datetime: function() {
+			return _un_dbify_date(this.datetime).strftime("%b %d, %Y")
+		},
+		
 		_payments: function(deep_dictify) {
 			// Totals may have Payments
 			// @returns list of Payment row factories
@@ -814,12 +827,25 @@ function load_models(db, pddb) {
 			return this._payments(false);
 		},
 		
-		payment_dicts: function() {
+		payments_dict: function() {
 			return this._payments(true);
 		},
 		
 		requires_payment: function() {
-			return RequiresPayment.get_or_null({ total_id: this.id });
+			var self = this;
+			return RequiresPayment.get_or_null({ total_id: self.id });
+		},
+		
+		requires_payment_dict: function() {
+			var rp = this.requires_payment();
+			if (rp) {
+				return {
+					partially_paid: rp.is_partially_paid(),
+					pending: rp.is_pending()
+				}
+			} else {
+				return {}
+			}
 		},
 		
 		deep_dict: function() {
@@ -835,7 +861,8 @@ function load_models(db, pddb) {
 				total_amount: parseFloat(this.total_amount),
 				datetime: parseInt(this.datetime),
 				timetype: this.timetype().timetype,
-				payments: this.payment_dicts()
+				payments: this.payments_dict(),
+				requires_payment: this.requires_payment_dict()
 			}
 		}
 	}, {

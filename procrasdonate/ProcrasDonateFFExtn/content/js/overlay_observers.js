@@ -377,6 +377,18 @@ _extend(InitListener.prototype, {
 			self.prefs.set("pd_hrs_max_week", _prefify_float(pd_hrs_max_week));
 		}
 		
+		if (old_version_number < _version_to_number("0.3.9")) {
+			// encodeURI all host, decodeURI all name
+			self.pddb.SiteGroup.select({}, function(sitegroup) {
+				self.pddb.SiteGroup.set({
+					host: encodeURI(sitegroup.host),
+					name: decodeURI(sitegroup.name)
+				}, {
+					id: sitegroup.id
+				});
+			});
+		}
+		
 		// initialize new state (initialize_state initializes state if necessary.
 		this.controller.initialize_state();
 		

@@ -84,7 +84,7 @@ class FPSRecipientMixin(object):
             return ret[0]
     
     def pd_registered(self):
-        return self.fps_data and self.fps_data.good_to_go()
+        return (self.fps_data and self.fps_data.good_to_go())
         
 class FPSMultiuseAuth(models.Model):
     """

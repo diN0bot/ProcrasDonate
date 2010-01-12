@@ -165,8 +165,19 @@ _extend(ProcrasDonate_API.prototype, {
 	},
 	
 	_get_totals: function() {
+		var self = this;
 		return this._get_data("Total", function(row) {
-			return row.deep_dict();
+			var d = row.deep_dict();
+			var week_total = self.pddb.Total.get_or_null({
+				timetype_id: self.pddb.Weekly.id,
+				contenttype_id: row.contenttype_id,
+				content_id: row.content_id,
+				datetime: _dbify_date(_end_of_week(_un_dbify_date(row.datetime)))
+			});
+			return _extend(d, {
+				weekly_requires_payment: week_total.requires_payment_dict(),
+				weekly_payments: week_total.payments_dict()
+			});
 		}, {
 			timetype_id: this.pddb.Daily.id
 		});

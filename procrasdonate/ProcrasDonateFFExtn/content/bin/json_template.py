@@ -80,6 +80,13 @@ class AttributeHandler(Handler):
         
     def handle_node(self, converter, node):
         value = getattr(node, self.name, self.default)
+        if value == None:
+            print "\n --> %s had None for value and default (%s and %s)." % (self.name,
+                                                                             value,
+                                                                             self.default)
+            print "node =", node
+            print "Set to empty string so template builder doesn't barf\n"
+            #value = ""
         return self.handle(converter, value)
     
     def handle(self, converter, value):

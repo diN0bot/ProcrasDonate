@@ -53,15 +53,16 @@ class Processor(object):
             "timetype": "Daily",
             "payments": []
         }
-
         """
-        #print "\nPROCESS TOTAL\n", json.dumps(total, indent=2)
+        print "\nPROCESS TOTAL", total
+        print "   %s secs, %s cents" % (total['total_time'],
+                                        total['total_amount'])
         ret = None
         
         total_amount = float( total['total_amount'] )
         total_time   = float( total['total_time'] )
         dtime         = Processor.parse_seconds(int(total['datetime']))
-            
+
         if 'Recipient' == total['contenttype']:
             category     = total['content']['category']
             description  = total['content']['description']
@@ -86,7 +87,8 @@ class Processor(object):
                                          extn_id)
                 # adjust totals
                 TotalRecipient.process(recipient, total_amount, total_time, dtime)
-            
+                TotalUser.process(user, total_amount, total_time, dtime)
+                
         elif 'SiteGroup' == total['contenttype']:
             host    = total['content']['host']
             url_re  = total['content']['url_re']
@@ -107,7 +109,13 @@ class Processor(object):
             
             SiteGroupTagging.add(tag, sitegroup, user)
             # adjust totals
-            TotalSiteGroup.process(sitegroup, total_amount, total_time, dtime)
+            #if 'weekly_requires_payment' in total and total['weekly_requires_payment']:
+            if tag == "TimeWellSpent":
+                print "WEEKLY REQUIRES PAYMENT", total['weekly_requires_payment']
+                TotalSiteGroup.process(sitegroup, total_amount, total_time, dtime)
+                TotalUser.process(user, total_amount, total_time, dtime)
+            else:
+                TotalPDSiteGroup.process(sitegroup, total_amount, total_time, dtime)
             
         elif 'Site' == total['contenttype']:
             url     = total['content']['url']
@@ -130,9 +138,7 @@ class Processor(object):
             ret = TagVisit.add(tag, dtime, total_time, total_amount, user, extn_id)
             # adjust totals
             TotalTag.process(tag, total_amount, total_time, dtime)
-        
-        # adjust totals
-        TotalUser.process(user, total_amount, total_time, dtime)
+            
         return ret
     
     @classmethod

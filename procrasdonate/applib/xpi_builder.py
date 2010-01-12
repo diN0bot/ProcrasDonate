@@ -45,20 +45,11 @@ function generated_input() {
         private_key = "__no_private_key_for_update__"
         
         if not is_update:
-            bilumi = None
-            if not self.recipient or self.recipient.slug != 'bilumi':
-                bilumi = Recipient.get_or_none(slug="bilumi")
-            
             recip_pcts = []
             
             if self.recipient:
                 recip_pcts.append({"recipient_slug": self.recipient.slug,
                                    "percent": 1.0})
-            elif bilumi:
-                # we wanted percent to be 0.0, but we have the invariant
-                # that percents must sum to 100% 
-                recip_pcts.append({"recipient_slug": bilumi.slug,
-                                   "percent": 0.0})
             
             private_key = self.generate_private_key()
             

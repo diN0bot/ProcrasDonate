@@ -260,12 +260,7 @@ _extend(PDTests.prototype, {
 		var newpage = create_caller_reference()+".html";
 		var url = "http://"+newdomain+"/"+newpage;
 
-		var host = _host(url);
-		sitegroup = self.pddb.SiteGroup.create({
-				name: newdomain,
-				host: newdomain,
-				tag_id: tag.id
-		});
+		sitegroup = self.pddb.SiteGroup.create_from_url(url, tag);
 		return self.pddb.Site.create({
 			url: url,
 			sitegroup_id: sitegroup.id,
@@ -291,8 +286,7 @@ _extend(PDTests.prototype, {
 		var totals = {}
 		
 		var site = self.pddb.Site.get_or_null({ url: url })
-		var host = _host(url);
-		var sitegroup = self.pddb.SiteGroup.get_or_null({ host: host });
+		var sitegroup = self.pddb.SiteGroup.get_from_url(url);
 		var timetypes = [self.pddb.Daily, self.pddb.Weekly, self.pddb.Yearly, self.pddb.Forever];
 		var times = [_dbify_date(_end_of_day()), _dbify_date(_end_of_week()), _dbify_date(_end_of_year()), _dbify_date(_end_of_forever())];
 		
