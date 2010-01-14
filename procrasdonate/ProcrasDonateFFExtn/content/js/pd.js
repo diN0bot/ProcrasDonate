@@ -175,8 +175,8 @@ _extend(ProcrasDonate_API.prototype, {
 				datetime: _dbify_date(_end_of_week(_un_dbify_date(row.datetime)))
 			});
 			return _extend(d, {
-				weekly_requires_payment: week_total.requires_payment_dict(),
-				weekly_payments: week_total.payments_dict()
+				weekly_requires_payment: week_total && week_total.requires_payment_dict() || {},
+				weekly_payments: week_total && week_total.payments_dict() || []
 			});
 		}, {
 			timetype_id: this.pddb.Daily.id
