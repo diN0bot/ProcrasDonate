@@ -3340,12 +3340,16 @@ _extend(PageController.prototype, {
 		// Receive updates from server
 		this.pd_api.request_data_updates(
 			function() {
+				logger("SERVER SAYS YAY");
 				// after success
 				var multi_auth = self.pddb.FPSMultiuseAuthorization.get_latest_success()
+				logger("multi auth="+multi_auth);
 				if (!multi_auth) {
 					multi_auth = self.pddb.FPSMultiuseAuthorization.most_recent();
+					logger("B multi auth="+multi_auth);
 				}
 				if (multi_auth.good_to_go()) {
+					logger("C multi auth="+multi_auth);
 					self.insert_register_done(request);
 					return
 				}
@@ -3471,10 +3475,10 @@ _extend(PageController.prototype, {
 	},
 	
 	insert_register_done: function(request) {
+		alert("INSERT REGISTER DONE!");
 		this.prefs.set('registration_done', true);
 		//this.insert_register_time_well_spent(request);
 
-		this.prefs.set('registration_done', true);
 		var unsafeWin = request.get_unsafeContentWin();//event.target.defaultView;
 		if (unsafeWin.wrappedJSObject) {
 			unsafeWin = unsafeWin.wrappedJSObject;
