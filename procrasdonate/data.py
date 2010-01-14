@@ -728,6 +728,27 @@ class RecipientVisit(Visit):
     def __unicode__(self):
         return "%s [[%s]]" % (self.recipient, super(RecipientVisit, self).__unicode__())
 
+
+class RecipientVoteVisit(Visit):
+    """
+    """
+    recipient_vote = models.ForeignKey('RecipientVote')
+    
+    @classmethod
+    def make(klass, recipient_vote, dtime, total_time, total_amount, user, extn_id):
+       return Visit.make(dtime,
+                         total_time,
+                         total_amount,
+                         user,
+                         extn_id,
+                         recipient_vote,
+                         "recipient_vote",
+                         RecipientVoteVisit)
+    
+    def __unicode__(self):
+        return "%s [[%s]]" % (self.recipient_vote, super(RecipientVoteVisit, self).__unicode__())
+
+
 class TagVisit(Visit):
     """
     """
@@ -1060,6 +1081,7 @@ ALL_MODELS = [Email,
               SiteVisit,
               SiteGroupVisit,
               RecipientVisit,
+              RecipientVoteVisit,
               TagVisit,
               PaymentService,
               SitePayment,

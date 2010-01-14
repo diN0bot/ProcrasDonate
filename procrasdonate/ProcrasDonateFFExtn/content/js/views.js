@@ -112,6 +112,9 @@ _extend(Controller.prototype, {
 				constants.MESSAGES_STATE_ENUM, 
 				constants.MESSAGES_STATE_INSERTS);
 			break;
+		case constants.TWS_SETTINGS_URL:
+			this.page.insert_register_time_well_spent(request);
+			break;
 		case constants.HOME_URL:
 			this.page.handle_home_url(request);
 			break;
@@ -3469,8 +3472,8 @@ _extend(PageController.prototype, {
 	
 	insert_register_done: function(request) {
 		this.prefs.set('registration_done', true);
-		this.insert_register_time_well_spent(request);
-		/*
+		//this.insert_register_time_well_spent(request);
+
 		this.prefs.set('registration_done', true);
 		var unsafeWin = request.get_unsafeContentWin();//event.target.defaultView;
 		if (unsafeWin.wrappedJSObject) {
@@ -3486,7 +3489,9 @@ _extend(PageController.prototype, {
 		// Error: Component is not available = NS_ERROR_NOT_AVAILABLE
 		// Source file: chrome://procrasdonate/content/js/ext/jquery-1.2.6.js
 		// Line: 2020
-		new XPCNativeWrapper(unsafeWin, "location").location = constants.PD_URL + constants.SETTINGS_URL;*/
+		var version = this.prefs.get("version", ver);
+		var url = constants.PD_URL + constants.AFTER_INSTALL_URL + version + "/";
+		new XPCNativeWrapper(unsafeWin, "location").location = url;
 	}, 
 	
 	process_register_done: function(request) {

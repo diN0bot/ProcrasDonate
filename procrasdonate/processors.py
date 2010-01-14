@@ -54,9 +54,9 @@ class Processor(object):
             "payments": []
         }
         """
-        print "\nPROCESS TOTAL", total
-        print "   %s secs, %s cents" % (total['total_time'],
-                                        total['total_amount'])
+        #print "\nPROCESS TOTAL", total
+        #print "   %s secs, %s cents" % (total['total_time'],
+        #                                total['total_amount'])
         ret = None
         
         total_amount = float( total['total_amount'] )
@@ -77,7 +77,17 @@ class Processor(object):
             if not recipient:
                 rvote = RecipientVote.get_or_none(name=name, user=user)
                 if not rvote:
-                    ret = RecipientVote.add(name, user)
+                    rvote = RecipientVote.add(name, user)
+                ret = RecipientVoteVisit.add(rvote,
+                                             dtime,
+                                             total_time,
+                                             total_amount,
+                                             user,
+                                             extn_id)
+                
+                # adjust totals
+                TotalRecipientVote.process(rvote, total_amount, total_time, dtime)
+                TotalUser.process(user, total_amount, total_time, dtime)
             else:
                 ret = RecipientVisit.add(recipient,
                                          dtime,
@@ -111,7 +121,7 @@ class Processor(object):
             # adjust totals
             #if 'weekly_requires_payment' in total and total['weekly_requires_payment']:
             if tag == "TimeWellSpent":
-                print "WEEKLY REQUIRES PAYMENT", total['weekly_requires_payment']
+                #print "WEEKLY REQUIRES PAYMENT", total['weekly_requires_payment']
                 TotalSiteGroup.process(sitegroup, total_amount, total_time, dtime)
                 TotalUser.process(user, total_amount, total_time, dtime)
             else:

@@ -339,6 +339,40 @@ class TotalRecipient(Total):
                                            self.total_time,
                                            self.total_pledged)
 
+
+class TotalRecipientVote(Total):
+    """
+    """
+    recipient_vote = models.ForeignKey(RecipientVote)
+    
+    @classmethod
+    def make(klass, recipient_vote, period):
+       return Total.make(period,
+                         recipient_vote,
+                         "recipient_vote",
+                         TotalRecipientVote)
+    
+    @classmethod
+    def process(klass, recipient_vote, total_amount, total_time, dtime):
+        print "TotalRecipientVote.process"
+        for period in Period.periods(dtime):
+            print "period", period
+            t = TotalRecipientVote.get_or_none(period=period, recipient_vote=recipient_vote)
+            if not t:
+                t = TotalRecipientVote.add(recipient_vote, period)
+            print "before", t
+            t.total_pledged += total_amount
+            t.total_time += total_time
+            print "after", t
+            t.save()
+    
+    def __unicode__(self):
+        return "%s %s %s sec, %s cents" % (self.recipient_vote.name,
+                                           self.period,
+                                           self.total_time,
+                                           self.total_pledged)
+
+
 class TotalTag(Total):
     """
     """
@@ -405,6 +439,7 @@ ALL_MODELS = [Period,
               TotalSiteGroup,
               TotalPDSiteGroup,
               TotalRecipient,
+              TotalRecipientVote,
               TotalTag,
               TotalSite,
               TotalUser]

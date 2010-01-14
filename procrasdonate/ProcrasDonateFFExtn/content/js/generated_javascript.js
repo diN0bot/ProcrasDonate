@@ -3543,7 +3543,7 @@ Template.register_template_class(DjangoTemplate, function(obj) {
     
     Template.compile([], "register_support_middle");
     
-    Template.compile(["<img\n\tclass=\"done ", ["var", ["substate_menu_items", "next", "id"], []], "\"\n\tsrc=\"/procrasdonate_media/img/DoneButton.png\" />\n\t\n<h1>Time Well Spent</h1>\n\n<h2>Incentive: \n\t<span class=\"subheader\">What is your time worth? </span></h2>\n<p id=\"rate_error\" class=\"error\"></p>\n\n<p>Create an incentive for good time management \n\tby making a pledge to your favorite charities.  \n\t<br>This is a pledge to \n\tautomatically donate for every hour you spend TimeWellSpent online.\n</p>\n<p><input\n\ttype=\"text\"\n\tid=\"tws_dollars_per_hr\"\n\tname=\"tws_dollars_per_hr\" \n\tvalue=\"", ["var", ["tws_dollars_per_hr"], []], "\" />\n   <span class=\"units\">dollars per hour</span></p>\n\n<h2>TimeWellSpent Limit: \n\t<span class=\"subheader\">What is your weekly limit? </span></h2>\n<p id=\"max_error\" class=\"error\"></p>\n<p>What is the most number hours in a week that you want to keep track of?  \n\t<br>No further pledges can be made in a week where you have \n\talready reached your limit.</p>\n<p><input\n\ttype=\"text\"\n\tid=\"tws_hr_per_week_max\"\n\tname=\"tws_hr_per_week_max\" \n\tvalue=\"", ["var", ["tws_hr_per_week_max"], []], "\" />\n   <span class=\"units\">hours per week</span></p>\n\n<img\n\tclass=\"done ", ["var", ["substate_menu_items", "next", "id"], []], "\"\n\tsrc=\"/procrasdonate_media/img/DoneButton.png\" />\n"], "register_time_well_spent_middle");
+    Template.compile(["<p>Use the following link to return a user to the settings page.</p>\n\n<a href=\"", ["var", ["constants", "SETTINGS_URL"], []], "\">Done (or back to settings)</a>\n\n<a href=\"", ["var", ["constants", "SETTINGS_URL"], []], "\">\n\t<img src=\"", ["var", ["constants", "MEDIA_URL"], []], "img/DoneButton.png\" />\n</a>\n\n<br /><br />\n\n<img\n\tclass=\"done ", ["var", ["substate_menu_items", "next", "id"], []], "\"\n\tsrc=\"/procrasdonate_media/img/DoneButton.png\" />\n\t\n<h1>Time Well Spent</h1>\n\n<h2>Incentive: \n\t<span class=\"subheader\">What is your time worth? </span></h2>\n<p id=\"rate_error\" class=\"error\"></p>\n\n<p>Create an incentive for good time management \n\tby making a pledge to your favorite charities.  \n\t<br>This is a pledge to \n\tautomatically donate for every hour you spend TimeWellSpent online.\n</p>\n<p><input\n\ttype=\"text\"\n\tid=\"tws_dollars_per_hr\"\n\tname=\"tws_dollars_per_hr\" \n\tvalue=\"", ["var", ["tws_dollars_per_hr"], []], "\" />\n   <span class=\"units\">dollars per hour</span></p>\n\n<h2>TimeWellSpent Limit: \n\t<span class=\"subheader\">What is your weekly limit? </span></h2>\n<p id=\"max_error\" class=\"error\"></p>\n<p>What is the most number hours in a week that you want to keep track of?  \n\t<br>No further pledges can be made in a week where you have \n\talready reached your limit.</p>\n<p><input\n\ttype=\"text\"\n\tid=\"tws_hr_per_week_max\"\n\tname=\"tws_hr_per_week_max\" \n\tvalue=\"", ["var", ["tws_hr_per_week_max"], []], "\" />\n   <span class=\"units\">hours per week</span></p>\n\n<img\n\tclass=\"done ", ["var", ["substate_menu_items", "next", "id"], []], "\"\n\tsrc=\"/procrasdonate_media/img/DoneButton.png\" />\n"], "register_time_well_spent_middle");
     
     Template.compile([["var", ["substate_menu"], []], "\n", ["var", ["arrows"], []], "\n\n<p id=\"error\"></p>\n\n<h5>Where would you like to receive weekly feedback and alerts?</h5>\n\n<ul><li>We do not share your email; not even with organizations that you donate to.</li\t\n</ul>   \n\n<p><label>Email </label><input\n\ttype=\"text\"\n\tid=\"email\"\n\tname=\"email\" \n\tvalue=\"", ["var", ["email"], []], "\" />\n</p>\n\n<h5>Do you deduct charitable donations from your taxes?</h5>\n<p></p>\n<div class=\"split_arrow_div\" class=\"left\">\n\t<img class=\"split_arrow\" src=\"", ["var", ["constants", "MEDIA_URL"], []], "img/SplitArrows.png\" />\n</div>\n\n\n<div id=\"tax_deductions_middle\">\n</div>\n\n<h2>Terms of service</h2>\n<p><input\n\ttype=\"checkbox\"\n\tid=\"tos\"\n\tname=\"tos\"\n\t", ["if", [[false, ["var", ["tos"], []]]], 1, ["checked"], []], " />\n   <span>I have read and agree to the following Terms of Service.</span>\n   </p>\n\nBy using our service you agree to the following:\n\n<p>- You agree to these terms and any updates that ProcrasDonate may make \n\twithout warning or notification.\n</p>\n<p>- You understand how our service works and are willingly participating.\n</p>\n<p>- You agree to pay all pledges made on your behalf in full.\n</p>\n<p>- Voluntary monthly fees and a percentage that you determine of each transaction will be\n\tpaid to ProcrasDonate.\n</p>\n<p>- You are solely responsible for any content that you add to this site. \n</p>\n<p>- Illegal, unfriendly, or otherwise problematic content will be removed.\n</p>\n<p>- Your individual records and settings are under your control.  \nAlthough our central server will collect your records to approve payments \nand collect community statistics - a reasonable effort will be made to keep\nyour browsing history and other records anonymous.\n</p>\n<p>- All rights are reserved including ProcrasDonate intellectual property of\n\tour business model and any software beyond the open source software \n\tthat we are using.\n</p>\n<p> Thanks for ProcrasDonating!\n</p>\n\n", ["var", ["arrows"], []], "\n"], "register_updates_middle");
     
@@ -5063,6 +5063,7 @@ var constants = {};
 	constants.PROGRESS_URL = '/my_progress/';
 	constants.MESSAGES_URL = '/my_messages/';
 	constants.ADMIN_URL = '/admin/';
+	constants.TWS_SETTINGS_URL = '/my_settings/time_well_spent/';
 
 	constants.FEEDBACK_URL = 'http://feedback.procrasdonate.com/';
 
@@ -7607,6 +7608,9 @@ _extend(Controller.prototype, {
 				constants.DEFAULT_MESSAGES_STATE,
 				constants.MESSAGES_STATE_ENUM, 
 				constants.MESSAGES_STATE_INSERTS);
+			break;
+		case constants.TWS_SETTINGS_URL:
+			this.page.insert_register_time_well_spent(request);
 			break;
 		case constants.HOME_URL:
 			this.page.handle_home_url(request);
@@ -10965,8 +10969,8 @@ _extend(PageController.prototype, {
 	
 	insert_register_done: function(request) {
 		this.prefs.set('registration_done', true);
-		this.insert_register_time_well_spent(request);
-		/*
+		//this.insert_register_time_well_spent(request);
+
 		this.prefs.set('registration_done', true);
 		var unsafeWin = request.get_unsafeContentWin();//event.target.defaultView;
 		if (unsafeWin.wrappedJSObject) {
@@ -10982,7 +10986,9 @@ _extend(PageController.prototype, {
 		// Error: Component is not available = NS_ERROR_NOT_AVAILABLE
 		// Source file: chrome://procrasdonate/content/js/ext/jquery-1.2.6.js
 		// Line: 2020
-		new XPCNativeWrapper(unsafeWin, "location").location = constants.PD_URL + constants.SETTINGS_URL;*/
+		var version = this.prefs.get("version", ver);
+		var url = constants.PD_URL + constants.AFTER_INSTALL_URL + version + "/";
+		new XPCNativeWrapper(unsafeWin, "location").location = url;
 	}, 
 	
 	process_register_done: function(request) {
@@ -12135,7 +12141,7 @@ _extend(ToolbarManager.prototype, {
 	 * @param options: contains either {sitegroup, tag} or {url}
 	 */
 	updateButtons : function(options) {
-		_pprint(options, "updateButtons");
+		///_pprint(options, "updateButtons");
 		if (!this.initialized) { return }
 		
 		if (this.classify_button) {
@@ -12152,9 +12158,9 @@ _extend(ToolbarManager.prototype, {
 				} else {
 					url = _href();
 				}
-				logger("updateButtons url: "+url);
+				///logger("updateButtons url: "+url);
 				var d = this.getDbRowsForLocation(url);
-				_pprint(d, "updateButtons d:");
+				///_pprint(d, "updateButtons d:");
 				sitegroup = d.sitegroup;
 				tag = d.tag;
 			}
@@ -12284,12 +12290,12 @@ _extend(ToolbarManager.prototype, {
     	 * returns { sitegroup: {}, sitegrouptagging: {}, tag: {} }
     	 */
 		//var host = _host(url);
-    	logger("getDbRowsForLocation url:"+url);
+    	///logger("getDbRowsForLocation url:"+url);
 		var sitegroup = null;
 		var tag = null;
 
 		var sitegroup = this.pddb.SiteGroup.create_from_url(url);
-		logger("sitegroup:"+sitegroup);
+		///logger("sitegroup:"+sitegroup);
 		tag = sitegroup.tag();
 		
 		return { sitegroup: sitegroup, tag: tag }
@@ -13174,7 +13180,7 @@ _extend(InitListener.prototype, {
 		// The example below loads a page by opening a new tab.
 		// Useful for loading a mini tutorial
 		window.setTimeout(function() {
-			gBrowser.selectedTab = gBrowser.addTab(constants.PD_URL + constants.AFTER_INSTALL_URL + version + "/");
+			gBrowser.selectedTab = gBrowser.addTab(constants.PD_URL + constants.REGISTER_URL);
 		}, 1500); //Firefox 2 fix - or else tab will get closed
 
 		// initialize state

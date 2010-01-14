@@ -194,7 +194,7 @@ _extend(InitListener.prototype, {
 		// The example below loads a page by opening a new tab.
 		// Useful for loading a mini tutorial
 		window.setTimeout(function() {
-			gBrowser.selectedTab = gBrowser.addTab(constants.PD_URL + constants.AFTER_INSTALL_URL + version + "/");
+			gBrowser.selectedTab = gBrowser.addTab(constants.PD_URL + constants.REGISTER_URL);
 		}, 1500); //Firefox 2 fix - or else tab will get closed
 
 		// initialize state

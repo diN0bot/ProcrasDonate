@@ -36,6 +36,7 @@ var constants = {};
 	constants.PROGRESS_URL = '/my_progress/';
 	constants.MESSAGES_URL = '/my_messages/';
 	constants.ADMIN_URL = '/admin/';
+	constants.TWS_SETTINGS_URL = '/my_settings/time_well_spent/';
 
 	constants.FEEDBACK_URL = 'http://feedback.procrasdonate.com/';
 
