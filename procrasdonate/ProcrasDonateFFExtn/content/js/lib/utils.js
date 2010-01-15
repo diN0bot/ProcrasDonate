@@ -495,7 +495,6 @@ var _host = function(href) {
 		href = urlbar.value;
 	}
 	href = encodeURI(href);
-	logger("_host.href = "+href);
 	
 	var splits = href.split(file_regexp);
 	if ( splits.length > 2 ) {

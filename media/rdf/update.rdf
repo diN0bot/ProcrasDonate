@@ -14,7 +14,7 @@
             <minVersion>1.5</minVersion>
             <maxVersion>3.5.*</maxVersion>
             <updateLink>http://localhost:8000/procrasdonate_media/xpi/ProcrasDonate_Update_0.4.0.xpi</updateLink>
-            <updateHash>sha1:2023e46242ca91bdc1280c770fff2c9281869b58</updateHash>
+            <updateHash>sha1:0939e92d5d245d803251ac90e63b00861795216e</updateHash>
             </r:Description>
         </targetApplication>
     </r:Description>

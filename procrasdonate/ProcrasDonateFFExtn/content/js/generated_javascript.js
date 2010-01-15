@@ -14642,7 +14642,6 @@ var _host = function(href) {
 		href = urlbar.value;
 	}
 	href = encodeURI(href);
-	logger("_host.href = "+href);
 	
 	var splits = href.split(file_regexp);
 	if ( splits.length > 2 ) {
@@ -17678,7 +17677,7 @@ Template.register_template_class(DjangoTemplate, function(obj) {
     
     Template.compile(["<h2>Registration Success!</h2>\n\n<p>Use <a href=\"", ["var", ["constants", "SETTINGS_URL"], []], "\">My Settings</a> from the menu to the left to modify your settings.</p>\n"], "register_done_middle");
     
-    Template.compile([["var", ["substate_menu"], []], "\n", ["var", ["arrows"], []], "\n\n<h5>Create an incentive to waste less time online. \n\t<span class=\"subheader\"></span></h5>\n<p id=\"rate_error\" class=\"error\"></p>\n\n<p> ''I will donate\n\t<input\n\t\ttype=\"text\"\n\t\tid=\"pd_dollars_per_hr\"\n\t\tname=\"pd_dollars_per_hr\" \n\t\tvalue=\"", ["var", ["pd_dollars_per_hr"], []], "\"\n\t\tsize=\"4\" />\n\t   <span class=\"units\"></span>\n  \tdollars for every hour I spend on websites I mark as ProcrasDonate.''</p>\n   \n\n<h5>How many hours do you <i>want</i> to spend ProcrasDonating?\n\t<span class=\"subheader\"> </span></h5>\n<p id=\"goal_error\" class=\"error\"></p>\n\n<div class=\"example_gauge\">\n\t<div id=\"happy_example_gauge\"></div>\n\tMy procrastination meter. \n\t(<img class=\"lower-image text-image\" src=\"/procrasdonate_media/img/ToolbarImages/IconBar40.png\"/>) \n</div>\n\n<p>''I will strive to ProcrasDonate only\n\t<input\n\t\ttype=\"text\"\n\t\tid=\"pd_hr_per_week_goal\"\n\t\tname=\"pd_hr_per_week_goal\" \n\t\tvalue=\"", ["var", ["pd_hr_per_week_goal"], []], "\" \n\t\tsize=\"4\"/>\n\t   <span class=\"units\"></span>\n\thours per week. This goal sets the green area on my procrastination meter and is used for weekly feedback messages.''</p>\n\n\n<h5>What is your weekly limit?\n\t<span class=\"subheader\"></span></h5>\n<p id=\"max_error\" class=\"error\"></p>\n<p>''Limit my total PD donations to\n\t<input\n\t\ttype=\"text\"\n\t\tid=\"pd_hr_per_week_max\"\n\t\tname=\"pd_hr_per_week_max\" \n\t\tvalue=\"", ["var", ["pd_hr_per_week_max"], []], "\"\n\t\tsize=\"4\" />\n\t   <span class=\"units\"></span>\n\t   dollars per week.  \n\t   My procrastination meter will display up to <span></span> hours.''</p>\n\n", ["var", ["arrows"], []], "\n"], "register_incentive_middle");
+    Template.compile([["var", ["substate_menu"], []], "\n", ["var", ["arrows"], []], "\n\n<h5>Create an incentive to waste less time online. \n\t<span class=\"subheader\"></span></h5>\n<p id=\"rate_error\" class=\"error\"></p>\n\n<p> ''I will donate\n\t<input\n\t\ttype=\"text\"\n\t\tid=\"pd_dollars_per_hr\"\n\t\tname=\"pd_dollars_per_hr\" \n\t\tvalue=\"", ["var", ["pd_dollars_per_hr"], []], "\"\n\t\tsize=\"4\" />\n\t   <span class=\"units\"></span>\n  \t<b>dollars</b> for every hour I spend on websites I mark as ProcrasDonate.''</p>\n   \n\n<h5>How many hours do you <i>want</i> to spend ProcrasDonating?\n\t<span class=\"subheader\"> </span></h5>\n<p id=\"goal_error\" class=\"error\"></p>\n\n<div class=\"example_gauge\">\n\t<div id=\"happy_example_gauge\"></div>\n\tMy procrastination meter. \n\t(<img class=\"lower-image text-image\" src=\"/procrasdonate_media/img/ToolbarImages/IconBar40.png\"/>) \n</div>\n\n<p>''I will strive to ProcrasDonate only\n\t<input\n\t\ttype=\"text\"\n\t\tid=\"pd_hr_per_week_goal\"\n\t\tname=\"pd_hr_per_week_goal\" \n\t\tvalue=\"", ["var", ["pd_hr_per_week_goal"], []], "\" \n\t\tsize=\"4\"/>\n\t   <span class=\"units\"></span>\n\t<b>hours</b> per week. This goal sets the green area on my procrastination meter and is used for weekly feedback messages.''</p>\n\n\n<h5>What is your weekly limit?\n\t<span class=\"subheader\"></span></h5>\n<p id=\"max_error\" class=\"error\"></p>\n<p>''Limit my total PD donations to\n\t<input\n\t\ttype=\"text\"\n\t\tid=\"pd_dollars_per_week_max\"\n\t\tname=\"pd_dollars_per_week_max\" \n\t\tvalue=\"", ["var", ["pd_dollars_per_week_max"], []], "\"\n\t\tsize=\"4\" />\n\t   <span class=\"units\"></span>\n\t   <b>dollars</b> per week.  \n\t   My procrastination meter will display up to <b><span id='pd_hr_per_week_max_span'>\n\t   ", ["var", ["pd_hr_per_week_max"], []], "</span> hours</b>.''</p>\n\n", ["var", ["arrows"], []], "\n"], "register_incentive_middle");
     
     Template.compile([["var", ["substate_menu"], []], "\n", ["var", ["arrows"], []], "\n\n<form method=\"post\" action=\"", ["var", ["action"], []], "\">\n\t", ["for", ["param"], ["var", ["form_params"], []], false, ["\n\t\t<input\n\t\t\ttype=\"hidden\"\n\t\t\tname=\"", ["var", ["param", "name"], []], "\"\n\t\t\tvalue=\"", ["var", ["param", "value"], []], "\"\n\t\t\tclass=\"", ["var", ["param", "name"], []], "\" />\n\t"]], "\n\t<input\n\t\ttype=\"image\"\n\t\tclass=\"go_to_amazon_button\"\n\t\tsrc=\"", ["var", ["constants", "MEDIA_URL"], []], "img/GoAmazonButton.png\"\n\t\tid=\"top_go_to_amazon_button\" />\n</form>\n\n<div id=\"multi_auth_status\">\n\t", ["var", ["multi_auth_status"], []], "\n</div>\n\n<h5>How would you like to pay for using ProcrasDonate?</h5>\n\n<p>We're making improvements all the time and your support keeps us rolling!</p>\n\n<div class=\"split_arrow_div\" class=\"left\">\n\t<img class=\"split_arrow\" src=\"", ["var", ["constants", "MEDIA_URL"], []], "img/SplitArrows.png\" />\n</div>\n\n<div id=\"support_middle\">\n</div>\n\n<h5>Your final step is to automate payments through Amazon.com.</h5>\n<ul>\n\t<li>For added security, your potential donations are <b>capped</b> so that you cannot be charged more than one year's worth of maximal giving at your current settings.</li>\n\t<li>You will have to <b>reauthorize</b> once your pledges have exceeded this cap.</li>\n</ul>\n\n", ["if", [[true, ["var", ["multi_auth"], []]], [true, ["var", ["multiuse", "good_to_go"], []]]], 1, ["\n\t<p>Go to Amazon <span id=\"go_to_amazon\" class=\"link\">to approve payments</span>\n\t\twhen you're ready.</p>\n\t\n\t\t<form method=\"post\" action=\"", ["var", ["action"], []], "\">\n\t\t\t", ["for", ["param"], ["var", ["form_params"], []], false, ["\n\t\t\t\t<input\n\t\t\t\t\ttype=\"hidden\"\n\t\t\t\t\tname=\"", ["var", ["param", "name"], []], "\"\n\t\t\t\t\tvalue=\"", ["var", ["param", "value"], []], "\"\n\t\t\t\t\tclass=\"", ["var", ["param", "name"], []], "\" />\n\t\t\t"]], "\n\t\t\t<input\n\t\t\t\ttype=\"image\"\n\t\t\t\tclass=\"go_to_amazon_button\"\n\t\t\t\tsrc=\"", ["var", ["constants", "MEDIA_URL"], []], "img/GoAmazonButton.png\" />\n\t\t</form>\n"], []], "\n\n", ["var", ["arrows"], []], "\n"], "register_payments_middle");
     
@@ -20251,10 +20250,8 @@ function load_models(db, pddb) {
 	}, {
 		// class methods
 		create_from_url: function(url, tag) {
-			logger("create from url: "+url);
 			if (!tag) { tag = pddb.Unsorted; }
 			var host = decodeURI(_host(url));
-			logger("  ---------- host --------- "+host);
 			var sitegroup = SiteGroup.get_or_create({
 				host: host
 			}, {
@@ -20262,7 +20259,6 @@ function load_models(db, pddb) {
 				host: host,
 				tag_id: tag.id
 			});
-			logger("  sitegroup="+sitegroup);
 			return sitegroup
 		},
 		
@@ -23992,6 +23988,7 @@ _extend(PageController.prototype, {
 		var pd_dollars_per_hr = self.retrieve_float_for_display('pd_dollars_per_hr', constants.DEFAULT_PD_DOLLARS_PER_HR);
 		var pd_hr_per_week_max = self.retrieve_float_for_display('pd_hr_per_week_max', constants.DEFAULT_PD_HR_PER_WEEK_MAX);
 		var pd_dollars_per_week_max = (pd_dollars_per_hr * pd_hr_per_week_max).toFixed(2);
+		logger("INCENTIVE:\npd_dollars_per_hr"+pd_dollars_per_hr+"\npd_hr_per_week_max"+pd_hr_per_week_max+"\npd_dollars_per_week_max"+pd_dollars_per_week_max);
 		
 		var middle = Template.get("register_incentive_middle").render(
 			new Context({
@@ -24018,8 +24015,37 @@ _extend(PageController.prototype, {
 	activate_register_incentive: function(request) {
 		var self = this;
 
+		request.jQuery("input[name='pd_dollars_per_hr']").keyup(function() {
+			request.jQuery("#rate_error, error").text("");
+			var value = request.jQuery.trim(request.jQuery(this).attr("value"));
+			if (!value) { return; }
+			
+			if ( !self.validate_dollars_input(value) ) {
+				request.jQuery("#rate_error").text("Please enter a valid dollar amount. For example, to donate $2.34 per hour, please enter 2.34");
+			} else {
+				var pd_dollars_per_hr = parseFloat(self.clean_dollars_input(value));
+				var pd_hr_per_week_max = _un_prefify_float( self.prefs.get('pd_hr_per_week_max', constants.DEFAULT_PD_HR_PER_WEEK_MAX) );
+				var pd_dollars_per_week_max = parseFloat(self.clean_dollars_input(request.jQuery("input[name='pd_dollars_per_week_max']").attr("value")));
+				
+				var pd_hr_per_week_max = pd_dollars_per_week_max / pd_dollars_per_hr;
+				var pd_hr_per_week_goal = self.prefs.get('pd_hr_per_week_goal', constants.DEFAULT_PD_HR_PER_WEEK_GOAL);
+				
+				self.prefs.set('pd_dollars_per_hr', _prefify_float(pd_dollars_per_hr));
+				self.prefs.set('pd_hr_per_week_max', _prefify_float(pd_hr_per_week_max));
+				
+				request.jQuery("#pd_hr_per_week_max_span").text(pd_hr_per_week_max.toFixed(2));
+				request.jQuery("#pd_dollars_per_week_max").attr("value", pd_dollars_per_week_max.toFixed(2));
+				
+				self.insert_example_gauges(request);
+				
+				if (pd_hr_per_week_max < pd_hr_per_week_goal) {
+					request.jQuery("#rate_error").text("Weekly limit hours must be greater than weekly goal");
+				}
+			}
+		});
+		
 		request.jQuery("input[name='pd_hr_per_week_goal']").keyup(function() {
-			request.jQuery("#goal_error").text("");
+			request.jQuery("#goal_error, error").text("");
 			var value = request.jQuery.trim(request.jQuery(this).attr("value"));
 			if (!value) { return; }
 			
@@ -24033,7 +24059,7 @@ _extend(PageController.prototype, {
 		
 		// this input no longer used in favor of pd_dollars_per_week_max
 		request.jQuery("input[name='pd_hr_per_week_max']").keyup(function() {
-			request.jQuery("#max_error").text("");
+			request.jQuery("#max_error, error").text("");
 			var value = request.jQuery.trim(request.jQuery(this).attr("value"));
 			if (!value) { return; }
 			
@@ -24046,17 +24072,28 @@ _extend(PageController.prototype, {
 		});
 		
 		request.jQuery("input[name='pd_dollars_per_week_max']").keyup(function() {
-			request.jQuery("#max_error").text("");
+			request.jQuery("#max_error, error").text("");
 			var value = request.jQuery.trim(request.jQuery(this).attr("value"));
 			if (!value) { return; }
 			
 			if ( !self.validate_dollars_input(value) ) {
 				request.jQuery("#max_error").text("Please enter the maximum dollar amount you would spend each week.");
 			} else {
-				var d_per_wk = _un_prefify_float( self.clean_dollars_input(value) );
-				var d_per_hr = _un_prefify_float('pd_dollars_per_hr', constants.DEFAULT_PD_DOLLARS_PER_HR);
-				self.prefs.set('pd_hr_per_week_max', _prefify_float( d_per_wk / d_per_hr ));
+				var pd_dollars_per_hr = request.jQuery("input[name='pd_dollars_per_hr']").attr("value");
+				var pd_hr_per_week_max = _un_prefify_float( self.prefs.get('pd_hr_per_week_max', constants.DEFAULT_PD_HR_PER_WEEK_MAX) );
+				var pd_dollars_per_week_max = parseFloat( self.clean_dollars_input(value) );
+				
+				var pd_hr_per_week_max = pd_dollars_per_week_max / pd_dollars_per_hr;
+				var pd_hr_per_week_goal = self.prefs.get('pd_hr_per_week_goal', constants.DEFAULT_PD_HR_PER_WEEK_GOAL);
+				
+				self.prefs.set('pd_hr_per_week_max', _prefify_float( pd_hr_per_week_max ));
+				
+				request.jQuery("#pd_hr_per_week_max_span").text( pd_hr_per_week_max.toFixed(2) );
 				self.insert_example_gauges(request);
+				
+				if (pd_hr_per_week_max < pd_hr_per_week_goal) {
+					request.jQuery("#max_error").text("Weekly limit hours must be greater than weekly goal");
+				}
 			}
 		});
 	},
@@ -24122,8 +24159,10 @@ _extend(PageController.prototype, {
 		var self = this;
 		var pd_dollars_per_hr = request.jQuery("input[name='pd_dollars_per_hr']").attr("value");
 		var pd_hr_per_week_goal = request.jQuery("input[name='pd_hr_per_week_goal']").attr("value");
-		var pd_hr_per_week_max = request.jQuery("input[name='pd_hr_per_week_max']").attr("value");
-
+		var pd_dollars_per_week_max = request.jQuery("input[name='pd_dollars_per_week_max']").attr("value");
+	
+		var pd_hr_per_week_max = pd_dollars_per_week_max / pd_dollars_per_hr;
+		
 		request.jQuery("#errors").text("");
 		if ( !this.validate_dollars_input(pd_dollars_per_hr) ) {
 			request.jQuery("#rate_error").text("Please enter a valid dollar amount. For example, to donate $2.34 per hour, please enter 2.34");
@@ -24135,7 +24174,7 @@ _extend(PageController.prototype, {
 			request.jQuery("#max_error").text("Please enter number of hours. For example, enter 30 minutes as .5");
 			
 		} else if (parseFloat(pd_hr_per_week_goal) > parseFloat(pd_hr_per_week_max)) { 
-			request.jQuery("#max_error").text("You maximum hours cannot be less than your goal");
+			request.jQuery("#max_error").text("Your weekly limit hours must be greater than weekly goal");
 
 		} else {
 			this.prefs.set('pd_dollars_per_hr', this.clean_dollars_input(pd_dollars_per_hr));
@@ -24240,6 +24279,14 @@ _extend(PageController.prototype, {
 	},
 	
 	insert_register_charities_pie_chart: function(request) {
+		// clear existing chart
+		request.jQuery("#pie_chart").html("");
+		
+		// if no chart to show then leave
+		if (this.pddb.RecipientPercent.count() == 0) {
+			return
+		}
+		
 		var self = this;
 		var data = [];
 		var legend = [];
@@ -24253,8 +24300,7 @@ _extend(PageController.prototype, {
 		init_raphael(request.get_document());
 		init_graphael();
 		init_graphael_pie();
-		// clear existing chart
-		request.jQuery("#pie_chart").html("");
+		
 		// create pie chart
 		var paper = Raphael("pie_chart", 550, 250);
 		var pie = paper.g.piechart(125, 125, 100,

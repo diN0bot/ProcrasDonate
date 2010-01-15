@@ -109,11 +109,17 @@ function install(anchor_class) {
 		var xpi_hash = $.trim(item.children(".hash").text());
 		
 		// get recipient slug if on recipient page
-		// /PD/ --> ['', 'PD', '']
+		// /bilumi/ --> ["", "bilumi", ""]
+		// /r/bilumi/ --> ["", "r", "bilumi", ""]
+		// /splash/ --> ["", "splash", ""]
+		// /after_install/0.4.0/ --> ["", "after_install", "0.4.0", ""]
 		var cur_url = location.pathname.split("/");
 		var slug = "__none__";
-		if (cur_url.length >= 3) {
-			slug = $.trim(cur_url[2]);
+		if (cur_url.length > 1) {
+			slug = $.trim(cur_url[1]);
+			if (slug == "r" && cur_url.length > 2) {
+				slug = $.trim(cur_url[2]);
+			}
 		}
 		if (!slug) { slug = "__none__"; }
 		$.post("/generate_xpi/"+slug+"/",

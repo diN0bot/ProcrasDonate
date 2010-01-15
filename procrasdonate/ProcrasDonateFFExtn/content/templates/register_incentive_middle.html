@@ -13,7 +13,7 @@
 		value="{{ pd_dollars_per_hr }}"
 		size="4" />
 	   <span class="units"></span>
-  	dollars for every hour I spend on websites I mark as ProcrasDonate.''</p>
+  	<b>dollars</b> for every hour I spend on websites I mark as ProcrasDonate.''</p>
    
 
 <h5>How many hours do you <i>want</i> to spend ProcrasDonating?
@@ -34,7 +34,7 @@
 		value="{{ pd_hr_per_week_goal }}" 
 		size="4"/>
 	   <span class="units"></span>
-	hours per week. This goal sets the green area on my procrastination meter and is used for weekly feedback messages.''</p>
+	<b>hours</b> per week. This goal sets the green area on my procrastination meter and is used for weekly feedback messages.''</p>
 
 
 <h5>What is your weekly limit?
@@ -43,12 +43,13 @@
 <p>''Limit my total PD donations to
 	<input
 		type="text"
-		id="pd_hr_per_week_max"
-		name="pd_hr_per_week_max" 
-		value="{{ pd_hr_per_week_max }}"
+		id="pd_dollars_per_week_max"
+		name="pd_dollars_per_week_max" 
+		value="{{ pd_dollars_per_week_max }}"
 		size="4" />
 	   <span class="units"></span>
-	   dollars per week.  
-	   My procrastination meter will display up to <span></span> hours.''</p>
+	   <b>dollars</b> per week.  
+	   My procrastination meter will display up to <b><span id='pd_hr_per_week_max_span'>
+	   {{ pd_hr_per_week_max }}</span> hours</b>.''</p>
 
 {{ arrows }}

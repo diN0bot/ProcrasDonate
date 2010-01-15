@@ -2352,6 +2352,7 @@ _extend(PageController.prototype, {
 		var pd_dollars_per_hr = self.retrieve_float_for_display('pd_dollars_per_hr', constants.DEFAULT_PD_DOLLARS_PER_HR);
 		var pd_hr_per_week_max = self.retrieve_float_for_display('pd_hr_per_week_max', constants.DEFAULT_PD_HR_PER_WEEK_MAX);
 		var pd_dollars_per_week_max = (pd_dollars_per_hr * pd_hr_per_week_max).toFixed(2);
+		logger("INCENTIVE:\npd_dollars_per_hr"+pd_dollars_per_hr+"\npd_hr_per_week_max"+pd_hr_per_week_max+"\npd_dollars_per_week_max"+pd_dollars_per_week_max);
 		
 		var middle = Template.get("register_incentive_middle").render(
 			new Context({
@@ -2378,8 +2379,37 @@ _extend(PageController.prototype, {
 	activate_register_incentive: function(request) {
 		var self = this;
 
+		request.jQuery("input[name='pd_dollars_per_hr']").keyup(function() {
+			request.jQuery("#rate_error, error").text("");
+			var value = request.jQuery.trim(request.jQuery(this).attr("value"));
+			if (!value) { return; }
+			
+			if ( !self.validate_dollars_input(value) ) {
+				request.jQuery("#rate_error").text("Please enter a valid dollar amount. For example, to donate $2.34 per hour, please enter 2.34");
+			} else {
+				var pd_dollars_per_hr = parseFloat(self.clean_dollars_input(value));
+				var pd_hr_per_week_max = _un_prefify_float( self.prefs.get('pd_hr_per_week_max', constants.DEFAULT_PD_HR_PER_WEEK_MAX) );
+				var pd_dollars_per_week_max = parseFloat(self.clean_dollars_input(request.jQuery("input[name='pd_dollars_per_week_max']").attr("value")));
+				
+				var pd_hr_per_week_max = pd_dollars_per_week_max / pd_dollars_per_hr;
+				var pd_hr_per_week_goal = self.prefs.get('pd_hr_per_week_goal', constants.DEFAULT_PD_HR_PER_WEEK_GOAL);
+				
+				self.prefs.set('pd_dollars_per_hr', _prefify_float(pd_dollars_per_hr));
+				self.prefs.set('pd_hr_per_week_max', _prefify_float(pd_hr_per_week_max));
+				
+				request.jQuery("#pd_hr_per_week_max_span").text(pd_hr_per_week_max.toFixed(2));
+				request.jQuery("#pd_dollars_per_week_max").attr("value", pd_dollars_per_week_max.toFixed(2));
+				
+				self.insert_example_gauges(request);
+				
+				if (pd_hr_per_week_max < pd_hr_per_week_goal) {
+					request.jQuery("#rate_error").text("Weekly limit hours must be greater than weekly goal");
+				}
+			}
+		});
+		
 		request.jQuery("input[name='pd_hr_per_week_goal']").keyup(function() {
-			request.jQuery("#goal_error").text("");
+			request.jQuery("#goal_error, error").text("");
 			var value = request.jQuery.trim(request.jQuery(this).attr("value"));
 			if (!value) { return; }
 			
@@ -2393,7 +2423,7 @@ _extend(PageController.prototype, {
 		
 		// this input no longer used in favor of pd_dollars_per_week_max
 		request.jQuery("input[name='pd_hr_per_week_max']").keyup(function() {
-			request.jQuery("#max_error").text("");
+			request.jQuery("#max_error, error").text("");
 			var value = request.jQuery.trim(request.jQuery(this).attr("value"));
 			if (!value) { return; }
 			
@@ -2406,17 +2436,28 @@ _extend(PageController.prototype, {
 		});
 		
 		request.jQuery("input[name='pd_dollars_per_week_max']").keyup(function() {
-			request.jQuery("#max_error").text("");
+			request.jQuery("#max_error, error").text("");
 			var value = request.jQuery.trim(request.jQuery(this).attr("value"));
 			if (!value) { return; }
 			
 			if ( !self.validate_dollars_input(value) ) {
 				request.jQuery("#max_error").text("Please enter the maximum dollar amount you would spend each week.");
 			} else {
-				var d_per_wk = _un_prefify_float( self.clean_dollars_input(value) );
-				var d_per_hr = _un_prefify_float('pd_dollars_per_hr', constants.DEFAULT_PD_DOLLARS_PER_HR);
-				self.prefs.set('pd_hr_per_week_max', _prefify_float( d_per_wk / d_per_hr ));
+				var pd_dollars_per_hr = request.jQuery("input[name='pd_dollars_per_hr']").attr("value");
+				var pd_hr_per_week_max = _un_prefify_float( self.prefs.get('pd_hr_per_week_max', constants.DEFAULT_PD_HR_PER_WEEK_MAX) );
+				var pd_dollars_per_week_max = parseFloat( self.clean_dollars_input(value) );
+				
+				var pd_hr_per_week_max = pd_dollars_per_week_max / pd_dollars_per_hr;
+				var pd_hr_per_week_goal = self.prefs.get('pd_hr_per_week_goal', constants.DEFAULT_PD_HR_PER_WEEK_GOAL);
+				
+				self.prefs.set('pd_hr_per_week_max', _prefify_float( pd_hr_per_week_max ));
+				
+				request.jQuery("#pd_hr_per_week_max_span").text( pd_hr_per_week_max.toFixed(2) );
 				self.insert_example_gauges(request);
+				
+				if (pd_hr_per_week_max < pd_hr_per_week_goal) {
+					request.jQuery("#max_error").text("Weekly limit hours must be greater than weekly goal");
+				}
 			}
 		});
 	},
@@ -2482,8 +2523,10 @@ _extend(PageController.prototype, {
 		var self = this;
 		var pd_dollars_per_hr = request.jQuery("input[name='pd_dollars_per_hr']").attr("value");
 		var pd_hr_per_week_goal = request.jQuery("input[name='pd_hr_per_week_goal']").attr("value");
-		var pd_hr_per_week_max = request.jQuery("input[name='pd_hr_per_week_max']").attr("value");
-
+		var pd_dollars_per_week_max = request.jQuery("input[name='pd_dollars_per_week_max']").attr("value");
+	
+		var pd_hr_per_week_max = pd_dollars_per_week_max / pd_dollars_per_hr;
+		
 		request.jQuery("#errors").text("");
 		if ( !this.validate_dollars_input(pd_dollars_per_hr) ) {
 			request.jQuery("#rate_error").text("Please enter a valid dollar amount. For example, to donate $2.34 per hour, please enter 2.34");
@@ -2495,7 +2538,7 @@ _extend(PageController.prototype, {
 			request.jQuery("#max_error").text("Please enter number of hours. For example, enter 30 minutes as .5");
 			
 		} else if (parseFloat(pd_hr_per_week_goal) > parseFloat(pd_hr_per_week_max)) { 
-			request.jQuery("#max_error").text("You maximum hours cannot be less than your goal");
+			request.jQuery("#max_error").text("Your weekly limit hours must be greater than weekly goal");
 
 		} else {
 			this.prefs.set('pd_dollars_per_hr', this.clean_dollars_input(pd_dollars_per_hr));
@@ -2600,6 +2643,14 @@ _extend(PageController.prototype, {
 	},
 	
 	insert_register_charities_pie_chart: function(request) {
+		// clear existing chart
+		request.jQuery("#pie_chart").html("");
+		
+		// if no chart to show then leave
+		if (this.pddb.RecipientPercent.count() == 0) {
+			return
+		}
+		
 		var self = this;
 		var data = [];
 		var legend = [];
@@ -2613,8 +2664,7 @@ _extend(PageController.prototype, {
 		init_raphael(request.get_document());
 		init_graphael();
 		init_graphael_pie();
-		// clear existing chart
-		request.jQuery("#pie_chart").html("");
+		
 		// create pie chart
 		var paper = Raphael("pie_chart", 550, 250);
 		var pie = paper.g.piechart(125, 125, 100,

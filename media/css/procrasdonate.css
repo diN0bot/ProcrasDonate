@@ -632,6 +632,9 @@ td { vertical-align: middle; }
 .next { margin: 1em 0em -1em -1em; width: 6em; max-height: 52px; cursor: pointer; }
 .done { margin: 1em 1em -1em -2em; width: 6em; cursor: pointer; }
 
+/**** REGISTER ALL *****/
+.arrow_errors { margin-top: 1em; }
+
 /**** REGISTER INCENTIVES ****/
 
 .example_gauge { float: right; }
