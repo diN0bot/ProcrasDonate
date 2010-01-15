@@ -33,13 +33,12 @@
 
 <h5>Your final step is to automate payments through Amazon.com.</h5>
 <ul>
-	<li>Payments to registered 501c3 non-profits will be fully <b>tax deductible</b>.</li>
 	<li>For added security, your potential donations are <b>capped</b> so that you cannot be charged more than one year's worth of maximal giving at your current settings.</li>
 	<li>You will have to <b>reauthorize</b> once your pledges have exceeded this cap.</li>
 </ul>
 
 {% if not multi_auth or not multiuse.good_to_go %}
-	<p>Click on <span id="go_to_amazon" class="link">Go to Amazon to approve payments!</span>
+	<p>Go to Amazon <span id="go_to_amazon" class="link">to approve payments</span>
 		when you're ready.</p>
 	
 		<form method="post" action="{{ action }}">

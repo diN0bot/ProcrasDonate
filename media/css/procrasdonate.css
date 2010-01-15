@@ -22,6 +22,8 @@
 
 /******** GENERAL LOOK AND FEEL *******************************************/
 
+p { text-align: left; font-size: 1.03em; }
+
 body {
 	background: #fbfbfa;			
 	color: #330000;
@@ -32,7 +34,6 @@ body {
 	text-align: center;
 }
 
-p { text-align: left; }
 ul, ol, ul li, ol li { text-align: left; }
 
 a, .link { color:#336699; text-decoration:underline; cursor: pointer; }
@@ -55,7 +56,7 @@ img { -ms-interpolation-mode:bicubic; }
 .message, .messages, #message, #messagees { }
 
 /******** GENERAL LAYOUT *******************************************/
-#top_bar { background: #E4E4E4; padding-top: .6em; text-align: left; border-bottom: 0.2em solid #dbdada }
+#top_bar { background: #E4E4E4; padding-top: .6em; text-align: left; border-bottom: 0.2em solid #dbdada; }
 #laptop_logo { width: 9em; margin-bottom: -3.2em; }
 #pd_line_cartoon { width: 37em; margin: 0 9.2em -0.473em 0; }
 #download_top_button { width: 10em; }
@@ -528,21 +529,20 @@ h4 {
 h5 {
   /*clear: both;*/
   font-family:"Trebuchet MS",Helvetica,Jamrul,sans-serif;
-  font-size: 1.38em;
-  color: #89958c;
+  font-size: 1.47em;
+  color: #828D85;
   margin: 1.5em 0em .5em -.5em;
   font-variant: small-caps;
   font-weight: bold;
-  letter-spacing: .1em;
+  letter-spacing: .08em;
   padding: 1em 0em 0em .5em;
   text-align: left;
   border-bottom: .5px solid #ccff99;
 }
 
 .what_next {
-	margin-top: 0em;
+	margin-bottom: -1em;
 	padding-top: 0em;
-	text-align: center;
 }
 
 /************ OLD REGISTER/SETTINGS FORM (some still in use for REGISTER now) ********/
@@ -636,10 +636,16 @@ td { vertical-align: middle; }
 
 .example_gauge { float: right; }
 
+/**** REGISTER SERVICES ****/
+
+#terms_of_service_box { background: white; -moz-border-radius: .4em; border: 0.2em solid #dbdada;
+	padding: 0 2em 1em 2em; }
+
+
 /**** REGISTER PAYMENTS ****/
 
 .disabled { color: #888888; }
-.split_arrow { margin-left:2em; width:24em; }
+.split_arrow { margin-left:5.31em; margin-bottom:1.8em; margin-top: .5em; width:21.5em; }
 .split_arrow_div {text-align: left; }
 
 .split_arrow_div { }

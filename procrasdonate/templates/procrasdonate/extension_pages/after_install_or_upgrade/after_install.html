@@ -6,16 +6,16 @@
 
 {% block content %}
 	<h1>Congratulations!</h1>			
-	
-	<p><a href="{% url time_well_spent_settings %}">Time Well Spent settings</a></p>
-	
+		
 	<h2>
 		<img src="{{ MEDIA_URL }}img/Laptop.png" class="right-image">
 		You have installed ProcrasDonate version {{ version }}
 	</h2>
-	<h4 class="what_next">What to do next</h4>
+	<h4 class="what_next">What to do next...</h4>
 	
 	{% include 'procrasdonate/extension_pages/after_install_or_upgrade/standard_text.html' %}
+	
+	<br>
 	
 	<h2>New in version {{ version }}</h2>
 	{{ features }}

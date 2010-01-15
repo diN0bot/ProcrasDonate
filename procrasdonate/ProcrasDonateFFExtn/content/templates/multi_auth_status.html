@@ -1,8 +1,8 @@
 
 <div id="multi_auth_status_updated">
 	{% if multi_auth.good_to_go %}
-		<p>Payments approved! Click "done" to complete registration.
-			You can update these settings later at any time.</p>
+		<p>Payments approved!
+			Click on "My Settings" in the sidebar to make changes.</p>
 	{% endif %}{% if multi_auth.error %}
 		<p>A problem occurred. Please copy/paste the error message below
 			into an email to <a href="{{ constants.EMAIL_ADDRESS }}">
