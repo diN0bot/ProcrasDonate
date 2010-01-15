@@ -14211,7 +14211,7 @@ var logger = function(msg) {
  * show output there.
  *     eg, $ /Applications/Firefox.app/Contents/MacOS/firefox > o.out
  */
-logger = function(msg, show_stack) {
+var logger = function(msg, show_stack) {
 	now = new Date();
 	dump("\n---------"+now+"---------\n" + msg + "\n");
 	try {
@@ -17670,7 +17670,7 @@ Template.register_template_class(DjangoTemplate, function(obj) {
     
     Template.compile(["<div class=\"recipient\" alt=\"", ["var", ["deep_recip_pct", "recipient", "id"], []], "\">\n\t\n\t<!-- id class needed for js -->\n\t<div class=\"recipient_id hidden\">", ["var", ["deep_recip_pct", "recipient", "id"], []], "</div>\t\n\n\t<div class=\"recipient_percent form-input\">\n\t\t<span class=\"pie_sector_color\" style=\"background: ", ["var", ["percent_color"], []], ";\"> </span>\n\t\t<span class=\"percent\">", ["var", ["deep_recip_pct", "display_percent"], []], "</span>\n\t\t<span class=\"percent_symbol\">%</span>\n\t\t<img\n\t\t\tclass=\"up_arrow\"\n\t\t\ttitle=\"Increment percent\"\n\t\t\tsrc=\"", ["var", ["constants", "MEDIA_URL"], []], "img/UpArrow.png\" />\n\t\t<img\n\t\t\tclass=\"down_arrow\"\n\t\t\ttitle=\"Decrement percent\"\n\t\t\tsrc=\"", ["var", ["constants", "MEDIA_URL"], []], "img/DownArrow.png\" />\n\t</div>\n\n\t<div class='name'>\n\t\t", ["if", [[false, ["var", ["deep_recip_pct", "recipient", "is_pd_registered"], []]]], 1, ["\n\t\t\t<a href='", ["var", ["constants", "RECIPIENTS_URL"], []], ["var", ["deep_recip_pct", "recipient", "slug"], []], "'>\n\t\t"], []], "\n\t\t\t<img src=\"", ["var", ["deep_recip_pct", "recipient", "logo_thumbnail"], []], "\" />\n\t\t\t", ["var", ["deep_recip_pct", "recipient", "name"], []], "\n\t\t", ["if", [[false, ["var", ["deep_recip_pct", "recipient", "is_pd_registered"], []]]], 1, ["\n\t\t\t</a>\n\t\t"], []], "\n\t</div>\n\t<div class='left_recipient_float'>\n\t\t<table>\n\t\t<tbody>\n\t\t\t<tr><td>\n\t\t\t\t<div class=\"category\">", ["var", ["deep_recip_pct", "recipient", "category", "category"], []], "</div>\n\t\t\t</td></tr><tr><td>\n\t\t\t\t<div class='remove_recipient' title=\"Remove recipient from list\">\n\t\t\t\t\t<img src=\"", ["var", ["constants", "MEDIA_URL"], []], "img/Remove.png\" class=\"recipient-image remove_img img_link\">\t\t\n\t\t\t\t</div>\n\t\t\t</td></tr>\n\t\t</tbody>\n\t\t</table>\n\t</div>\t\n\t<div class='mission'>\n\t\t", ["var", ["deep_recip_pct", "recipient", "mission"], []], "\n\t\t", ["if", [[false, ["var", ["deep_recip_pct", "recipient", "html_description"], []]]], 1, ["\n\t\t\t<span class='link description_toggle'>(less)</span>\n\t\t"], []], "\n\t</div>\n\t<div class='description'>\n\t\t", ["var", ["deep_recip_pct", "recipient", "html_description"], []], "\n\t</div>\n\t<div class=\"float_prop\" />\n</div>\n"], "recipient_with_percent_snippet");
     
-    Template.compile(["\n", ["if", [[false, ["var", ["substate_menu_items", "prev"], []]]], 1, ["\n\t", ["if", [[false, ["var", ["substate_menu_items", "prev", "url"], []]]], 1, ["<a href=\"", ["var", ["substate_menu_items", "prev", "url"], []], "\">"], []], "\n\t\t<img\n\t\t  class=\"prev ", ["var", ["substate_menu_items", "prev", "id"], []], "\"\n\t\t  src=\"/procrasdonate_media/img/BackArrow.png\" />\n  ", ["if", [[false, ["var", ["substate_menu_items", "prev", "url"], []]]], 1, ["</a>"], []], "\n"], ["\n\t", ["if", [[true, ["var", ["substate_menu_items", "no_spacers"], []]]], 1, ["\n\t<img\n\t  class=\"prev\"\n\t  src=\"/procrasdonate_media/img/Spacer.png\" />\n\t"], []], "\n"]], "\n\n", ["if", [[false, ["var", ["substate_menu_items", "next"], []]]], 1, ["\n\t", ["ifequal", ["var", ["substate_menu_items", "next", "value"], []], ["var", "XXX", []], ["\n\t\t<img\n\t\t  class=\"done ", ["var", ["substate_menu_items", "next", "id"], []], "\"\n\t\t  src=\"/procrasdonate_media/img/DoneButton.png\" />\n\t"], ["\n\t\t", ["ifequal", ["var", ["substate_menu_items", "next", "value"], []], ["var", "XXXX", []], ["\n\t\t\t", "\n\t\t"], ["\n\t\t\t", ["if", [[false, ["var", ["substate_menu_items", "next", "url"], []]]], 1, ["<a href=\"", ["var", ["substate_menu_items", "next", "url"], []], "\">"], []], "\n\t\t\t\t<img\n\t\t\t\t  class=\"next ", ["var", ["substate_menu_items", "next", "id"], []], "\"\n\t\t\t\t  src=\"/procrasdonate_media/img/NextArrow.png\" />\n\t\t\t", ["if", [[false, ["var", ["substate_menu_items", "next", "url"], []]]], 1, ["</a>"], []], "\n\t\t"]], "\n\t"]], "\n"], ["\n\t", ["if", [[true, ["var", ["substate_menu_items", "no_spacers"], []]]], 1, ["\n\t<img\n\t  class=\"next\"\n\t  src=\"/procrasdonate_media/img/Spacer.png\" />\n\t"], []], "\n"]], "\n\n"], "register_arrows");
+    Template.compile(["\n", ["if", [[false, ["var", ["substate_menu_items", "prev"], []]]], 1, ["\n\t", ["if", [[false, ["var", ["substate_menu_items", "prev", "url"], []]]], 1, ["<a href=\"", ["var", ["substate_menu_items", "prev", "url"], []], "\">"], []], "\n\t\t<img\n\t\t  class=\"prev ", ["var", ["substate_menu_items", "prev", "id"], []], "\"\n\t\t  src=\"/procrasdonate_media/img/BackArrow.png\" />\n  ", ["if", [[false, ["var", ["substate_menu_items", "prev", "url"], []]]], 1, ["</a>"], []], "\n"], ["\n\t", ["if", [[true, ["var", ["substate_menu_items", "no_spacers"], []]]], 1, ["\n\t<img\n\t  class=\"prev\"\n\t  src=\"/procrasdonate_media/img/Spacer.png\" />\n\t"], []], "\n"]], "\n\n", ["if", [[false, ["var", ["substate_menu_items", "next"], []]]], 1, ["\n\t", ["ifequal", ["var", ["substate_menu_items", "next", "value"], []], ["var", "XXX", []], ["\n\t\t<img\n\t\t  class=\"done ", ["var", ["substate_menu_items", "next", "id"], []], "\"\n\t\t  src=\"/procrasdonate_media/img/DoneButton.png\" />\n\t"], ["\n\t\t", ["ifequal", ["var", ["substate_menu_items", "next", "value"], []], ["var", "XXXX", []], ["\n\t\t\t", "\n\t\t"], ["\n\t\t\t", ["if", [[false, ["var", ["substate_menu_items", "next", "url"], []]]], 1, ["<a href=\"", ["var", ["substate_menu_items", "next", "url"], []], "\">"], []], "\n\t\t\t\t<img\n\t\t\t\t  class=\"next ", ["var", ["substate_menu_items", "next", "id"], []], "\"\n\t\t\t\t  src=\"/procrasdonate_media/img/NextArrow.png\" />\n\t\t\t", ["if", [[false, ["var", ["substate_menu_items", "next", "url"], []]]], 1, ["</a>"], []], "\n\t\t"]], "\n\t"]], "\n"], ["\n\t", ["if", [[true, ["var", ["substate_menu_items", "no_spacers"], []]]], 1, ["\n\t<img\n\t  class=\"next\"\n\t  src=\"/procrasdonate_media/img/Spacer.png\" />\n\t"], []], "\n"]], "\n\n<div class=\"arrow_errors errors\"></div>\n"], "register_arrows");
     
     Template.compile([["var", ["substate_menu"], []], "\n", ["var", ["arrows"], []], "\n\n<h5>Who should benefit from your charitable incentive?</h5>\n<p>Find and select organizations below.  \nModify each's percentage (%) until you like how your pledges will be divided.  \n</p>\n\n<div id=\"errors\"></div>\n\n<h2>My Selected Charities</h2>\n\n<div id=\"pie_chart\"></div>\n\n<div id=\"chosen_charities\">\n\t", ["if", [[false, ["var", ["chosen_charities"], []]]], 1, ["\n\t\t", ["for", ["deep_recip_pct_html"], ["var", ["chosen_charities"], []], false, ["\n\t\t\t", ["var", ["deep_recip_pct_html"], []], "\n\t\t"]], "\n\t"], ["\n\t\t<p>Please add at least one charity.</p>\n\t"]], "\n</div>\n\n", ["nop"], "\n\n<h2>Invite New Charities</h2>\n<p>You can pledge to an unlisted charity by entering their name below.\n\tWe will contact them and when they make a free account then your pledges will become donations.\n</p>\n\t\t\n<p>\n\t<label>Name of unlisted charity to invite:</label>\n\t<input id=\"new_recipient_name\" type=\"text\" size=\"30\" />\n\n\t<input\n\t\tid=\"new_recipient_submit\"\n\t\ttype=\"image\"\n\t\tsrc=\"", ["var", ["constants", "MEDIA_URL"], []], "img/AddRecipient.png\"\n\t\tvalue=\"add new recipient\"/>\n</p>\n\n", ["if", [[false, ["var", ["staff_picks"], []]]], 1, ["\n<h2>Staff Picks</h2>\n\t", ["for", ["recipient_html"], ["var", ["staff_picks"], []], false, ["\n\t\t", ["var", ["recipient_html"], []], "\n\t"]], "\n"], []], "\n\n", ["if", [[false, ["var", ["recently_added"], []]]], 1, ["\n<h2>Recently Added</h2>\n\t", ["for", ["recipient_html"], ["var", ["recently_added"], []], false, ["\n\t\t", ["var", ["recipient_html"], []], "\n\t"]], "\n"], []], "\n\n<div id=\"removed_charities_temporary\"></div>\n\t\n", ["nop"], "\n\n", ["var", ["arrows"], []], "\n"], "register_charities_middle");
     
@@ -17688,7 +17688,7 @@ Template.register_template_class(DjangoTemplate, function(obj) {
     
     Template.compile(["<p>Use the following link to return a user to the settings page.</p>\n\n<a href=\"", ["var", ["constants", "SETTINGS_URL"], []], "\">Done (or back to settings)</a>\n\n<a href=\"", ["var", ["constants", "SETTINGS_URL"], []], "\">\n\t<img src=\"", ["var", ["constants", "MEDIA_URL"], []], "img/DoneButton.png\" />\n</a>\n\n<br /><br />\n\n<img\n\tclass=\"done ", ["var", ["substate_menu_items", "next", "id"], []], "\"\n\tsrc=\"/procrasdonate_media/img/DoneButton.png\" />\n\t\n<h1>Time Well Spent</h1>\n\n<h2>Incentive: \n\t<span class=\"subheader\">What is your time worth? </span></h2>\n<p id=\"rate_error\" class=\"error\"></p>\n\n<p>Create an incentive for good time management \n\tby making a pledge to your favorite charities.  \n\t<br>This is a pledge to \n\tautomatically donate for every hour you spend TimeWellSpent online.\n</p>\n<p><input\n\ttype=\"text\"\n\tid=\"tws_dollars_per_hr\"\n\tname=\"tws_dollars_per_hr\" \n\tvalue=\"", ["var", ["tws_dollars_per_hr"], []], "\" />\n   <span class=\"units\">dollars per hour</span></p>\n\n<h2>TimeWellSpent Limit: \n\t<span class=\"subheader\">What is your weekly limit? </span></h2>\n<p id=\"max_error\" class=\"error\"></p>\n<p>What is the most number hours in a week that you want to keep track of?  \n\t<br>No further pledges can be made in a week where you have \n\talready reached your limit.</p>\n<p><input\n\ttype=\"text\"\n\tid=\"tws_hr_per_week_max\"\n\tname=\"tws_hr_per_week_max\" \n\tvalue=\"", ["var", ["tws_hr_per_week_max"], []], "\" />\n   <span class=\"units\">hours per week</span></p>\n\n<img\n\tclass=\"done ", ["var", ["substate_menu_items", "next", "id"], []], "\"\n\tsrc=\"/procrasdonate_media/img/DoneButton.png\" />\n"], "register_time_well_spent_middle");
     
-    Template.compile([["var", ["substate_menu"], []], "\n", ["var", ["arrows"], []], "\n\n<p id=\"error\"></p>\n\n<h5>Where would you like to receive weekly feedback and alerts?</h5>\n\n<ul><li>We do not share your email; not even with organizations that you donate to.</li\t\n</ul>   \n\n<p><label>Email </label><input\n\ttype=\"text\"\n\tid=\"email\"\n\tname=\"email\" \n\tvalue=\"", ["var", ["email"], []], "\" />\n</p>\n\n<h5>Do you deduct charitable donations from your taxes?</h5>\n<p></p>\n<div class=\"split_arrow_div\" class=\"left\">\n\t<img class=\"split_arrow\" src=\"", ["var", ["constants", "MEDIA_URL"], []], "img/SplitArrows.png\" />\n</div>\n\n\n<div id=\"tax_deductions_middle\">\n</div>\n\n<h2>Terms of service</h2>\n<p><input\n\ttype=\"checkbox\"\n\tid=\"tos\"\n\tname=\"tos\"\n\t", ["if", [[false, ["var", ["tos"], []]]], 1, ["checked"], []], " />\n   <span>I have read and agree to the following Terms of Service.</span>\n   </p>\n\nBy using our service you agree to the following:\n\n<p>- You agree to these terms and any updates that ProcrasDonate may make \n\twithout warning or notification.\n</p>\n<p>- You understand how our service works and are willingly participating.\n</p>\n<p>- You agree to pay all pledges made on your behalf in full.\n</p>\n<p>- Voluntary monthly fees and a percentage that you determine of each transaction will be\n\tpaid to ProcrasDonate.\n</p>\n<p>- You are solely responsible for any content that you add to this site. \n</p>\n<p>- Illegal, unfriendly, or otherwise problematic content will be removed.\n</p>\n<p>- Your individual records and settings are under your control.  \nAlthough our central server will collect your records to approve payments \nand collect community statistics - a reasonable effort will be made to keep\nyour browsing history and other records anonymous.\n</p>\n<p>- All rights are reserved including ProcrasDonate intellectual property of\n\tour business model and any software beyond the open source software \n\tthat we are using.\n</p>\n<p> Thanks for ProcrasDonating!\n</p>\n\n", ["var", ["arrows"], []], "\n"], "register_updates_middle");
+    Template.compile([["var", ["substate_menu"], []], "\n", ["var", ["arrows"], []], "\n\n<h5>Where would you like to receive weekly feedback and alerts?</h5>\n\n<ul><li>We do not share your email; not even with organizations that you donate to.</li\t\n</ul>   \n\n<p><label>Email </label><input\n\ttype=\"text\"\n\tid=\"email\"\n\tname=\"email\" \n\tvalue=\"", ["var", ["email"], []], "\" />\n</p>\n\n<h5>Do you deduct charitable donations from your taxes?</h5>\n<p></p>\n<div class=\"split_arrow_div\" class=\"left\">\n\t<img class=\"split_arrow\" src=\"", ["var", ["constants", "MEDIA_URL"], []], "img/SplitArrows.png\" />\n</div>\n\n\n<div id=\"tax_deductions_middle\">\n</div>\n\n<h2>Terms of service</h2>\n<p><input\n\ttype=\"checkbox\"\n\tid=\"tos\"\n\tname=\"tos\"\n\t", ["if", [[false, ["var", ["tos"], []]]], 1, ["checked"], []], " />\n   <span>I have read and agree to the following Terms of Service.</span>\n   </p>\n\nBy using our service you agree to the following:\n\n<p>- You agree to these terms and any updates that ProcrasDonate may make \n\twithout warning or notification.\n</p>\n<p>- You understand how our service works and are willingly participating.\n</p>\n<p>- You agree to pay all pledges made on your behalf in full.\n</p>\n<p>- Voluntary monthly fees and a percentage that you determine of each transaction will be\n\tpaid to ProcrasDonate.\n</p>\n<p>- You are solely responsible for any content that you add to this site. \n</p>\n<p>- Illegal, unfriendly, or otherwise problematic content will be removed.\n</p>\n<p>- Your individual records and settings are under your control.  \nAlthough our central server will collect your records to approve payments \nand collect community statistics - a reasonable effort will be made to keep\nyour browsing history and other records anonymous.\n</p>\n<p>- All rights are reserved including ProcrasDonate intellectual property of\n\tour business model and any software beyond the open source software \n\tthat we are using.\n</p>\n<p> Thanks for ProcrasDonating!\n</p>\n\n", ["var", ["arrows"], []], "\n"], "register_updates_middle");
     
     Template.compile(["<ul>\n\t<li>partially paid: ", ["var", ["rp", "is_partially_paid"], []], "</li>\n\t<li>pending: ", ["var", ["rp", "is_pending"], []], "</li>\n\t<li>TOTAL:\n\t\t<ul>\n\t\t\t<li>site: ", ["var", ["rp", "total", "site", "url"], []], "</li>\n\t\t\t<li>sitegroup: ", ["var", ["rp", "total", "sitegroup", "host"], []], ", ", ["var", ["rp", "total", "sitegroup", "tag", "tag"], []], "</li>\n\t\t\t<li>recipient: ", ["var", ["rp", "total", "recipient", "name"], []], "</li>\n\t\t\t<li>tag: ", ["var", ["rp", "total", "tag", "tag"], []], "</li>\n\t\t\t<li>total_time: ", ["var", ["rp", "total", "total_time"], []], " secs, ", ["var", ["rp", "total", "hours"], []], " hours</li>\n\t\t\t<li>total_amount: ", ["var", ["rp", "total", "total_amount"], []], " cents, $", ["var", ["rp", "total", "dollars"], []], "</li>\n\t\t\t<li>timetype: ", ["var", ["rp", "total", "timetype", "timetype"], []], "</li>\n\t\t\t<li>datetime: ", ["var", ["rp", "total", "friendly_datetime"], []], "</li>\n\t\t</ul>\n\t</li>\n</ul>\n"], "requires_payment");
     
@@ -24556,18 +24556,18 @@ _extend(PageController.prototype, {
 	process_register_charities: function(request) {
 		var self = this;
 		var ret = true;
-		request.jQuery("#errors").html("");
+		request.jQuery("#errors, .arrow_errors").html("");
 		
 		request.jQuery(".recipient_percent input").each( function() {
 			var percent = request.jQuery(this).attr("value");
 			try {
 				percent = parseFloat(percent) / 100.0;
 				if (percent <= 0 || percent > 1.0) {
-					request.jQuery("#errors").append("<p>Please enter a percent greater than 0 and at most 100</p>");
+					request.jQuery("#errors, .arrow_errors").append("<p>Please enter a percent greater than 0 and at most 100</p>");
 					ret = false;
 				}
 			} catch(e) {
-				request.jQuery("#errors").append("<p>Please enter a number, such as 5.24 for 5.24%</p>");
+				request.jQuery("#errors, .arrow_errors").append("<p>Please enter a number, such as 5.24 for 5.24%</p>");
 				ret = false;
 			}
 			var recipient_id = request.jQuery(this).parent().siblings(".recipient_id").text();
@@ -24577,7 +24577,7 @@ _extend(PageController.prototype, {
 		});
 		if (self.pddb.RecipientPercent.count() == 0) {
 			ret = false
-			request.jQuery("#errors").append("<p>Please add at least one recipient</p>");
+			request.jQuery("#errors, .arrow_errors").append("<p>Please add at least one recipient</p>");
 		}
 		return ret;
 	},
@@ -24618,15 +24618,15 @@ _extend(PageController.prototype, {
 		//var tws_hr_per_week_goal = request.jQuery("input[name='tws_hr_per_week_goal']").attr("value");
 		var tws_hr_per_week_max = request.jQuery("input[name='tws_hr_per_week_max']").attr("value");
 
-		request.jQuery("#errors").text("");
+		request.jQuery("#errors, .arrow_errors").text("");
 		if ( !this.validate_dollars_input(tws_dollars_per_hr) ) {
-			request.jQuery("#errors").append("<p>Please enter a valid dollar amount. For example, to donate $2.34 per hour, please enter 2.34</p>");
+			request.jQuery("#errors, .arrow_errors").append("<p>Please enter a valid dollar amount. For example, to donate $2.34 per hour, please enter 2.34</p>");
 			
 		//} else if ( !this.validate_hours_input(tws_hr_per_week_goal) ) {
 		//	request.jQuery("#errors").append("<p>Please enter number of hours. For example, to strive for 8 hrs and 15 minutes, please enter 1.25</p>");
 			
 		} else if ( !this.validate_hours_input(tws_hr_per_week_max) ) {
-			request.jQuery("#errors").append("<p>Please enter number of hours. For example, enter 30 minutes as .5</p>");
+			request.jQuery("#errors, .arrow_errors").append("<p>Please enter number of hours. For example, enter 30 minutes as .5</p>");
 			
 		} else {
 			this.prefs.set('tws_dollars_per_hr', this.clean_dollars_input(tws_dollars_per_hr));
@@ -24716,15 +24716,15 @@ _extend(PageController.prototype, {
 		var support_pct = request.jQuery("input[name='support_pct']").attr("value");
 		var monthly_fee = request.jQuery("input[name='monthly_fee']").attr("value");
 
-		request.jQuery(".error").text("");
+		request.jQuery(".error, .arrow_errors").text("");
 		if ( !this.validate_positive_float_input(support_pct) ) {
-			request.jQuery("#support_error").append("<p>Please enter a valid percent. For example, 6.75 for 6.75%</p>");
+			request.jQuery("#support_error, .arrow_errors").append("<p>Please enter a valid percent. For example, 6.75 for 6.75%</p>");
 			
 		} else if ( !this.validate_dollars_input(monthly_fee) ) {
-			request.jQuery("#monthly_error").append("<p>Please enter a valid amount. For example, 4.99 for $4.99</p>");
+			request.jQuery("#monthly_error, .arrow_errors").append("<p>Please enter a valid amount. For example, 4.99 for $4.99</p>");
 			
 		} else if ( parseFloat(support_pct) > 10.0 ) {
-			request.jQuery("#support_error").append("<p>We cannot accept more than 10%. Please enter a lower percent. For example, 10 for 10%.</p>");
+			request.jQuery("#support_error, .arrow_errors").append("<p>We cannot accept more than 10%. Please enter a lower percent. For example, 10 for 10%.</p>");
 		} else {
 			this.prefs.set('support_pct', this.clean_percent_input(support_pct));
 			this.prefs.set('monthly_fee', this.clean_dollars_input(monthly_fee));
@@ -24838,7 +24838,7 @@ _extend(PageController.prototype, {
 	},
 	
 	process_register_updates: function(request) {
-		request.jQuery("#error").text("");
+		request.jQuery("#error, .arrow_errors").text("");
 		var ret = true;
 		
 		var old_email = this.prefs.set('email', constants.DEFAULT_EMAIL);
@@ -24856,7 +24856,7 @@ _extend(PageController.prototype, {
 		this.prefs.set('tos', _dbify_bool(tos));
 		
 		if (!tos) {
-			request.jQuery("#error").text("To use our service you must agree to the terms of service by checking the Terms of Service checkbox below");
+			request.jQuery("#error, .arrow_errors").text("To use our service you must agree to the terms of service by checking the Terms of Service checkbox");
 			ret = false;
 		}
 		
@@ -24870,7 +24870,7 @@ _extend(PageController.prototype, {
 			_iterate(address_field_names, function(key, value, index) {
 				var value = request.jQuery("input[name="+value+"]").attr("value");
 				if (!value) {
-					request.jQuery("#error").text("To be eligible for tax deductions, you must provide your mailing address.");
+					request.jQuery("#error, .arrow_errors").text("To be eligible for tax deductions, you must provide your mailing address.");
 					ret = false;
 				}
 			});
@@ -24980,16 +24980,16 @@ _extend(PageController.prototype, {
 		// Receive updates from server
 		this.pd_api.request_data_updates(
 			function() {
-				logger("SERVER SAYS YAY");
+				//logger("SERVER SAYS YAY");
 				// after success
 				var multi_auth = self.pddb.FPSMultiuseAuthorization.get_latest_success()
-				logger("multi auth="+multi_auth);
+				//logger("multi auth="+multi_auth);
 				if (!multi_auth) {
 					multi_auth = self.pddb.FPSMultiuseAuthorization.most_recent();
-					logger("B multi auth="+multi_auth);
+					//logger("B multi auth="+multi_auth);
 				}
 				if (multi_auth.good_to_go()) {
-					logger("C multi auth="+multi_auth);
+					//logger("C multi auth="+multi_auth);
 					self.insert_register_done(request);
 					return
 				}
@@ -25047,7 +25047,7 @@ _extend(PageController.prototype, {
 		
 		request.jQuery("#support_pct").keyup(function() {
 			var support_pct = request.jQuery(this).attr("value");
-			request.jQuery(".error").text("");
+			request.jQuery(".error, .arrow_errors").text("");
 			
 			if ( !self.validate_positive_float_input(support_pct) ) {
 				request.jQuery("#support_error").append("<p>Please enter a valid percent. For example, 6.75 for 6.75%</p>");
@@ -25163,13 +25163,13 @@ _extend(PageController.prototype, {
 		var self = this;
 
 		request.jQuery("input").keyup(function() {
-			request.jQuery(this).siblings(".error").text("");
+			request.jQuery(this).siblings(".error, .arrow_errors").text("");
 			var name = request.jQuery(this).attr("name");
 			var value = request.jQuery.trim(request.jQuery(this).attr("value"));
 			if (!value) { value = "0"; }
 			
 			if ( !self.validate_hours_input(value) ) {
-				request.jQuery(this).siblings(".error").text("Please enter a number");
+				request.jQuery(this).siblings(".error, .arrow_errors").text("Please enter a number");
 			} else {
 				self.prefs.set(name, _prefify_float(value));
 			}
@@ -27174,6 +27174,7 @@ _extend(InitListener.prototype, {
 	 *  . remove init ('load') listener
 	 */
 	init: function(event) {
+		fuck up
 		logger("init");
 		var self = this;
 

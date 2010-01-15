@@ -2348,6 +2348,10 @@ _extend(PageController.prototype, {
 				}));
 		var arrows = Template.get("register_arrows").render(
 				new Context({ substate_menu_items: substate_menu_items }));
+
+		var pd_dollars_per_hr = self.retrieve_float_for_display('pd_dollars_per_hr', constants.DEFAULT_PD_DOLLARS_PER_HR);
+		var pd_hr_per_week_max = self.retrieve_float_for_display('pd_hr_per_week_max', constants.DEFAULT_PD_HR_PER_WEEK_MAX);
+		var pd_dollars_per_week_max = (pd_dollars_per_hr * pd_hr_per_week_max).toFixed(2);
 		
 		var middle = Template.get("register_incentive_middle").render(
 			new Context({
@@ -2355,9 +2359,10 @@ _extend(PageController.prototype, {
 				substate_menu: substate_menu,
 				arrows: arrows,
 				constants: constants,
-				pd_dollars_per_hr: self.retrieve_float_for_display('pd_dollars_per_hr', constants.DEFAULT_PD_DOLLARS_PER_HR),
+				pd_dollars_per_hr: pd_dollars_per_hr,
 				pd_hr_per_week_goal: self.retrieve_float_for_display('pd_hr_per_week_goal', constants.DEFAULT_PD_HR_PER_WEEK_GOAL),
-				pd_hr_per_week_max: self.retrieve_float_for_display('pd_hr_per_week_max', constants.DEFAULT_PD_HR_PER_WEEK_MAX),
+				pd_hr_per_week_max: pd_hr_per_week_max,
+				pd_dollars_per_week_max: pd_dollars_per_week_max
 			})
 		);
 		request.jQuery("#content").html( middle );
@@ -2386,6 +2391,7 @@ _extend(PageController.prototype, {
 			}
 		});
 		
+		// this input no longer used in favor of pd_dollars_per_week_max
 		request.jQuery("input[name='pd_hr_per_week_max']").keyup(function() {
 			request.jQuery("#max_error").text("");
 			var value = request.jQuery.trim(request.jQuery(this).attr("value"));
@@ -2395,6 +2401,21 @@ _extend(PageController.prototype, {
 				request.jQuery("#max_error").text("Please enter number of hours. For example, enter 30 minutes as .5");
 			} else {
 				self.prefs.set('pd_hr_per_week_max', self.clean_hours_input(value));
+				self.insert_example_gauges(request);
+			}
+		});
+		
+		request.jQuery("input[name='pd_dollars_per_week_max']").keyup(function() {
+			request.jQuery("#max_error").text("");
+			var value = request.jQuery.trim(request.jQuery(this).attr("value"));
+			if (!value) { return; }
+			
+			if ( !self.validate_dollars_input(value) ) {
+				request.jQuery("#max_error").text("Please enter the maximum dollar amount you would spend each week.");
+			} else {
+				var d_per_wk = _un_prefify_float( self.clean_dollars_input(value) );
+				var d_per_hr = _un_prefify_float('pd_dollars_per_hr', constants.DEFAULT_PD_DOLLARS_PER_HR);
+				self.prefs.set('pd_hr_per_week_max', _prefify_float( d_per_wk / d_per_hr ));
 				self.insert_example_gauges(request);
 			}
 		});
@@ -2916,18 +2937,18 @@ _extend(PageController.prototype, {
 	process_register_charities: function(request) {
 		var self = this;
 		var ret = true;
-		request.jQuery("#errors").html("");
+		request.jQuery("#errors, .arrow_errors").html("");
 		
 		request.jQuery(".recipient_percent input").each( function() {
 			var percent = request.jQuery(this).attr("value");
 			try {
 				percent = parseFloat(percent) / 100.0;
 				if (percent <= 0 || percent > 1.0) {
-					request.jQuery("#errors").append("<p>Please enter a percent greater than 0 and at most 100</p>");
+					request.jQuery("#errors, .arrow_errors").append("<p>Please enter a percent greater than 0 and at most 100</p>");
 					ret = false;
 				}
 			} catch(e) {
-				request.jQuery("#errors").append("<p>Please enter a number, such as 5.24 for 5.24%</p>");
+				request.jQuery("#errors, .arrow_errors").append("<p>Please enter a number, such as 5.24 for 5.24%</p>");
 				ret = false;
 			}
 			var recipient_id = request.jQuery(this).parent().siblings(".recipient_id").text();
@@ -2937,7 +2958,7 @@ _extend(PageController.prototype, {
 		});
 		if (self.pddb.RecipientPercent.count() == 0) {
 			ret = false
-			request.jQuery("#errors").append("<p>Please add at least one recipient</p>");
+			request.jQuery("#errors, .arrow_errors").append("<p>Please add at least one recipient</p>");
 		}
 		return ret;
 	},
@@ -2978,15 +2999,15 @@ _extend(PageController.prototype, {
 		//var tws_hr_per_week_goal = request.jQuery("input[name='tws_hr_per_week_goal']").attr("value");
 		var tws_hr_per_week_max = request.jQuery("input[name='tws_hr_per_week_max']").attr("value");
 
-		request.jQuery("#errors").text("");
+		request.jQuery("#errors, .arrow_errors").text("");
 		if ( !this.validate_dollars_input(tws_dollars_per_hr) ) {
-			request.jQuery("#errors").append("<p>Please enter a valid dollar amount. For example, to donate $2.34 per hour, please enter 2.34</p>");
+			request.jQuery("#errors, .arrow_errors").append("<p>Please enter a valid dollar amount. For example, to donate $2.34 per hour, please enter 2.34</p>");
 			
 		//} else if ( !this.validate_hours_input(tws_hr_per_week_goal) ) {
 		//	request.jQuery("#errors").append("<p>Please enter number of hours. For example, to strive for 8 hrs and 15 minutes, please enter 1.25</p>");
 			
 		} else if ( !this.validate_hours_input(tws_hr_per_week_max) ) {
-			request.jQuery("#errors").append("<p>Please enter number of hours. For example, enter 30 minutes as .5</p>");
+			request.jQuery("#errors, .arrow_errors").append("<p>Please enter number of hours. For example, enter 30 minutes as .5</p>");
 			
 		} else {
 			this.prefs.set('tws_dollars_per_hr', this.clean_dollars_input(tws_dollars_per_hr));
@@ -3076,15 +3097,15 @@ _extend(PageController.prototype, {
 		var support_pct = request.jQuery("input[name='support_pct']").attr("value");
 		var monthly_fee = request.jQuery("input[name='monthly_fee']").attr("value");
 
-		request.jQuery(".error").text("");
+		request.jQuery(".error, .arrow_errors").text("");
 		if ( !this.validate_positive_float_input(support_pct) ) {
-			request.jQuery("#support_error").append("<p>Please enter a valid percent. For example, 6.75 for 6.75%</p>");
+			request.jQuery("#support_error, .arrow_errors").append("<p>Please enter a valid percent. For example, 6.75 for 6.75%</p>");
 			
 		} else if ( !this.validate_dollars_input(monthly_fee) ) {
-			request.jQuery("#monthly_error").append("<p>Please enter a valid amount. For example, 4.99 for $4.99</p>");
+			request.jQuery("#monthly_error, .arrow_errors").append("<p>Please enter a valid amount. For example, 4.99 for $4.99</p>");
 			
 		} else if ( parseFloat(support_pct) > 10.0 ) {
-			request.jQuery("#support_error").append("<p>We cannot accept more than 10%. Please enter a lower percent. For example, 10 for 10%.</p>");
+			request.jQuery("#support_error, .arrow_errors").append("<p>We cannot accept more than 10%. Please enter a lower percent. For example, 10 for 10%.</p>");
 		} else {
 			this.prefs.set('support_pct', this.clean_percent_input(support_pct));
 			this.prefs.set('monthly_fee', this.clean_dollars_input(monthly_fee));
@@ -3198,7 +3219,7 @@ _extend(PageController.prototype, {
 	},
 	
 	process_register_updates: function(request) {
-		request.jQuery("#error").text("");
+		request.jQuery("#error, .arrow_errors").text("");
 		var ret = true;
 		
 		var old_email = this.prefs.set('email', constants.DEFAULT_EMAIL);
@@ -3216,7 +3237,7 @@ _extend(PageController.prototype, {
 		this.prefs.set('tos', _dbify_bool(tos));
 		
 		if (!tos) {
-			request.jQuery("#error").text("To use our service you must agree to the terms of service by checking the Terms of Service checkbox below");
+			request.jQuery("#error, .arrow_errors").text("To use our service you must agree to the terms of service by checking the Terms of Service checkbox");
 			ret = false;
 		}
 		
@@ -3230,7 +3251,7 @@ _extend(PageController.prototype, {
 			_iterate(address_field_names, function(key, value, index) {
 				var value = request.jQuery("input[name="+value+"]").attr("value");
 				if (!value) {
-					request.jQuery("#error").text("To be eligible for tax deductions, you must provide your mailing address.");
+					request.jQuery("#error, .arrow_errors").text("To be eligible for tax deductions, you must provide your mailing address.");
 					ret = false;
 				}
 			});
@@ -3340,16 +3361,16 @@ _extend(PageController.prototype, {
 		// Receive updates from server
 		this.pd_api.request_data_updates(
 			function() {
-				logger("SERVER SAYS YAY");
+				//logger("SERVER SAYS YAY");
 				// after success
 				var multi_auth = self.pddb.FPSMultiuseAuthorization.get_latest_success()
-				logger("multi auth="+multi_auth);
+				//logger("multi auth="+multi_auth);
 				if (!multi_auth) {
 					multi_auth = self.pddb.FPSMultiuseAuthorization.most_recent();
-					logger("B multi auth="+multi_auth);
+					//logger("B multi auth="+multi_auth);
 				}
 				if (multi_auth.good_to_go()) {
-					logger("C multi auth="+multi_auth);
+					//logger("C multi auth="+multi_auth);
 					self.insert_register_done(request);
 					return
 				}
@@ -3407,7 +3428,7 @@ _extend(PageController.prototype, {
 		
 		request.jQuery("#support_pct").keyup(function() {
 			var support_pct = request.jQuery(this).attr("value");
-			request.jQuery(".error").text("");
+			request.jQuery(".error, .arrow_errors").text("");
 			
 			if ( !self.validate_positive_float_input(support_pct) ) {
 				request.jQuery("#support_error").append("<p>Please enter a valid percent. For example, 6.75 for 6.75%</p>");
@@ -3523,13 +3544,13 @@ _extend(PageController.prototype, {
 		var self = this;
 
 		request.jQuery("input").keyup(function() {
-			request.jQuery(this).siblings(".error").text("");
+			request.jQuery(this).siblings(".error, .arrow_errors").text("");
 			var name = request.jQuery(this).attr("name");
 			var value = request.jQuery.trim(request.jQuery(this).attr("value"));
 			if (!value) { value = "0"; }
 			
 			if ( !self.validate_hours_input(value) ) {
-				request.jQuery(this).siblings(".error").text("Please enter a number");
+				request.jQuery(this).siblings(".error, .arrow_errors").text("Please enter a number");
 			} else {
 				self.prefs.set(name, _prefify_float(value));
 			}

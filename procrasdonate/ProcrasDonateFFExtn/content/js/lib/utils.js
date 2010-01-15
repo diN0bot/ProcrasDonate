@@ -64,7 +64,7 @@ var logger = function(msg) {
  * show output there.
  *     eg, $ /Applications/Firefox.app/Contents/MacOS/firefox > o.out
  */
-logger = function(msg, show_stack) {
+var logger = function(msg, show_stack) {
 	now = new Date();
 	dump("\n---------"+now+"---------\n" + msg + "\n");
 	try {
