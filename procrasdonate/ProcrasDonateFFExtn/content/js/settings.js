@@ -189,24 +189,24 @@ var constants = {};
 		'incentive', 
 		'charities', 
 		'updates', 
-		'payments',
-		'time_well_spent'
+		'payments'/*,
+		'time_well_spent'*/
 	];
 	constants.REGISTER_STATE_TAB_NAMES = [
-		'Incentive', 'Charities', 'Services', 'Payments', 'XXXX']; // XXXX won't show done arrow, XXX will
+		'Incentive', 'Charities', 'Services', 'Payments'/*, 'XXXX'*/]; // XXXX won't show done arrow, XXX will
 	constants.REGISTER_STATE_INSERTS = [
 		"insert_register_incentive", 
 		"insert_register_charities", 
 		"insert_register_updates",
-		"insert_register_payments",
-		"insert_register_time_well_spent",
+		"insert_register_payments"/*,
+		"insert_register_time_well_spent",*/
 	];
 	constants.REGISTER_STATE_PROCESSORS = [
 		"process_register_incentive", 
 		"process_register_charities",  
 		"process_register_updates",
-		"process_register_payments",
-		"process_register_time_well_spent"
+		"process_register_payments"/*,
+		"process_register_time_well_spent"*/
 	];
 	
 	constants.DEFAULT_HASH = "nohash";

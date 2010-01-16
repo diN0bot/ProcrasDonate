@@ -23,7 +23,7 @@ alias generate_js='python ${REPO}procrasdonate/ProcrasDonateFFExtn/content/bin/s
 alias everything='rebuild; generate_js; xpi_it'
 
 ## does production things
-alias pd_live='everything; chown -hR www-data:www-data ${REPO}; /etc/init.d/apache2 force-reload'
+alias pd_live='everything; ./manage.py migrate; chown -hR www-data:www-data ${REPO}; /etc/init.d/apache2 force-reload'
 
 ##### SOUTH DATABASE SCHEMA AND DATA MIGRATIONS
 

@@ -113,7 +113,7 @@ class SiteGroup(models.Model):
     """
     Domain-based group of Sites
     """
-    host = models.CharField(max_length=400)
+    host = models.CharField(max_length=400, db_index=True)
     ##protocol = models.CharField(max_length=20)
     # describes valid urls
     url_re = models.CharField(max_length=256, null=True, blank=True)

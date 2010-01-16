@@ -638,6 +638,16 @@ td { vertical-align: middle; }
 /**** REGISTER INCENTIVES ****/
 
 .example_gauge { float: right; }
+/*
+#report_list .weekly { background: #daf4d0;}
+#report_list .welcome { background: #d4d0f4;}
+#report_list .thankyou { background: #f4d0d8;}
+#report_list .newsletter { background: #f4f3d0;}
+#report_list .somethingelse { background: #e9d0f4;}
+*/
+.weekly_goal_color { padding: .1em .3em; color: black; background: #daf4d0; }
+.weekly_limit_color { padding: .1em .3em; color: black; background: #d4d0f4; }
+.hourly_rate_color { padding: .1em .3em; color: black; background: #f4f3d0; }
 
 /**** REGISTER SERVICES ****/
 
@@ -845,6 +855,13 @@ form input[type=submit] { margin-top: 1em; font-size: 1.3em; }
 /**** DEV TEST SUITE *****/
 /* otherwise whole line is a link */
 #manual_test_suite p { width: 10%;}
+
+/******** VISUAL DEBUG - TEST MESSAGES ******************/
+
+.test_message .fail { background: #f4f3d0; }
+.test_message .pass {}
+.test_message .message { background: #dddddd; }
+.test_message .subject { background: #f7edb4; }
 
 
 /******** JQUERY UI ******************/
