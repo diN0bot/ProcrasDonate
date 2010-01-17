@@ -30,6 +30,8 @@ from ext import feedparser
 def recipient_splash(request, slug=None):
     big_video = "%sswf/LaptopIntro.swf" % settings.MEDIA_URL
     blog_posts = feedparser.parse("http://procrastinateless.wordpress.com/feed/")
+    cwallardo_tweets = feedparser.parse("http://twitter.com/statuses/user_timeline/18369704.rss")
+    procrasdonate_tweets = feedparser.parse("http://twitter.com/statuses/user_timeline/30937077.rss")
     pd = Recipient.get_or_none(slug="PD")
     bilumi = Recipient.get_or_none(slug="bilumi")
     charities = Recipient.objects.filter(is_visible=True)
