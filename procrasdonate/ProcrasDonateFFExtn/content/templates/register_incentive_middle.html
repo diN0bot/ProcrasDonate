@@ -6,14 +6,15 @@
 <p id="rate_error" class="error"></p>
 
 <p> ''I will donate
-	<input
+	<b>$</b><input
 		type="text"
+		class="hourly_rate_color"
 		id="pd_dollars_per_hr"
 		name="pd_dollars_per_hr" 
 		value="{{ pd_dollars_per_hr }}"
 		size="4" />
 	   <span class="units"></span>
-  	dollars for every hour I spend on websites I mark as ProcrasDonate.''</p>
+  	for every hour I spend on websites I mark as ProcrasDonate.''</p>
    
 
 <h5>How many hours do you <i>want</i> to spend ProcrasDonating?
@@ -29,26 +30,29 @@
 <p>''I will strive to ProcrasDonate only
 	<input
 		type="text"
+		class="weekly_goal_color"
 		id="pd_hr_per_week_goal"
 		name="pd_hr_per_week_goal" 
 		value="{{ pd_hr_per_week_goal }}" 
 		size="4"/>
 	   <span class="units"></span>
-	hours per week. This goal sets the green area on my procrastination meter and is used for weekly feedback messages.''</p>
+	<b>hours</b> per week. This goal sets the green area on my procrastination meter and is used for weekly feedback messages.''</p>
 
 
 <h5>What is your weekly limit?
 	<span class="subheader"></span></h5>
 <p id="max_error" class="error"></p>
 <p>''Limit my total PD donations to
-	<input
+	<b>$</b><input
 		type="text"
-		id="pd_hr_per_week_max"
-		name="pd_hr_per_week_max" 
-		value="{{ pd_hr_per_week_max }}"
+		class="weekly_limit_color"
+		id="pd_dollars_per_week_max"
+		name="pd_dollars_per_week_max" 
+		value="{{ pd_dollars_per_week_max }}"
 		size="4" />
 	   <span class="units"></span>
-	   dollars per week.  
-	   My procrastination meter will display up to <span></span> hours.''</p>
+	   per week.  
+	   My procrastination meter will display up to <span id='pd_hr_per_week_max_span'>
+	   {{ pd_hr_per_week_max }}</span> <b>hours</b>.''</p>
 
 {{ arrows }}

@@ -113,7 +113,7 @@ class SiteGroup(models.Model):
     """
     Domain-based group of Sites
     """
-    host = models.CharField(max_length=400)
+    host = models.CharField(max_length=400, db_index=True)
     ##protocol = models.CharField(max_length=20)
     # describes valid urls
     url_re = models.CharField(max_length=256, null=True, blank=True)
@@ -245,11 +245,17 @@ class Recipient(models.Model):
     country = models.CharField(max_length=100, blank=True, null=True, default='USA')
     
     logo = models.ImageField(upload_to=get_image_path, blank=True, null=True)
+    # set to True in pre_save when new logo is saved
+    # set to False in post_save
+    do_scale_logo = models.BooleanField(default=False)
     
+    # saved all as png
+    # maximum size on disk of logo (largest dimension is max)
     SCALED_MAX_HEIGHT = 300
     SCALED_MAX_WIDTH = 300
-    THUMBNAIL_MAX_HEIGHT = 50
-    THUMBNAIL_MAX_WIDTH = 50
+    # maximum size on disk of thumbnail (largest dimension is max)
+    THUMBNAIL_MAX_HEIGHT = 120
+    THUMBNAIL_MAX_WIDTH = 120
     
     promotional_video = models.URLField(blank=True, null=True, help_text="A good way to attract new donors is to have your organization's video rotating through the ProcrasDonate website.  Copy the <b>full</b> website address of the Youtube video that best represents your organization and paste it here. (optional)")
     pd_experience_video = models.URLField(blank=True, null=True, help_text="The secondary video box on our website is reserved for videos about using ProcrasDonate. If you'd like to share your organization's experience using ProcrasDonate then add that Youtube address here. (optional)")
@@ -318,6 +324,7 @@ class Recipient(models.Model):
         models.signals.pre_save.connect(Recipient.process_videos, sender=Recipient)
         models.signals.pre_save.connect(Recipient.sanitize_user_input, sender=Recipient)
         #models.signals.pre_save.connect(Recipient.set_logo_dimensions, sender=Recipient)
+        models.signals.pre_save.connect(Recipient.detect_scale_logo, sender=Recipient)
         models.signals.post_save.connect(Recipient.scale_logo, sender=Recipient)
         
     @classmethod
@@ -399,34 +406,45 @@ class Recipient(models.Model):
             return ""
     
     @classmethod
+    def detect_scale_logo(klass, signal, sender, instance, **kwargs):
+        #print "INSTANCE", instance
+        #print "   logo", instance.logo
+        r = Recipient.get_or_none(slug=instance.slug)
+        #print "r", r
+        #print "   r", r.logo
+        if r and instance.logo and r.logo != instance.logo:
+            #print " TRUE "
+            instance.do_scale_logo = True
+    
+    @classmethod
     def scale_logo(klass, signal, sender, instance, created, **kwargs):
         """
         @summary: scales the logo based on MAX_SCALED_<dimension>
         """
         if not instance.logo:
+            #print "no logo"
+            return
+        if not instance.do_scale_logo:
+            #print "scale_logo instance", instance
+            #print "  logo", instance.logo
+            #print "don't scale logo"
             return
 
-        if instance.logo.width <= Recipient.SCALED_MAX_WIDTH and instance.logo.height <= Recipient.SCALED_MAX_HEIGHT:
-            im = PIL.open(instance.logo.path)
-            th = im.copy()
-            th.thumbnail((Recipient.THUMBNAIL_MAX_WIDTH, Recipient.THUMBNAIL_MAX_HEIGHT), PIL.ANTIALIAS)
-            th.save(instance.thumbnail_path(), th.format)
-            return
-        
         im = PIL.open(instance.logo.path)
-        th = im.copy()
+        
         #@TODO how log here? dependencies...
         #Log.Log("image: info=%s, format=%s, mode=%s" % (im.info, im.format, im.mode))
         if 'duration' in im.info:
             #Log.Error("animation uploaded for logo: %s for %s" % (instance.logo.path, self.slug))
             pass
         else:
-            im.thumbnail((Recipient.SCALED_MAX_WIDTH, Recipient.SCALED_MAX_HEIGHT), PIL.ANTIALIAS)
-            im.save(instance.logo.path, im.format)
-
+            sc = im.copy().convert("RGB");
+            sc.thumbnail((Recipient.SCALED_MAX_WIDTH, Recipient.SCALED_MAX_HEIGHT), PIL.ANTIALIAS)
+            sc.save(instance.logo.path, "PNG")
+            
+            th = im.copy().convert("RGB");
             th.thumbnail((Recipient.THUMBNAIL_MAX_WIDTH, Recipient.THUMBNAIL_MAX_HEIGHT), PIL.ANTIALIAS)
-            th.save(instance.thumbnail_path(), th.format)
-
+            th.save(instance.thumbnail_path(), "PNG")
         """
         looked at but didn't use: http://www.djangosnippets.org/snippets/224/
         @summary: Rescale the given image, optionally cropping it to 

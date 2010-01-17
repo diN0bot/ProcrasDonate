@@ -28,6 +28,7 @@
 						height="300" />
 				</object>
 			</div>
+			<div id="below_big_video"></div>
 			</td>
 			<td>
 				<div class="focus_slogans">
@@ -80,9 +81,14 @@
 			<div id="charities">
 				{% for r in charities %}
 					{% if r.thumbnail_url %} 
-						<a href="{% url recipient r.slug %}">
+						<div>
+						{#<a href="{% url recipient r.slug %}">#}
 							<img id="charity_{{ r.slug }}" class="charity_logo" src="{{ r.thumbnail_url }}" />
-						</a>
+							<div class="hidden charity_video_src">{{ r.promotional_video }}</div>
+							<div class="hidden charity_name">{{ r.name }}</div>
+							<div class="hidden charity_mission">{{ r.mission }}</div>
+						{#</a>#}
+						</div>
 					{% endif %}
 				{% endfor %}
 			</div>
@@ -99,6 +105,10 @@
 			<div id='faq_menu_item'><a href="{% url faq %}">FAQ</a></div>
 			<div id='about_us_menu_item'><a href="{% url about_us %}">About Us</a></div>
 			<div id='community_menu_item'><a href="http://feedback.procrasdonate.com">Feedback</a></div>
+		</div>
+		
+		<div class="share_button">
+			{% include "procrasdonate/straight_pages/snippets/share_button.html" %}
 		</div>
 		
 		<img id="my_progress_screenshot" src="{{ MEDIA_URL }}img/MyProgressPreview_cropped.png" />

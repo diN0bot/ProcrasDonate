@@ -72,6 +72,37 @@ $(document).ready( function() {
 	//$("#large_video").prepend("<div id=\"inside\"></div>");
 	//$("#large_video #inside").prepend("<img src=\"/procrasdonate_media/img/FireWall.png\">");
 	//$("#content").prepend("<div id=\"large_video_floatifier\"></div>");
+	
+	// click on homepage's charity icon to play charity's video
+	$(".charity_logo").click(function() {
+		var video_src = $(this).siblings(".charity_video_src").text();
+		var name = $(this).siblings(".charity_name").text();
+		var mission = $(this).siblings(".charity_mission").text();
+		
+		var html = ""+
+		"<object width=\"444\" height=\"333\">"+
+			"<param name=\"movie\" value=\""+video_src+"\" />"+
+			"<param name=\"allowFullScreen\" value=\"true\" />"+
+			"<param name=\"allowscriptaccess\" value=\"always\" />"+
+			"<embed "+
+				" src=\""+video_src+"\""+
+				" type=\"application/x-shockwave-flash\""+
+				" allowscriptaccess=\"always\""+
+				" allowfullscreen=\"true\""+
+				" width=\"444\""+
+				" height=\"300\" />"+
+		"</object>";
+		$("#big_video").html("Loading video...");
+		$("#big_video").html(html);
+		
+		var html2 = "<div class=\"video_charity_name\">"+
+			name+
+			"</div>"+
+			"<div class=\"video_charity_mission\">"+
+			mission+
+			"</div>";
+		$("#below_big_video").html(html2)
+	});
 });
 
 function is_windows() { return navigator.appVersion.indexOf("Win")!=-1; }
@@ -109,11 +140,17 @@ function install(anchor_class) {
 		var xpi_hash = $.trim(item.children(".hash").text());
 		
 		// get recipient slug if on recipient page
-		// /PD/ --> ['', 'PD', '']
+		// /bilumi/ --> ["", "bilumi", ""]
+		// /r/bilumi/ --> ["", "r", "bilumi", ""]
+		// /splash/ --> ["", "splash", ""]
+		// /after_install/0.4.0/ --> ["", "after_install", "0.4.0", ""]
 		var cur_url = location.pathname.split("/");
 		var slug = "__none__";
-		if (cur_url.length >= 3) {
-			slug = $.trim(cur_url[2]);
+		if (cur_url.length > 1) {
+			slug = $.trim(cur_url[1]);
+			if (slug == "r" && cur_url.length > 2) {
+				slug = $.trim(cur_url[2]);
+			}
 		}
 		if (!slug) { slug = "__none__"; }
 		$.post("/generate_xpi/"+slug+"/",

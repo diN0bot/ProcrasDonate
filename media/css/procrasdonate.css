@@ -330,9 +330,13 @@ img { -ms-interpolation-mode:bicubic; }
 #charities_bar_table #charities .charity_logo {
 	float: right; margin-right: 1em; margin-left: 1em; margin-top: .3em;
 	border: 0.25em groove #bbba93; padding: 0em 0em;
+	max-width: 6em;
+	max-height: 6em;
+	cursor: pointer;
+	display: inline;
 }
+#charities_bar_table .charity_video_src { display: none; }
 
-#charities_bar_table #charities div.charity_logo { width: 50px; display: inline; }
 
 #more_information { clear: both; }
 
@@ -632,9 +636,22 @@ td { vertical-align: middle; }
 .next { margin: 1em 0em -1em -1em; width: 6em; max-height: 52px; cursor: pointer; }
 .done { margin: 1em 1em -1em -2em; width: 6em; cursor: pointer; }
 
+/**** REGISTER ALL *****/
+.arrow_errors { margin-top: 1em; }
+
 /**** REGISTER INCENTIVES ****/
 
 .example_gauge { float: right; }
+/*
+#report_list .weekly { background: #daf4d0;}
+#report_list .welcome { background: #d4d0f4;}
+#report_list .thankyou { background: #f4d0d8;}
+#report_list .newsletter { background: #f4f3d0;}
+#report_list .somethingelse { background: #e9d0f4;}
+*/
+.weekly_goal_color { padding: .1em .3em; color: black; background: #daf4d0; }
+.weekly_limit_color { padding: .1em .3em; color: black; background: #d4d0f4; }
+.hourly_rate_color { padding: .1em .3em; color: black; background: #f4f3d0; }
 
 /**** REGISTER SERVICES ****/
 
@@ -842,6 +859,13 @@ form input[type=submit] { margin-top: 1em; font-size: 1.3em; }
 /**** DEV TEST SUITE *****/
 /* otherwise whole line is a link */
 #manual_test_suite p { width: 10%;}
+
+/******** VISUAL DEBUG - TEST MESSAGES ******************/
+
+.test_message .fail { background: #f4f3d0; }
+.test_message .pass {}
+.test_message .message { background: #dddddd; }
+.test_message .subject { background: #f7edb4; }
 
 
 /******** JQUERY UI ******************/

@@ -2348,6 +2348,11 @@ _extend(PageController.prototype, {
 				}));
 		var arrows = Template.get("register_arrows").render(
 				new Context({ substate_menu_items: substate_menu_items }));
+
+		var pd_dollars_per_hr = self.retrieve_float_for_display('pd_dollars_per_hr', constants.DEFAULT_PD_DOLLARS_PER_HR);
+		var pd_hr_per_week_max = self.retrieve_float_for_display('pd_hr_per_week_max', constants.DEFAULT_PD_HR_PER_WEEK_MAX);
+		var pd_dollars_per_week_max = (pd_dollars_per_hr * pd_hr_per_week_max).toFixed(2);
+		logger("INCENTIVE:\npd_dollars_per_hr"+pd_dollars_per_hr+"\npd_hr_per_week_max"+pd_hr_per_week_max+"\npd_dollars_per_week_max"+pd_dollars_per_week_max);
 		
 		var middle = Template.get("register_incentive_middle").render(
 			new Context({
@@ -2355,9 +2360,10 @@ _extend(PageController.prototype, {
 				substate_menu: substate_menu,
 				arrows: arrows,
 				constants: constants,
-				pd_dollars_per_hr: self.retrieve_float_for_display('pd_dollars_per_hr', constants.DEFAULT_PD_DOLLARS_PER_HR),
+				pd_dollars_per_hr: pd_dollars_per_hr,
 				pd_hr_per_week_goal: self.retrieve_float_for_display('pd_hr_per_week_goal', constants.DEFAULT_PD_HR_PER_WEEK_GOAL),
-				pd_hr_per_week_max: self.retrieve_float_for_display('pd_hr_per_week_max', constants.DEFAULT_PD_HR_PER_WEEK_MAX),
+				pd_hr_per_week_max: pd_hr_per_week_max,
+				pd_dollars_per_week_max: pd_dollars_per_week_max
 			})
 		);
 		request.jQuery("#content").html( middle );
@@ -2373,29 +2379,89 @@ _extend(PageController.prototype, {
 	activate_register_incentive: function(request) {
 		var self = this;
 
+		request.jQuery("input[name='pd_dollars_per_hr']").keyup(function() {
+			request.jQuery("#rate_error, error").html("");
+			var value = request.jQuery.trim(request.jQuery(this).attr("value"));
+			if (!value) { return; }
+			
+			if ( !self.validate_dollars_input(value) ) {
+				request.jQuery("#rate_error").html("Please enter a valid dollar amount. For example, to donate $2.34 per hour, please enter 2.34");
+			} else {
+				var pd_dollars_per_hr = parseFloat(self.clean_dollars_input(value));
+				var pd_hr_per_week_max = _un_prefify_float( self.prefs.get('pd_hr_per_week_max', constants.DEFAULT_PD_HR_PER_WEEK_MAX) );
+				var pd_dollars_per_week_max = parseFloat(self.clean_dollars_input(request.jQuery("input[name='pd_dollars_per_week_max']").attr("value")));
+				
+				var pd_hr_per_week_max = pd_dollars_per_week_max / pd_dollars_per_hr;
+				var pd_hr_per_week_goal = self.prefs.get('pd_hr_per_week_goal', constants.DEFAULT_PD_HR_PER_WEEK_GOAL);
+				
+				self.prefs.set('pd_dollars_per_hr', _prefify_float(pd_dollars_per_hr));
+				self.prefs.set('pd_hr_per_week_max', _prefify_float(pd_hr_per_week_max));
+				
+				request.jQuery("#pd_hr_per_week_max_span").text(pd_hr_per_week_max.toFixed(2));
+				request.jQuery("#pd_dollars_per_week_max").attr("value", pd_dollars_per_week_max.toFixed(2));
+				
+				self.insert_example_gauges(request);
+				
+				if (pd_hr_per_week_max < pd_hr_per_week_goal) {
+					request.jQuery("#max_error").html("Your hourly <span class=\"hourly_rate_color\">incentive</span> "+
+							"multiplied by your weekly <span class=\"weekly_goal_color\">goal</span> "+
+							"must be less than your weekly <span class=\"weekly_limit_color\">limit</span>.");
+				}
+			}
+		});
+		
 		request.jQuery("input[name='pd_hr_per_week_goal']").keyup(function() {
-			request.jQuery("#goal_error").text("");
+			request.jQuery("#goal_error, error").html("");
 			var value = request.jQuery.trim(request.jQuery(this).attr("value"));
 			if (!value) { return; }
 			
 			if ( !self.validate_hours_input(value) ) {
-				request.jQuery("#goal_error").text("Please enter number of hours. For example, to strive for 8 hrs and 15 minutes, please enter 1.25");
+				request.jQuery("#goal_error").html("Please enter number of hours. For example, to strive for 8 hrs and 15 minutes, please enter 1.25");
 			} else {
 				self.prefs.set('pd_hr_per_week_goal', self.clean_hours_input(value));
 				self.insert_example_gauges(request);
 			}
 		});
 		
+		// this input no longer used in favor of pd_dollars_per_week_max
 		request.jQuery("input[name='pd_hr_per_week_max']").keyup(function() {
-			request.jQuery("#max_error").text("");
+			request.jQuery("#max_error, error").html("");
 			var value = request.jQuery.trim(request.jQuery(this).attr("value"));
 			if (!value) { return; }
 			
 			if ( !self.validate_hours_input(value) ) {
-				request.jQuery("#max_error").text("Please enter number of hours. For example, enter 30 minutes as .5");
+				request.jQuery("#max_error").html("Please enter number of hours. For example, enter 30 minutes as .5");
 			} else {
 				self.prefs.set('pd_hr_per_week_max', self.clean_hours_input(value));
 				self.insert_example_gauges(request);
+			}
+		});
+		
+		request.jQuery("input[name='pd_dollars_per_week_max']").keyup(function() {
+			request.jQuery("#max_error, error").html("");
+			var value = request.jQuery.trim(request.jQuery(this).attr("value"));
+			if (!value) { return; }
+			
+			if ( !self.validate_dollars_input(value) ) {
+				request.jQuery("#max_error").html("Please enter the maximum dollar amount you would spend each week.");
+			} else {
+				var pd_dollars_per_hr = request.jQuery("input[name='pd_dollars_per_hr']").attr("value");
+				var pd_hr_per_week_max = _un_prefify_float( self.prefs.get('pd_hr_per_week_max', constants.DEFAULT_PD_HR_PER_WEEK_MAX) );
+				var pd_dollars_per_week_max = parseFloat( self.clean_dollars_input(value) );
+				
+				var pd_hr_per_week_max = pd_dollars_per_week_max / pd_dollars_per_hr;
+				var pd_hr_per_week_goal = self.prefs.get('pd_hr_per_week_goal', constants.DEFAULT_PD_HR_PER_WEEK_GOAL);
+				
+				self.prefs.set('pd_hr_per_week_max', _prefify_float( pd_hr_per_week_max ));
+				
+				request.jQuery("#pd_hr_per_week_max_span").text( pd_hr_per_week_max.toFixed(2) );
+				self.insert_example_gauges(request);
+				
+				if (pd_hr_per_week_max < pd_hr_per_week_goal) {
+					request.jQuery("#max_error").html("Your hourly <span class=\"hourly_rate_color\">incentive</span> "+
+							"multiplied by your weekly <span class=\"weekly_goal_color\">goal</span> "+
+							"must be less than your weekly <span class=\"weekly_limit_color\">limit</span>.");
+				}
 			}
 		});
 	},
@@ -2461,20 +2527,24 @@ _extend(PageController.prototype, {
 		var self = this;
 		var pd_dollars_per_hr = request.jQuery("input[name='pd_dollars_per_hr']").attr("value");
 		var pd_hr_per_week_goal = request.jQuery("input[name='pd_hr_per_week_goal']").attr("value");
-		var pd_hr_per_week_max = request.jQuery("input[name='pd_hr_per_week_max']").attr("value");
-
-		request.jQuery("#errors").text("");
+		var pd_dollars_per_week_max = request.jQuery("input[name='pd_dollars_per_week_max']").attr("value");
+	
+		var pd_hr_per_week_max = pd_dollars_per_week_max / pd_dollars_per_hr;
+		
+		request.jQuery("#errors").html("");
 		if ( !this.validate_dollars_input(pd_dollars_per_hr) ) {
-			request.jQuery("#rate_error").text("Please enter a valid dollar amount. For example, to donate $2.34 per hour, please enter 2.34");
+			request.jQuery("#rate_error").html("Please enter a valid dollar amount. For example, to donate $2.34 per hour, please enter 2.34");
 			
 		} else if ( !this.validate_hours_input(pd_hr_per_week_goal) ) {
-			request.jQuery("#goal_error").text("Please enter number of hours. For example, to strive for 8 hrs and 15 minutes, please enter 1.25");
+			request.jQuery("#goal_error").html("Please enter number of hours. For example, to strive for 8 hrs and 15 minutes, please enter 1.25");
 			
 		} else if ( !this.validate_hours_input(pd_hr_per_week_max) ) {
-			request.jQuery("#max_error").text("Please enter number of hours. For example, enter 30 minutes as .5");
+			request.jQuery("#max_error").html("Please enter number of hours. For example, enter 30 minutes as .5");
 			
 		} else if (parseFloat(pd_hr_per_week_goal) > parseFloat(pd_hr_per_week_max)) { 
-			request.jQuery("#max_error").text("You maximum hours cannot be less than your goal");
+			request.jQuery("#max_error").html("Your hourly <span class=\"hourly_rate_color\">incentive</span> "+
+					"multiplied by your weekly <span class=\"weekly_goal_color\">goal</span> "+
+					"must be less than your weekly <span class=\"weekly_limit_color\">limit</span>.");
 
 		} else {
 			this.prefs.set('pd_dollars_per_hr', this.clean_dollars_input(pd_dollars_per_hr));
@@ -2579,6 +2649,14 @@ _extend(PageController.prototype, {
 	},
 	
 	insert_register_charities_pie_chart: function(request) {
+		// clear existing chart
+		request.jQuery("#pie_chart").html("");
+		
+		// if no chart to show then leave
+		if (this.pddb.RecipientPercent.count() == 0) {
+			return
+		}
+		
 		var self = this;
 		var data = [];
 		var legend = [];
@@ -2592,8 +2670,7 @@ _extend(PageController.prototype, {
 		init_raphael(request.get_document());
 		init_graphael();
 		init_graphael_pie();
-		// clear existing chart
-		request.jQuery("#pie_chart").html("");
+		
 		// create pie chart
 		var paper = Raphael("pie_chart", 550, 250);
 		var pie = paper.g.piechart(125, 125, 100,
@@ -2916,18 +2993,18 @@ _extend(PageController.prototype, {
 	process_register_charities: function(request) {
 		var self = this;
 		var ret = true;
-		request.jQuery("#errors").html("");
+		request.jQuery("#errors, .arrow_errors").html("");
 		
 		request.jQuery(".recipient_percent input").each( function() {
 			var percent = request.jQuery(this).attr("value");
 			try {
 				percent = parseFloat(percent) / 100.0;
 				if (percent <= 0 || percent > 1.0) {
-					request.jQuery("#errors").append("<p>Please enter a percent greater than 0 and at most 100</p>");
+					request.jQuery("#errors, .arrow_errors").append("<p>Please enter a percent greater than 0 and at most 100</p>");
 					ret = false;
 				}
 			} catch(e) {
-				request.jQuery("#errors").append("<p>Please enter a number, such as 5.24 for 5.24%</p>");
+				request.jQuery("#errors, .arrow_errors").append("<p>Please enter a number, such as 5.24 for 5.24%</p>");
 				ret = false;
 			}
 			var recipient_id = request.jQuery(this).parent().siblings(".recipient_id").text();
@@ -2937,7 +3014,7 @@ _extend(PageController.prototype, {
 		});
 		if (self.pddb.RecipientPercent.count() == 0) {
 			ret = false
-			request.jQuery("#errors").append("<p>Please add at least one recipient</p>");
+			request.jQuery("#errors, .arrow_errors").append("<p>Please add at least one recipient</p>");
 		}
 		return ret;
 	},
@@ -2978,15 +3055,15 @@ _extend(PageController.prototype, {
 		//var tws_hr_per_week_goal = request.jQuery("input[name='tws_hr_per_week_goal']").attr("value");
 		var tws_hr_per_week_max = request.jQuery("input[name='tws_hr_per_week_max']").attr("value");
 
-		request.jQuery("#errors").text("");
+		request.jQuery("#errors, .arrow_errors").text("");
 		if ( !this.validate_dollars_input(tws_dollars_per_hr) ) {
-			request.jQuery("#errors").append("<p>Please enter a valid dollar amount. For example, to donate $2.34 per hour, please enter 2.34</p>");
+			request.jQuery("#errors, .arrow_errors").append("<p>Please enter a valid dollar amount. For example, to donate $2.34 per hour, please enter 2.34</p>");
 			
 		//} else if ( !this.validate_hours_input(tws_hr_per_week_goal) ) {
 		//	request.jQuery("#errors").append("<p>Please enter number of hours. For example, to strive for 8 hrs and 15 minutes, please enter 1.25</p>");
 			
 		} else if ( !this.validate_hours_input(tws_hr_per_week_max) ) {
-			request.jQuery("#errors").append("<p>Please enter number of hours. For example, enter 30 minutes as .5</p>");
+			request.jQuery("#errors, .arrow_errors").append("<p>Please enter number of hours. For example, enter 30 minutes as .5</p>");
 			
 		} else {
 			this.prefs.set('tws_dollars_per_hr', this.clean_dollars_input(tws_dollars_per_hr));
@@ -3076,15 +3153,15 @@ _extend(PageController.prototype, {
 		var support_pct = request.jQuery("input[name='support_pct']").attr("value");
 		var monthly_fee = request.jQuery("input[name='monthly_fee']").attr("value");
 
-		request.jQuery(".error").text("");
+		request.jQuery(".error, .arrow_errors").text("");
 		if ( !this.validate_positive_float_input(support_pct) ) {
-			request.jQuery("#support_error").append("<p>Please enter a valid percent. For example, 6.75 for 6.75%</p>");
+			request.jQuery("#support_error, .arrow_errors").append("<p>Please enter a valid percent. For example, 6.75 for 6.75%</p>");
 			
 		} else if ( !this.validate_dollars_input(monthly_fee) ) {
-			request.jQuery("#monthly_error").append("<p>Please enter a valid amount. For example, 4.99 for $4.99</p>");
+			request.jQuery("#monthly_error, .arrow_errors").append("<p>Please enter a valid amount. For example, 4.99 for $4.99</p>");
 			
 		} else if ( parseFloat(support_pct) > 10.0 ) {
-			request.jQuery("#support_error").append("<p>We cannot accept more than 10%. Please enter a lower percent. For example, 10 for 10%.</p>");
+			request.jQuery("#support_error, .arrow_errors").append("<p>We cannot accept more than 10%. Please enter a lower percent. For example, 10 for 10%.</p>");
 		} else {
 			this.prefs.set('support_pct', this.clean_percent_input(support_pct));
 			this.prefs.set('monthly_fee', this.clean_dollars_input(monthly_fee));
@@ -3198,7 +3275,7 @@ _extend(PageController.prototype, {
 	},
 	
 	process_register_updates: function(request) {
-		request.jQuery("#error").text("");
+		request.jQuery("#error, .arrow_errors").text("");
 		var ret = true;
 		
 		var old_email = this.prefs.set('email', constants.DEFAULT_EMAIL);
@@ -3216,7 +3293,7 @@ _extend(PageController.prototype, {
 		this.prefs.set('tos', _dbify_bool(tos));
 		
 		if (!tos) {
-			request.jQuery("#error").text("To use our service you must agree to the terms of service by checking the Terms of Service checkbox below");
+			request.jQuery("#error, .arrow_errors").text("To use our service you must agree to the terms of service by checking the Terms of Service checkbox");
 			ret = false;
 		}
 		
@@ -3230,7 +3307,7 @@ _extend(PageController.prototype, {
 			_iterate(address_field_names, function(key, value, index) {
 				var value = request.jQuery("input[name="+value+"]").attr("value");
 				if (!value) {
-					request.jQuery("#error").text("To be eligible for tax deductions, you must provide your mailing address.");
+					request.jQuery("#error, .arrow_errors").text("To be eligible for tax deductions, you must provide your mailing address.");
 					ret = false;
 				}
 			});
@@ -3340,16 +3417,16 @@ _extend(PageController.prototype, {
 		// Receive updates from server
 		this.pd_api.request_data_updates(
 			function() {
-				logger("SERVER SAYS YAY");
+				//logger("SERVER SAYS YAY");
 				// after success
 				var multi_auth = self.pddb.FPSMultiuseAuthorization.get_latest_success()
-				logger("multi auth="+multi_auth);
+				//logger("multi auth="+multi_auth);
 				if (!multi_auth) {
 					multi_auth = self.pddb.FPSMultiuseAuthorization.most_recent();
-					logger("B multi auth="+multi_auth);
+					//logger("B multi auth="+multi_auth);
 				}
 				if (multi_auth.good_to_go()) {
-					logger("C multi auth="+multi_auth);
+					//logger("C multi auth="+multi_auth);
 					self.insert_register_done(request);
 					return
 				}
@@ -3407,7 +3484,7 @@ _extend(PageController.prototype, {
 		
 		request.jQuery("#support_pct").keyup(function() {
 			var support_pct = request.jQuery(this).attr("value");
-			request.jQuery(".error").text("");
+			request.jQuery(".error, .arrow_errors").text("");
 			
 			if ( !self.validate_positive_float_input(support_pct) ) {
 				request.jQuery("#support_error").append("<p>Please enter a valid percent. For example, 6.75 for 6.75%</p>");
@@ -3475,7 +3552,7 @@ _extend(PageController.prototype, {
 	},
 	
 	insert_register_done: function(request) {
-		alert("INSERT REGISTER DONE!");
+		logger("INSERT REGISTER DONE!");
 		this.prefs.set('registration_done', true);
 		//this.insert_register_time_well_spent(request);
 
@@ -3493,8 +3570,10 @@ _extend(PageController.prototype, {
 		// Error: Component is not available = NS_ERROR_NOT_AVAILABLE
 		// Source file: chrome://procrasdonate/content/js/ext/jquery-1.2.6.js
 		// Line: 2020
-		var version = this.prefs.get("version", ver);
+		var version = this.prefs.get("version", "0.0.0");
+		logger("version = "+version);
 		var url = constants.PD_URL + constants.AFTER_INSTALL_URL + version + "/";
+		logger("url = "+url);
 		new XPCNativeWrapper(unsafeWin, "location").location = url;
 	}, 
 	
@@ -3523,13 +3602,13 @@ _extend(PageController.prototype, {
 		var self = this;
 
 		request.jQuery("input").keyup(function() {
-			request.jQuery(this).siblings(".error").text("");
+			request.jQuery(this).siblings(".error, .arrow_errors").text("");
 			var name = request.jQuery(this).attr("name");
 			var value = request.jQuery.trim(request.jQuery(this).attr("value"));
 			if (!value) { value = "0"; }
 			
 			if ( !self.validate_hours_input(value) ) {
-				request.jQuery(this).siblings(".error").text("Please enter a number");
+				request.jQuery(this).siblings(".error, .arrow_errors").text("Please enter a number");
 			} else {
 				self.prefs.set(name, _prefify_float(value));
 			}
@@ -3688,6 +3767,7 @@ _extend(PageController.prototype, {
 				actual = actual[3];
 			}
 			
+			/*
 			logger("\none week = "+pd_hrs_one_week+
 					"\ntwo week = "+pd_hrs_two_week+
 					"\nthree week = "+pd_hrs_three_week+
@@ -3695,7 +3775,18 @@ _extend(PageController.prototype, {
 					"\n"+subject);
 					//"\n"+subject+
 					//"\n"+message);
-
+			*/
+			
+			ret = {
+				expected: expected,
+				actual: actual,
+				pd_hrs_one_week: pd_hrs_one_week,
+				pd_hrs_two_week: pd_hrs_two_week,
+				pd_hrs_three_week: pd_hrs_three_week,
+				pd_hr_per_week_goal: pd_hr_per_week_goal,
+				subject: subject,
+				message: message
+			}
 			if (actual != expected) {
 				logger("############# TEST FAILED: expected:"+expected+" actual:"+actual+
 						"\none week = "+pd_hrs_one_week+
@@ -3704,60 +3795,69 @@ _extend(PageController.prototype, {
 						"\ngoal = "+pd_hr_per_week_goal+
 						"\n"+subject);/*+
 						"\n"+message);*/
-				return 1
+				ret.is_fail = true;
 			} else {
-				return 0
+				ret.is_fail = false;
 			}
+			return ret
 		}
 		
+		var d = [];
+		d.push( message_test(8, 10, 12, 13, 1, 20, "12/22", "12/28", "Winning streak") ); // winning streak
+		d.push( message_test(8, 10, 12, 11, 1, 20, "12/22", "12/28", "Good work") ); // good work
+		d.push( message_test(8, 10, 12,  9, 1, 20, "12/22", "12/28", "Good work") ); // good work
+		d.push( message_test(8, 10, 12,  7, 1, 20, "12/22", "12/28", "Getting better") ); // getting better
+		
+		d.push( message_test(12, 10, 8, 13, 1, 20, "12/22", "12/28", "Winning streak") ); // 
+		d.push( message_test(12, 10, 8, 11, 1, 20, "12/22", "12/28", "Downturn") ); // 
+		d.push( message_test(12, 10, 8,  9, 1, 20, "12/22", "12/28", "Getting worse") ); // 
+		d.push( message_test(12, 10, 8,  7, 1, 20, "12/22", "12/28", "Getting worse") ); // 
+		
+		d.push( message_test(8, 12, 10, 13, 1, 20, "12/22", "12/28", "Winning streak") ); // 
+		d.push( message_test(8, 12, 10, 11, 1, 20, "12/22", "12/28", "Good work") ); // 
+		d.push( message_test(8, 12, 10,  9, 1, 20, "12/22", "12/28", "Good work") ); // 
+		d.push( message_test(8, 12, 10,  7, 1, 20, "12/22", "12/28", "Getting better") ); // 
+		
+		d.push( message_test(10, 12, 8, 13, 1, 20, "12/22", "12/28", "Winning streak") ); // 
+		d.push( message_test(10, 12, 8, 11, 1, 20, "12/22", "12/28", "Good work") ); // 
+		d.push( message_test(10, 12, 8,  9, 1, 20, "12/22", "12/28", "Getting better") ); // 
+		d.push( message_test(10, 12, 8,  7, 1, 20, "12/22", "12/28", "Getting better") ); // 
+		
+		d.push( message_test(10, 8, 12, 13, 1, 20, "12/22", "12/28", "Winning streak") ); // 
+		d.push( message_test(10, 8, 12, 11, 1, 20, "12/22", "12/28", "Good work") ); // 
+		d.push( message_test(10, 8, 12,  9, 1, 20, "12/22", "12/28", "Downturn") ); // 
+		d.push( message_test(10, 8, 12,  7, 1, 20, "12/22", "12/28", "Getting worse") ); // 
+		
+		d.push( message_test(12, 8, 10, 13, 1, 20, "12/22", "12/28", "Winning streak") ); // 
+		d.push( message_test(12, 8, 10, 11, 1, 20, "12/22", "12/28", "Downturn") ); // 
+		d.push( message_test(12, 8, 10,  9, 1, 20, "12/22", "12/28", "Downturn") ); // 
+		d.push( message_test(12, 8, 10,  7, 1, 20, "12/22", "12/28", "Getting worse") ); // 
+		
+		d.push( message_test(null, null, null, 13, 1, 20, "12/22", "12/28", "No ProcrasDonation") ); // 
+		
+		d.push( message_test(12, null, null, 13, 1, 20, "12/22", "12/28", "Good job") ); // 
+		d.push( message_test(12, null, null, 12, 1, 20, "12/22", "12/28", "Good job") ); // 
+		d.push( message_test(12, null, null, 11, 1, 20, "12/22", "12/28", "You can do better") ); // 
+		
+		d.push( message_test(10, 8, null, 7, 1, 20, "12/22", "12/28", "Getting worse") ); // 
+		d.push( message_test(10, 8, null, 9, 1, 20, "12/22", "12/28", "Downturn") ); // 
+		d.push( message_test(10, 8, null, 11, 1, 20, "12/22", "12/28", "Good work") ); // 
+		
+		d.push( message_test(10, 12, null, 9, 1, 20, "12/22", "12/28", "Getting better") ); // 
+		d.push( message_test(10, 12, null, 10, 1, 20, "12/22", "12/28", "Good work") ); // 
+		d.push( message_test(10, 12, null, 13, 1, 20, "12/22", "12/28", "Good work") ); // 
+		
+		d.push( message_test(10, 10, null, 10, 1, 20, "12/22", "12/28", "Pinball champion") ); //
+		
 		var fails = 0;
-		fails += message_test(8, 10, 12, 13, 1, 20, "12/22", "12/28", "Winning streak"); // winning streak
-		fails += message_test(8, 10, 12, 11, 1, 20, "12/22", "12/28", "Good work"); // good work
-		fails += message_test(8, 10, 12,  9, 1, 20, "12/22", "12/28", "Good work"); // good work
-		fails += message_test(8, 10, 12,  7, 1, 20, "12/22", "12/28", "Getting better"); // getting better
-		
-		fails += message_test(12, 10, 8, 13, 1, 20, "12/22", "12/28", "Winning streak"); // 
-		fails += message_test(12, 10, 8, 11, 1, 20, "12/22", "12/28", "Downturn"); // 
-		fails += message_test(12, 10, 8,  9, 1, 20, "12/22", "12/28", "Getting worse"); // 
-		fails += message_test(12, 10, 8,  7, 1, 20, "12/22", "12/28", "Getting worse"); // 
-		
-		fails += message_test(8, 12, 10, 13, 1, 20, "12/22", "12/28", "Winning streak"); // 
-		fails += message_test(8, 12, 10, 11, 1, 20, "12/22", "12/28", "Good work"); // 
-		fails += message_test(8, 12, 10,  9, 1, 20, "12/22", "12/28", "Good work"); // 
-		fails += message_test(8, 12, 10,  7, 1, 20, "12/22", "12/28", "Getting better"); // 
-		
-		fails += message_test(10, 12, 8, 13, 1, 20, "12/22", "12/28", "Winning streak"); // 
-		fails += message_test(10, 12, 8, 11, 1, 20, "12/22", "12/28", "Good work"); // 
-		fails += message_test(10, 12, 8,  9, 1, 20, "12/22", "12/28", "Getting better"); // 
-		fails += message_test(10, 12, 8,  7, 1, 20, "12/22", "12/28", "Getting better"); // 
-		
-		fails += message_test(10, 8, 12, 13, 1, 20, "12/22", "12/28", "Winning streak"); // 
-		fails += message_test(10, 8, 12, 11, 1, 20, "12/22", "12/28", "Good work"); // 
-		fails += message_test(10, 8, 12,  9, 1, 20, "12/22", "12/28", "Downturn"); // 
-		fails += message_test(10, 8, 12,  7, 1, 20, "12/22", "12/28", "Getting worse"); // 
-		
-		fails += message_test(12, 8, 10, 13, 1, 20, "12/22", "12/28", "Winning streak"); // 
-		fails += message_test(12, 8, 10, 11, 1, 20, "12/22", "12/28", "Downturn"); // 
-		fails += message_test(12, 8, 10,  9, 1, 20, "12/22", "12/28", "Downturn"); // 
-		fails += message_test(12, 8, 10,  7, 1, 20, "12/22", "12/28", "Getting worse"); // 
-		
-		fails += message_test(null, null, null, 13, 1, 20, "12/22", "12/28", "No ProcrasDonation"); // 
-		
-		fails += message_test(12, null, null, 13, 1, 20, "12/22", "12/28", "Good job"); // 
-		fails += message_test(12, null, null, 12, 1, 20, "12/22", "12/28", "Good job"); // 
-		fails += message_test(12, null, null, 11, 1, 20, "12/22", "12/28", "You can do better"); // 
-		
-		fails += message_test(10, 8, null, 7, 1, 20, "12/22", "12/28", "Getting worse"); // 
-		fails += message_test(10, 8, null, 9, 1, 20, "12/22", "12/28", "Downturn"); // 
-		fails += message_test(10, 8, null, 11, 1, 20, "12/22", "12/28", "Good work"); // 
-		
-		fails += message_test(10, 12, null, 9, 1, 20, "12/22", "12/28", "Getting better"); // 
-		fails += message_test(10, 12, null, 10, 1, 20, "12/22", "12/28", "Good work"); // 
-		fails += message_test(10, 12, null, 13, 1, 20, "12/22", "12/28", "Good work"); // 
-		
-		fails += message_test(10, 10, null, 10, 1, 20, "12/22", "12/28", "Pinball champion"); //
-		
+		_iterate(d, function(key, value, index) {
+			if (value.is_fail) {
+				fails += 1;
+			}
+		});
 		logger(">>>>>>>>> "+fails+" failures");
+		
+		return d
 	},
 	
 	/**
@@ -3823,7 +3923,8 @@ _extend(PageController.prototype, {
 	},
 	
 	visual_debug: function(request) {
-		var actions = ["show_requires_payment"];
+		var actions = ["show_requires_payment",
+		               "show_test_messages"];
 		var html = Template.get("visual_debug").render(new Context({
 			actions: actions
 		}));
@@ -3851,6 +3952,31 @@ _extend(PageController.prototype, {
 			var rp = Template.get("requires_payment").render(
 				new Context({ rp: row }));
 			html.push("<li>"+rp+"</li>");
+		});
+		html.push("</ol>")
+		request.jQuery("#theatre").html( html.join("\n\n") );
+	},
+	
+	show_test_messages: function(request) {
+		var self = this;
+		
+		var data = this.test_messages();
+		
+		var html = ["<ol>"];
+		_iterate(data, function(key, value, index) {
+			var m = Template.get("test_message").render(
+				new Context({
+					expected: value.expected,
+					actual: value.actual,
+					pd_hrs_one_week: value.pd_hrs_one_week,
+					pd_hrs_two_week: value.pd_hrs_two_week,
+					pd_hrs_three_week: value.pd_hrs_three_week,
+					pd_hr_per_week_goal: value.pd_hr_per_week_goal,
+					subject: value.subject,
+					message: value.message,
+					is_fail: value.is_fail
+				}));
+			html.push("<li>"+m+"</li>");
 		});
 		html.push("</ol>")
 		request.jQuery("#theatre").html( html.join("\n\n") );
@@ -3913,6 +4039,7 @@ _extend(PageController.prototype, {
 		} catch(e) {
 			self.pddb.orthogonals.error(e+"\n\n"+e.stack);
 		}
+		tester.uninit();
 		
 		self.pddb = original_pddb;
 		
@@ -3958,6 +4085,7 @@ _extend(PageController.prototype, {
 		} catch(e) {
 			self.pddb.orthogonals.error(e+"\n\n"+e.stack);
 		}
+		tester.uninit();
 		
 		self.pddb = original_pddb;
 		

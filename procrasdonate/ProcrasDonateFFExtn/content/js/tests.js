@@ -37,7 +37,7 @@ var PDChecks = function PDChecks(pddb, prefs) {
 };
 PDChecks.prototype = {};
 _extend(PDChecks.prototype, {
-	
+
 	// no duplicates. that is, total<->payment link should be unique
 	check_payment_total_taggings: function(testrunner) {
 		var self = this;
@@ -191,10 +191,33 @@ _extend(PDChecks.prototype, {
 var PDTests = function PDTests(pddb, prefs) {
 	this.pddb = pddb;
 	this.prefs = prefs;
+	
+	// create listeners
+	this.observerService = Cc['@mozilla.org/observer-service;1'].getService(
+			Components.interfaces.nsIObserverService);
+	this.idleService = Components.classes["@mozilla.org/widget/idleservice;1"].getService(
+			Components.interfaces.nsIIdleService);
+	
+	this.time_tracker = new TimeTracker(this.pddb, this.prefs);
+	this.toolbar_manager = new ToolbarManager(this.pddb, this.prefs);
+	this.blur_focus_listener = new BlurFocusListener(this.pddb, this.prefs, this.time_tracker);
+	this.sleep_wake_listener = new SleepWakeListener(this.observerService, this.pddb, this.prefs, this.time_tracker);
+	this.idle_back_noflash_listener = new IdleBack_NoFlash_Listener(this.idleService, this.pddb, this.prefs, this.time_tracker, constants.DEFAULT_MAX_IDLE);
+	this.idle_back_flash_listener = new IdleBack_Flash_Listener(this.idleService, this.pddb, this.prefs, this.time_tracker, constants.DEFAULT_FLASH_MAX_IDLE);
+	this.private_browsing_listener = new PrivateBrowsingListener(this.observerService, this.pddb, this.prefs, this.toolbar_manager);
 };
 PDTests.prototype = {};
 _extend(PDTests.prototype, {
 
+	uninit: function(event) {
+		// remove listeners
+		this.blur_focus_listener.unregister();
+		this.sleep_wake_listener.unregister();
+		this.idle_back_noflash_listener.unregister();
+		this.idle_back_flash_listener.unregister();
+		this.private_browsing_listener.unregister();
+	},
+	
 	test_update_totals: function(testrunner) {
 		var self = this;
 		
@@ -420,6 +443,7 @@ _extend(PDTests.prototype, {
 	},
 
 	/**
+	 * @param items: list of functions to execute
 	 * [
 	 *  {fn, self, args, interval},
 	 *  {fn, self, args, interval},
@@ -440,7 +464,7 @@ _extend(PDTests.prototype, {
 				self.sequentialize(items, idx+1);
 			}
 		}
-	},
+	},	        
 	
 	check_visits: function(testrunner, display_results_callback, site, expected_durations) {
 		var actual_durations = [];
@@ -528,25 +552,25 @@ _extend(PDTests.prototype, {
 			display_results_callback,
 			site,
 			[{
-				fn: self.pddb.start_recording,
-				self: self.pddb,
+				fn: self.time_tracker.start_recording,
+				self: self.time_tracker,
 				args: [site.url],
 				interval: Math.floor(Math.random()*7000)+2000,
 				expected_visit: true
 			}, {
-				fn: self.pddb.idle,
-				self: self.pddb,
+				fn: self.idle_back_noflash_listener.idle,
+				self: self.idle_back_noflash_listener,
 				args: [],
 				interval: Math.floor(Math.random()*7000)+2000
 			}, {
-				fn: self.pddb.back,
-				self: self.pddb,
+				fn: self.idle_back_noflash_listener.back,
+				self: self.idle_back_noflash_listener,
 				args: [],
 				interval: Math.floor(Math.random()*7000)+2000,
 				expected_visit: true
 			}, {
-				fn: self.pddb.stop_recording,
-				self: self.pddb,
+				fn: self.time_tracker.stop_recording,
+				self: self.time_tracker,
 				args: [],
 				interval: 0
 			}]
@@ -564,25 +588,25 @@ _extend(PDTests.prototype, {
 			display_results_callback,
 			site,
 			[{
-				fn: self.pddb.start_recording,
+				fn: self.time_tracker.start_recording,
 				self: self.pddb,
 				args: [site.url],
 				interval: Math.floor(Math.random()*7000)+2000,
 				expected_visit: true
 			}, {
-				fn: self.pddb.blur,
-				self: self.pddb,
+				fn: self.blur_focus_listener.blur,
+				self: self.blur_focus_listener,
 				args: [],
 				interval: Math.floor(Math.random()*7000)+2000
 			}, {
-				fn: self.pddb.focus,
-				self: self.pddb,
+				fn: self.blur_focus_listener.focus,
+				self: self.blur_focus_listener,
 				args: [],
 				interval: Math.floor(Math.random()*7000)+2000,
 				expected_visit: true
 			}, {
-				fn: self.pddb.stop_recording,
-				self: self.pddb,
+				fn: self.time_tracker.stop_recording,
+				self: self.time_tracking,
 				args: [],
 				interval: 0
 			}]
@@ -600,35 +624,35 @@ _extend(PDTests.prototype, {
 			display_results_callback,
 			site,
 			[{
-				fn: self.pddb.start_recording,
-				self: self.pddb,
+				fn: self.time_tracking.start_recording,
+				self: self.time_tracking,
 				args: [site.url],
 				interval: Math.floor(Math.random()*7000)+2000,
 				expected_visit: true
 			}, {
-				fn: self.pddb.blur,
-				self: self.pddb,
+				fn: self.blur_focus_listener.blur,
+				self: self.blur_focus_listener,
 				args: [],
 				interval: Math.floor(Math.random()*7000)+2000
 			}, {
-				fn: self.pddb.idle,
-				self: self.pddb,
+				fn: self.idle_back_noflash_listener.idle,
+				self: self.idle_back_noflash_listener,
 				args: [],
 				interval: Math.floor(Math.random()*7000)+2000,
 			}, {
-				fn: self.pddb.back,
-				self: self.pddb,
+				fn: self.idle_back_noflash_listener.back,
+				self: self.idle_back_noflash_listener,
 				args: [],
 				interval: Math.floor(Math.random()*7000)+2000,
 			}, {
-				fn: self.pddb.focus,
-				self: self.pddb,
+				fn: self.blur_focus_listener.focus,
+				self: self.blur_focus_listener,
 				args: [],
 				interval: Math.floor(Math.random()*7000)+2000,
 				expected_visit: true
 			}, {
-				fn: self.pddb.stop_recording,
-				self: self.pddb,
+				fn: self.time_tracker.stop_recording,
+				self: self.time_tracking,
 				args: [],
 				interval: 0
 			}]
@@ -646,36 +670,36 @@ _extend(PDTests.prototype, {
 			display_results_callback,
 			site,
 			[{
-				fn: self.pddb.start_recording,
-				self: self.pddb,
+				fn: self.time_tracker.start_recording,
+				self: self.time_tracking,
 				args: [site.url],
 				interval: Math.floor(Math.random()*7000)+2000,
 				expected_visit: true
 			}, {
-				fn: self.pddb.blur,
-				self: self.pddb,
+				fn: self.blur_focus_listener.blur,
+				self: self.blur_focus_listener,
 				args: [],
 				interval: Math.floor(Math.random()*7000)+2000
 			}, {
-				fn: self.pddb.idle,
-				self: self.pddb,
+				fn: self.idle_back_noflash_listener.idle,
+				self: self.idle_back_noflash_listener,
 				args: [],
 				interval: Math.floor(Math.random()*7000)+2000,
 			}, {
-				fn: self.pddb.focus,
-				self: self.pddb,
-				args: [],
-				interval: Math.floor(Math.random()*7000)+2000,
-				expected_visit: true // #@TODO ?
-			}, {
-				fn: self.pddb.back,
-				self: self.pddb,
+				fn: self.blur_focus_listener.focus,
+				self: self.blur_focus_listener,
 				args: [],
 				interval: Math.floor(Math.random()*7000)+2000,
 				expected_visit: true // #@TODO ?
 			}, {
-				fn: self.pddb.stop_recording,
-				self: self.pddb,
+				fn: self.idle_back_noflash_listener.back,
+				self: self.idle_back_noflash_listener,
+				args: [],
+				interval: Math.floor(Math.random()*7000)+2000,
+				expected_visit: true // #@TODO ?
+			}, {
+				fn: self.time_tracker.stop_recording,
+				self: self.time_tracking,
 				args: [],
 				interval: 0
 			}]
@@ -693,35 +717,35 @@ _extend(PDTests.prototype, {
 			display_results_callback,
 			site,
 			[{
-				fn: self.pddb.start_recording,
-				self: self.pddb,
+				fn: self.time_tracker.start_recording,
+				self: self.time_tracking,
 				args: [site.url],
 				interval: Math.floor(Math.random()*7000)+2000,
 				expected_visit: true
 			}, {
-				fn: self.pddb.idle,
-				self: self.pddb,
+				fn: self.idle_back_noflash_listener.idle,
+				self: self.idle_back_noflash_listener,
 				args: [],
 				interval: Math.floor(Math.random()*7000)+2000
 			}, {
-				fn: self.pddb.blur,
-				self: self.pddb,
+				fn: self.blur_focus_listener.blur,
+				self: self.blur_focus_listener,
 				args: [],
 				interval: Math.floor(Math.random()*7000)+2000,
 			}, {
-				fn: self.pddb.back,
-				self: self.pddb,
+				fn: self.idle_back_noflash_listener.back,
+				self: self.idle_back_noflash_listener,
 				args: [],
 				interval: Math.floor(Math.random()*7000)+2000,
 			}, {
-				fn: self.pddb.focus,
-				self: self.pddb,
+				fn: self.blur_focus_listener.focus,
+				self: self.blur_focus_listener,
 				args: [],
 				interval: Math.floor(Math.random()*7000)+2000,
 				expected_visit: true
 			}, {
-				fn: self.pddb.stop_recording,
-				self: self.pddb,
+				fn: self.time_tracker.stop_recording,
+				self: self.time_tracking,
 				args: [],
 				interval: 0
 			}]
@@ -739,36 +763,36 @@ _extend(PDTests.prototype, {
 			display_results_callback,
 			site,
 			[{
-				fn: self.pddb.start_recording,
-				self: self.pddb,
+				fn: self.time_tracker.start_recording,
+				self: self.time_tracking,
 				args: [site.url],
 				interval: Math.floor(Math.random()*7000)+2000,
 				expected_visit: true
 			}, {
-				fn: self.pddb.idle,
-				self: self.pddb,
+				fn: self.idle_back_noflash_listener.idle,
+				self: self.idle_back_noflash_listener,
 				args: [],
 				interval: Math.floor(Math.random()*7000)+2000
 			}, {
-				fn: self.pddb.blur,
-				self: self.pddb,
+				fn: self.blur_focus_listener.blur,
+				self: self.blur_focus_listener,
 				args: [],
 				interval: Math.floor(Math.random()*7000)+2000,
 			}, {
-				fn: self.pddb.focus,
-				self: self.pddb,
-				args: [],
-				interval: Math.floor(Math.random()*7000)+2000,
-				expected_visit: true // #@TODO ?
-			}, {
-				fn: self.pddb.back,
-				self: self.pddb,
+				fn: self.blur_focus_listener.focus,
+				self: self.blur_focus_listener,
 				args: [],
 				interval: Math.floor(Math.random()*7000)+2000,
 				expected_visit: true // #@TODO ?
 			}, {
-				fn: self.pddb.stop_recording,
-				self: self.pddb,
+				fn: self.idle_back_noflash_listener.back,
+				self: self.idle_back_noflash_listener,
+				args: [],
+				interval: Math.floor(Math.random()*7000)+2000,
+				expected_visit: true // #@TODO ?
+			}, {
+				fn: self.time_tracker.stop_recording,
+				self: self.time_tracking,
 				args: [],
 				interval: 0
 			}]

@@ -148,10 +148,8 @@ function load_models(db, pddb) {
 	}, {
 		// class methods
 		create_from_url: function(url, tag) {
-			logger("create from url: "+url);
 			if (!tag) { tag = pddb.Unsorted; }
 			var host = decodeURI(_host(url));
-			logger("  ---------- host --------- "+host);
 			var sitegroup = SiteGroup.get_or_create({
 				host: host
 			}, {
@@ -159,7 +157,6 @@ function load_models(db, pddb) {
 				host: host,
 				tag_id: tag.id
 			});
-			logger("  sitegroup="+sitegroup);
 			return sitegroup
 		},
 		

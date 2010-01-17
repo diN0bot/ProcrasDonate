@@ -11,8 +11,8 @@ class Period(models.Model):
     type_max_len, TYPES, TYPE_CHOICES = model_utils.convert_to_choices(TYPE_LIST)
     
     type = models.CharField(max_length=type_max_len, choices=TYPE_CHOICES)
-    startdate = models.DateTimeField()
-    enddate = models.DateTimeField()
+    startdate = models.DateTimeField(db_index=True)
+    enddate = models.DateTimeField(db_index=True)
     
     @classmethod
     def make(klass, type, startdate, enddate):

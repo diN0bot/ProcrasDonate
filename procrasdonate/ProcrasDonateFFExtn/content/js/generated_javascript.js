@@ -14211,7 +14211,7 @@ var logger = function(msg) {
  * show output there.
  *     eg, $ /Applications/Firefox.app/Contents/MacOS/firefox > o.out
  */
-logger = function(msg, show_stack) {
+var logger = function(msg, show_stack) {
 	now = new Date();
 	dump("\n---------"+now+"---------\n" + msg + "\n");
 	try {
@@ -14642,7 +14642,6 @@ var _host = function(href) {
 		href = urlbar.value;
 	}
 	href = encodeURI(href);
-	logger("_host.href = "+href);
 	
 	var splits = href.split(file_regexp);
 	if ( splits.length > 2 ) {
@@ -16181,6 +16180,20 @@ _extend(PDChecks.prototype, {
 var PDTests = function PDTests(pddb, prefs) {
 	this.pddb = pddb;
 	this.prefs = prefs;
+	
+	// create listeners
+	this.observerService = Cc['@mozilla.org/observer-service;1'].getService(
+			Components.interfaces.nsIObserverService);
+	this.idleService = Components.classes["@mozilla.org/widget/idleservice;1"].getService(
+			Components.interfaces.nsIIdleService);
+	
+	this.time_tracker = new TimeTracker(this.pddb, this.prefs);
+	this.toolbar_manager = new ToolbarManager(this.pddb, this.prefs);
+	this.blur_focus_listener = new BlurFocusListener(this.pddb, this.prefs, this.time_tracker);
+	this.sleep_wake_listener = new SleepWakeListener(this.observerService, this.pddb, this.prefs, this.time_tracker);
+	this.idle_back_noflash_listener = new IdleBack_NoFlash_Listener(this.idleService, this.pddb, this.prefs, this.time_tracker, constants.DEFAULT_MAX_IDLE);
+	this.idle_back_flash_listener = new IdleBack_Flash_Listener(this.idleService, this.pddb, this.prefs, this.time_tracker, constants.DEFAULT_FLASH_MAX_IDLE);
+	this.private_browsing_listener = new PrivateBrowsingListener(this.observerService, this.pddb, this.prefs, this.toolbar_manager);
 };
 PDTests.prototype = {};
 _extend(PDTests.prototype, {
@@ -16410,6 +16423,7 @@ _extend(PDTests.prototype, {
 	},
 
 	/**
+	 * @param items: list of functions to execute
 	 * [
 	 *  {fn, self, args, interval},
 	 *  {fn, self, args, interval},
@@ -16430,7 +16444,7 @@ _extend(PDTests.prototype, {
 				self.sequentialize(items, idx+1);
 			}
 		}
-	},
+	},	        
 	
 	check_visits: function(testrunner, display_results_callback, site, expected_durations) {
 		var actual_durations = [];
@@ -16518,25 +16532,25 @@ _extend(PDTests.prototype, {
 			display_results_callback,
 			site,
 			[{
-				fn: self.pddb.start_recording,
-				self: self.pddb,
+				fn: self.time_tracker.start_recording,
+				self: self.time_tracker,
 				args: [site.url],
 				interval: Math.floor(Math.random()*7000)+2000,
 				expected_visit: true
 			}, {
-				fn: self.pddb.idle,
-				self: self.pddb,
+				fn: self.idle_back_noflash_listener.idle,
+				self: self.idle_back_noflash_listener,
 				args: [],
 				interval: Math.floor(Math.random()*7000)+2000
 			}, {
-				fn: self.pddb.back,
-				self: self.pddb,
+				fn: self.idle_back_noflash_listener.back,
+				self: self.idle_back_noflash_listener,
 				args: [],
 				interval: Math.floor(Math.random()*7000)+2000,
 				expected_visit: true
 			}, {
-				fn: self.pddb.stop_recording,
-				self: self.pddb,
+				fn: self.time_tracker.stop_recording,
+				self: self.time_tracker,
 				args: [],
 				interval: 0
 			}]
@@ -16554,25 +16568,25 @@ _extend(PDTests.prototype, {
 			display_results_callback,
 			site,
 			[{
-				fn: self.pddb.start_recording,
+				fn: self.time_tracker.start_recording,
 				self: self.pddb,
 				args: [site.url],
 				interval: Math.floor(Math.random()*7000)+2000,
 				expected_visit: true
 			}, {
-				fn: self.pddb.blur,
-				self: self.pddb,
+				fn: self.blur_focus_listener.blur,
+				self: self.blur_focus_listener,
 				args: [],
 				interval: Math.floor(Math.random()*7000)+2000
 			}, {
-				fn: self.pddb.focus,
-				self: self.pddb,
+				fn: self.blur_focus_listener.focus,
+				self: self.blur_focus_listener,
 				args: [],
 				interval: Math.floor(Math.random()*7000)+2000,
 				expected_visit: true
 			}, {
-				fn: self.pddb.stop_recording,
-				self: self.pddb,
+				fn: self.time_tracker.stop_recording,
+				self: self.time_tracking,
 				args: [],
 				interval: 0
 			}]
@@ -16590,35 +16604,35 @@ _extend(PDTests.prototype, {
 			display_results_callback,
 			site,
 			[{
-				fn: self.pddb.start_recording,
-				self: self.pddb,
+				fn: self.time_tracking.start_recording,
+				self: self.time_tracking,
 				args: [site.url],
 				interval: Math.floor(Math.random()*7000)+2000,
 				expected_visit: true
 			}, {
-				fn: self.pddb.blur,
-				self: self.pddb,
+				fn: self.blur_focus_listener.blur,
+				self: self.blur_focus_listener,
 				args: [],
 				interval: Math.floor(Math.random()*7000)+2000
 			}, {
-				fn: self.pddb.idle,
-				self: self.pddb,
+				fn: self.idle_back_noflash_listener.idle,
+				self: self.idle_back_noflash_listener,
 				args: [],
 				interval: Math.floor(Math.random()*7000)+2000,
 			}, {
-				fn: self.pddb.back,
-				self: self.pddb,
+				fn: self.idle_back_noflash_listener.back,
+				self: self.idle_back_noflash_listener,
 				args: [],
 				interval: Math.floor(Math.random()*7000)+2000,
 			}, {
-				fn: self.pddb.focus,
-				self: self.pddb,
+				fn: self.blur_focus_listener.focus,
+				self: self.blur_focus_listener,
 				args: [],
 				interval: Math.floor(Math.random()*7000)+2000,
 				expected_visit: true
 			}, {
-				fn: self.pddb.stop_recording,
-				self: self.pddb,
+				fn: self.time_tracker.stop_recording,
+				self: self.time_tracking,
 				args: [],
 				interval: 0
 			}]
@@ -16636,36 +16650,36 @@ _extend(PDTests.prototype, {
 			display_results_callback,
 			site,
 			[{
-				fn: self.pddb.start_recording,
-				self: self.pddb,
+				fn: self.time_tracker.start_recording,
+				self: self.time_tracking,
 				args: [site.url],
 				interval: Math.floor(Math.random()*7000)+2000,
 				expected_visit: true
 			}, {
-				fn: self.pddb.blur,
-				self: self.pddb,
+				fn: self.blur_focus_listener.blur,
+				self: self.blur_focus_listener,
 				args: [],
 				interval: Math.floor(Math.random()*7000)+2000
 			}, {
-				fn: self.pddb.idle,
-				self: self.pddb,
+				fn: self.idle_back_noflash_listener.idle,
+				self: self.idle_back_noflash_listener,
 				args: [],
 				interval: Math.floor(Math.random()*7000)+2000,
 			}, {
-				fn: self.pddb.focus,
-				self: self.pddb,
-				args: [],
-				interval: Math.floor(Math.random()*7000)+2000,
-				expected_visit: true // #@TODO ?
-			}, {
-				fn: self.pddb.back,
-				self: self.pddb,
+				fn: self.blur_focus_listener.focus,
+				self: self.blur_focus_listener,
 				args: [],
 				interval: Math.floor(Math.random()*7000)+2000,
 				expected_visit: true // #@TODO ?
 			}, {
-				fn: self.pddb.stop_recording,
-				self: self.pddb,
+				fn: self.idle_back_noflash_listener.back,
+				self: self.idle_back_noflash_listener,
+				args: [],
+				interval: Math.floor(Math.random()*7000)+2000,
+				expected_visit: true // #@TODO ?
+			}, {
+				fn: self.time_tracker.stop_recording,
+				self: self.time_tracking,
 				args: [],
 				interval: 0
 			}]
@@ -16683,35 +16697,35 @@ _extend(PDTests.prototype, {
 			display_results_callback,
 			site,
 			[{
-				fn: self.pddb.start_recording,
-				self: self.pddb,
+				fn: self.time_tracker.start_recording,
+				self: self.time_tracking,
 				args: [site.url],
 				interval: Math.floor(Math.random()*7000)+2000,
 				expected_visit: true
 			}, {
-				fn: self.pddb.idle,
-				self: self.pddb,
+				fn: self.idle_back_noflash_listener.idle,
+				self: self.idle_back_noflash_listener,
 				args: [],
 				interval: Math.floor(Math.random()*7000)+2000
 			}, {
-				fn: self.pddb.blur,
-				self: self.pddb,
+				fn: self.blur_focus_listener.blur,
+				self: self.blur_focus_listener,
 				args: [],
 				interval: Math.floor(Math.random()*7000)+2000,
 			}, {
-				fn: self.pddb.back,
-				self: self.pddb,
+				fn: self.idle_back_noflash_listener.back,
+				self: self.idle_back_noflash_listener,
 				args: [],
 				interval: Math.floor(Math.random()*7000)+2000,
 			}, {
-				fn: self.pddb.focus,
-				self: self.pddb,
+				fn: self.blur_focus_listener.focus,
+				self: self.blur_focus_listener,
 				args: [],
 				interval: Math.floor(Math.random()*7000)+2000,
 				expected_visit: true
 			}, {
-				fn: self.pddb.stop_recording,
-				self: self.pddb,
+				fn: self.time_tracker.stop_recording,
+				self: self.time_tracking,
 				args: [],
 				interval: 0
 			}]
@@ -16729,36 +16743,36 @@ _extend(PDTests.prototype, {
 			display_results_callback,
 			site,
 			[{
-				fn: self.pddb.start_recording,
-				self: self.pddb,
+				fn: self.time_tracker.start_recording,
+				self: self.time_tracking,
 				args: [site.url],
 				interval: Math.floor(Math.random()*7000)+2000,
 				expected_visit: true
 			}, {
-				fn: self.pddb.idle,
-				self: self.pddb,
+				fn: self.idle_back_noflash_listener.idle,
+				self: self.idle_back_noflash_listener,
 				args: [],
 				interval: Math.floor(Math.random()*7000)+2000
 			}, {
-				fn: self.pddb.blur,
-				self: self.pddb,
+				fn: self.blur_focus_listener.blur,
+				self: self.blur_focus_listener,
 				args: [],
 				interval: Math.floor(Math.random()*7000)+2000,
 			}, {
-				fn: self.pddb.focus,
-				self: self.pddb,
-				args: [],
-				interval: Math.floor(Math.random()*7000)+2000,
-				expected_visit: true // #@TODO ?
-			}, {
-				fn: self.pddb.back,
-				self: self.pddb,
+				fn: self.blur_focus_listener.focus,
+				self: self.blur_focus_listener,
 				args: [],
 				interval: Math.floor(Math.random()*7000)+2000,
 				expected_visit: true // #@TODO ?
 			}, {
-				fn: self.pddb.stop_recording,
-				self: self.pddb,
+				fn: self.idle_back_noflash_listener.back,
+				self: self.idle_back_noflash_listener,
+				args: [],
+				interval: Math.floor(Math.random()*7000)+2000,
+				expected_visit: true // #@TODO ?
+			}, {
+				fn: self.time_tracker.stop_recording,
+				self: self.time_tracking,
 				args: [],
 				interval: 0
 			}]
@@ -17670,7 +17684,7 @@ Template.register_template_class(DjangoTemplate, function(obj) {
     
     Template.compile(["<div class=\"recipient\" alt=\"", ["var", ["deep_recip_pct", "recipient", "id"], []], "\">\n\t\n\t<!-- id class needed for js -->\n\t<div class=\"recipient_id hidden\">", ["var", ["deep_recip_pct", "recipient", "id"], []], "</div>\t\n\n\t<div class=\"recipient_percent form-input\">\n\t\t<span class=\"pie_sector_color\" style=\"background: ", ["var", ["percent_color"], []], ";\"> </span>\n\t\t<span class=\"percent\">", ["var", ["deep_recip_pct", "display_percent"], []], "</span>\n\t\t<span class=\"percent_symbol\">%</span>\n\t\t<img\n\t\t\tclass=\"up_arrow\"\n\t\t\ttitle=\"Increment percent\"\n\t\t\tsrc=\"", ["var", ["constants", "MEDIA_URL"], []], "img/UpArrow.png\" />\n\t\t<img\n\t\t\tclass=\"down_arrow\"\n\t\t\ttitle=\"Decrement percent\"\n\t\t\tsrc=\"", ["var", ["constants", "MEDIA_URL"], []], "img/DownArrow.png\" />\n\t</div>\n\n\t<div class='name'>\n\t\t", ["if", [[false, ["var", ["deep_recip_pct", "recipient", "is_pd_registered"], []]]], 1, ["\n\t\t\t<a href='", ["var", ["constants", "RECIPIENTS_URL"], []], ["var", ["deep_recip_pct", "recipient", "slug"], []], "'>\n\t\t"], []], "\n\t\t\t<img src=\"", ["var", ["deep_recip_pct", "recipient", "logo_thumbnail"], []], "\" />\n\t\t\t", ["var", ["deep_recip_pct", "recipient", "name"], []], "\n\t\t", ["if", [[false, ["var", ["deep_recip_pct", "recipient", "is_pd_registered"], []]]], 1, ["\n\t\t\t</a>\n\t\t"], []], "\n\t</div>\n\t<div class='left_recipient_float'>\n\t\t<table>\n\t\t<tbody>\n\t\t\t<tr><td>\n\t\t\t\t<div class=\"category\">", ["var", ["deep_recip_pct", "recipient", "category", "category"], []], "</div>\n\t\t\t</td></tr><tr><td>\n\t\t\t\t<div class='remove_recipient' title=\"Remove recipient from list\">\n\t\t\t\t\t<img src=\"", ["var", ["constants", "MEDIA_URL"], []], "img/Remove.png\" class=\"recipient-image remove_img img_link\">\t\t\n\t\t\t\t</div>\n\t\t\t</td></tr>\n\t\t</tbody>\n\t\t</table>\n\t</div>\t\n\t<div class='mission'>\n\t\t", ["var", ["deep_recip_pct", "recipient", "mission"], []], "\n\t\t", ["if", [[false, ["var", ["deep_recip_pct", "recipient", "html_description"], []]]], 1, ["\n\t\t\t<span class='link description_toggle'>(less)</span>\n\t\t"], []], "\n\t</div>\n\t<div class='description'>\n\t\t", ["var", ["deep_recip_pct", "recipient", "html_description"], []], "\n\t</div>\n\t<div class=\"float_prop\" />\n</div>\n"], "recipient_with_percent_snippet");
     
-    Template.compile(["\n", ["if", [[false, ["var", ["substate_menu_items", "prev"], []]]], 1, ["\n\t", ["if", [[false, ["var", ["substate_menu_items", "prev", "url"], []]]], 1, ["<a href=\"", ["var", ["substate_menu_items", "prev", "url"], []], "\">"], []], "\n\t\t<img\n\t\t  class=\"prev ", ["var", ["substate_menu_items", "prev", "id"], []], "\"\n\t\t  src=\"/procrasdonate_media/img/BackArrow.png\" />\n  ", ["if", [[false, ["var", ["substate_menu_items", "prev", "url"], []]]], 1, ["</a>"], []], "\n"], ["\n\t", ["if", [[true, ["var", ["substate_menu_items", "no_spacers"], []]]], 1, ["\n\t<img\n\t  class=\"prev\"\n\t  src=\"/procrasdonate_media/img/Spacer.png\" />\n\t"], []], "\n"]], "\n\n", ["if", [[false, ["var", ["substate_menu_items", "next"], []]]], 1, ["\n\t", ["ifequal", ["var", ["substate_menu_items", "next", "value"], []], ["var", "XXX", []], ["\n\t\t<img\n\t\t  class=\"done ", ["var", ["substate_menu_items", "next", "id"], []], "\"\n\t\t  src=\"/procrasdonate_media/img/DoneButton.png\" />\n\t"], ["\n\t\t", ["ifequal", ["var", ["substate_menu_items", "next", "value"], []], ["var", "XXXX", []], ["\n\t\t\t", "\n\t\t"], ["\n\t\t\t", ["if", [[false, ["var", ["substate_menu_items", "next", "url"], []]]], 1, ["<a href=\"", ["var", ["substate_menu_items", "next", "url"], []], "\">"], []], "\n\t\t\t\t<img\n\t\t\t\t  class=\"next ", ["var", ["substate_menu_items", "next", "id"], []], "\"\n\t\t\t\t  src=\"/procrasdonate_media/img/NextArrow.png\" />\n\t\t\t", ["if", [[false, ["var", ["substate_menu_items", "next", "url"], []]]], 1, ["</a>"], []], "\n\t\t"]], "\n\t"]], "\n"], ["\n\t", ["if", [[true, ["var", ["substate_menu_items", "no_spacers"], []]]], 1, ["\n\t<img\n\t  class=\"next\"\n\t  src=\"/procrasdonate_media/img/Spacer.png\" />\n\t"], []], "\n"]], "\n\n"], "register_arrows");
+    Template.compile(["\n", ["if", [[false, ["var", ["substate_menu_items", "prev"], []]]], 1, ["\n\t", ["if", [[false, ["var", ["substate_menu_items", "prev", "url"], []]]], 1, ["<a href=\"", ["var", ["substate_menu_items", "prev", "url"], []], "\">"], []], "\n\t\t<img\n\t\t  class=\"prev ", ["var", ["substate_menu_items", "prev", "id"], []], "\"\n\t\t  src=\"/procrasdonate_media/img/BackArrow.png\" />\n  ", ["if", [[false, ["var", ["substate_menu_items", "prev", "url"], []]]], 1, ["</a>"], []], "\n"], ["\n\t", ["if", [[true, ["var", ["substate_menu_items", "no_spacers"], []]]], 1, ["\n\t<img\n\t  class=\"prev\"\n\t  src=\"/procrasdonate_media/img/Spacer.png\" />\n\t"], []], "\n"]], "\n\n", ["if", [[false, ["var", ["substate_menu_items", "next"], []]]], 1, ["\n\t", ["ifequal", ["var", ["substate_menu_items", "next", "value"], []], ["var", "XXX", []], ["\n\t\t<img\n\t\t  class=\"done ", ["var", ["substate_menu_items", "next", "id"], []], "\"\n\t\t  src=\"/procrasdonate_media/img/DoneButton.png\" />\n\t"], ["\n\t\t", ["ifequal", ["var", ["substate_menu_items", "next", "value"], []], ["var", "XXXX", []], ["\n\t\t\t", "\n\t\t"], ["\n\t\t\t", ["if", [[false, ["var", ["substate_menu_items", "next", "url"], []]]], 1, ["<a href=\"", ["var", ["substate_menu_items", "next", "url"], []], "\">"], []], "\n\t\t\t\t<img\n\t\t\t\t  class=\"next ", ["var", ["substate_menu_items", "next", "id"], []], "\"\n\t\t\t\t  src=\"/procrasdonate_media/img/NextArrow.png\" />\n\t\t\t", ["if", [[false, ["var", ["substate_menu_items", "next", "url"], []]]], 1, ["</a>"], []], "\n\t\t"]], "\n\t"]], "\n"], ["\n\t", ["if", [[true, ["var", ["substate_menu_items", "no_spacers"], []]]], 1, ["\n\t<img\n\t  class=\"next\"\n\t  src=\"/procrasdonate_media/img/Spacer.png\" />\n\t"], []], "\n"]], "\n\n<div class=\"arrow_errors errors\"></div>\n"], "register_arrows");
     
     Template.compile([["var", ["substate_menu"], []], "\n", ["var", ["arrows"], []], "\n\n<h5>Who should benefit from your charitable incentive?</h5>\n<p>Find and select organizations below.  \nModify each's percentage (%) until you like how your pledges will be divided.  \n</p>\n\n<div id=\"errors\"></div>\n\n<h2>My Selected Charities</h2>\n\n<div id=\"pie_chart\"></div>\n\n<div id=\"chosen_charities\">\n\t", ["if", [[false, ["var", ["chosen_charities"], []]]], 1, ["\n\t\t", ["for", ["deep_recip_pct_html"], ["var", ["chosen_charities"], []], false, ["\n\t\t\t", ["var", ["deep_recip_pct_html"], []], "\n\t\t"]], "\n\t"], ["\n\t\t<p>Please add at least one charity.</p>\n\t"]], "\n</div>\n\n", ["nop"], "\n\n<h2>Invite New Charities</h2>\n<p>You can pledge to an unlisted charity by entering their name below.\n\tWe will contact them and when they make a free account then your pledges will become donations.\n</p>\n\t\t\n<p>\n\t<label>Name of unlisted charity to invite:</label>\n\t<input id=\"new_recipient_name\" type=\"text\" size=\"30\" />\n\n\t<input\n\t\tid=\"new_recipient_submit\"\n\t\ttype=\"image\"\n\t\tsrc=\"", ["var", ["constants", "MEDIA_URL"], []], "img/AddRecipient.png\"\n\t\tvalue=\"add new recipient\"/>\n</p>\n\n", ["if", [[false, ["var", ["staff_picks"], []]]], 1, ["\n<h2>Staff Picks</h2>\n\t", ["for", ["recipient_html"], ["var", ["staff_picks"], []], false, ["\n\t\t", ["var", ["recipient_html"], []], "\n\t"]], "\n"], []], "\n\n", ["if", [[false, ["var", ["recently_added"], []]]], 1, ["\n<h2>Recently Added</h2>\n\t", ["for", ["recipient_html"], ["var", ["recently_added"], []], false, ["\n\t\t", ["var", ["recipient_html"], []], "\n\t"]], "\n"], []], "\n\n<div id=\"removed_charities_temporary\"></div>\n\t\n", ["nop"], "\n\n", ["var", ["arrows"], []], "\n"], "register_charities_middle");
     
@@ -17678,7 +17692,7 @@ Template.register_template_class(DjangoTemplate, function(obj) {
     
     Template.compile(["<h2>Registration Success!</h2>\n\n<p>Use <a href=\"", ["var", ["constants", "SETTINGS_URL"], []], "\">My Settings</a> from the menu to the left to modify your settings.</p>\n"], "register_done_middle");
     
-    Template.compile([["var", ["substate_menu"], []], "\n", ["var", ["arrows"], []], "\n\n<h5>Create an incentive to waste less time online. \n\t<span class=\"subheader\"></span></h5>\n<p id=\"rate_error\" class=\"error\"></p>\n\n<p> ''I will donate\n\t<input\n\t\ttype=\"text\"\n\t\tid=\"pd_dollars_per_hr\"\n\t\tname=\"pd_dollars_per_hr\" \n\t\tvalue=\"", ["var", ["pd_dollars_per_hr"], []], "\"\n\t\tsize=\"4\" />\n\t   <span class=\"units\"></span>\n  \tdollars for every hour I spend on websites I mark as ProcrasDonate.''</p>\n   \n\n<h5>How many hours do you <i>want</i> to spend ProcrasDonating?\n\t<span class=\"subheader\"> </span></h5>\n<p id=\"goal_error\" class=\"error\"></p>\n\n<div class=\"example_gauge\">\n\t<div id=\"happy_example_gauge\"></div>\n\tMy procrastination meter. \n\t(<img class=\"lower-image text-image\" src=\"/procrasdonate_media/img/ToolbarImages/IconBar40.png\"/>) \n</div>\n\n<p>''I will strive to ProcrasDonate only\n\t<input\n\t\ttype=\"text\"\n\t\tid=\"pd_hr_per_week_goal\"\n\t\tname=\"pd_hr_per_week_goal\" \n\t\tvalue=\"", ["var", ["pd_hr_per_week_goal"], []], "\" \n\t\tsize=\"4\"/>\n\t   <span class=\"units\"></span>\n\thours per week. This goal sets the green area on my procrastination meter and is used for weekly feedback messages.''</p>\n\n\n<h5>What is your weekly limit?\n\t<span class=\"subheader\"></span></h5>\n<p id=\"max_error\" class=\"error\"></p>\n<p>''Limit my total PD donations to\n\t<input\n\t\ttype=\"text\"\n\t\tid=\"pd_hr_per_week_max\"\n\t\tname=\"pd_hr_per_week_max\" \n\t\tvalue=\"", ["var", ["pd_hr_per_week_max"], []], "\"\n\t\tsize=\"4\" />\n\t   <span class=\"units\"></span>\n\t   dollars per week.  \n\t   My procrastination meter will display up to <span></span> hours.''</p>\n\n", ["var", ["arrows"], []], "\n"], "register_incentive_middle");
+    Template.compile([["var", ["substate_menu"], []], "\n", ["var", ["arrows"], []], "\n\n<h5>Create an incentive to waste less time online. \n\t<span class=\"subheader\"></span></h5>\n<p id=\"rate_error\" class=\"error\"></p>\n\n<p> ''I will donate\n\t<b>$</b><input\n\t\ttype=\"text\"\n\t\tclass=\"hourly_rate_color\"\n\t\tid=\"pd_dollars_per_hr\"\n\t\tname=\"pd_dollars_per_hr\" \n\t\tvalue=\"", ["var", ["pd_dollars_per_hr"], []], "\"\n\t\tsize=\"4\" />\n\t   <span class=\"units\"></span>\n  \tfor every hour I spend on websites I mark as ProcrasDonate.''</p>\n   \n\n<h5>How many hours do you <i>want</i> to spend ProcrasDonating?\n\t<span class=\"subheader\"> </span></h5>\n<p id=\"goal_error\" class=\"error\"></p>\n\n<div class=\"example_gauge\">\n\t<div id=\"happy_example_gauge\"></div>\n\tMy procrastination meter. \n\t(<img class=\"lower-image text-image\" src=\"/procrasdonate_media/img/ToolbarImages/IconBar40.png\"/>) \n</div>\n\n<p>''I will strive to ProcrasDonate only\n\t<input\n\t\ttype=\"text\"\n\t\tclass=\"weekly_goal_color\"\n\t\tid=\"pd_hr_per_week_goal\"\n\t\tname=\"pd_hr_per_week_goal\" \n\t\tvalue=\"", ["var", ["pd_hr_per_week_goal"], []], "\" \n\t\tsize=\"4\"/>\n\t   <span class=\"units\"></span>\n\t<b>hours</b> per week. This goal sets the green area on my procrastination meter and is used for weekly feedback messages.''</p>\n\n\n<h5>What is your weekly limit?\n\t<span class=\"subheader\"></span></h5>\n<p id=\"max_error\" class=\"error\"></p>\n<p>''Limit my total PD donations to\n\t<b>$</b><input\n\t\ttype=\"text\"\n\t\tclass=\"weekly_limit_color\"\n\t\tid=\"pd_dollars_per_week_max\"\n\t\tname=\"pd_dollars_per_week_max\" \n\t\tvalue=\"", ["var", ["pd_dollars_per_week_max"], []], "\"\n\t\tsize=\"4\" />\n\t   <span class=\"units\"></span>\n\t   per week.  \n\t   My procrastination meter will display up to <span id='pd_hr_per_week_max_span'>\n\t   ", ["var", ["pd_hr_per_week_max"], []], "</span> <b>hours</b>.''</p>\n\n", ["var", ["arrows"], []], "\n"], "register_incentive_middle");
     
     Template.compile([["var", ["substate_menu"], []], "\n", ["var", ["arrows"], []], "\n\n<form method=\"post\" action=\"", ["var", ["action"], []], "\">\n\t", ["for", ["param"], ["var", ["form_params"], []], false, ["\n\t\t<input\n\t\t\ttype=\"hidden\"\n\t\t\tname=\"", ["var", ["param", "name"], []], "\"\n\t\t\tvalue=\"", ["var", ["param", "value"], []], "\"\n\t\t\tclass=\"", ["var", ["param", "name"], []], "\" />\n\t"]], "\n\t<input\n\t\ttype=\"image\"\n\t\tclass=\"go_to_amazon_button\"\n\t\tsrc=\"", ["var", ["constants", "MEDIA_URL"], []], "img/GoAmazonButton.png\"\n\t\tid=\"top_go_to_amazon_button\" />\n</form>\n\n<div id=\"multi_auth_status\">\n\t", ["var", ["multi_auth_status"], []], "\n</div>\n\n<h5>How would you like to pay for using ProcrasDonate?</h5>\n\n<p>We're making improvements all the time and your support keeps us rolling!</p>\n\n<div class=\"split_arrow_div\" class=\"left\">\n\t<img class=\"split_arrow\" src=\"", ["var", ["constants", "MEDIA_URL"], []], "img/SplitArrows.png\" />\n</div>\n\n<div id=\"support_middle\">\n</div>\n\n<h5>Your final step is to automate payments through Amazon.com.</h5>\n<ul>\n\t<li>For added security, your potential donations are <b>capped</b> so that you cannot be charged more than one year's worth of maximal giving at your current settings.</li>\n\t<li>You will have to <b>reauthorize</b> once your pledges have exceeded this cap.</li>\n</ul>\n\n", ["if", [[true, ["var", ["multi_auth"], []]], [true, ["var", ["multiuse", "good_to_go"], []]]], 1, ["\n\t<p>Go to Amazon <span id=\"go_to_amazon\" class=\"link\">to approve payments</span>\n\t\twhen you're ready.</p>\n\t\n\t\t<form method=\"post\" action=\"", ["var", ["action"], []], "\">\n\t\t\t", ["for", ["param"], ["var", ["form_params"], []], false, ["\n\t\t\t\t<input\n\t\t\t\t\ttype=\"hidden\"\n\t\t\t\t\tname=\"", ["var", ["param", "name"], []], "\"\n\t\t\t\t\tvalue=\"", ["var", ["param", "value"], []], "\"\n\t\t\t\t\tclass=\"", ["var", ["param", "name"], []], "\" />\n\t\t\t"]], "\n\t\t\t<input\n\t\t\t\ttype=\"image\"\n\t\t\t\tclass=\"go_to_amazon_button\"\n\t\t\t\tsrc=\"", ["var", ["constants", "MEDIA_URL"], []], "img/GoAmazonButton.png\" />\n\t\t</form>\n"], []], "\n\n", ["var", ["arrows"], []], "\n"], "register_payments_middle");
     
@@ -17688,7 +17702,7 @@ Template.register_template_class(DjangoTemplate, function(obj) {
     
     Template.compile(["<img\n\tclass=\"done ", ["var", ["substate_menu_items", "next", "id"], []], "\"\n\tsrc=\"/procrasdonate_media/img/DoneButton.png\" />\n\t\n<h1>Time Well Spent</h1>\n\n<ul><li>The time that you spend on websites you've marked as Time Well Spent will not result in donations to your favorite charities.\n</li><li>\nIf you'd like to support quality websites directly then you can set up hourly donations that benefit the content providers of TWS sites.\n</li></ul>\n\n<h2>Payments:\n\t<span class=\"subheader\">What is quality online content worth to you?</span></h2>\n<p id=\"rate_error\" class=\"error\"></p>\n\n<p>What would you like to pay content providers of websites that you mark as TimeWellSpent for the time that you spend using them?  \n\t</p>\n\t\n<p>''I will pay <input\n\ttype=\"text\"\n\tid=\"tws_dollars_per_hr\"\n\tname=\"tws_dollars_per_hr\" \n\tvalue=\"", ["var", ["tws_dollars_per_hr"], []], "\" />\n   <span class=\"units\">dollars</span> per hour I spend on TimeWellSpent websites.''</p>\n\n<h2>Limit: \n\t<span class=\"subheader\">What is the most you'd like to pay per week of TWS? </span></h2>\n<p id=\"max_error\" class=\"error\"></p>\n<p>''Limit my total TWS donations to\n\t<input\n\ttype=\"text\"\n\tid=\"tws_hr_per_week_max\"\n\tname=\"tws_hr_per_week_max\" \n\tvalue=\"", ["var", ["tws_hr_per_week_max"], []], "\" />\n   <span class=\"units\">hours</span> per week.  This will not change my existing ProcrasDonation limit.''</p>\n\n<img\n\tclass=\"done ", ["var", ["substate_menu_items", "next", "id"], []], "\"\n\tsrc=\"/procrasdonate_media/img/DoneButton.png\" />\n"], "register_time_well_spent_middle");
     
-    Template.compile([["var", ["substate_menu"], []], "\n", ["var", ["arrows"], []], "\n\n<p id=\"error\"></p>\n\n<h5>Where would you like to receive weekly feedback and alerts?</h5>  \n\n<p>We do not share your email; not even with organizations that you donate to.\n</p>\n\n<p><label>Email </label><input\n\ttype=\"text\"\n\tid=\"email\"\n\tname=\"email\" \n\tvalue=\"", ["var", ["email"], []], "\" />\n</p>\n\n<h5>Do you deduct charitable donations from your taxes?</h5>\n<p></p>\n<div class=\"split_arrow_div\" class=\"left\">\n\t<img class=\"split_arrow\" src=\"", ["var", ["constants", "MEDIA_URL"], []], "img/SplitArrows.png\" />\n</div>\n\n\n<div id=\"tax_deductions_middle\">\n</div>\n\n<br>\n\n<div id=\"terms_of_service_box\">\n\t<h2>Terms of service</h2>\n\t<p><input\n\t\ttype=\"checkbox\"\n\t\tid=\"tos\"\n\t\tname=\"tos\"\n\t\t", ["if", [[false, ["var", ["tos"], []]]], 1, ["checked"], []], " />\n\t   <span>I have read and agree to the following Terms of Service.</span>\n\t   </p>\n\t\n\tBy using our service you agree to the following:\n\t\n\t<p>- You are responsible for abiding by these terms as well as any updates that ProcrasDonate may make \n\t\tto these terms without warning or notification.\n\t</p>\n\t<p>- You understand how our service works and are willingly participating.\n\t</p>\n\t<p>- You will pay all pledges that have been properly made on your behalf in full.\n\t</p>\n\t<p>- Voluntary monthly fees and a percentage that you determine of each transaction will be\n\t\tpaid to ProcrasDonate.\n\t</p>\n\t<p>- You are solely responsible for any content that you add to this site. \n\t</p>\n\t<p>- Illegal, unfriendly, or otherwise problematic content will be removed.\n\t</p>\n\t<p>- Your individual records and settings are under your control.  \n\tAlthough our central server will collect your records to approve payments \n\tand collect community statistics - a reasonable effort will be made to keep\n\tyour browsing history and other records anonymous.\n\t</p>\n\t<p>- All rights are reserved including ProcrasDonate intellectual property of\n\t\tour business model and any software beyond the open source software \n\t\tthat we are using.\n\t</p>\n\t<p> Thanks for ProcrasDonating!\n\t</p>\n</div>\t\n\n", ["var", ["arrows"], []], "\n"], "register_updates_middle");
+    Template.compile([["var", ["substate_menu"], []], "\n", ["var", ["arrows"], []], "\n\n<h5>Where would you like to receive weekly feedback and alerts?</h5>  \n\n<p>We do not share your email; not even with organizations that you donate to.\n</p>\n\n<p><label>Email </label><input\n\ttype=\"text\"\n\tid=\"email\"\n\tname=\"email\" \n\tvalue=\"", ["var", ["email"], []], "\" />\n</p>\n\n<h5>Do you deduct charitable donations from your taxes?</h5>\n<p></p>\n<div class=\"split_arrow_div\" class=\"left\">\n\t<img class=\"split_arrow\" src=\"", ["var", ["constants", "MEDIA_URL"], []], "img/SplitArrows.png\" />\n</div>\n\n\n<div id=\"tax_deductions_middle\">\n</div>\n\n<br>\n\n<div id=\"terms_of_service_box\">\n\t<h2>Terms of service</h2>\n\t<p><input\n\t\ttype=\"checkbox\"\n\t\tid=\"tos\"\n\t\tname=\"tos\"\n\t\t", ["if", [[false, ["var", ["tos"], []]]], 1, ["checked"], []], " />\n\t   <span>I have read and agree to the following Terms of Service.</span>\n\t   </p>\n\t\n\tBy using our service you agree to the following:\n\t\n\t<p>- You are responsible for abiding by these terms as well as any updates that ProcrasDonate may make \n\t\tto these terms without warning or notification.\n\t</p>\n\t<p>- You understand how our service works and are willingly participating.\n\t</p>\n\t<p>- You will pay all pledges that have been properly made on your behalf in full.\n\t</p>\n\t<p>- Voluntary monthly fees and a percentage that you determine of each transaction will be\n\t\tpaid to ProcrasDonate.\n\t</p>\n\t<p>- You are solely responsible for any content that you add to this site. \n\t</p>\n\t<p>- Illegal, unfriendly, or otherwise problematic content will be removed.\n\t</p>\n\t<p>- Your individual records and settings are under your control.  \n\tAlthough our central server will collect your records to approve payments \n\tand collect community statistics - a reasonable effort will be made to keep\n\tyour browsing history and other records anonymous.\n\t</p>\n\t<p>- All rights are reserved including ProcrasDonate intellectual property of\n\t\tour business model and any software beyond the open source software \n\t\tthat we are using.\n\t</p>\n\t<p> Thanks for ProcrasDonating!\n\t</p>\n</div>\t\n\n", ["var", ["arrows"], []], "\n"], "register_updates_middle");
     
     Template.compile(["<ul>\n\t<li>partially paid: ", ["var", ["rp", "is_partially_paid"], []], "</li>\n\t<li>pending: ", ["var", ["rp", "is_pending"], []], "</li>\n\t<li>TOTAL:\n\t\t<ul>\n\t\t\t<li>site: ", ["var", ["rp", "total", "site", "url"], []], "</li>\n\t\t\t<li>sitegroup: ", ["var", ["rp", "total", "sitegroup", "host"], []], ", ", ["var", ["rp", "total", "sitegroup", "tag", "tag"], []], "</li>\n\t\t\t<li>recipient: ", ["var", ["rp", "total", "recipient", "name"], []], "</li>\n\t\t\t<li>tag: ", ["var", ["rp", "total", "tag", "tag"], []], "</li>\n\t\t\t<li>total_time: ", ["var", ["rp", "total", "total_time"], []], " secs, ", ["var", ["rp", "total", "hours"], []], " hours</li>\n\t\t\t<li>total_amount: ", ["var", ["rp", "total", "total_amount"], []], " cents, $", ["var", ["rp", "total", "dollars"], []], "</li>\n\t\t\t<li>timetype: ", ["var", ["rp", "total", "timetype", "timetype"], []], "</li>\n\t\t\t<li>datetime: ", ["var", ["rp", "total", "friendly_datetime"], []], "</li>\n\t\t</ul>\n\t</li>\n</ul>\n"], "requires_payment");
     
@@ -17697,6 +17711,8 @@ Template.register_template_class(DjangoTemplate, function(obj) {
     Template.compile(["\n<table>\n<tbody>\n<tr>\n\t<td align=\"left\">\n\t\t<input\n\t\tclass=\"support_method_radio\"\n\t\ttype=\"radio\"\n\t\tname=\"support_method\"\n\t\tvalue=\"monthly\"\n\t\t", ["ifequal", ["var", ["support_method"], []], ["var", "monthly", []], ["checked"], []], " />\n\t<label>Monthly Subscription</label>\n\t</td>\n\t<td align=\"left\">\n\t\t\t<input\n\t\tclass=\"support_method_radio\"\n\t\ttype=\"radio\"\n\t\tname=\"support_method\"\n\t\tvalue=\"percent\"\n\t\t", ["ifequal", ["var", ["support_method"], []], ["var", "percent", []], ["checked"], []], ">Transaction Percent</input>\n\t</td>\t\n</tr>\t\n<tr>\n<td class=\"support_method_monthly ", ["ifequal", ["var", ["support_method"], []], ["var", "percent", []], ["disabled"], []], "\">\n\t<p>\"Please charge me a membership services fee of \t\n\t<input\n\t\ttype=\"text\"\n\t\tid=\"monthly_fee\"\n\t\tname=\"monthly_fee\" \n\t\tvalue=\"", ["var", ["monthly_fee"], []], "\"\n\t\tsize=\"4\"\n\t\t", ["ifequal", ["var", ["support_method"], []], ["var", "percent", []], ["disabled"], []], " />\n\t   dollars per month.\"\t\t\n\t</p>\n\t<span class=\"units\"></span>\n   <span id=\"monthly_error\" class=\"error\"></span></p>\n   <ul><li>Choosing this option benefits your charities since they'll get more out of each donation.\n\t\t</li>\n\t</ul>\n</td>\n<td class=\"support_method_percent ", ["ifequal", ["var", ["support_method"], []], ["var", "monthly", []], ["disabled"], []], "\">\n\t<p>\n\t\t\"Please subtract a \n\t\t\t<input\n\t\t\ttype=\"text\"\n\t\t\tid=\"support_pct\"\n\t\t\tname=\"support_pct\" \n\t\t\tvalue=\"", ["var", ["support_pct"], []], "\"\n\t\t\tsize=\"4\"\n\t\t\t", ["ifequal", ["var", ["support_method"], []], ["var", "monthly", []], ["disabled"], []], " />\n\t\t   <span class=\"units\"></span>\n\t\t   <span id=\"support_error\" class=\"error\"></span>\n\t  \t% transfer service fee from my donations.\" \n\t<ul><li>This is a good option if your donations may not be large enough to justify paying a monthly fee.\n\t\t</li>\n\t</ul>\t\n\t</p>\n</td>\n</tr>\n</tbody>\n</table>\n"], "support_middle");
     
     Template.compile(["<table>\n<tbody>\n<tr>\n\t<td align=\"left\">\n\t\t<input\n\t\tclass=\"tax_deductions_radio\"\n\t\ttype=\"radio\"\n\t\tname=\"tax_deductions\"\n\t\tvalue=\"yes\"\n\t\t", ["if", [[false, ["var", ["tax_deductions"], []]]], 1, ["checked"], []], ">Yes</input>\n\t</td>\n\t<td align=\"left\">\n\t\t<input\n\t\tclass=\"tax_deductions_radio\"\n\t\ttype=\"radio\"\n\t\tname=\"tax_deductions\"\n\t\tvalue=\"no\"\n\t\t", ["if", [[true, ["var", ["tax_deductions"], []]]], 1, ["checked"], []], ">No</input>\n\t</td>\n</tr>\n<tr>\n<td class=\"tax_deductions ", ["if", [[true, ["var", ["tax_deductions"], []]]], 1, ["disabled"], []], "\">\n\t<p><input\n\t\ttype=\"checkbox\"\n\t\tname=\"org_thank_yous\"\n\t\tclass=\"comm_radio\"\n\t\t", ["if", [[true, ["var", ["tax_deductions"], []]]], 1, ["disabled"], []], "\n\t\t", ["if", [[false, ["var", ["org_thank_yous"], []]]], 1, ["checked"], []], " />\n\t   <span>\"Please forward occasional thank you notes from \n\t   \t\torganizations I support.\"</span>\n\t   </p>\n\t   \n\t<p><input\n\t\ttype=\"checkbox\"\n\t\tname=\"org_newsletters\"\n\t\tclass=\"comm_radio\"\n\t\t", ["if", [[true, ["var", ["tax_deductions"], []]]], 1, ["disabled"], []], "\n\t\t", ["if", [[false, ["var", ["org_newsletters"], []]]], 1, ["checked"], []], " />\n\t   <span>\"Please forward occasional newsletters from \n\t   organizations I support.\"</span>\n\t   </p>\n\t<ul><li>Organizations you support will have access to your mailing address to send you appropriate tax documentation.</li>\n\t</ul>\n\t", ["for", ["field"], ["var", ["address_fields"], []], false, ["\n\t\t<p>\n\t\t\t<label>", ["var", ["field", "display"], []], "</label>\n\t\t\t<input\n\t\t\t\ttype=\"text\"\n\t\t\t\tname=\"", ["var", ["field", "name"], []], "\"\n\t\t\t\t", ["if", [[true, ["var", ["tax_deductions"], []]]], 1, ["disabled"], []], "\n\t\t\t\tvalue=\"", ["var", ["field", "value"], []], "\" />\n\t\t</p>\n\t"]], "\n\n</td>\n<td class=\"not_tax_deductions ", ["if", [[false, ["var", ["tax_deductions"], []]]], 1, ["disabled"], []], "\">\n\t<p><input\n\t\ttype=\"checkbox\"\n\t\tname=\"org_thank_yous\"\n\t\tclass=\"comm_radio\"\n\t\t", ["if", [[false, ["var", ["tax_deductions"], []]]], 1, ["disabled"], []], "\n\t\t", ["if", [[false, ["var", ["org_thank_yous"], []]]], 1, ["checked"], []], " />\n\t   <span>\"Please forward occasional thank you notes from \n\t   \t\torganizations I support.\"</span>\n\t   </p>\n\t \n\t<p><input\n\t\ttype=\"checkbox\"\n\t\tname=\"org_newsletters\"\n\t\tclass=\"comm_radio\"\n\t\t", ["if", [[false, ["var", ["tax_deductions"], []]]], 1, ["disabled"], []], "\n\t\t", ["if", [[false, ["var", ["org_newsletters"], []]]], 1, ["checked"], []], " />\n\t   <span>\"Please forward occasional newsletters from \n\t   organizations I support.\"</span>\n\t   </p>\n\n\t<ul><li>Organizations you support will see your name but not your address on their receipts.</li>\n\t</ul>\n\n</td>\n</tr>\n</tbody>\n</table>\n"], "tax_deductions_middle");
+    
+    Template.compile(["<div class=\"test_message ", ["if", [[false, ["var", ["is_fail"], []]]], 1, ["fail"], ["pass"]], "\">\n\t<div class=\"expected\">expected: ", ["var", ["expected"], []], "</div>\n\t<div class=\"actual\">actual: ", ["var", ["actual"], []], "</div>\n\t<div class=\"pd_hrs_one_week\">hours procrasdonated one week ago: ", ["var", ["pd_hrs_one_week"], []], "</div>\n\t<div class=\"pd_hrs_two_week\">hours procrasdonated two weeks ago: ", ["var", ["pd_hrs_two_week"], []], "</div>\n\t<div class=\"pd_hrs_three_week\">hours procrasdonated three weeks ago: ", ["var", ["pd_hrs_three_week"], []], "</div>\n\t<div class=\"pd_hr_per_week_goal\">procrasdonation goal: ", ["var", ["pd_hr_per_week_goal"], []], "</div>\n\t<div class=\"subject\">subject: ", ["var", ["subject"], []], "</div>\n\t<div class=\"message\">message: ", ["var", ["message"], []], "</div>\n</div>\n"], "test_message");
     
     Template.compile(["<span class='img_link move_to_unsorted'>\n\t<img class='Move_Site_Arrow' src='", ["var", ["constants", "MEDIA_URL"], []], "img/LeftArrow.png'>\n</span>\n", ["var", ["inner"], []], "\n"], "timewellspent_wrap");
     
@@ -19359,24 +19375,24 @@ var constants = {};
 		'incentive', 
 		'charities', 
 		'updates', 
-		'payments',
-		'time_well_spent'
+		'payments'/*,
+		'time_well_spent'*/
 	];
 	constants.REGISTER_STATE_TAB_NAMES = [
-		'Incentive', 'Charities', 'Services', 'Payments', 'XXXX']; // XXXX won't show done arrow, XXX will
+		'Incentive', 'Charities', 'Services', 'Payments'/*, 'XXXX'*/]; // XXXX won't show done arrow, XXX will
 	constants.REGISTER_STATE_INSERTS = [
 		"insert_register_incentive", 
 		"insert_register_charities", 
 		"insert_register_updates",
-		"insert_register_payments",
-		"insert_register_time_well_spent",
+		"insert_register_payments"/*,
+		"insert_register_time_well_spent",*/
 	];
 	constants.REGISTER_STATE_PROCESSORS = [
 		"process_register_incentive", 
 		"process_register_charities",  
 		"process_register_updates",
-		"process_register_payments",
-		"process_register_time_well_spent"
+		"process_register_payments"/*,
+		"process_register_time_well_spent"*/
 	];
 	
 	constants.DEFAULT_HASH = "nohash";
@@ -20251,10 +20267,8 @@ function load_models(db, pddb) {
 	}, {
 		// class methods
 		create_from_url: function(url, tag) {
-			logger("create from url: "+url);
 			if (!tag) { tag = pddb.Unsorted; }
 			var host = decodeURI(_host(url));
-			logger("  ---------- host --------- "+host);
 			var sitegroup = SiteGroup.get_or_create({
 				host: host
 			}, {
@@ -20262,7 +20276,6 @@ function load_models(db, pddb) {
 				host: host,
 				tag_id: tag.id
 			});
-			logger("  sitegroup="+sitegroup);
 			return sitegroup
 		},
 		
@@ -23988,6 +24001,11 @@ _extend(PageController.prototype, {
 				}));
 		var arrows = Template.get("register_arrows").render(
 				new Context({ substate_menu_items: substate_menu_items }));
+
+		var pd_dollars_per_hr = self.retrieve_float_for_display('pd_dollars_per_hr', constants.DEFAULT_PD_DOLLARS_PER_HR);
+		var pd_hr_per_week_max = self.retrieve_float_for_display('pd_hr_per_week_max', constants.DEFAULT_PD_HR_PER_WEEK_MAX);
+		var pd_dollars_per_week_max = (pd_dollars_per_hr * pd_hr_per_week_max).toFixed(2);
+		logger("INCENTIVE:\npd_dollars_per_hr"+pd_dollars_per_hr+"\npd_hr_per_week_max"+pd_hr_per_week_max+"\npd_dollars_per_week_max"+pd_dollars_per_week_max);
 		
 		var middle = Template.get("register_incentive_middle").render(
 			new Context({
@@ -23995,9 +24013,10 @@ _extend(PageController.prototype, {
 				substate_menu: substate_menu,
 				arrows: arrows,
 				constants: constants,
-				pd_dollars_per_hr: self.retrieve_float_for_display('pd_dollars_per_hr', constants.DEFAULT_PD_DOLLARS_PER_HR),
+				pd_dollars_per_hr: pd_dollars_per_hr,
 				pd_hr_per_week_goal: self.retrieve_float_for_display('pd_hr_per_week_goal', constants.DEFAULT_PD_HR_PER_WEEK_GOAL),
-				pd_hr_per_week_max: self.retrieve_float_for_display('pd_hr_per_week_max', constants.DEFAULT_PD_HR_PER_WEEK_MAX),
+				pd_hr_per_week_max: pd_hr_per_week_max,
+				pd_dollars_per_week_max: pd_dollars_per_week_max
 			})
 		);
 		request.jQuery("#content").html( middle );
@@ -24013,29 +24032,89 @@ _extend(PageController.prototype, {
 	activate_register_incentive: function(request) {
 		var self = this;
 
+		request.jQuery("input[name='pd_dollars_per_hr']").keyup(function() {
+			request.jQuery("#rate_error, error").html("");
+			var value = request.jQuery.trim(request.jQuery(this).attr("value"));
+			if (!value) { return; }
+			
+			if ( !self.validate_dollars_input(value) ) {
+				request.jQuery("#rate_error").html("Please enter a valid dollar amount. For example, to donate $2.34 per hour, please enter 2.34");
+			} else {
+				var pd_dollars_per_hr = parseFloat(self.clean_dollars_input(value));
+				var pd_hr_per_week_max = _un_prefify_float( self.prefs.get('pd_hr_per_week_max', constants.DEFAULT_PD_HR_PER_WEEK_MAX) );
+				var pd_dollars_per_week_max = parseFloat(self.clean_dollars_input(request.jQuery("input[name='pd_dollars_per_week_max']").attr("value")));
+				
+				var pd_hr_per_week_max = pd_dollars_per_week_max / pd_dollars_per_hr;
+				var pd_hr_per_week_goal = self.prefs.get('pd_hr_per_week_goal', constants.DEFAULT_PD_HR_PER_WEEK_GOAL);
+				
+				self.prefs.set('pd_dollars_per_hr', _prefify_float(pd_dollars_per_hr));
+				self.prefs.set('pd_hr_per_week_max', _prefify_float(pd_hr_per_week_max));
+				
+				request.jQuery("#pd_hr_per_week_max_span").text(pd_hr_per_week_max.toFixed(2));
+				request.jQuery("#pd_dollars_per_week_max").attr("value", pd_dollars_per_week_max.toFixed(2));
+				
+				self.insert_example_gauges(request);
+				
+				if (pd_hr_per_week_max < pd_hr_per_week_goal) {
+					request.jQuery("#max_error").html("Your hourly <span class=\"hourly_rate_color\">incentive</span> "+
+							"multiplied by your weekly <span class=\"weekly_goal_color\">goal</span> "+
+							"must be less than your weekly <span class=\"weekly_limit_color\">limit</span>.");
+				}
+			}
+		});
+		
 		request.jQuery("input[name='pd_hr_per_week_goal']").keyup(function() {
-			request.jQuery("#goal_error").text("");
+			request.jQuery("#goal_error, error").html("");
 			var value = request.jQuery.trim(request.jQuery(this).attr("value"));
 			if (!value) { return; }
 			
 			if ( !self.validate_hours_input(value) ) {
-				request.jQuery("#goal_error").text("Please enter number of hours. For example, to strive for 8 hrs and 15 minutes, please enter 1.25");
+				request.jQuery("#goal_error").html("Please enter number of hours. For example, to strive for 8 hrs and 15 minutes, please enter 1.25");
 			} else {
 				self.prefs.set('pd_hr_per_week_goal', self.clean_hours_input(value));
 				self.insert_example_gauges(request);
 			}
 		});
 		
+		// this input no longer used in favor of pd_dollars_per_week_max
 		request.jQuery("input[name='pd_hr_per_week_max']").keyup(function() {
-			request.jQuery("#max_error").text("");
+			request.jQuery("#max_error, error").html("");
 			var value = request.jQuery.trim(request.jQuery(this).attr("value"));
 			if (!value) { return; }
 			
 			if ( !self.validate_hours_input(value) ) {
-				request.jQuery("#max_error").text("Please enter number of hours. For example, enter 30 minutes as .5");
+				request.jQuery("#max_error").html("Please enter number of hours. For example, enter 30 minutes as .5");
 			} else {
 				self.prefs.set('pd_hr_per_week_max', self.clean_hours_input(value));
 				self.insert_example_gauges(request);
+			}
+		});
+		
+		request.jQuery("input[name='pd_dollars_per_week_max']").keyup(function() {
+			request.jQuery("#max_error, error").html("");
+			var value = request.jQuery.trim(request.jQuery(this).attr("value"));
+			if (!value) { return; }
+			
+			if ( !self.validate_dollars_input(value) ) {
+				request.jQuery("#max_error").html("Please enter the maximum dollar amount you would spend each week.");
+			} else {
+				var pd_dollars_per_hr = request.jQuery("input[name='pd_dollars_per_hr']").attr("value");
+				var pd_hr_per_week_max = _un_prefify_float( self.prefs.get('pd_hr_per_week_max', constants.DEFAULT_PD_HR_PER_WEEK_MAX) );
+				var pd_dollars_per_week_max = parseFloat( self.clean_dollars_input(value) );
+				
+				var pd_hr_per_week_max = pd_dollars_per_week_max / pd_dollars_per_hr;
+				var pd_hr_per_week_goal = self.prefs.get('pd_hr_per_week_goal', constants.DEFAULT_PD_HR_PER_WEEK_GOAL);
+				
+				self.prefs.set('pd_hr_per_week_max', _prefify_float( pd_hr_per_week_max ));
+				
+				request.jQuery("#pd_hr_per_week_max_span").text( pd_hr_per_week_max.toFixed(2) );
+				self.insert_example_gauges(request);
+				
+				if (pd_hr_per_week_max < pd_hr_per_week_goal) {
+					request.jQuery("#max_error").html("Your hourly <span class=\"hourly_rate_color\">incentive</span> "+
+							"multiplied by your weekly <span class=\"weekly_goal_color\">goal</span> "+
+							"must be less than your weekly <span class=\"weekly_limit_color\">limit</span>.");
+				}
 			}
 		});
 	},
@@ -24101,20 +24180,24 @@ _extend(PageController.prototype, {
 		var self = this;
 		var pd_dollars_per_hr = request.jQuery("input[name='pd_dollars_per_hr']").attr("value");
 		var pd_hr_per_week_goal = request.jQuery("input[name='pd_hr_per_week_goal']").attr("value");
-		var pd_hr_per_week_max = request.jQuery("input[name='pd_hr_per_week_max']").attr("value");
-
-		request.jQuery("#errors").text("");
+		var pd_dollars_per_week_max = request.jQuery("input[name='pd_dollars_per_week_max']").attr("value");
+	
+		var pd_hr_per_week_max = pd_dollars_per_week_max / pd_dollars_per_hr;
+		
+		request.jQuery("#errors").html("");
 		if ( !this.validate_dollars_input(pd_dollars_per_hr) ) {
-			request.jQuery("#rate_error").text("Please enter a valid dollar amount. For example, to donate $2.34 per hour, please enter 2.34");
+			request.jQuery("#rate_error").html("Please enter a valid dollar amount. For example, to donate $2.34 per hour, please enter 2.34");
 			
 		} else if ( !this.validate_hours_input(pd_hr_per_week_goal) ) {
-			request.jQuery("#goal_error").text("Please enter number of hours. For example, to strive for 8 hrs and 15 minutes, please enter 1.25");
+			request.jQuery("#goal_error").html("Please enter number of hours. For example, to strive for 8 hrs and 15 minutes, please enter 1.25");
 			
 		} else if ( !this.validate_hours_input(pd_hr_per_week_max) ) {
-			request.jQuery("#max_error").text("Please enter number of hours. For example, enter 30 minutes as .5");
+			request.jQuery("#max_error").html("Please enter number of hours. For example, enter 30 minutes as .5");
 			
 		} else if (parseFloat(pd_hr_per_week_goal) > parseFloat(pd_hr_per_week_max)) { 
-			request.jQuery("#max_error").text("You maximum hours cannot be less than your goal");
+			request.jQuery("#max_error").html("Your hourly <span class=\"hourly_rate_color\">incentive</span> "+
+					"multiplied by your weekly <span class=\"weekly_goal_color\">goal</span> "+
+					"must be less than your weekly <span class=\"weekly_limit_color\">limit</span>.");
 
 		} else {
 			this.prefs.set('pd_dollars_per_hr', this.clean_dollars_input(pd_dollars_per_hr));
@@ -24219,6 +24302,14 @@ _extend(PageController.prototype, {
 	},
 	
 	insert_register_charities_pie_chart: function(request) {
+		// clear existing chart
+		request.jQuery("#pie_chart").html("");
+		
+		// if no chart to show then leave
+		if (this.pddb.RecipientPercent.count() == 0) {
+			return
+		}
+		
 		var self = this;
 		var data = [];
 		var legend = [];
@@ -24232,8 +24323,7 @@ _extend(PageController.prototype, {
 		init_raphael(request.get_document());
 		init_graphael();
 		init_graphael_pie();
-		// clear existing chart
-		request.jQuery("#pie_chart").html("");
+		
 		// create pie chart
 		var paper = Raphael("pie_chart", 550, 250);
 		var pie = paper.g.piechart(125, 125, 100,
@@ -24556,18 +24646,18 @@ _extend(PageController.prototype, {
 	process_register_charities: function(request) {
 		var self = this;
 		var ret = true;
-		request.jQuery("#errors").html("");
+		request.jQuery("#errors, .arrow_errors").html("");
 		
 		request.jQuery(".recipient_percent input").each( function() {
 			var percent = request.jQuery(this).attr("value");
 			try {
 				percent = parseFloat(percent) / 100.0;
 				if (percent <= 0 || percent > 1.0) {
-					request.jQuery("#errors").append("<p>Please enter a percent greater than 0 and at most 100</p>");
+					request.jQuery("#errors, .arrow_errors").append("<p>Please enter a percent greater than 0 and at most 100</p>");
 					ret = false;
 				}
 			} catch(e) {
-				request.jQuery("#errors").append("<p>Please enter a number, such as 5.24 for 5.24%</p>");
+				request.jQuery("#errors, .arrow_errors").append("<p>Please enter a number, such as 5.24 for 5.24%</p>");
 				ret = false;
 			}
 			var recipient_id = request.jQuery(this).parent().siblings(".recipient_id").text();
@@ -24577,7 +24667,7 @@ _extend(PageController.prototype, {
 		});
 		if (self.pddb.RecipientPercent.count() == 0) {
 			ret = false
-			request.jQuery("#errors").append("<p>Please add at least one recipient</p>");
+			request.jQuery("#errors, .arrow_errors").append("<p>Please add at least one recipient</p>");
 		}
 		return ret;
 	},
@@ -24618,15 +24708,15 @@ _extend(PageController.prototype, {
 		//var tws_hr_per_week_goal = request.jQuery("input[name='tws_hr_per_week_goal']").attr("value");
 		var tws_hr_per_week_max = request.jQuery("input[name='tws_hr_per_week_max']").attr("value");
 
-		request.jQuery("#errors").text("");
+		request.jQuery("#errors, .arrow_errors").text("");
 		if ( !this.validate_dollars_input(tws_dollars_per_hr) ) {
-			request.jQuery("#errors").append("<p>Please enter a valid dollar amount. For example, to donate $2.34 per hour, please enter 2.34</p>");
+			request.jQuery("#errors, .arrow_errors").append("<p>Please enter a valid dollar amount. For example, to donate $2.34 per hour, please enter 2.34</p>");
 			
 		//} else if ( !this.validate_hours_input(tws_hr_per_week_goal) ) {
 		//	request.jQuery("#errors").append("<p>Please enter number of hours. For example, to strive for 8 hrs and 15 minutes, please enter 1.25</p>");
 			
 		} else if ( !this.validate_hours_input(tws_hr_per_week_max) ) {
-			request.jQuery("#errors").append("<p>Please enter number of hours. For example, enter 30 minutes as .5</p>");
+			request.jQuery("#errors, .arrow_errors").append("<p>Please enter number of hours. For example, enter 30 minutes as .5</p>");
 			
 		} else {
 			this.prefs.set('tws_dollars_per_hr', this.clean_dollars_input(tws_dollars_per_hr));
@@ -24716,15 +24806,15 @@ _extend(PageController.prototype, {
 		var support_pct = request.jQuery("input[name='support_pct']").attr("value");
 		var monthly_fee = request.jQuery("input[name='monthly_fee']").attr("value");
 
-		request.jQuery(".error").text("");
+		request.jQuery(".error, .arrow_errors").text("");
 		if ( !this.validate_positive_float_input(support_pct) ) {
-			request.jQuery("#support_error").append("<p>Please enter a valid percent. For example, 6.75 for 6.75%</p>");
+			request.jQuery("#support_error, .arrow_errors").append("<p>Please enter a valid percent. For example, 6.75 for 6.75%</p>");
 			
 		} else if ( !this.validate_dollars_input(monthly_fee) ) {
-			request.jQuery("#monthly_error").append("<p>Please enter a valid amount. For example, 4.99 for $4.99</p>");
+			request.jQuery("#monthly_error, .arrow_errors").append("<p>Please enter a valid amount. For example, 4.99 for $4.99</p>");
 			
 		} else if ( parseFloat(support_pct) > 10.0 ) {
-			request.jQuery("#support_error").append("<p>We cannot accept more than 10%. Please enter a lower percent. For example, 10 for 10%.</p>");
+			request.jQuery("#support_error, .arrow_errors").append("<p>We cannot accept more than 10%. Please enter a lower percent. For example, 10 for 10%.</p>");
 		} else {
 			this.prefs.set('support_pct', this.clean_percent_input(support_pct));
 			this.prefs.set('monthly_fee', this.clean_dollars_input(monthly_fee));
@@ -24838,7 +24928,7 @@ _extend(PageController.prototype, {
 	},
 	
 	process_register_updates: function(request) {
-		request.jQuery("#error").text("");
+		request.jQuery("#error, .arrow_errors").text("");
 		var ret = true;
 		
 		var old_email = this.prefs.set('email', constants.DEFAULT_EMAIL);
@@ -24856,7 +24946,7 @@ _extend(PageController.prototype, {
 		this.prefs.set('tos', _dbify_bool(tos));
 		
 		if (!tos) {
-			request.jQuery("#error").text("To use our service you must agree to the terms of service by checking the Terms of Service checkbox below");
+			request.jQuery("#error, .arrow_errors").text("To use our service you must agree to the terms of service by checking the Terms of Service checkbox");
 			ret = false;
 		}
 		
@@ -24870,7 +24960,7 @@ _extend(PageController.prototype, {
 			_iterate(address_field_names, function(key, value, index) {
 				var value = request.jQuery("input[name="+value+"]").attr("value");
 				if (!value) {
-					request.jQuery("#error").text("To be eligible for tax deductions, you must provide your mailing address.");
+					request.jQuery("#error, .arrow_errors").text("To be eligible for tax deductions, you must provide your mailing address.");
 					ret = false;
 				}
 			});
@@ -24980,16 +25070,16 @@ _extend(PageController.prototype, {
 		// Receive updates from server
 		this.pd_api.request_data_updates(
 			function() {
-				logger("SERVER SAYS YAY");
+				//logger("SERVER SAYS YAY");
 				// after success
 				var multi_auth = self.pddb.FPSMultiuseAuthorization.get_latest_success()
-				logger("multi auth="+multi_auth);
+				//logger("multi auth="+multi_auth);
 				if (!multi_auth) {
 					multi_auth = self.pddb.FPSMultiuseAuthorization.most_recent();
-					logger("B multi auth="+multi_auth);
+					//logger("B multi auth="+multi_auth);
 				}
 				if (multi_auth.good_to_go()) {
-					logger("C multi auth="+multi_auth);
+					//logger("C multi auth="+multi_auth);
 					self.insert_register_done(request);
 					return
 				}
@@ -25047,7 +25137,7 @@ _extend(PageController.prototype, {
 		
 		request.jQuery("#support_pct").keyup(function() {
 			var support_pct = request.jQuery(this).attr("value");
-			request.jQuery(".error").text("");
+			request.jQuery(".error, .arrow_errors").text("");
 			
 			if ( !self.validate_positive_float_input(support_pct) ) {
 				request.jQuery("#support_error").append("<p>Please enter a valid percent. For example, 6.75 for 6.75%</p>");
@@ -25115,7 +25205,7 @@ _extend(PageController.prototype, {
 	},
 	
 	insert_register_done: function(request) {
-		alert("INSERT REGISTER DONE!");
+		logger("INSERT REGISTER DONE!");
 		this.prefs.set('registration_done', true);
 		//this.insert_register_time_well_spent(request);
 
@@ -25133,8 +25223,10 @@ _extend(PageController.prototype, {
 		// Error: Component is not available = NS_ERROR_NOT_AVAILABLE
 		// Source file: chrome://procrasdonate/content/js/ext/jquery-1.2.6.js
 		// Line: 2020
-		var version = this.prefs.get("version", ver);
+		var version = this.prefs.get("version", "0.0.0");
+		logger("version = "+version);
 		var url = constants.PD_URL + constants.AFTER_INSTALL_URL + version + "/";
+		logger("url = "+url);
 		new XPCNativeWrapper(unsafeWin, "location").location = url;
 	}, 
 	
@@ -25163,13 +25255,13 @@ _extend(PageController.prototype, {
 		var self = this;
 
 		request.jQuery("input").keyup(function() {
-			request.jQuery(this).siblings(".error").text("");
+			request.jQuery(this).siblings(".error, .arrow_errors").text("");
 			var name = request.jQuery(this).attr("name");
 			var value = request.jQuery.trim(request.jQuery(this).attr("value"));
 			if (!value) { value = "0"; }
 			
 			if ( !self.validate_hours_input(value) ) {
-				request.jQuery(this).siblings(".error").text("Please enter a number");
+				request.jQuery(this).siblings(".error, .arrow_errors").text("Please enter a number");
 			} else {
 				self.prefs.set(name, _prefify_float(value));
 			}
@@ -25328,6 +25420,7 @@ _extend(PageController.prototype, {
 				actual = actual[3];
 			}
 			
+			/*
 			logger("\none week = "+pd_hrs_one_week+
 					"\ntwo week = "+pd_hrs_two_week+
 					"\nthree week = "+pd_hrs_three_week+
@@ -25335,7 +25428,18 @@ _extend(PageController.prototype, {
 					"\n"+subject);
 					//"\n"+subject+
 					//"\n"+message);
-
+			*/
+			
+			ret = {
+				expected: expected,
+				actual: actual,
+				pd_hrs_one_week: pd_hrs_one_week,
+				pd_hrs_two_week: pd_hrs_two_week,
+				pd_hrs_three_week: pd_hrs_three_week,
+				pd_hr_per_week_goal: pd_hr_per_week_goal,
+				subject: subject,
+				message: message
+			}
 			if (actual != expected) {
 				logger("############# TEST FAILED: expected:"+expected+" actual:"+actual+
 						"\none week = "+pd_hrs_one_week+
@@ -25344,60 +25448,69 @@ _extend(PageController.prototype, {
 						"\ngoal = "+pd_hr_per_week_goal+
 						"\n"+subject);/*+
 						"\n"+message);*/
-				return 1
+				ret.is_fail = true;
 			} else {
-				return 0
+				ret.is_fail = false;
 			}
+			return ret
 		}
 		
+		var d = [];
+		d.push( message_test(8, 10, 12, 13, 1, 20, "12/22", "12/28", "Winning streak") ); // winning streak
+		d.push( message_test(8, 10, 12, 11, 1, 20, "12/22", "12/28", "Good work") ); // good work
+		d.push( message_test(8, 10, 12,  9, 1, 20, "12/22", "12/28", "Good work") ); // good work
+		d.push( message_test(8, 10, 12,  7, 1, 20, "12/22", "12/28", "Getting better") ); // getting better
+		
+		d.push( message_test(12, 10, 8, 13, 1, 20, "12/22", "12/28", "Winning streak") ); // 
+		d.push( message_test(12, 10, 8, 11, 1, 20, "12/22", "12/28", "Downturn") ); // 
+		d.push( message_test(12, 10, 8,  9, 1, 20, "12/22", "12/28", "Getting worse") ); // 
+		d.push( message_test(12, 10, 8,  7, 1, 20, "12/22", "12/28", "Getting worse") ); // 
+		
+		d.push( message_test(8, 12, 10, 13, 1, 20, "12/22", "12/28", "Winning streak") ); // 
+		d.push( message_test(8, 12, 10, 11, 1, 20, "12/22", "12/28", "Good work") ); // 
+		d.push( message_test(8, 12, 10,  9, 1, 20, "12/22", "12/28", "Good work") ); // 
+		d.push( message_test(8, 12, 10,  7, 1, 20, "12/22", "12/28", "Getting better") ); // 
+		
+		d.push( message_test(10, 12, 8, 13, 1, 20, "12/22", "12/28", "Winning streak") ); // 
+		d.push( message_test(10, 12, 8, 11, 1, 20, "12/22", "12/28", "Good work") ); // 
+		d.push( message_test(10, 12, 8,  9, 1, 20, "12/22", "12/28", "Getting better") ); // 
+		d.push( message_test(10, 12, 8,  7, 1, 20, "12/22", "12/28", "Getting better") ); // 
+		
+		d.push( message_test(10, 8, 12, 13, 1, 20, "12/22", "12/28", "Winning streak") ); // 
+		d.push( message_test(10, 8, 12, 11, 1, 20, "12/22", "12/28", "Good work") ); // 
+		d.push( message_test(10, 8, 12,  9, 1, 20, "12/22", "12/28", "Downturn") ); // 
+		d.push( message_test(10, 8, 12,  7, 1, 20, "12/22", "12/28", "Getting worse") ); // 
+		
+		d.push( message_test(12, 8, 10, 13, 1, 20, "12/22", "12/28", "Winning streak") ); // 
+		d.push( message_test(12, 8, 10, 11, 1, 20, "12/22", "12/28", "Downturn") ); // 
+		d.push( message_test(12, 8, 10,  9, 1, 20, "12/22", "12/28", "Downturn") ); // 
+		d.push( message_test(12, 8, 10,  7, 1, 20, "12/22", "12/28", "Getting worse") ); // 
+		
+		d.push( message_test(null, null, null, 13, 1, 20, "12/22", "12/28", "No ProcrasDonation") ); // 
+		
+		d.push( message_test(12, null, null, 13, 1, 20, "12/22", "12/28", "Good job") ); // 
+		d.push( message_test(12, null, null, 12, 1, 20, "12/22", "12/28", "Good job") ); // 
+		d.push( message_test(12, null, null, 11, 1, 20, "12/22", "12/28", "You can do better") ); // 
+		
+		d.push( message_test(10, 8, null, 7, 1, 20, "12/22", "12/28", "Getting worse") ); // 
+		d.push( message_test(10, 8, null, 9, 1, 20, "12/22", "12/28", "Downturn") ); // 
+		d.push( message_test(10, 8, null, 11, 1, 20, "12/22", "12/28", "Good work") ); // 
+		
+		d.push( message_test(10, 12, null, 9, 1, 20, "12/22", "12/28", "Getting better") ); // 
+		d.push( message_test(10, 12, null, 10, 1, 20, "12/22", "12/28", "Good work") ); // 
+		d.push( message_test(10, 12, null, 13, 1, 20, "12/22", "12/28", "Good work") ); // 
+		
+		d.push( message_test(10, 10, null, 10, 1, 20, "12/22", "12/28", "Pinball champion") ); //
+		
 		var fails = 0;
-		fails += message_test(8, 10, 12, 13, 1, 20, "12/22", "12/28", "Winning streak"); // winning streak
-		fails += message_test(8, 10, 12, 11, 1, 20, "12/22", "12/28", "Good work"); // good work
-		fails += message_test(8, 10, 12,  9, 1, 20, "12/22", "12/28", "Good work"); // good work
-		fails += message_test(8, 10, 12,  7, 1, 20, "12/22", "12/28", "Getting better"); // getting better
-		
-		fails += message_test(12, 10, 8, 13, 1, 20, "12/22", "12/28", "Winning streak"); // 
-		fails += message_test(12, 10, 8, 11, 1, 20, "12/22", "12/28", "Downturn"); // 
-		fails += message_test(12, 10, 8,  9, 1, 20, "12/22", "12/28", "Getting worse"); // 
-		fails += message_test(12, 10, 8,  7, 1, 20, "12/22", "12/28", "Getting worse"); // 
-		
-		fails += message_test(8, 12, 10, 13, 1, 20, "12/22", "12/28", "Winning streak"); // 
-		fails += message_test(8, 12, 10, 11, 1, 20, "12/22", "12/28", "Good work"); // 
-		fails += message_test(8, 12, 10,  9, 1, 20, "12/22", "12/28", "Good work"); // 
-		fails += message_test(8, 12, 10,  7, 1, 20, "12/22", "12/28", "Getting better"); // 
-		
-		fails += message_test(10, 12, 8, 13, 1, 20, "12/22", "12/28", "Winning streak"); // 
-		fails += message_test(10, 12, 8, 11, 1, 20, "12/22", "12/28", "Good work"); // 
-		fails += message_test(10, 12, 8,  9, 1, 20, "12/22", "12/28", "Getting better"); // 
-		fails += message_test(10, 12, 8,  7, 1, 20, "12/22", "12/28", "Getting better"); // 
-		
-		fails += message_test(10, 8, 12, 13, 1, 20, "12/22", "12/28", "Winning streak"); // 
-		fails += message_test(10, 8, 12, 11, 1, 20, "12/22", "12/28", "Good work"); // 
-		fails += message_test(10, 8, 12,  9, 1, 20, "12/22", "12/28", "Downturn"); // 
-		fails += message_test(10, 8, 12,  7, 1, 20, "12/22", "12/28", "Getting worse"); // 
-		
-		fails += message_test(12, 8, 10, 13, 1, 20, "12/22", "12/28", "Winning streak"); // 
-		fails += message_test(12, 8, 10, 11, 1, 20, "12/22", "12/28", "Downturn"); // 
-		fails += message_test(12, 8, 10,  9, 1, 20, "12/22", "12/28", "Downturn"); // 
-		fails += message_test(12, 8, 10,  7, 1, 20, "12/22", "12/28", "Getting worse"); // 
-		
-		fails += message_test(null, null, null, 13, 1, 20, "12/22", "12/28", "No ProcrasDonation"); // 
-		
-		fails += message_test(12, null, null, 13, 1, 20, "12/22", "12/28", "Good job"); // 
-		fails += message_test(12, null, null, 12, 1, 20, "12/22", "12/28", "Good job"); // 
-		fails += message_test(12, null, null, 11, 1, 20, "12/22", "12/28", "You can do better"); // 
-		
-		fails += message_test(10, 8, null, 7, 1, 20, "12/22", "12/28", "Getting worse"); // 
-		fails += message_test(10, 8, null, 9, 1, 20, "12/22", "12/28", "Downturn"); // 
-		fails += message_test(10, 8, null, 11, 1, 20, "12/22", "12/28", "Good work"); // 
-		
-		fails += message_test(10, 12, null, 9, 1, 20, "12/22", "12/28", "Getting better"); // 
-		fails += message_test(10, 12, null, 10, 1, 20, "12/22", "12/28", "Good work"); // 
-		fails += message_test(10, 12, null, 13, 1, 20, "12/22", "12/28", "Good work"); // 
-		
-		fails += message_test(10, 10, null, 10, 1, 20, "12/22", "12/28", "Pinball champion"); //
-		
+		_iterate(d, function(key, value, index) {
+			if (value.is_fail) {
+				fails += 1;
+			}
+		});
 		logger(">>>>>>>>> "+fails+" failures");
+		
+		return d
 	},
 	
 	/**
@@ -25463,7 +25576,8 @@ _extend(PageController.prototype, {
 	},
 	
 	visual_debug: function(request) {
-		var actions = ["show_requires_payment"];
+		var actions = ["show_requires_payment",
+		               "show_test_messages"];
 		var html = Template.get("visual_debug").render(new Context({
 			actions: actions
 		}));
@@ -25491,6 +25605,31 @@ _extend(PageController.prototype, {
 			var rp = Template.get("requires_payment").render(
 				new Context({ rp: row }));
 			html.push("<li>"+rp+"</li>");
+		});
+		html.push("</ol>")
+		request.jQuery("#theatre").html( html.join("\n\n") );
+	},
+	
+	show_test_messages: function(request) {
+		var self = this;
+		
+		var data = this.test_messages();
+		
+		var html = ["<ol>"];
+		_iterate(data, function(key, value, index) {
+			var m = Template.get("test_message").render(
+				new Context({
+					expected: value.expected,
+					actual: value.actual,
+					pd_hrs_one_week: value.pd_hrs_one_week,
+					pd_hrs_two_week: value.pd_hrs_two_week,
+					pd_hrs_three_week: value.pd_hrs_three_week,
+					pd_hr_per_week_goal: value.pd_hr_per_week_goal,
+					subject: value.subject,
+					message: value.message,
+					is_fail: value.is_fail
+				}));
+			html.push("<li>"+m+"</li>");
 		});
 		html.push("</ol>")
 		request.jQuery("#theatre").html( html.join("\n\n") );
