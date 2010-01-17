@@ -373,24 +373,24 @@ img { -ms-interpolation-mode:bicubic; }
 	background: #EEEEEE none repeat scroll 0 0;
 }
 
-#blog_posts { width: 20em;	background: white;
+.posts { width: 20em; background: white;
 }
-#blog_posts h3 {
+.posts h3 {
 	margin: 1em 0em 0em 0em;
 	padding: 1em 0em .1em 0em;
 	border-bottom: 1px solid #D7D7D7;
 	-moz-border-radius: .3em;
 	text-align: center;
 }
-#blog_posts h3 a { text-decoration: none; }
-.blog_post h4 {
+.posts h3 a { text-decoration: none; }
+.post h4 {
 	margin: .7em 0em .5em 1.5em;
 	padding: 0em;
 	font-size: 1.1em;
 	text-align: left;
 }
-.blog_post h4 a { text-decoration: none;}
-.blog_post p { padding: 0em; margin: 0em; }
+.post h4 a { text-decoration: none;}
+.post p { padding: 0em; margin: 0em; }
 
 
 
