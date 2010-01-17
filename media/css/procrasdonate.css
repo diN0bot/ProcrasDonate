@@ -330,9 +330,11 @@ img { -ms-interpolation-mode:bicubic; }
 #charities_bar_table #charities .charity_logo {
 	float: right; margin-right: 1em; margin-left: 1em; margin-top: .3em;
 	border: 0.25em groove #bbba93; padding: 0em 0em;
+	max-width: 6em;
+	max-height: 6em;
+	cursor: pointer;
+	display: inline;
 }
-
-#charities_bar_table #charities div.charity_logo { cursor: pointer; width: 50px; display: inline; }
 #charities_bar_table .charity_video_src { display: none; }
 
 
