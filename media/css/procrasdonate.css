@@ -37,13 +37,18 @@ body {
 #download_allow_helper {
   display: none;
   position: absolute;
-  top: 0;
-  right: 0;
+  top: .2em;
+  right: 1.1em;
   z-index: 1;
-  background: white;
-  padding: 2em;
+  background: url("/procrasdonate_media/img/OrangeGradient.png");
+  padding: .8em 1.2em; 	
+  border: 0.1em solid black;
+  -moz-border-radius: .4em;
 }
+#download_allow_helper tr { text-align: left; }
 
+.floating_over_up_arrow { float: right; height: 5em; }
+                                   
 ul, ol, ul li, ol li { text-align: left; }
 
 a, .link { color:#336699; text-decoration:underline; cursor: pointer; }
@@ -349,6 +354,7 @@ img { -ms-interpolation-mode:bicubic; }
 
 
 #more_information { clear: both; }
+.share_button { margin-top: .8em; }
 
 #top_OrganizerMenu { float: right; font-size: .9em; text-align: right; }
 #top_OrganizerMenu div.here_we_are { background: #336699; padding: .3em 1em; }
@@ -383,7 +389,7 @@ img { -ms-interpolation-mode:bicubic; }
 	background: #EEEEEE none repeat scroll 0 0;
 }
 
-.posts { width: 20em; background: white;
+.posts { width: 20em; background: white; padding-bottom: .3em;
 }
 .posts h3 {
 	margin: 1em 0em 0em 0em;
@@ -401,8 +407,7 @@ img { -ms-interpolation-mode:bicubic; }
 }
 .post h4 a { text-decoration: none;}
 .post p { padding: 0em; margin: 0em; }
-
-
+#procrasdonate_tweets { color: black; }
 
 #HOME { margin-left: 5.3em; }
 #HOME h2:first-child { margin-top: 0em; }
