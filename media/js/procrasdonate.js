@@ -172,6 +172,7 @@ function install(anchor_class) {
 								}
 							};
 							InstallTrigger.install( params );
+							$("#download_allow_helper").show();
 						} else {
 							alert("Problem occured while downloading ProcrasDonate.");
 						}
