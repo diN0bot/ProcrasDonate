@@ -139,9 +139,12 @@
 		
 		<div id="procrasdonate_tweets" class="posts">
 			<h3><a href="{{ procrasdonate_tweets.feed.link }}">@procrasdonate</a></h3>
-			{% for post in procrasdonate_tweets.entries|slice:":5" %}
+			{% for post in procrasdonate_tweets.smart_entries|slice:":5" %}
 			<div class="post">
-				<h4><a href="{{ post.link }}">- {{ post.title|slice:"15:" }}</a></h4>
+				<h4>{% if post.link %}<a href="{{ post.link }}">{% endif %}
+					- {{ post.title|slice:"15:" }}
+					{% if post.link %}</a>{% endif %}
+				</h4>
 			</div>
 			{% endfor %}
 		</div>

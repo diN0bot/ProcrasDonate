@@ -25,13 +25,28 @@ from procrasdonate.applib.xpi_builder import XpiBuilder
 from django.db.models import Avg
 from ext import feedparser
 
+import re
+
 #### HOME ###################################
+
+url_in_text = re.compile("([\w-]+://[^\s,\)]*)")
 
 def recipient_splash(request, slug=None):
     big_video = "%sswf/LaptopIntro.swf" % settings.MEDIA_URL
     blog_posts = feedparser.parse("http://procrastinateless.wordpress.com/feed/")
     cwallardo_tweets = feedparser.parse("http://twitter.com/statuses/user_timeline/18369704.rss")
     procrasdonate_tweets = feedparser.parse("http://twitter.com/statuses/user_timeline/30937077.rss")
+    procrasdonate_tweets['smart_entries'] = []
+    for entry in procrasdonate_tweets.entries:
+        title = entry.title
+        tweet_link = entry.link
+        urls = url_in_text.findall(title)
+        title = url_in_text.sub('', title)
+        procrasdonate_tweets['smart_entries'].append({'title': title,
+                                                      'tweet_link': tweet_link,
+                                                      'urls': urls,
+                                                      'link': urls and urls[0] or ''})
+    
     pd = Recipient.get_or_none(slug="PD")
     bilumi = Recipient.get_or_none(slug="bilumi")
     charities = Recipient.objects.filter(is_visible=True)
