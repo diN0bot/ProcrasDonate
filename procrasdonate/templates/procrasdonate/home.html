@@ -128,15 +128,6 @@
 			{% endfor %}
 		</div>
 		
-		<div id="cwallardo_tweets" class="posts">
-			<h3><a href="{{ cwallardo_tweets.feed.link }}">@cwallardo</a></h3>
-			{% for post in cwallardo_tweets.entries|slice:":5" %}
-			<div class="post">
-				<h4><a href="{{ post.link }}">- {{ post.title|slice:"11:" }}</a></h4>
-			</div>
-			{% endfor %}
-		</div>
-		
 		<div id="procrasdonate_tweets" class="posts">
 			<h3><a href="{{ procrasdonate_tweets.feed.link }}">@procrasdonate</a></h3>
 			{% for post in procrasdonate_tweets.entries|slice:":5" %}

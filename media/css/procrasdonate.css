@@ -339,6 +339,7 @@ img { -ms-interpolation-mode:bicubic; }
 
 
 #more_information { clear: both; }
+.share_button { margin-top: .8em; }
 
 #top_OrganizerMenu { float: right; font-size: .9em; text-align: right; }
 #top_OrganizerMenu div.here_we_are { background: #336699; padding: .3em 1em; }
@@ -373,7 +374,7 @@ img { -ms-interpolation-mode:bicubic; }
 	background: #EEEEEE none repeat scroll 0 0;
 }
 
-.posts { width: 20em; background: white;
+.posts { width: 20em; background: white; padding-bottom: .3em;
 }
 .posts h3 {
 	margin: 1em 0em 0em 0em;
@@ -391,8 +392,7 @@ img { -ms-interpolation-mode:bicubic; }
 }
 .post h4 a { text-decoration: none;}
 .post p { padding: 0em; margin: 0em; }
-
-
+#procrasdonate_tweets { color: black; }
 
 #HOME { margin-left: 5.3em; }
 #HOME h2:first-child { margin-top: 0em; }
