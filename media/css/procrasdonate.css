@@ -37,13 +37,18 @@ body {
 #download_allow_helper {
   display: none;
   position: absolute;
-  top: 0;
-  right: 0;
+  top: .2em;
+  right: 1.1em;
   z-index: 1;
-  background: white;
-  padding: 2em;
+  background: url("/procrasdonate_media/img/OrangeGradient.png");
+  padding: .8em 1.2em; 	
+  border: 0.1em solid black;
+  -moz-border-radius: .4em;
 }
+#download_allow_helper tr { text-align: left; }
 
+.floating_over_up_arrow { float: right; height: 5em; }
+                                   
 ul, ol, ul li, ol li { text-align: left; }
 
 a, .link { color:#336699; text-decoration:underline; cursor: pointer; }
