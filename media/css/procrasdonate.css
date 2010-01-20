@@ -343,14 +343,24 @@ img { -ms-interpolation-mode:bicubic; }
 #charities_bar_subtext { font-size: .59em; margin-left: -.4em}
 #charities_bar_table #charities { display: inline; }
 #charities_bar_table #charities .charity_logo {
-	float: right; margin-right: 1em; margin-left: 1em; margin-top: .3em;
+	float: right;
+	margin: .3em 1em 0em 1em;
+	border: 0.25em groove #bbba93;
+	padding: 0em 0em;
+	max-width: 6em;
+	max-height: 6em;
+	cursor: pointer;
+	display: inline;
+}
+#below_big_video .video_charity_logo {
+	float: left;
+	margin: .3em 1em 0em 1em;
 	border: 0.25em groove #bbba93; padding: 0em 0em;
 	max-width: 6em;
 	max-height: 6em;
 	cursor: pointer;
 	display: inline;
 }
-#charities_bar_table .charity_video_src { display: none; }
 
 
 #more_information { clear: both; }
@@ -407,7 +417,10 @@ img { -ms-interpolation-mode:bicubic; }
 }
 .post h4 a { text-decoration: none;}
 .post p { padding: 0em; margin: 0em; }
-#procrasdonate_tweets { color: black; }
+
+#procrasdonate_tweets h3 a { color: red; }
+#procrasdonate_tweets .post h4 { color: green; }
+#procrasdonate_tweets .post h4 a { color: blue; }
 
 #HOME { margin-left: 5.3em; }
 #HOME h2:first-child { margin-top: 0em; }

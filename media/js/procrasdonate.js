@@ -76,32 +76,48 @@ $(document).ready( function() {
 	// click on homepage's charity icon to play charity's video
 	$(".charity_logo").click(function() {
 		var video_src = $(this).siblings(".charity_video_src").text();
+
 		var name = $(this).siblings(".charity_name").text();
+		var url = $(this).siblings(".charity_url").text();
 		var mission = $(this).siblings(".charity_mission").text();
+		var logo = $(this).attr("src");
+
+		if (video_src) {
+			var html = ""+
+			"<object width=\"444\" height=\"333\">"+
+				"<param name=\"movie\" value=\""+video_src+"\" />"+
+				"<param name=\"allowFullScreen\" value=\"true\" />"+
+				"<param name=\"allowscriptaccess\" value=\"always\" />"+
+				"<embed "+
+					" src=\""+video_src+"&autoplay=1\""+
+					" type=\"application/x-shockwave-flash\""+
+					/*" autoplay=\"true\""+*/
+					" allowscriptaccess=\"always\""+
+					" allowfullscreen=\"true\""+
+					" width=\"444\""+
+					" height=\"300\" />"+
+			"</object>";
+			$("#big_video").html("Loading video...");
+			$("#big_video").html(html);
+			
+			// replace charity logo with big video data (starts out as procrasdonate...)
+			var video_url = $("#below_big_video .video_charity_name a").attr("href");
+			var video_name = $("#below_big_video .video_charity_name a").text();
+			var video_mission = $("#below_big_video .video_charity_mission").text();
+			var video_logo = $("#below_big_video .video_charity_logo").attr("src");
+			
+			$(this).siblings(".charity_name").text(video_name);
+			$(this).siblings(".charity_url").text(video_url);
+			$(this).siblings(".charity_mission").text(video_mission);
+			$(this).siblings(".charity_logo").text(video_logo);
+		}
 		
-		var html = ""+
-		"<object width=\"444\" height=\"333\">"+
-			"<param name=\"movie\" value=\""+video_src+"\" />"+
-			"<param name=\"allowFullScreen\" value=\"true\" />"+
-			"<param name=\"allowscriptaccess\" value=\"always\" />"+
-			"<embed "+
-				" src=\""+video_src+"\""+
-				" type=\"application/x-shockwave-flash\""+
-				" allowscriptaccess=\"always\""+
-				" allowfullscreen=\"true\""+
-				" width=\"444\""+
-				" height=\"300\" />"+
-		"</object>";
-		$("#big_video").html("Loading video...");
-		$("#big_video").html(html);
+		$("#below_big_video .video_charity_name a").attr("href", url);
+		$("#below_big_video .video_charity_name a").text(name);
+		$("#below_big_video .video_charity_mission").text(mission);
+		$("#below_big_video .video_charity_logo").text(logo);
 		
-		var html2 = "<div class=\"video_charity_name\">"+
-			name+
-			"</div>"+
-			"<div class=\"video_charity_mission\">"+
-			mission+
-			"</div>";
-		$("#below_big_video").html(html2)
+		$("#focus_slogan_line2").addClass("special_line2").children("h1").text("Donate to "+name);
 	});
 });
 

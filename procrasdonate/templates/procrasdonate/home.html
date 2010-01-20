@@ -28,7 +28,11 @@
 						height="300" />
 				</object>
 			</div>
-			<div id="below_big_video"></div>
+			<div id="below_big_video">
+				<img src="{{ MEDIA_URL }}img/LaptopIconElated.png" class="video_charity_logo" style="float:left;" />
+				<div class="video_charity_name"><a href="{% url splash %}">ProcrasDonate</a></div>
+				<div class="video_charity_mission">Waste less time, support good causes.</div>
+			</div>
 			</td>
 			<td>
 				<div class="focus_slogans">
@@ -85,6 +89,7 @@
 						{#<a href="{% url recipient r.slug %}">#}
 							<img id="charity_{{ r.slug }}" class="charity_logo" src="{{ r.thumbnail_url }}" />
 							<div class="hidden charity_video_src">{{ r.promotional_video }}</div>
+							<div class="hidden charity_url">{% url recipient r.slug %}</div>
 							<div class="hidden charity_name">{{ r.name }}</div>
 							<div class="hidden charity_mission">{{ r.mission }}</div>
 						{#</a>#}
