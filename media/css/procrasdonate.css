@@ -418,9 +418,10 @@ img { -ms-interpolation-mode:bicubic; }
 .post h4 a { text-decoration: none;}
 .post p { padding: 0em; margin: 0em; }
 
-#procrasdonate_tweets h3 a { color: red; }
+#procrasdonate_tweets h3 a { color: #119d45; }
 #procrasdonate_tweets .post h4 { color: green; }
-#procrasdonate_tweets .post h4 a { color: blue; }
+#procrasdonate_tweets .post h4 a { color: #119d45; }
+#procrasdonate_tweets .post h4 a:hover { color: #FF9900; }
 
 #HOME { margin-left: 5.3em; }
 #HOME h2:first-child { margin-top: 0em; }
