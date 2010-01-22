@@ -262,7 +262,7 @@ class Processor(object):
                 "description": "description", 
                 "url": "http://procrasdonate.com", 
                 "mission": "mission", 
-                "email": "info@procrasdonate.com", 
+                "email": "info@ProcrasDonate.com", 
                 "twitter_name": "ProcrasDonate", 
                 "slug": "PD", 
                 "name": "ProcrasDonate"
