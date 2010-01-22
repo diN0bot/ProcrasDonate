@@ -206,7 +206,26 @@ _extend(ProcrasDonate_API.prototype, {
 		);
 	},
 	
-	send_welcome_email: function() {
+	send_first_email: function() {
+		var self = this;
+		
+		var data = {
+			private_key: self.prefs.get('private_key', constants.DEFAULT_PRIVATE_KEY),
+			prefs: JSON.stringify([self.prefs.get_all()]),
+		}
+		
+		var url = constants.PD_API_URL + constants.SEND_FIRST_EMAIL_URL;
+		
+		this._hello_operator_give_me_procrasdonate(
+			url,
+			data,
+			"POST",
+			onsuccess,
+			onfailure,
+			onerror
+		);
+		
+		
 		logger("send welcome email: "+this.prefs.get('email', constants.DEFAULT_EMAIL))
 		this.make_request(
 			constants.PD_API_URL + constants.SEND_WELCOME_EMAIL_URL,
@@ -219,8 +238,10 @@ _extend(ProcrasDonate_API.prototype, {
 		);
 	},
 	
-	send_regular_email: function() {
-		
+	send_completed_registration_email: function() {
+	},
+	
+	send_stalling_registration_email: function() {
 	},
 	
     authorize_multiuse: function(onsuccess, onfailure) {

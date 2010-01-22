@@ -40,6 +40,13 @@ $(document).ready( function() {
 	}
 	
 	///
+	/// close download "allow" helper box
+	///
+	$("#download_allow_helper_close").click( function() {
+		$(this).parent().hide();
+	});
+	
+	///
 	/// helper for inserting email. single place to alter email; safe from spammers.
 	///
 	$(".insert_procrasdonate_email").each(function() {
@@ -76,48 +83,71 @@ $(document).ready( function() {
 	// click on homepage's charity icon to play charity's video
 	$(".charity_logo").click(function() {
 		var video_src = $(this).siblings(".charity_video_src").text();
-
 		var name = $(this).siblings(".charity_name").text();
 		var url = $(this).siblings(".charity_url").text();
 		var mission = $(this).siblings(".charity_mission").text();
 		var logo = $(this).attr("src");
-
+		
 		if (video_src) {
-			var html = ""+
-			"<object width=\"444\" height=\"333\">"+
-				"<param name=\"movie\" value=\""+video_src+"\" />"+
-				"<param name=\"allowFullScreen\" value=\"true\" />"+
-				"<param name=\"allowscriptaccess\" value=\"always\" />"+
-				"<embed "+
-					" src=\""+video_src+"&autoplay=1\""+
-					" type=\"application/x-shockwave-flash\""+
-					/*" autoplay=\"true\""+*/
-					" allowscriptaccess=\"always\""+
-					" allowfullscreen=\"true\""+
-					" width=\"444\""+
-					" height=\"300\" />"+
-			"</object>";
+			var html = [];
+			if (video_src == "__ProcrasDonate__") {
+				html = [
+				"<object width=\"444\" height=\"333\">",
+					"<param name=\"movie\" value=\"/procrasdonate_media/swf/LaptopIntro.swf\" />",
+					"<param name=\"allowFullScreen\" value=\"true\" />",
+					"<param name=\"allowscriptaccess\" value=\"always\" />",
+					"<embed",
+						"src=\"/procrasdonate_media/swf/LaptopIntro.swf\"",
+						"type=\"application/x-shockwave-flash\"",
+						"allowscriptaccess=\"always\"",
+						"allowfullscreen=\"true\"",
+						"width=\"444\"",
+						"height=\"300\" />",
+				"</object>"];
+				
+				$("#focus_slogan_line2").removeClass("special_line2").children("h1").text("Make a Donation.");
+				$("#below_big_video").hide();
+			} else {
+				html = [
+				"<object width=\"444\" height=\"333\">",
+					"<param name=\"movie\" value=\""+video_src+"\" />",
+					"<param name=\"allowFullScreen\" value=\"true\" />",
+					"<param name=\"allowscriptaccess\" value=\"always\" />",
+					"<embed ",
+						" src=\""+video_src+"&autoplay=1\"",
+						" type=\"application/x-shockwave-flash\"",
+						/*" autoplay=\"true\"",*/
+						" allowscriptaccess=\"always\"",
+						" allowfullscreen=\"true\"",
+						" width=\"444\"",
+						" height=\"300\" />",
+				"</object>"];
+				
+				$("#focus_slogan_line2").addClass("special_line2").children("h1").text("Donate to "+name);
+				$("#below_big_video").show();
+			}
 			$("#big_video").html("Loading video...");
-			$("#big_video").html(html);
+			$("#big_video").html(html.join("\n"));
 			
 			// replace charity logo with big video data (starts out as procrasdonate...)
 			var video_url = $("#below_big_video .video_charity_name a").attr("href");
 			var video_name = $("#below_big_video .video_charity_name a").text();
 			var video_mission = $("#below_big_video .video_charity_mission").text();
 			var video_logo = $("#below_big_video .video_charity_logo").attr("src");
+			var video_video = $("#below_big_video .video_charity_video").text();
 			
+			$(this).siblings(".charity_video_src").text(video_video);
 			$(this).siblings(".charity_name").text(video_name);
 			$(this).siblings(".charity_url").text(video_url);
 			$(this).siblings(".charity_mission").text(video_mission);
-			$(this).siblings(".charity_logo").text(video_logo);
+			$(this).attr("src", video_logo);
 		}
 		
 		$("#below_big_video .video_charity_name a").attr("href", url);
 		$("#below_big_video .video_charity_name a").text(name);
 		$("#below_big_video .video_charity_mission").text(mission);
-		$("#below_big_video .video_charity_logo").text(logo);
-		
-		$("#focus_slogan_line2").addClass("special_line2").children("h1").text("Donate to "+name);
+		$("#below_big_video .video_charity_logo").attr("src", logo);
+		$("#below_big_video .video_charity_video").text(video_src);
 	});
 });
 
@@ -143,7 +173,7 @@ function install(anchor_class) {
 			href = "http://releases.mozilla.org/pub/mozilla.org/firefox/releases/3.5.3/contrib/";
 		}
 		
-		location.href = "/start_now/"
+		location.href = "/incompatible_browser/"
 		return false
 		
 	} else {
@@ -225,10 +255,13 @@ function not_ready_to_install() {
 
 	return false;
 }
+function is_chrome() {
+ return navigator.userAgent.toLowerCase().indexOf('chrome') > -1;
+}
 
 function get_browser_info() {
 	var browser_ok = false;
-	var browser = "Unknown";
+	var browser = "ummm...you sure are special...";
 	var ff_version_ok = false;
 	var ff_version = "Unknown";
 	
@@ -249,9 +282,14 @@ function get_browser_info() {
 		}
 	}
 	if (!browser_ok) {
-		if ($.browser.msie) browser = "Internet Explorer";
-		else if ($.browser.safari) browser = "Safari";
-		else if ($.browser.opera) browser = "Opera";
+		if ($.browser.msie) { browser = "Internet Explorer";
+		} else if ($.browser.safari) {
+			if (is_chrome()) {
+				browser = "Chrome";
+			} else {
+				browser = "Safari";
+			}
+		} else if ($.browser.opera) { browser = "Opera"; }
 	}
 	return {
 		browser_ok: browser_ok,

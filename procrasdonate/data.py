@@ -64,6 +64,10 @@ class User(models.Model):
     org_newsletters = models.BooleanField(default=False)
     tos = models.BooleanField(default=False)
     
+    sent_initial_email = models.BooleanField(default=False)
+    sent_completed_registration_email = models.BooleanField(default=False)
+    sent_stalling_registration_email = models.BooleanField(default=False)
+    
     @classmethod
     def make(klass, private_key, name=None, twitter_name=None, url=None, email=None):
         """

@@ -24,51 +24,98 @@ def _POST(url, values):
     response = urllib2.urlopen(req).read()
     return json.loads(response)
 
-def send_email(request):
-    """
-    Sends email to user. Triggered by extension.
-    Possible types:
-      -~={ USERS }=~-
-        * WELCOME: triggered as soon as a user installs the extension
-        * UPDATE: triggered as soon as a user updates the extension
-        * TIME TO UPDATE EXTENSION: triggered when current extension version 
-                            differs from latest version received from server
-        * THANK YOU BLURBS (opt-in) -- 3 donation amount steps + blurb.
-         
-      -~={ CRON JOBS }=~-
-        * END OF YEAR EMAIL FOR TAXES
-        * END OF YEAR CHARITY NOTIFICATION (opt-in)
-        * WEEKLY (EVERY SUNDAY NIGHT):
-            their performance
-            alerts (register? reauthorize? pre-selected recipient officially signed up)
-            blog posts
-            company updates
-            tech updates
-            recipient blurb
-            * UPDATES FROM THEIR CHARITIES
-        
-      -~={ RECIPIENTS }=~-
-        * WEEKLY TO RECIPIENT: their performance, company updates, tech updates
-    """
-    #try:
-    if not request.POST:
-        return json_failure("must *POST* data")
+"""
+OLD :::
+
+Sends email to user. Triggered by extension.
+Possible types:
+  -~={ USERS }=~-
+    * WELCOME: triggered as soon as a user installs the extension
+    * UPDATE: triggered as soon as a user updates the extension
+    * TIME TO UPDATE EXTENSION: triggered when current extension version 
+                        differs from latest version received from server
+    * THANK YOU BLURBS (opt-in) -- 3 donation amount steps + blurb.
+     
+  -~={ CRON JOBS }=~-
+    * END OF YEAR EMAIL FOR TAXES
+    * END OF YEAR CHARITY NOTIFICATION (opt-in)
+    * WEEKLY (EVERY SUNDAY NIGHT):
+        their performance
+        alerts (register? reauthorize? pre-selected recipient officially signed up)
+        blog posts
+        company updates
+        tech updates
+        recipient blurb
+        * UPDATES FROM THEIR CHARITIES
     
+  -~={ RECIPIENTS }=~-
+    * WEEKLY TO RECIPIENT: their performance, company updates, tech updates
+"""
+
+def send_email(request, type):
     expected_parameters = ["private_key",
-                           "opt_in_status",
-                           "email_type"]
-    response = extract_parameters(request, "POST", expected_parameters)
+                           "prefs"]
+    response = extract_parameters(request, "GET", expected_parameters)
     if not response['success']:
-        message = "dataflow.send_email Failed to extract expected parameters %s from %s" % (expected_parameters,
-                                                                                            request.POST)
+        message = "dataflow.send_email %s Failed to extract expected parameters %s from %s" % (type,
+                                                                                               expected_parameters,
+                                                                                               request.GET)
         Log.Error(message, "DATA_FROM_EXTN")
         return json_failure(message)
     parameters = response['parameters']
-
-    #email_address = parameters['email_address']
-    #email = Email.add(email_address)
+    prefs = parameters['prefs']
     
-    return json_success()
+    user = User.get_or_none(private_key=parameters['private_key'])
+    if not user:
+        message = "unknown user: %s, request=%s" % (parameters['private_key'], request)
+        Log.Error(message, "unknown_user")
+        return json_failure(message)
+    
+    if not 'email' in prefs:
+        if not user.email:
+            message = "dataflow.send_email %s: prefs does not include email, and user email is unknown. private key = %s, user = %s" % (type, parameters['private_key'], user)
+            Log.Error(message, "DATA_FROM_EXTN")
+            return json_failure(message)
+        else:
+            email = user.email.email
+    else:
+        email = prefs['email']
+
+    if type == "first":
+        txt_t = "procrasdonate/emails/after_download_email.txt"
+        html_t = "procrasdonate/emails/after_download_email.txt"
+        subject = "ProcrasDonate"
+    elif type == "stalling_registration":
+        txt_t = "procrasdonate/emails/stalling_amazon_email.txt"
+        html_t = "procrasdonate/emails/stalling_amazon_email.txt"
+        subject = "ProcrasDonate"
+    elif type == "completed_registration":
+        txt_t = "procrasdonate/emails/completed_amazon_email.txt"
+        html_t = "procrasdonate/emails/completed_amazon_email.txt"
+        subject = "ProcrasDonate"
+    else:
+        return json_failure("Unknown email type. Please use one of 'first', 'stalling_registration', 'completed_registration'")
+    
+    # send email for recipient user to reset password
+    if user.name:
+        name = user.name
+    else:
+        name = email
+    
+    c = Context({ 'name': user.name })
+    txt_email = loader.get_template(txt_t)
+    html_email = loader.get_template(html_t)
+    try:
+        html_emailer.send_email(sender=settings.EMAIL,
+                                recipient=email,
+                                subject=subject,
+                                text=txt_email.render(c),
+                                html=html_email.render(c))
+        return json_success()
+    except:
+        msg = "send_email %s::Problem sending email to %s (does email address exist?)" % (type, email)
+        Log.Error(msg, "waitlist")
+        return json_failure(msg)
 
 def receive_data(request):
     """

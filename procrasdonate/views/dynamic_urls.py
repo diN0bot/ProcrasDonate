@@ -69,6 +69,8 @@ urlpatterns = patterns('',
 
 urlpatterns += patterns('',
     # handle data posted to server
+    (r'^send_email/(?P<type>[\w_]+)/$', dataflow.send_email),
+    
     (r'^post/email/$', dataflow.send_email),
     (r'^post/data/$', dataflow.receive_data),
     

@@ -47,7 +47,10 @@ var constants = {};
 	constants.AUTHORIZE_PAYMENTS_URL = '/fps/user/payment/authorize/';
 	constants.AUTHORIZE_PAYMENTS_CALLBACK_URL = '/fps/user/payment/authorize_callback/';
 	
-	constants.SEND_EMAIL_URL = '/post/email/';
+	constants.SEND_FIRST_EMAIL_URL = '/send_email/first/';
+	constants.SEND_COMPLETED_REGISTRATION_EMAIL_URL = '/send_email/completed_registration/';
+	constants.SEND_STALLING_REGISTRATION_EMAIL_URL = '/send_email/stalling_registration/';
+	
 	constants.SEND_DATA_URL = '/post/data/';
 	constants.RECEIVE_DATA_URL = '/get/data/';
 	

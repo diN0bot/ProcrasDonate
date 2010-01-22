@@ -11,4 +11,6 @@ urlpatterns += patterns('django.views.generic.simple',
     url(r'^faq/$', 'direct_to_template',         {'template': 'procrasdonate/straight_pages/faq.html'}, name='faq'),
     (r'^flashvideo/$', 'direct_to_template',     {'template': 'procrasdonate/straight_pages/flashvideo.html'}),
     url(r'^privacy_guarantee/$', 'direct_to_template', {'template': 'procrasdonate/straight_pages/privacy_guarantee.html'}, name='privacy_guarantee'),
+    
+    url(r'^incompatible_browser/$', 'direct_to_template', {'template': 'procrasdonate/straight_pages/incompatible_browser.html'}, name='incompatible_browser'),
 )

@@ -46,8 +46,13 @@ body {
   -moz-border-radius: .4em;
 }
 #download_allow_helper tr { text-align: left; }
-
 .floating_over_up_arrow { float: right; height: 5em; }
+#download_allow_helper_close { cursor: pointer; float:right; margin:-1em 0; }
+/*
+#download_allow_helper ol { margin: .4em 0em 0em 0em; }
+#download_allow_helper ol li { text-align: left; padding: 1em 0em; }
+#download_allow_helper img { margin-left: .4em; }
+*/
                                    
 ul, ol, ul li, ol li { text-align: left; }
 
@@ -352,12 +357,19 @@ img { -ms-interpolation-mode:bicubic; }
 	cursor: pointer;
 	display: inline;
 }
+#below_big_video {
+	margin-bottom: .5em;
+	padding:2px 5px;
+	width:434px;
+	background: #EFEFEF;
+}
 #below_big_video .video_charity_logo {
 	float: left;
-	margin: .3em 1em 0em 1em;
-	border: 0.25em groove #bbba93; padding: 0em 0em;
-	max-width: 6em;
-	max-height: 6em;
+	margin: .3em .7em 0em 0em;
+	border: 0.25em groove #bbba93;
+	padding: 0em 0em;
+	max-width: 5em;
+	max-height: 3.5em;
 	cursor: pointer;
 	display: inline;
 }
