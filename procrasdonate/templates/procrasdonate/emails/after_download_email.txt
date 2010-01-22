@@ -2,7 +2,7 @@ Hi{% if name %}, {{ name }}{% endif %}!
 
 Thanks for downloading the ProcrasDonate Firefox add-on.  You'll love using our system.  We love receiving feedback, so please join the discussion about how to make this service even better: http://feedback.procrasdonate.com
 
-Your next step is to register. Registration allows you to customize your settings in four easy steps.  Once you complete registration, the procrastination meter at the top of your screen will be customized to your needs and the time management incentives will be real.  To complete registration, please go to http://procrasdonate.com/register
+Your next step is to register. Registration allows you to customize your settings in four easy steps.  Once you complete registration, the procrastination meter at the top of your screen will be customized to your needs and the time management incentives will be real.  To complete registration, please go to {{ settings.DOMAIN }}{% url register %}
 
 You will soon receive weekly feedback messages and (hopefully) improve your online procrastination behaviors.  If you like ProcrasDonate please tell your friends!
 
@@ -15,4 +15,4 @@ Clay Ward
 cofounder
 
 {{ settings.EMAIL }}
-http://ProcrasDonate.com
+{{ settings.DOMAIN }}

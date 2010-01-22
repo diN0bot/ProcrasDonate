@@ -2,7 +2,7 @@ Congratulations{% if name %}, {{ name }}{% endif %}!  Your ProcrasDonate registr
 
 Use the icons that appear at the top of your web browser to categorize websites you are viewing as ProcrasDonation or TimeWellSpent.  The meter next to that will fill up throughout the week as you get closer to your ProcrasDonation goal.
 
-You can now access detailed charts and graphs about your time management and charitable donations at http://ProcrasDonate.com  Click on the procrastination meter at the top of your web browser for a shortcut to your ProcrasDonate pages.  Then select one of the following new sidebar elements:
+You can now access detailed charts and graphs about your time management and charitable donations at {{ settings.DOMAIN }}{% url my_progress %}  Click on the procrastination meter at the top of your web browser for a shortcut to your ProcrasDonate pages.  Then select one of the following new sidebar elements:
 
 ''My Progress'' - This page provides: 1. Gauges that compare your weekly procrastination behaviors.  2. A way to categorize many Sites at once.  3. A listing of your most recent website Visits.  4. Graphs you can chang to show both website usage and time management trends. 
 
@@ -21,4 +21,4 @@ Clay Ward
 cofounder
 
 {{ settings.EMAIL }}
-http://ProcrasDonate.com
+{{ settings.DOMAIN }}

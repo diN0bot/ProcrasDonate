@@ -13,4 +13,4 @@ Clay Ward
 cofounder
 
 {{ settings.EMAIL }}
-http://ProcrasDonate.com
+{{ settings.DOMAIN }}

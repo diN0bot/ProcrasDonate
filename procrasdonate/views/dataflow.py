@@ -55,15 +55,15 @@ Possible types:
 def send_email(request, type):
     expected_parameters = ["private_key",
                            "prefs"]
-    response = extract_parameters(request, "GET", expected_parameters)
+    response = extract_parameters(request, "POST", expected_parameters)
     if not response['success']:
         message = "dataflow.send_email %s Failed to extract expected parameters %s from %s" % (type,
                                                                                                expected_parameters,
-                                                                                               request.GET)
+                                                                                               request.POST)
         Log.Error(message, "DATA_FROM_EXTN")
         return json_failure(message)
     parameters = response['parameters']
-    prefs = parameters['prefs']
+    prefs = parameters['prefs'][0]
     
     user = User.get_or_none(private_key=parameters['private_key'])
     if not user:
@@ -102,7 +102,7 @@ def send_email(request, type):
     else:
         name = email
     
-    c = Context({ 'name': user.name })
+    c = Context({ 'name': user.name, 'settings': settings })
     txt_email = loader.get_template(txt_t)
     html_email = loader.get_template(html_t)
     try:

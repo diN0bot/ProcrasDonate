@@ -1691,7 +1691,9 @@ _extend(PageController.prototype, {
 		
 		var visits = [];
 		this.pddb.Visit.select({ enter_at__gte: _dbify_date(_start_of_day()) }, function(row) {
-			visits.push(row);
+			if (row.site().tag().id == self.pddb.ProcrasDonate.id) {
+				visits.push(row);
+			}
 		}, "-enter_at");
 		
 		var middle = Template.get("progress_visits_middle").render(
@@ -3301,6 +3303,7 @@ _extend(PageController.prototype, {
 		
 		if (old_email != email) {
 			this.pd_api.send_data();
+			this.pd_api.send_first_email();
 		}
 		
 		if (this.prefs.get('tax_deductions', constants.DEFAULT_TAX_DEDUCTIONS)) {
@@ -3556,6 +3559,9 @@ _extend(PageController.prototype, {
 	insert_register_done: function(request) {
 		logger("INSERT REGISTER DONE!");
 		this.prefs.set('registration_done', true);
+		
+		this.pd_api.send_completed_registration_email();
+		
 		//this.insert_register_time_well_spent(request);
 
 		var unsafeWin = request.get_unsafeContentWin();//event.target.defaultView;
@@ -3870,11 +3876,26 @@ _extend(PageController.prototype, {
 		this.pd_api.send_fake_data();
 	},
 	
+	send_first_email: function() {
+		this.pd_api.send_first_email();
+	},
+	
+	send_completed_registration_email: function() {
+		this.pd_api.send_completed_registration_email();
+	},
+	
+	send_stalling_registration_email: function() {
+		this.pd_api.send_stalling_registration_email();
+	},
+	
 	manual_test_suite: function(request) {
 		var actions = ["trigger_daily_cycle",
 		               "trigger_weekly_cycle",
 		               "trigger_schedule_run",
-		               "send_fake_data",
+		               ".",
+		               "send_first_email",
+		               "send_completed_registration_email",
+		               "send_stalling_registration_email",
 		               ".",
 		               "trigger_payment",
 		               ".",
@@ -3887,7 +3908,8 @@ _extend(PageController.prototype, {
 		               "reset_state_to_defaults",
 		               "reset_account_to_defaults",
 		               "initialize_state",
-		               "add_random_visits"];
+		               "add_random_visits",
+		               "send_fake_data"];
 		var html = Template.get("manual_test_suite").render(new Context({
 			actions: actions
 		}));

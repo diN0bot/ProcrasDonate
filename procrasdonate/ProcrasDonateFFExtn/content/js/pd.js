@@ -206,7 +206,7 @@ _extend(ProcrasDonate_API.prototype, {
 		);
 	},
 	
-	send_first_email: function() {
+	_send_type_email: function(url) {
 		var self = this;
 		
 		var data = {
@@ -214,34 +214,28 @@ _extend(ProcrasDonate_API.prototype, {
 			prefs: JSON.stringify([self.prefs.get_all()]),
 		}
 		
-		var url = constants.PD_API_URL + constants.SEND_FIRST_EMAIL_URL;
+		var url = constants.PD_API_URL + url;
 		
 		this._hello_operator_give_me_procrasdonate(
 			url,
 			data,
 			"POST",
-			onsuccess,
-			onfailure,
-			onerror
+			function() {}, //onsuccess,
+			function() {}, //onfailure,
+			function() {} //onerror
 		);
-		
-		
-		logger("send welcome email: "+this.prefs.get('email', constants.DEFAULT_EMAIL))
-		this.make_request(
-			constants.PD_API_URL + constants.SEND_WELCOME_EMAIL_URL,
-			{
-				email_address: this.prefs.get('email', constants.DEFAULT_EMAIL),
-				private_key: this.prefs.get('private_key', constants.DEFAULT_PRIVATE_KEY)
-			},
-			"POST",
-			function() {}
-		);
+	},
+	
+	send_first_email: function() {
+		this._send_type_email(constants.SEND_FIRST_EMAIL_URL);
 	},
 	
 	send_completed_registration_email: function() {
+		this._send_type_email(constants.SEND_COMPLETED_REGISTRATION_EMAIL_URL);
 	},
 	
 	send_stalling_registration_email: function() {
+		this._send_type_email(constants.SEND_STALLING_REGISTRATION_EMAIL_URL);
 	},
 	
     authorize_multiuse: function(onsuccess, onfailure) {

@@ -136,4 +136,5 @@ def json_failure(reason=""):
     d = {'result': 'failure'}
     if reason:
         d['reason'] = reason
+    print d
     return json_response(d)
