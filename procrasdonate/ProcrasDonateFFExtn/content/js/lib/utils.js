@@ -70,6 +70,8 @@ var logger = function(msg, show_stack) {
 	try {
 		if (show_stack) {
 			logger.FAIL();
+		} else {
+			//logger.FAIL();
 		}
 	} catch (e) {
 		dump(e.stack);

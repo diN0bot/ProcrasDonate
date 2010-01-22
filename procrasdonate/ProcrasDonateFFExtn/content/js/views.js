@@ -2351,8 +2351,10 @@ _extend(PageController.prototype, {
 
 		var pd_dollars_per_hr = self.retrieve_float_for_display('pd_dollars_per_hr', constants.DEFAULT_PD_DOLLARS_PER_HR);
 		var pd_hr_per_week_max = self.retrieve_float_for_display('pd_hr_per_week_max', constants.DEFAULT_PD_HR_PER_WEEK_MAX);
-		var pd_dollars_per_week_max = (pd_dollars_per_hr * pd_hr_per_week_max).toFixed(2);
-		logger("INCENTIVE:\npd_dollars_per_hr"+pd_dollars_per_hr+"\npd_hr_per_week_max"+pd_hr_per_week_max+"\npd_dollars_per_week_max"+pd_dollars_per_week_max);
+		var pd_dollars_per_week_max = (parseFloat(pd_dollars_per_hr) * parseFloat(pd_hr_per_week_max)).toFixed(2);
+		logger("INCENTIVE:\npd_dollars_per_hr"+pd_dollars_per_hr+
+				"\npd_hr_per_week_max"+pd_hr_per_week_max+
+				"\npd_dollars_per_week_max"+pd_dollars_per_week_max);
 		
 		var middle = Template.get("register_incentive_middle").render(
 			new Context({

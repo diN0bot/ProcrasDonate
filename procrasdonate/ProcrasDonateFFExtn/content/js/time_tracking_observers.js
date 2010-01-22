@@ -269,7 +269,7 @@ _extend(TimeTracker.prototype, {
 				
 				var new_total_time = parseInt(total.total_time) + time_delta;
 				// amt is in dollars but total_amount is in cents
-				var new_total_amount = parseFloat(total.total_amount) + parseFloat(amt*100.0);
+				var new_total_amount = parseFloat(total.total_amount) + parseFloat(amt)*100.0;
 				
 				this.pddb.Total.set({
 					total_time: new_total_time,
