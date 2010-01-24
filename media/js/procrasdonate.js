@@ -223,7 +223,7 @@ function install(anchor_class) {
 							alert("Problem occured while downloading ProcrasDonate.");
 						}
 					} else {
-						location.href = data.wait_list_url;
+						location.href = data.wait_list_url + "?group=" + location.pathname;
 					}
 				},
 				"json");

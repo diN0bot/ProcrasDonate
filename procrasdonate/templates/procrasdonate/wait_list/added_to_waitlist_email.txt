@@ -18,6 +18,5 @@ Firefox's address bar:
 woo!
 
 The ProcrasDonate Team
-
-info@procrasdonate.com
-http://ProcrasDonate.com
+{{ settings.EMAIL }}
+{{ settings.DOMAIN }}

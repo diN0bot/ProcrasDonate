@@ -288,9 +288,11 @@ def waitlist(request):
     email = request.POST and request.POST.get('email', email) or email
     is_added = request.POST and request.POST.get('is_added', is_added) or is_added
     is_removed = request.POST and request.POST.get('is_removed', is_removed) or is_removed
+    group = request.GET and request.GET.get('group', 'default') or 'default'
+    print group
     return render_response(request, 'procrasdonate/wait_list/waitlist.html', locals())
 
-def add_to_waitlist(request):
+def add_to_waitlist(request, group):
     if request.POST:
         expected_parameters = ["email"]
         optional_parameters = ["note"]
@@ -306,13 +308,14 @@ def add_to_waitlist(request):
         
         w = WaitList.get_or_none(email__email=parameters['email'])
         if not w:
-            w = WaitList.add(parameters['email'], note)
+            w = WaitList.add(parameters['email'], group, note)
         else:
-            Log.Log("Same email address added to waitlist. Note NOT updated from waitlist, %s. New note: %s" % (w, note), "waitlist_duplicate")
+            Log.Log("Same email address added to waitlist. Note and group NOT updated from waitlist, %s. New note: %s, new group: %s" % (w, note, group), "waitlist_duplicate")
         
         # send email for recipient user to reset password
         c = Context({'waiter': w,
-                     'remove_link': reverse('remove_from_waitlist', args=(w.remove_key,))})
+                     'remove_link': reverse('remove_from_waitlist', args=(w.remove_key,)),
+                     'settings': settings})
         txt_email = loader.get_template('procrasdonate/wait_list/added_to_waitlist_email.txt')
         html_email = loader.get_template('procrasdonate/wait_list/added_to_waitlist_email.html')
         """
@@ -358,3 +361,35 @@ def remove_from_waitlist_form(request):
                                                                      w.email.email))
     return HttpResponseRedirect("%s?email=%s" % (reverse('waitlist'),
                                                  email))
+
+
+def adword_email_form(request):
+    if request.POST:
+        email = request.POST.get('email', None)
+        group = request.POST.get('group', None)
+        is_download_page = request.POST.get('is_download_page', None)
+        wgroup = is_download_page and "download_%s" % group or group
+        
+        w = WaitList.get_or_none(email__email=email)
+        if not w:
+            w = WaitList.add(email, wgroup)
+        else:
+            Log.Log("Same email address added to waitlist. Group NOT updated from waitlist, %s. New group: %s" % (w, wgroup), "waitlist_duplicate")
+        
+        # send email for recipient user to reset password
+        c = Context({'waiter': w,
+                     'group': group,
+                     'settings': settings})
+        
+        txt_email = loader.get_template('procrasdonate/adwords/email.txt')
+        try:
+            w.email.send_email("Welcome ProcrasDonate Beta Tester",
+                               txt_email.render(c),
+                               from_email=settings.EMAIL)
+            return HttpResponseRedirect(reverse('adword_done', args=(group,)))
+        except:
+            Log.Error("add_to_waitlist::Problem sending added-to-waitlist email to %s (does email address exist?)" % w, "waitlist")
+            #return HttpResponseRedirect(reverse('waitlist'))
+            return HttpResponseRedirect("%s?email=%s&is_added=True" % (reverse('waitlist'),
+                                                                       w.email.email))
+

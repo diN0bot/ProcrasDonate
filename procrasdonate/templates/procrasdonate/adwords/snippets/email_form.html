@@ -1,0 +1,15 @@
+<form method="post" action="{% url adword_email_form %}">
+	<label>Join our email list:</label>
+	<input type="text" id="email_input" name="email" value="Email Address" />
+	<input type="hidden" name="group" value="{{ group }}" />
+	<input type="hidden" name="is_download_page" value="{{ is_download_page }}" />
+	<input type="submit" value="Submit" />
+	
+	<script type="text/javascript">
+		$(document).ready( function() {
+			$("#email_input").focus(function() {
+				$(this).addClass("user_typing").attr("value", "");
+			});
+		});
+	</script>
+</form>

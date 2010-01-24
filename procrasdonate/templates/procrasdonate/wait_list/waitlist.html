@@ -14,7 +14,7 @@
 		<p>Please <b>add</b> your email address and an optional note about why you want to use ProcrasDonate.
 			We'll email you when space is available.</p>
 
-		<form method="post" action="{% url add_to_waitlist %}">
+		<form method="post" action="{% url add_to_waitlist group %}">
 			<table><tbody><tr>
 				<td><label>email address:</label></td>
 				<td><input type="text" value="{{ email }}" name="email"/></td>

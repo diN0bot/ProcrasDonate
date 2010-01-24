@@ -29,7 +29,6 @@ class Email(models.Model):
         Sends an e-mail to this User.
         If DJANGO_SERVER is true, then prints email to console
         """
-        print "Email.send_email"
         model_utils.send_email(subject, message, self.email, from_email)
     
     @classmethod
@@ -1068,14 +1067,16 @@ class WaitList(models.Model):
     last_contacted_date = models.DateTimeField(auto_now=True)
     date_added = models.DateTimeField(auto_now_add=True)
     remove_key = models.CharField(max_length=20, default="")
+    # url path when clicked download
+    group = models.CharField(max_length=100, default="default")
     
     @classmethod
-    def make(klass, email, note=None):
+    def make(klass, email, group="default", note=None):
         """
         @param email: string email
         """
         email = email and Email.get_or_create(email) or None
-        return WaitList(email=email, note=note, remove_key=klass._create_remove_key(16))
+        return WaitList(email=email, group=group, note=note, remove_key=klass._create_remove_key(16))
         
     @classmethod
     def _create_remove_key(klass, bits):
@@ -1086,12 +1087,13 @@ class WaitList(models.Model):
         return "".join(ret)
 
     def __unicode__(self):
-        return u"%s [%s] - %s - %s - %s - %s" % (self.email,
-                                            self.remove_key,
-                                            self.number_times_contacted,
-                                            self.last_contacted_date,
-                                            self.date_added,
-                                            self.note)
+        return u"%s %s [%s] - %s - %s - %s - %s" % (self.email,
+                                                    self.group,
+                                                    self.remove_key,
+                                                    self.number_times_contacted,
+                                                    self.last_contacted_date,
+                                                    self.date_added,
+                                                    self.note)
     
 ALL_MODELS = [Email,
               User,

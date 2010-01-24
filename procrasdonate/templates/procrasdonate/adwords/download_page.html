@@ -1,0 +1,71 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+
+{% comment %}
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+{% endcomment %}
+
+<html>
+	<head>
+		<meta http-equiv="Content-Type" content="text/html; charset=utf-8" >
+		<title>Procrastinate Less. {% block window_title %}Procrastination incentives through giving.{% endblock %}</title>
+		
+		<link rel="shortcut icon" href="{{ MEDIA_URL }}img/ToolbarImages/ProcrasDonateIcon.png" type="image/x-icon" >
+
+		{# <link rel="stylesheet" type="text/css" href="{{ MEDIA_URL }}css/ui.all.css"> #}
+		<link rel="stylesheet" type="text/css" href="{{ MEDIA_URL }}css/procrasdonate.css">
+		<link rel="stylesheet" type="text/css" href="{{ MEDIA_URL }}css/adwords.css">
+	
+		<script type="text/javascript" charset="utf-8" src="{{ MEDIA_URL }}js/jquery-1.2.6.min.js"></script>
+		{# <script type="text/javascript" charset="utf-8" src="{{ MEDIA_URL }}js/ui.core.js"></script> #}
+	 	{# <script type="text/javascript" charset="utf-8" src="{{ MEDIA_URL }}js/ui.slider.js"></script> #}
+		
+		{# <script type="text/javascript" charset="utf-8" src="{{ MEDIA_URL }}js/json2.js"></script> #}
+		<script type="text/javascript" charset="utf-8" src="{{ MEDIA_URL }}js/procrasdonate.js"></script>
+		{% block head %}{% endblock %}
+
+	</head>
+
+	<body>
+		<div id="content">
+			<div id="download_page">
+			
+				<h2>
+					{% ifequal group "pandora" %}
+						Welcome to the Pandora Dashboard
+					{% endifequal %}
+					{% ifequal group "bike_lock" %}
+						Strongest BIke Lock ever
+					{% endifequal %}
+				</h2>
+				<p>//// is currently in development.</p>
+				
+				<p>Please sign up for the wait list and we'll keep you informed of our project.</p>
+				
+				<div id="email_list">
+					{% include 'procrasdonate/adwords/snippets/email_form.html' %}
+				</div>
+				
+				<p>hey clay.... want to re-use our current waitlist page? or do you want it to look different? just wondering.
+				we can make the wait list page log the url the user came from....</p>
+			
+			</div>
+		</div>
+
+		{# google analytics #}
+		<script type="text/javascript">
+		var gaJsHost = (("https:" == document.location.protocol) ? "https://ssl." : "http://www.");
+		document.write(unescape("%3Cscript src='" + gaJsHost + "google-analytics.com/ga.js' type='text/javascript'%3E%3C/script%3E"));
+		</script>
+		<script type="text/javascript">
+		try {
+		var pageTracker = _gat._getTracker("UA-2115025-7");
+		pageTracker._trackPageview();
+		} catch(err) {}</script>
+		
+	</body>
+
+</html>

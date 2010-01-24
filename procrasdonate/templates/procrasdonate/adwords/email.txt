@@ -1,0 +1,13 @@
+Hi!
+
+{% spaceless %}
+{% ifequal group "pandora" %}Welcome to the Pandora Dashboard{% endifequal %}
+{% ifequal group "download_pandora" %}We'll let you know when to download{% endifequal %}
+{% ifequal group "bike_lock" %}Thanks for trying bike locksssss{% endifequal %}
+{% ifequal group "download_bike_lock" %}Thanks for trying bike locksssss{% endifequal %}
+{% endspaceless %}
+
+Blah blah blah.
+
+Clay
+{{ settings.EMAIL }} <---service@ProcrasDonate.com

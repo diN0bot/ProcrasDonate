@@ -1,0 +1,62 @@
+
+#content {
+	width: 85em;
+	margin: auto;
+	text-align: center;
+	background: red;
+}
+
+#a_left_column {
+	float: left;
+	width: 40em;
+	background: green;
+}
+
+#a_right_column {
+	float: left;
+	width: 40em;
+	background: yellow;
+}
+
+#descriptive_text {
+	background: #FFCCCC;
+	padding: 1em;
+}
+
+#screen_shot {
+	background: #BBBBBB;
+	padding: 1em;
+}
+#screen_shot img {
+	width: 100%;
+	margin: 1em;
+}
+
+#email_list {
+}
+
+#email_input {
+	color: #999999;
+}
+#email_input.user_typing {
+	color: black;
+}
+
+#download_button {
+	background: #BBBBBB;
+	padding: 1em;
+}
+#download_button img {
+	width: 8em;
+	margin: 1em;
+}
+
+#advertising_text_1 {
+	background: #CCFFCC;
+	padding: 1em;
+}
+
+#advertising_text_2 {
+	background: #CCCCFF;
+	padding: 1em;
+}
