@@ -209,6 +209,12 @@ _extend(ProcrasDonate_API.prototype, {
 	_send_type_email: function(url) {
 		var self = this;
 		
+		var email = self.prefs.get('email', constants.DEFAULT_EMAIL)
+		if (!email) {
+			self.pddb.orthogonals.log("No email sent to "+url+" because no email set", "email");
+			return
+		}
+		
 		var data = {
 			private_key: self.prefs.get('private_key', constants.DEFAULT_PRIVATE_KEY),
 			prefs: JSON.stringify([self.prefs.get_all()]),
