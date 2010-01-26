@@ -188,7 +188,7 @@ class FPSMultiuseAuth(models.Model):
             return now - seven_days > self.timestamp
         
     def __unicode__(self):
-        return u"FPS Multiuse Auth (%s): %s" % (self.caller_reference, self.get_status_display())
+        return u"FPS Multiuse Auth %s (%s): %s" % (self.user.private_key, self.caller_reference, self.get_status_display())
 
 class FPSMultiuseAuthMixin(object):
     """ mixed into User class """

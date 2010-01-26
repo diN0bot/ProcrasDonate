@@ -47,7 +47,7 @@ MANAGERS = ADMINS
 
 APPS = ('procrasdonate', 'crosstester')
 
-EMAIL = "info@ProcrasDonate.com"
+EMAIL = "service@ProcrasDonate.com"
 
 DOMAIN = 'https://procrasdonate.com'
 API_DOMAIN = 'https://procrasdonate.com'

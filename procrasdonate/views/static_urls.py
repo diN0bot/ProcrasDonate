@@ -4,6 +4,7 @@ from procrasdonate.views import dataflow
 
 urlpatterns = patterns('',
     url(r'^after_install/(?P<version>\d+\.\d+\.\d+)/$', static_webpages.after_install, name='after_install'),
+    url(r'^after_register/(?P<version>\d+\.\d+\.\d+)/$', static_webpages.after_register, name='after_register'),
     url(r'^after_upgrade/(?P<version>\d+\.\d+\.\d+)/$', static_webpages.after_upgrade, name='after_upgrade'),
 )
 

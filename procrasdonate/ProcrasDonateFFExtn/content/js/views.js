@@ -3422,6 +3422,11 @@ _extend(PageController.prototype, {
 		// Receive updates from server
 		this.pd_api.request_data_updates(
 			function() {
+				logger("AFTER SUCCESS");
+				self.pddb.FPSMultiuseAuthorization.select({}, function(row) {
+					logger("multiauth = "+row);
+				});
+				
 				//logger("SERVER SAYS YAY");
 				// after success
 				var multi_auth = self.pddb.FPSMultiuseAuthorization.get_latest_success()
@@ -3430,7 +3435,7 @@ _extend(PageController.prototype, {
 					multi_auth = self.pddb.FPSMultiuseAuthorization.most_recent();
 					//logger("B multi auth="+multi_auth);
 				}
-				if (multi_auth.good_to_go()) {
+				if (multi_auth && multi_auth.good_to_go()) {
 					//logger("C multi auth="+multi_auth);
 					self.insert_register_done(request);
 					return
@@ -3580,7 +3585,7 @@ _extend(PageController.prototype, {
 		// Line: 2020
 		var version = this.prefs.get("version", "0.0.0");
 		logger("version = "+version);
-		var url = constants.PD_URL + constants.AFTER_INSTALL_URL + version + "/";
+		var url = constants.PD_URL + constants.AFTER_REGISTER_URL + version + "/";
 		logger("url = "+url);
 		new XPCNativeWrapper(unsafeWin, "location").location = url;
 	}, 

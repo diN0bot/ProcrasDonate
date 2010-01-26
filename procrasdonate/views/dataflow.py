@@ -80,41 +80,42 @@ def send_email(request, type):
             email = user.email.email
     else:
         email = prefs['email']
+        user.email = Email.get_or_create(email)
+        user.save()
 
     if type == "first":
         txt_t = "procrasdonate/emails/after_download_email.txt"
-        html_t = "procrasdonate/emails/after_download_email.txt"
-        subject = "ProcrasDonate"
+        #html_t = "procrasdonate/emails/after_download_email.txt"
+        subject = "Welcome to ProcrasDonate!"
     elif type == "stalling_registration":
         txt_t = "procrasdonate/emails/stalling_amazon_email.txt"
-        html_t = "procrasdonate/emails/stalling_amazon_email.txt"
-        subject = "ProcrasDonate"
+        #html_t = "procrasdonate/emails/stalling_amazon_email.txt"
+        subject = "ProcrasDonate registration almost complete!"
     elif type == "completed_registration":
         txt_t = "procrasdonate/emails/completed_amazon_email.txt"
-        html_t = "procrasdonate/emails/completed_amazon_email.txt"
-        subject = "ProcrasDonate"
+        #html_t = "procrasdonate/emails/completed_amazon_email.txt"
+        subject = "ProcrasDonate registration completed"
     else:
         return json_failure("Unknown email type. Please use one of 'first', 'stalling_registration', 'completed_registration'")
     
-    # send email for recipient user to reset password
-    if user.name:
-        name = user.name
-    else:
-        name = email
-    
-    c = Context({ 'name': user.name, 'settings': settings })
-    txt_email = loader.get_template(txt_t)
-    html_email = loader.get_template(html_t)
+    c = Context({ 'name': user.name or email, 'settings': settings })
+    #txt_email = loader.get_template(txt_t)
+    #html_email = loader.get_template(html_t)
     try:
+        txt_email = loader.get_template(txt_t)
+        message = txt_email.render(c)
+        user.email.send_email(subject, message, from_email=settings.EMAIL)
+        """
         html_emailer.send_email(sender=settings.EMAIL,
                                 recipient=email,
                                 subject=subject,
                                 text=txt_email.render(c),
                                 html=html_email.render(c))
+        """
         return json_success()
     except:
         msg = "send_email %s::Problem sending email to %s (does email address exist?)" % (type, email)
-        Log.Error(msg, "waitlist")
+        Log.Error(msg, "email")
         return json_failure(msg)
 
 def receive_data(request):

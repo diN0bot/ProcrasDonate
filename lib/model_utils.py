@@ -392,12 +392,11 @@ def convert_to_choices(choice_names, visible_names=None):
     return max_length, ENUM, CHOICES
 
 
-def send_email(self, subject, message, to_email, from_email=None):
+def send_email(subject, message, to_email, from_email=None):
     """
     Sends an e-mail.
     If DJANGO_SERVER is true, then prints email to console instead
     """
-    print "send_email"
     if settings.DJANGO_SERVER:
         print "="*60
         print "FROM:", from_email

@@ -66,6 +66,7 @@ var constants = {};
 	
 	constants.ON_INSTALL_URL = '/on_install/';
 	constants.AFTER_INSTALL_URL = '/after_install/';
+	constants.AFTER_REGISTER_URL = '/after_register/';
 	constants.AFTER_UPGRADE_URL = '/after_upgrade/';
 	
 	// used for development and testing

@@ -4,20 +4,21 @@ from django.core.urlresolvers import reverse
 from procrasdonate.models import Log
 
 def after_install(request, version):
-    try:
-        features = render_string(request, 'procrasdonate/extension_pages/after_install_or_upgrade/%s.html' % version, locals())
-    except:
-        Log.Warn("Someone visited after_install for unknown version %s" % version, detail="version")
-    return render_response(request, 'procrasdonate/extension_pages/after_install_or_upgrade/after_install.html', locals())
+    return _after(request, version, 'after_install')
+
+def after_register(request, version):
+    return _after(request, version, 'after_register')
 
 def after_upgrade(request, version):
+    return _after(request, version, 'after_upgrade')
+
+def _after(request, version, template_name):
     try:
         features = render_string(request, 'procrasdonate/extension_pages/after_install_or_upgrade/%s.html' % version, locals())
     except:
-        Log.Warn("Someone visited after_install for unknown version %s" % version, detail="version")
-    return render_response(request, 'procrasdonate/extension_pages/after_install_or_upgrade/after_upgrade.html', locals())
+        Log.Warn("Someone visited %s for unknown version %s" % (template_name, version), detail="version")
+    return render_response(request, 'procrasdonate/extension_pages/after_install_or_upgrade/%s.html' % template_name, locals())
 
-    
 def adword_tests(request, adword_page):
     return render_response(request, 'procrasdonate/adwords/%s.html' % adword_page, locals())
 
