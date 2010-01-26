@@ -3427,16 +3427,16 @@ _extend(PageController.prototype, {
 					logger("multiauth = "+row);
 				});
 				
-				//logger("SERVER SAYS YAY");
+				logger("SERVER SAYS YAY");
 				// after success
 				var multi_auth = self.pddb.FPSMultiuseAuthorization.get_latest_success()
-				//logger("multi auth="+multi_auth);
+				logger("multi auth="+multi_auth);
 				if (!multi_auth) {
 					multi_auth = self.pddb.FPSMultiuseAuthorization.most_recent();
-					//logger("B multi auth="+multi_auth);
+					logger("B multi auth="+multi_auth);
 				}
 				if (multi_auth && multi_auth.good_to_go()) {
-					//logger("C multi auth="+multi_auth);
+					logger("C multi auth="+multi_auth);
 					self.insert_register_done(request);
 					return
 				}
