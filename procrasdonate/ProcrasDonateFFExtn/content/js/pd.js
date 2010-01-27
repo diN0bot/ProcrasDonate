@@ -545,10 +545,6 @@ _extend(ProcrasDonate_API.prototype, {
 		var self = this;
 		self.pddb.orthogonals.log("Requesting data updates from "+(constants.PD_API_URL + constants.RECEIVE_DATA_URL), "dataflow");
 		
-		self.pddb.FPSMultiuseAuthorization.select({}, function(row) {
-			logger("multiauth = "+row);
-		});
-		
 		var new_since = new Date();
 		this._hello_operator_give_me_procrasdonate(
 			constants.PD_API_URL + constants.RECEIVE_DATA_URL,
@@ -561,7 +557,6 @@ _extend(ProcrasDonate_API.prototype, {
 				self.pddb.orthogonals.log("Successfully received data", "dataflow");
 				
 				_iterate(r.multiuse_auths, function(key, value, index) {
-					logger("iter: "+value);
 					self.pddb.FPSMultiuseAuthorization.process_object(value);
 				});
 				_iterate(r.multiuse_pays, function(key, value, index) {
@@ -585,9 +580,7 @@ _extend(ProcrasDonate_API.prototype, {
 				self.prefs.set('since_received_data', _dbify_date(new_since));
 				self.pddb.orthogonals.log("Data successfully updated on "+new_since, "dataflow");
 				
-				logger("after_success = "+after_success);
 				if (after_success) {
-					logger("do after_success");
 					after_success();
 				}
 			},

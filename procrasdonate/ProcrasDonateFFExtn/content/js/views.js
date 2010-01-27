@@ -3420,28 +3420,23 @@ _extend(PageController.prototype, {
 		this.activate_register_payments(request);
 		
 		// Receive updates from server
-		self.multi_auth_update(request, true);	
+		self.multi_auth_update(request);	
 	},
 	
-	multi_auth_update: function(request, try_again) {
+	multi_auth_update: function(request) {
 		var self = this;
 		this.pd_api.request_data_updates(
 			function() {
-				logger("AFTER SUCCESS");
-				self.pddb.FPSMultiuseAuthorization.select({}, function(row) {
-					logger("multiauth = "+row);
-				});
-				
-				logger("SERVER SAYS YAY");
+				//logger("SERVER SAYS YAY");
 				// after success
 				var multi_auth = self.pddb.FPSMultiuseAuthorization.get_latest_success()
-				logger("multi auth="+multi_auth);
+				//logger("multi auth="+multi_auth);
 				if (!multi_auth) {
 					multi_auth = self.pddb.FPSMultiuseAuthorization.most_recent();
-					logger("B multi auth="+multi_auth);
+					//logger("B multi auth="+multi_auth);
 				}
 				if (multi_auth && multi_auth.good_to_go()) {
-					logger("C multi auth="+multi_auth);
+					//logger("C multi auth="+multi_auth);
 					self.insert_register_done(request);
 					return
 				}
@@ -3454,12 +3449,6 @@ _extend(PageController.prototype, {
 					}));
 				}
 				request.jQuery("#multi_auth_status").html( html );
-				
-				if (try_again) {
-					setTimeout(function() {
-						self.multi_auth_update(request, false);
-					}, 2000);
-				}
 			}, function() {
 				// after failure
 			}

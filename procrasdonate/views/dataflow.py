@@ -223,16 +223,11 @@ def return_data(request):
         recipients.append(recipient.deep_dict())
 
     multiuse_auths = []
-    f = open('/var/sites/ProcrasDonate/t.log', 'a')
-    f.write("\n\n -------------------------------- %s" % datetime.datetime.now())
     has_success = False
     for multiuse_auth in FPSMultiuseAuth.objects.filter(user=user):
-        f.write("\nmultiuse_auth: %s" % multiuse_auth)
         multiuse_auths.append(multiuse_auth.deep_dict())
         if multiuse_auth.good_to_go():
             has_success = True
-    f.write("\n\n multiuse_auths = %s" % multiuse_auths)
-    f.close()
     
     if not has_success:
         pass
