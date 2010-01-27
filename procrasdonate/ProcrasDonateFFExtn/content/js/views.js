@@ -3420,6 +3420,11 @@ _extend(PageController.prototype, {
 		this.activate_register_payments(request);
 		
 		// Receive updates from server
+		self.multi_auth_update(request, true);	
+	},
+	
+	multi_auth_update: function(request, try_again) {
+		var self = this;
 		this.pd_api.request_data_updates(
 			function() {
 				logger("AFTER SUCCESS");
@@ -3449,6 +3454,12 @@ _extend(PageController.prototype, {
 					}));
 				}
 				request.jQuery("#multi_auth_status").html( html );
+				
+				if (try_again) {
+					setTimeout(function() {
+						self.multi_auth_update(request, false);
+					}, 2000);
+				}
 			}, function() {
 				// after failure
 			}
