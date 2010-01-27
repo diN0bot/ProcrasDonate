@@ -40,7 +40,7 @@ function load_models(db, pddb) {
 				if (notrequired) {
 					return null;
 				} else {
-					pddb.orthogonals.error("no SiteGroup found for site = "+this);
+					pddb.orthogonals.error("no SiteGroup found for site = "+this, "model");
 				}
 			}
 			return sitegroup;
@@ -122,7 +122,7 @@ function load_models(db, pddb) {
 			var self = this;
 			var tag = Tag.get_or_null({ id: self.tag_id })
 			if (!tag) {
-				pddb.orthogonals.error("no Tag found for sitegroup = "+this);
+				pddb.orthogonals.error("no Tag found for sitegroup = "+this, "model");
 			}
 			return tag
 		},
@@ -198,7 +198,7 @@ function load_models(db, pddb) {
 			var self = this;
 			var category = Category.get_or_null({ id: self.category_id })
 			if (!category) {
-				pddb.orthogonals.error("no Category found for recipient = "+this);
+				pddb.orthogonals.error("no Category found for recipient = "+this, "model");
 			}
 			return category
 		},
@@ -480,7 +480,7 @@ function load_models(db, pddb) {
 			var self = this;
 			var recipient = Recipient.get_or_null({ id: self.recipient_id })
 			if (!recipient) {
-				pddb.orthogonals.error("no Recipient found for recipientpercent = "+this);
+				pddb.orthogonals.error("no Recipient found for recipientpercent = "+this, "model");
 			}
 			return recipient
 		},
@@ -571,7 +571,7 @@ function load_models(db, pddb) {
 			var self = this;
 			var site = Site.get_or_null({ id: self.site_id })
 			if (!site) {
-				pddb.orthogonals.error("no Site found for visit = "+this);
+				pddb.orthogonals.error("no Site found for visit = "+this, "model");
 			}
 			return site
 		},
@@ -738,7 +738,7 @@ function load_models(db, pddb) {
 			var self = this;
 			var contenttype = ContentType.get_or_null({ id: self.contenttype_id });
 			if (!contenttype) {
-				pddb.orthogonals.error("no contenttype found for total = "+this);
+				pddb.orthogonals.error("no contenttype found for total = "+this, "model");
 			}
 			return contenttype
 		},
@@ -750,7 +750,7 @@ function load_models(db, pddb) {
 			if (!self.cached_content) {
 				var content = pddb[self.contenttype().modelname].get_or_null({ id: self.content_id });
 				if (!content) {
-					pddb.orthogonals.error("no content found for total = "+self);
+					pddb.orthogonals.error("no content found for total = "+self, "model");
 				} else {
 					self.cached_content = content;
 				}
@@ -795,7 +795,7 @@ function load_models(db, pddb) {
 			var self = this;
 			var timetype = pddb.TimeType.get_or_null({ id: self.timetype_id });
 			if (!timetype) {
-				pddb.orthogonals.error("no timetype found for total = "+this);
+				pddb.orthogonals.error("no timetype found for total = "+this, "model");
 			}
 			return timetype
 		},
@@ -910,7 +910,7 @@ function load_models(db, pddb) {
 			var self = this;
 			var payment_service = PaymentService.get_or_null({ id: self.payment_service_id });
 			if (!payment_service) {
-				pddb.orthogonals.error("no payment_service found for payment = "+this);
+				pddb.orthogonals.error("no payment_service found for payment = "+this, "model");
 			}
 			return payment_service
 		},
@@ -1015,7 +1015,7 @@ function load_models(db, pddb) {
 			var self = this;
 			var total = Total.get_or_null({ id: self.total_id });
 			if (!total) {
-				pddb.orthogonals.error("no total found for RequiresPayment = "+this);
+				pddb.orthogonals.error("no total found for RequiresPayment = "+this, "model");
 			}
 			return total
 		},
@@ -1079,7 +1079,7 @@ function load_models(db, pddb) {
 			var self = this;
 			var total = Total.get_or_null({ id: self.total_id })
 			if (!total) {
-				pddb.orthogonals.error("no Total found for PaymentTotalTagging = "+this);
+				pddb.orthogonals.error("no Total found for PaymentTotalTagging = "+this, "model");
 			}
 			return total
 		},
@@ -1089,7 +1089,7 @@ function load_models(db, pddb) {
 			var self = this;
 			var payment = Payment.get_or_null({ id: self.payment_id })
 			if (!payment) {
-				pddb.orthogonals.error("no payment found for PaymentTotalTagging = "+this);
+				pddb.orthogonals.error("no payment found for PaymentTotalTagging = "+this, "model");
 			}
 			return payment
 		}
@@ -1362,7 +1362,7 @@ function load_models(db, pddb) {
 			var self = this;
 			var payment = Payment.get_or_null({ id: self.payment_id })
 			if (!payment) {
-				pddb.orthogonals.error("no payment found for FPS Multiuse Pay = "+this);
+				pddb.orthogonals.error("no payment found for FPS Multiuse Pay = "+this, "model");
 			}
 			return payment
 		},
@@ -1470,7 +1470,7 @@ function load_models(db, pddb) {
 				}
 				
 			} else {
-				pddb.orthogonals.error("Recieved FPS Multiuse Pay update for FPS Multiuse Pay that does not exist! "+p);
+				pddb.orthogonals.error("Recieved FPS Multiuse Pay update for FPS Multiuse Pay that does not exist! "+p, "model");
 				
 				/* don't know which payment to use (though could find amount and timestamp similar...
 				 * but if FPS multiuse pay was deleted, then payment and totals might be deleted, too...

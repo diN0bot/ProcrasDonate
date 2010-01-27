@@ -271,30 +271,6 @@ class Recipient(models.Model):
         ordering = ('name',)
 
     def deep_dict(self):
-        if isinstance(self.last_modified, basestring):
-            print "unicode last modified for %s: %s (%s)" % (self.slug,
-                                                             self.last_modified,
-                                                             type(self.last_modified))
-            try:
-                lm = datetime.datetime.strptime(self.last_modified, "%Y-%m-%d %H:%M:%S")
-                print "no microseconds"
-            except ValueError, e:
-                try:
-                    lm = datetime.datetime.strptime(self.last_modified, "%Y-%m-%d %H:%M:%S.%f")
-                    print "used \%f to get microseconds"
-                except:
-                    if '.' in self.last_modified:
-                        try:
-                            lm = datetime.datetime.strptime(self.last_modified[:self.last_modified.rfind('.')],
-                                                            "%Y-%m-%d %H:%M:%S")
-                            print "removed microseconds from unicode"
-                        except:
-                            print "error: nothing worked !!!!!"
-                            lm = datetime.datetime.now()
-            print "  -> converted to datetime: %s" % lm
-        else:
-            lm = self.last_modified
-            
         return {'slug': self.slug,
                 'name': self.name,
                 'category': self.category.category,
@@ -310,7 +286,7 @@ class Recipient(models.Model):
                 'is_visible': self.is_visible,
                 'pd_registered': self.pd_registered(),
                 'tax_exempt_status': self.tax_exempt_status,
-                'last_modified': lm}
+                'last_modified': model_utils.datetime_from_sqlite(self, 'last_modified')}
     
     def public_information_incomplete(self):
         return not (self.name and self.category and self.mission and self.description and self.url)

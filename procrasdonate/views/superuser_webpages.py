@@ -20,9 +20,63 @@ from django.contrib.auth.backends import ModelBackend
 
 from django.db.models import Avg
 
+def _top_total_alert(klass, order_by, name, display_name_fn):
+    """
+    @param display_name_fn: function that takes the Total as input as returns  
+        a string suitable for display that identifies the total's content
+    """
+    t = klass.objects.filter(period=Period.forever()).order_by(order_by)
+    if t:
+        t = t[0]
+        v = "%s ($%.0f) $%.0f %.0f" % (display_name_fn(t),
+                                     t.dollars_pledged(),
+                                     t.dollars_paid(),
+                                     t.hours())
+    else:
+        v = "No %s found for type Forever" % klass.__name__
+    return {'type': 'rank',
+            'name': name,
+            'value': v}
 
+def _watch_alert(objects, name):
+    c = objects.count()
+    return {'type': c and 'trigger_watch' or 'empty_watch',
+            'name': name,
+            'value': c}
+    
+def _log_alerts(log_type, log_name):
+    return[_watch_alert(Log.objects.filter(log_type=log_type,
+                                           dtime__gte=Period.start_of_day()),
+                        '%s today' % log_name),
+           _watch_alert(Log.objects.filter(log_type=log_type,
+                                           dtime__gte=Period.start_of_week()),
+                        '%s this week' % log_name)]
+           #_watch_alert(Log.objects.filter(log_type=log_type,
+           #                                dtime__gte=datetime.datetime(2010, 1, 1)),
+           #             '%s this month' % log_name)]
+
+def _total_alerts(klass, name, display_name_fn):
+    return[_top_total_alert(klass, 'total_pledged', '#1 pledged '+name, display_name_fn),
+           _top_total_alert(klass, 'total_paid', '#1 paid '+name, display_name_fn),
+           _top_total_alert(klass, 'total_time', '#1 time '+name, display_name_fn)]
+    
 @user_passes_test(lambda u: u.is_superuser)
 def dashboard(request):
+    alerts = []
+    
+    # waitlist
+    alerts.append(_watch_alert(WaitList.objects, 'WaitList size'))
+    
+    # errors
+    alerts += _log_alerts(Log.LOG_TYPES['ERROR'], 'Errors')
+    alerts += _log_alerts(Log.LOG_TYPES['FAIL'], 'Failures')
+    alerts += _log_alerts(Log.LOG_TYPES['WARN'], 'Warnings')
+    
+    # totals
+    alerts += _total_alerts(TotalRecipient, '<b>recip</b>', lambda t: t.recipient.name)
+    alerts += _total_alerts(TotalRecipientVote, '<b>vote</b>', lambda t: t.recipient_vote.name)
+    alerts += _total_alerts(TotalSiteGroup, '<b>sgroup</b>', lambda t: t.sitegroup.host)
+
     return render_response(request, 'procrasdonate/superuser/dashboard.html', locals())
 
 @user_passes_test(lambda u: u.is_superuser)
@@ -137,6 +191,12 @@ def logs(request):
         if selected_detail_type:
             logs = logs.filter(detail_type=selected_detail_type)
             parameters.append(( "detail_type", selected_detail_type ))
+            
+        selected_min_dtime = request.GET.get("min_dtime", None)
+        if selected_min_dtime:
+            d = datetime.datetime.strptime(selected_min_dtime, "%Y-%m-%d_%H:%M:%S")
+            logs = logs.filter(dtime__gte=d)
+            parameters.append(( "min_dtime", selected_min_dtime ))
         
         order_by = request.GET.get("order_by", None)
         if order_by:

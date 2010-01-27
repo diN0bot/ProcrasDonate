@@ -19,6 +19,16 @@
 			{% else %}
 				not linked to any recipient
 			{% endif %}
+
+			<small>
+			<a href="{% url user rvote.user.private_key %}">
+				{% if rvote.user.email %}
+					{{ rvote.user.email }}
+				{% else %}
+					{{ rvote.user.private_key }}
+				{% endif %}
+			</a>
+			</small>
 			
 			<select id="{{ rvote.id }}">
 				<option value="None" {% if not rvote.recipient %}selected{% endif %}>

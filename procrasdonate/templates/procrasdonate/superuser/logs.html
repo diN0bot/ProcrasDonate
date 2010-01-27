@@ -82,7 +82,11 @@
 				</div>
 			{% endif %}
 			<div class="message_clip">{{ log.message }}</div>
-			<pre class="message">{{ log.message }}</pre>
+			{% ifequal log.detail_type "prefs" %}
+				<pre class="message">{{ log.message }}</pre>
+			{% else %}
+				<p class="message">{{ log.message }}</p>
+			{% endifequal %}
 			<div style="clear:both;"> </div>
 		</div>
 	{% endfor %}

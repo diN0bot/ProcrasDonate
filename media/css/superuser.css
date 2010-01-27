@@ -21,3 +21,59 @@
 .ddeven { background: #F7EDB4; }
 
 .next { margin: 0em 0em 0em 1em; }
+
+
+
+/********** DASHBOARD ***********/
+
+#superuser_links {
+	float: right;
+	border: 1px #AAA solid;
+	-moz-border-radius: .5em;
+	padding: .2em 1em;
+	background: white;
+}
+#superuser_links ul {
+	padding: 0em;
+	margin: 0em;
+	list-style: none;
+}
+#superuser_links ul li {
+	margin: .7em 0em;
+}
+#superuser_links ul li ol li {
+	margin: 0em;
+}
+
+
+.superuser_alert {
+	-moz-border-radius: 0.5em;
+	background: #E1FFE1;
+	/*border: 1px solid #999/*CCFF99;*/
+	max-width: 10em;
+	margin: 1em;
+	padding: 0.5em;
+	float: left;
+}
+.alert_name {
+	display: block;
+}
+.alert_value {
+	color: #777;
+}
+
+
+.superuser_alert.rank { background: #daf4d0;}
+.superuser_alert.empty_watch { background: #d4d0f4;}
+.superuser_alert.trigger_watch { background: #f4d0d8; }
+.superuser_alert.trigger_watch .alert_value { color: red; }
+/*
+#report_list .weekly { background: #daf4d0;}
+#report_list .welcome { background: #d4d0f4;}
+#report_list .thankyou { background: #f4d0d8;}
+#report_list .newsletter { background: #f4f3d0;}
+#report_list .somethingelse { background: #e9d0f4;}
+*/
+
+/********** USERS ***********/
+

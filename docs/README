@@ -61,4 +61,4 @@ auto_test_summary - (log or fail) <passing>/<total>
 waitlist - logs and errors related to waitlist
 waitlist_remove - log when user's are removed from waitlist
 waitlist_duplicate - log when same email added to waitlist
-
+model - assertion in models instance and class fields

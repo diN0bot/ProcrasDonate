@@ -26,20 +26,20 @@ def compute_totals_from_scratch():
     
     # process all visits
     for v in SiteVisit.objects.all():
-        TotalSite.process(v.site, v.total_amount, v.total_time, v.dtime)
-        TotalUser.process(v.user, v.total_amount, v.total_time, v.dtime)
+        TotalSite.process(v.site, v.total_amount, v.total_time, model_utils.datetime_from_sqlite(v, 'dtime'))
+        TotalUser.process(v.user, v.total_amount, v.total_time, model_utils.datetime_from_sqlite(v, 'dtime'))
     
     for v in SiteGroupVisit.objects.all():
-        TotalSiteGroup.process(v.sitegroup, v.total_amount, v.total_time, v.dtime)
-        TotalUser.process(v.user, v.total_amount, v.total_time, v.dtime)
+        TotalSiteGroup.process(v.sitegroup, v.total_amount, v.total_time, model_utils.datetime_from_sqlite(v, 'dtime'))
+        TotalUser.process(v.user, v.total_amount, v.total_time, model_utils.datetime_from_sqlite(v, 'dtime'))
     
     for v in RecipientVisit.objects.all():
-        TotalRecipient.process(v.recipient, v.total_amount, v.total_time, v.dtime)
-        TotalUser.process(v.user, v.total_amount, v.total_time, v.dtime)
+        TotalRecipient.process(v.recipient, v.total_amount, v.total_time, model_utils.datetime_from_sqlite(v, 'dtime'))
+        TotalUser.process(v.user, v.total_amount, v.total_time, model_utils.datetime_from_sqlite(v, 'dtime'))
         
     for v in TagVisit.objects.all():
-        TotalTag.process(v.tag, v.total_amount, v.total_time, v.dtime)
-        TotalUser.process(v.user, v.total_amount, v.total_time, v.dtime)
+        TotalTag.process(v.tag, v.total_amount, v.total_time, model_utils.datetime_from_sqlite(v, 'dtime'))
+        TotalUser.process(v.user, v.total_amount, v.total_time, model_utils.datetime_from_sqlite(v, 'dtime'))
 
 def test_total_processors():
     Processor.process_total({u'total_time': 100,
@@ -146,12 +146,12 @@ def fix_nonhostname_sitegroups():
     pass
 
 if __name__ == "__main__":
-    #compute_totals_from_scratch()
+    delete_all_totals()
+    compute_totals_from_scratch()
     #test_total_processors()
-    #delete_all_totals()
     #test_periods()
     #test_goals()
     delete_all_goals()
     compute_goals_from_reports()
-    #remove_duplicate_reports()
+    remove_duplicate_reports()
     
