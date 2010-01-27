@@ -82,6 +82,9 @@ def dashboard(request):
 @user_passes_test(lambda u: u.is_superuser)
 def users(request):
     users = User.objects.all()
+    if request.GET:
+        if request.GET.get('tos', None):
+            users = users.filter(tos=True)
     return render_response(request, 'procrasdonate/superuser/users.html', locals())
 
 @user_passes_test(lambda u: u.is_superuser)
