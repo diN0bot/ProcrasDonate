@@ -62,6 +62,7 @@ class User(models.Model):
     org_thank_yous = models.BooleanField(default=False)
     org_newsletters = models.BooleanField(default=False)
     tos = models.BooleanField(default=False)
+    registration_done = models.BooleanField(default=False)
     
     sent_initial_email = models.BooleanField(default=False)
     sent_completed_registration_email = models.BooleanField(default=False)

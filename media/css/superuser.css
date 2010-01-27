@@ -77,3 +77,59 @@
 
 /********** USERS ***********/
 
+
+.superuser_user {
+	-moz-border-radius: 0.5em;
+	background: #f4d0d8;
+	/*border: 1px solid #999/*CCFF99;*/
+	/*max-width: 10em;*/
+	margin: 1em;
+	padding: 0.5em;
+	float: left;
+}
+.private_key {
+	font-size: .8em;
+}
+.last_communication {
+	padding: .2em 0em;
+	border-top: 1px dotted #BBB;
+	border-bottom: 1px dotted #BBB;
+}
+
+.superuser_user .registration_process {
+	width: 1em;
+	height: 1em;
+	float: right;
+}
+.superuser_user .sent_initial_email {
+	background: #green;
+}
+.superuser_user .sent_completed_registration_email {
+	background: #black;
+}
+.superuser_user .sent_stalling_registration_email {
+	background: #red;
+}
+.superuser_user .registration_complete {
+	background: #white;
+}
+
+
+.superuser_user table {
+	width: 100%;
+}
+.superuser_user table tr td, .superuser_user table tr th {
+	border-right: 1px dotted #AAA;
+	border-left: 1px dotted #AAA;
+	margin: 0em;
+	padding: 0em .3em;
+}
+
+.superuser_user.tos { background: #E1FFE1;}
+/*
+#report_list .weekly { background: #daf4d0;}
+#report_list .welcome { background: #d4d0f4;}
+#report_list .thankyou { background: #f4d0d8;}
+#report_list .newsletter { background: #f4f3d0;}
+#report_list .somethingelse { background: #e9d0f4;}
+*/

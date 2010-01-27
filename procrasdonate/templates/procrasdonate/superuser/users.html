@@ -1,29 +1,108 @@
 {% extends 'procrasdonate/base.html' %}
 
 {% block head %}
+	<link rel="stylesheet" type="text/css" href="{{ MEDIA_URL }}css/superuser.css">
 	{{ block.super }}
 {% endblock %}
 
 {% block content %}
 	<h2>Users</h2>
 	
-	<ul>
-	{% for user in users %}
-		{% if user.tos %}
-			<li><a href="{% url user user.private_key %}">
-				<small>{{ user.private_key }}</small> {{ user.email }}</a></li>
-		{% endif %}
-	{% endfor %}
-	</ul>
+	<div id="superuser_links">
+		<ul>
+			<li><a href="{% url admin "" %}">Django Admin</a></li>
+			<li>Organizer Registration Steps
+				<ol>
+					<li><a href="{% url admin "procrasdonate/recipient/add/" %}">Create Recipient</a></li>
+					<li><a href="{% url register_organizer %}">Create Organizer</a></li>
+				</ol>
+			</li>
+			<li><a href="{% url users %}">Users</a></li>
+			<li><a href="{% url logs %}">Logs</a></li>
+			<li><a href="{% url recipient_votes %}">Recipient Votes</a></li>
+		</ul>
+	</div>
 	
-	<h3>Users that have not agreed to the Terms of Use</h3>
+	{% load pagination_tags %}
+	{% autopaginate users 25 %}
 	
-	<ul>
-	{% for user in users %}
-		{% if not user.tos %}
-			<li><a href="{% url user user.private_key %}">
-				{{ user.private_key }}: {{ user.email|default:"no email" }}</a></li>
-		{% endif %}
-	{% endfor %}
-	</ul>
+	{% paginate %}
+	
+	<div id="superuser_users">
+		{% for user in users %}
+			<div class="superuser_user {% if user.tos %}tos{% endif %}">
+				<div class="registration_process
+					{% if user.sent_initial_email %}
+						sent_initial_email
+					{% endif %}
+					{% if user.sent_completed_registration_email %}
+						sent_completed_registration_email
+					{% endif %}
+					{% if user.sent_stalling_registration_email %}
+						sent_stalling_registration_email
+					{% endif %}
+					{% if user.registration_complete %}
+						registration_complete
+					{% endif %}"></div>
+				
+				<div class="private_key">
+					<a href="{% url user user.private_key %}">{{ user.private_key }}</a>
+				</div>
+				<div class="email">{{ user.email }}</div>
+				<div class="last_communication">{{ user.all_logs.0.dtime|date:"dS M, Y (D)" }}</div>
+				
+				{% if user.total_this_day %}
+					<table>
+					<tbody>
+						<tr>
+							<th>type</th>
+							<th>($)</th>
+							<th>$</th>
+							<th>hrs</th>
+							<th>goals met</th>
+							<th>hrs saved</th>
+						</tr>
+						{% with user.total_this_day as d %}
+							{% include 'procrasdonate/superuser/snippets/total_dashboard.html' %}
+						{% endwith %}
+						{% with user.total_this_week as d %}
+							{% include 'procrasdonate/superuser/snippets/total_dashboard.html' %}
+						{% endwith %}
+						{% with user.total_this_forever as d %}
+							{% include 'procrasdonate/superuser/snippets/total_dashboard.html' %}
+						{% endwith %}
+					</tbody>
+					</table>
+				{% endif %}
+				
+				{% if user.errors or user.warnings or user.failures %}
+				<table>
+				<tbody>
+					<tr><th></th><th>today</th><th>week</th><th>ever</th></tr>
+					{% if user.errors %}
+					<tr><td>errors</td>
+						<td>{{ user.errors_today.count }}</td>
+						<td>{{ user.errors_week.count }}</td>
+						<td>{{ user.errors.count }}</td>
+					</tr>
+					{% endif %}{% if user.warnings %}
+					<tr><td>warnings</td>
+						<td>{{ user.warnings_today.count }}</td>
+						<td>{{ user.warnings_week.count }}</td>
+						<td>{{ user.warnings.count }}</td>
+					</tr>
+					{% endif %}{% if user.failures %}
+					<tr><td>failures</td>
+						<td>{{ user.failures_today.count }}</td>
+						<td>{{ user.failures_week.count }}</td>
+						<td>{{ user.failures.count }}</td>
+					</tr>
+					{% endif %}
+				</tbody>
+				</table>
+				{% endif %}
+			</div>
+		{% endfor %}
+	</div>
+	
 {% endblock %}

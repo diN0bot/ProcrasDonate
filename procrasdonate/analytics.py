@@ -143,6 +143,9 @@ class GoalMixin(object):
     def goals(self):
         return Goal.objects.filter(user=self)
     
+    def met_goals(self):
+        return self.goals().filter(is_met=True)
+    
     def add_goal(self, is_met, difference, hours_saved, period):
         #print "ADD GOAL:", is_met, difference, hours_saved, period
         g = Goal.add(is_met, difference, hours_saved, period, self)
@@ -206,6 +209,27 @@ class Total(models.Model):
     
     def dollars_paid(self):
         return self.total_paid / 100
+    
+    @classmethod
+    def this_day(klass):
+        return klass.objects.filter(period=Period.day())
+    
+    @classmethod
+    def this_week(klass):
+        return klass.objects.filter(period=Period.week())
+    
+    @classmethod
+    def days_this_week(klass):
+        return klass.objects.filter(period__startdate__gte=Period.start_of_week(),
+                                    period__type=Period.TYPES['DAILY'])
+    
+    @classmethod
+    def this_year(klass):
+        return klass.objects.filter(period=Period.year())
+    
+    @classmethod
+    def forever(klass):
+        return klass.objects.filter(period=Period.forever())
     
     class Meta:
         abstract = True
@@ -432,6 +456,41 @@ class TotalUser(Total):
                                                          self.hours_saved,
                                                          self.total_time,
                                                          self.total_pledged)
+
+    @classmethod
+    def Initialize(klass):
+        model_utils.mixin(TotalUserMixin, User)
+        
+class TotalUserMixin(object):
+    """ mixed into User class """
+    
+    def total_this_day(self):
+        t = TotalUser.this_day().filter(user=self)
+        if len(t) > 1:
+            print "ERROR: more than one Total per user per day: ", t, self
+        return len(t) > 0 and t[0] or None
+    
+    def total_this_week(self):
+        t = TotalUser.this_week().filter(user=self)
+        if len(t) > 1:
+            print "ERROR: more than one Total per user per week ", t, self
+        return len(t) > 0 and t[0] or None
+    
+    def total_this_year(self):
+        t = TotalUser.this_year().filter(user=self)
+        if len(t) > 1:
+            print "ERROR: more than one Total per user per year: ", t, self
+        return len(t) > 0 and t[0] or None
+    
+    def total_forever(self):
+        t = TotalUser.forever().filter(user=self)
+        if len(t) > 1:
+            print "ERROR: more than one Total per user per day: ", t, self
+        return len(t) > 0 and t[0] or None
+    
+    def totals_days_this_week(self):
+        return TotalUser.days_this_week().filter(user=self)
+
 
 ALL_MODELS = [Period,
               Goal,
