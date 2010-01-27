@@ -1,4 +1,5 @@
 from django.db import models
+from django.utils import simplejson as json
 from lib import model_utils
 
 from procrasdonate.analytics import Period
@@ -72,6 +73,16 @@ class Log(models.Model):
 
 class LogMixin(object):
     """ mixed into User class """
+    
+    def pref(self, key):
+        l = self.logs().filter(detail_type="prefs")
+        if l:
+            d = json.loads(l[0].message)
+            if key in d:
+                return d[key]
+            else:
+                return 'pref is undefined'
+        return 'no prefs logs'
     
     def all_logs(self):
         return Log.objects.filter(user=self).order_by('-dtime')

@@ -68,6 +68,9 @@ class User(models.Model):
     sent_completed_registration_email = models.BooleanField(default=False)
     sent_stalling_registration_email = models.BooleanField(default=False)
     
+    def version(self):
+        return self.pref('version')
+    
     @classmethod
     def make(klass, private_key, name=None, twitter_name=None, url=None, email=None):
         """

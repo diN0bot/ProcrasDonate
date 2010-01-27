@@ -49,7 +49,8 @@
 					<a href="{% url user user.private_key %}">{{ user.private_key }}</a>
 				</div>
 				<div class="email">{{ user.email }}</div>
-				<div class="last_communication">{{ user.all_logs.0.dtime|date:"dS M, Y (D)" }}</div>
+				<div class="last_communication">{{ user.all_logs.0.dtime|date:"d M (D)" }}</div>
+				<div class="version">{{ user.version }}</div>
 				
 				{% if user.total_this_day %}
 					<table>

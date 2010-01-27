@@ -90,10 +90,14 @@
 .private_key {
 	font-size: .8em;
 }
+.email {
+	padding: .2em;
+}
 .last_communication {
-	padding: .2em 0em;
-	border-top: 1px dotted #BBB;
-	border-bottom: 1px dotted #BBB;
+	padding: .2em .4em;
+}
+.version {
+	padding: .2em;
 }
 
 .superuser_user .registration_process {
@@ -117,6 +121,8 @@
 
 .superuser_user table {
 	width: 100%;
+	border-top: 1px solid #BBB;
+	border-bottom: 1px solid #BBB;
 }
 .superuser_user table tr td, .superuser_user table tr th {
 	border-right: 1px dotted #AAA;
