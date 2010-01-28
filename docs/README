@@ -31,7 +31,15 @@ alias pd_live='everything; ./manage.py migrate; chown -hR www-data:www-data ${RE
 
 then run
 
-./manage.py migrate
+./manage.py migrate procrasdonate
+
+to roll back to a specific migration:
+
+./manage.py migration procrasdonate XXX-migrationname-XXX
+
+note that column removal fails in sqlite3. when roll forward, south will complain about the 
+duplicate column. just comment out the forward function line, roll forward, then uncomment.
+
 
 ##### AMAZON FPS RATES
 

@@ -26,6 +26,18 @@ function input_submit(key, form) {
 }
 
 ///
+/// Instead of requiring a form action, submit directly from a checkbox.
+/// Adjusts GET parameters based on checkbox input (this).
+///
+function checkbox_submit(key, cbinput) {
+	if (cbinput.checked) {
+		get_parameter_submit(key, 'True');
+	} else {
+		location.href = remove_get_parameter(key, location.href);
+	}
+}
+
+///
 /// Adjust GET parameters based on key and value and submit.
 ///
 function get_parameter_submit(key, val) {

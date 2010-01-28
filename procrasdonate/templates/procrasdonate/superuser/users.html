@@ -3,6 +3,7 @@
 {% block head %}
 	<link rel="stylesheet" type="text/css" href="{{ MEDIA_URL }}css/superuser.css">
 	{{ block.super }}
+	<script type="text/javascript" charset="utf-8" src="{{ MEDIA_URL }}js/superuser.js"></script>
 {% endblock %}
 
 {% block content %}
@@ -23,86 +24,47 @@
 		</ul>
 	</div>
 	
+	<div class="stats">
+		<p>Number of users who...</p>
+		<table><tbody>
+			<tr>{% for key, title in stats_keys %}
+				<td title="{{ title }}">{{ key }}</td>
+			{% endfor %}</tr>
+			<tr>{% for value in stats_values %}
+				<td>{{ value }}</td>
+			{% endfor %}</tr>
+		</tbody></table>
+	</div>
+	
+	<div class="stats">
+		<p>Number of users using a particular extension release</p>
+		<table><tbody>
+			<tr>{% for key in version_keys %}
+				<td>{{ key }}</td>
+			{% endfor %}</tr>
+			<tr>{% for value in version_values %}
+				<td>{{ value }}</td>
+			{% endfor %}</tr>
+		</tbody></table>
+	</div>
+	
+	<h3>Users</h3>
+	
 	{% load pagination_tags %}
 	{% autopaginate users 25 %}
+	
+	<input
+		type="checkbox"
+		name="tos"
+		onChange="checkbox_submit('tos', this);"
+		{% if tos %}checked{% endif %}/>
+	<label>Exclude users who have not agree to the TOS</label>
 	
 	{% paginate %}
 	
 	<div id="superuser_users">
 		{% for user in users %}
-			<div class="superuser_user {% if user.tos %}tos{% endif %}">
-				<div class="registration_process
-					{% if user.sent_initial_email %}
-						sent_initial_email
-					{% endif %}
-					{% if user.sent_completed_registration_email %}
-						sent_completed_registration_email
-					{% endif %}
-					{% if user.sent_stalling_registration_email %}
-						sent_stalling_registration_email
-					{% endif %}
-					{% if user.registration_complete %}
-						registration_complete
-					{% endif %}"></div>
-				
-				<div class="private_key">
-					<a href="{% url user user.private_key %}">{{ user.private_key }}</a>
-				</div>
-				<div class="email">{{ user.email }}</div>
-				<div class="last_communication">{{ user.all_logs.0.dtime|date:"d M (D)" }}</div>
-				<div class="version">{{ user.version }}</div>
-				
-				{% if user.total_this_day %}
-					<table>
-					<tbody>
-						<tr>
-							<th>type</th>
-							<th>($)</th>
-							<th>$</th>
-							<th>hrs</th>
-							<th>goals met</th>
-							<th>hrs saved</th>
-						</tr>
-						{% with user.total_this_day as d %}
-							{% include 'procrasdonate/superuser/snippets/total_dashboard.html' %}
-						{% endwith %}
-						{% with user.total_this_week as d %}
-							{% include 'procrasdonate/superuser/snippets/total_dashboard.html' %}
-						{% endwith %}
-						{% with user.total_this_forever as d %}
-							{% include 'procrasdonate/superuser/snippets/total_dashboard.html' %}
-						{% endwith %}
-					</tbody>
-					</table>
-				{% endif %}
-				
-				{% if user.errors or user.warnings or user.failures %}
-				<table>
-				<tbody>
-					<tr><th></th><th>today</th><th>week</th><th>ever</th></tr>
-					{% if user.errors %}
-					<tr><td>errors</td>
-						<td>{{ user.errors_today.count }}</td>
-						<td>{{ user.errors_week.count }}</td>
-						<td>{{ user.errors.count }}</td>
-					</tr>
-					{% endif %}{% if user.warnings %}
-					<tr><td>warnings</td>
-						<td>{{ user.warnings_today.count }}</td>
-						<td>{{ user.warnings_week.count }}</td>
-						<td>{{ user.warnings.count }}</td>
-					</tr>
-					{% endif %}{% if user.failures %}
-					<tr><td>failures</td>
-						<td>{{ user.failures_today.count }}</td>
-						<td>{{ user.failures_week.count }}</td>
-						<td>{{ user.failures.count }}</td>
-					</tr>
-					{% endif %}
-				</tbody>
-				</table>
-				{% endif %}
-			</div>
+			{% include 'procrasdonate/superuser/snippets/user_dashboard.html' %}
 		{% endfor %}
 	</div>
 	

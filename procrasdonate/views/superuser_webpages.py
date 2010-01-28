@@ -83,8 +83,36 @@ def dashboard(request):
 def users(request):
     users = User.objects.all()
     if request.GET:
-        if request.GET.get('tos', None):
+        tos = request.GET.get('tos', None)
+        if tos:
             users = users.filter(tos=True)
+            
+    stats_keys = [('total', 'All user objects, including inactive users'),
+                  ('tos', 'Agree to terms of service'),
+                  ('email', 'Provided an email address'),
+                  ('authorized', 'Successfully completed Amazon authorization'),
+                  ('payments', 'Made at least one payment through Amazon'),
+                  ('pledges', 'Made at least one pledge (currently not calculated)')]
+    stats_values = [User.objects.all().count(),
+                    User.objects.filter(tos=True).count(),
+                    User.objects.exclude(email=None).count(),
+                    User.objects.filter(registration_done=True).count(),
+                    RecipientPayment.objects.all().values('user').order_by().distinct().count(),
+                    -1]
+    
+    version_keys = []
+    version_values = []
+    for M in range(0, 1):
+        for m in range(3, 5):
+            for x in range(0, 10):
+                if m == 4 and x > 2:
+                    continue
+                v = "%s.%s.%s" % (M, m, x)
+                c = User.objects.filter(version=v).count()
+                if c:
+                    version_keys.append(v)
+                    version_values.append(c)
+
     return render_response(request, 'procrasdonate/superuser/users.html', locals())
 
 @user_passes_test(lambda u: u.is_superuser)

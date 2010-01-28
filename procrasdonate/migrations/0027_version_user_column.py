@@ -7,17 +7,17 @@ class Migration:
     
     def forwards(self, orm):
         
-        # Adding field 'User.registration_done'
-        db.add_column('procrasdonate_user', 'registration_done', orm['procrasdonate.user:registration_done'])
+        # Adding field 'User.version'
+        db.add_column('procrasdonate_user', 'version', orm['procrasdonate.user:version'])
         
         for user in User.objects.all():
-            user.registration_done = user.pref_registration_done()
-            user.save()    
+            user.version = user.pref_version()
+            user.save()
     
     def backwards(self, orm):
         
-        # Deleting field 'User.registration_done'
-        db.delete_column('procrasdonate_user', 'registration_done')
+        # Deleting field 'User.version'
+        db.delete_column('procrasdonate_user', 'version')
         
     
     
@@ -449,6 +449,7 @@ class Migration:
             'tos': ('django.db.models.fields.BooleanField', [], {'default': 'False', 'blank': 'True'}),
             'twitter_name': ('django.db.models.fields.CharField', [], {'max_length': '32', 'null': 'True', 'blank': 'True'}),
             'url': ('django.db.models.fields.URLField', [], {'max_length': '200', 'null': 'True', 'blank': 'True'}),
+            'version': ('django.db.models.fields.CharField', [], {'default': "'0.0.0'", 'max_length': '10'}),
             'weekly_affirmations': ('django.db.models.fields.BooleanField', [], {'default': 'False', 'blank': 'True'})
         },
         'procrasdonate.userstudy': {

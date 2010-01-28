@@ -77,6 +77,29 @@
 
 /********** USERS ***********/
 
+.stats table td {
+	border-right: 1px solid #AAA;
+	/*border-left: 1px dotted #AAA;*/
+	margin: 0em;
+	padding: 0em .3em;
+	border-spacing: 0em;
+}
+.stats {
+	background: #f4f3d0;
+	padding: .5em;
+	margin: 1em 0em;
+	-moz-border-radius: .5em;
+}
+.stats p {
+	text-align: left;
+	margin: 0em 0em .4em 0em;
+	padding: 0em;
+	color: #999;
+}
+
+.pagination {
+	margin: 1em 0em .7em;
+}
 
 .superuser_user {
 	-moz-border-radius: 0.5em;
@@ -129,6 +152,7 @@
 	border-left: 1px dotted #AAA;
 	margin: 0em;
 	padding: 0em .3em;
+	border-spacing: 0em;
 }
 
 .superuser_user.tos { background: #E1FFE1;}

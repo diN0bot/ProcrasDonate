@@ -207,7 +207,8 @@ class Processor(object):
     def process_prefs(klass, pref, user):
         Log.add(Log.LOG_TYPES["LOG"], "prefs", json.dumps(pref, indent=2), user)
         changed = False
-        for field in ['email', 'weekly_affirmations', 'org_thank_yous', 'org_newsletters', 'tos', 'registration_done']:
+        for field in ['email', 'weekly_affirmations', 'org_thank_yous', 'org_newsletters',
+                      'tos', 'registration_done', 'version']:
             if not field in pref:
                 Log.add(Log.LOG_TYPES['LOG'], 'missing_pref', "%s not in %s" % (field, pref), user)
             elif getattr(user, field) != pref[field]:
