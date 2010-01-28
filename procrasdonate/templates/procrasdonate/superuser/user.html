@@ -1,29 +1,52 @@
 {% extends 'procrasdonate/base.html' %}
 
 {% block head %}
+	<link rel="stylesheet" type="text/css" href="{{ MEDIA_URL }}css/superuser.css">
 	{{ block.super }}
 {% endblock %}
 
 {% block content %}
-	<h2>{{ user.private_key }}: {{ user.email }}</h2>
+	<h2>User page for {{ user.private_key }}</h2>
 	
+	{% include 'procrasdonate/superuser/snippets/user_dashboard.html' %}
+	
+	<h3>Stats</h3>
 	<ul>
 		<li>Receive weekly affirmations? {{ user.weekly_affirmations }}</li>
 		<li>Receive charity thank yous? {{ user.org_thank_yous }}</li>
 		<li>Receive charity newsletters? {{ user.org_newsletters }}</li>
 	</ul>
 	
+	<h3>Logs</h3>
+	{% if user.errors %}
+		{% for log in user.errors|slice:":2" %}
+			{% include 'procrasdonate/superuser/snippets/log_dashboard.html' %}
+		{% endfor %}
+	{% endif %}
+	{% if user.failures %}
+		{% for log in user.failures|slice:":2" %}
+			{% include 'procrasdonate/superuser/snippets/log_dashboard.html' %}
+		{% endfor %}
+	{% endif %}
+	{% if user.warnings %}
+		{% for log in user.warnings|slice:":2" %}
+			{% include 'procrasdonate/superuser/snippets/log_dashboard.html' %}
+		{% endfor %}
+	{% endif %}
+	<a href="{% url logs %}?private_key={{ user.private_key }}&log_type=E&order_by=-dtime">all</a>
+	
 	<h3>Most recent report</h3>
 	
 	{% for report in user.reports|slice:":1" %}
-		<p>{{ report.dtime }}: <strong>{{ report.type }}</strong>
+		<div class="report">
+			{{ report.dtime }}: <strong>{{ report.type }}</strong>
 			({% if report.is_read %}read{% else %}unread{% endif %})
 			({% if report.is_sent %}sent{% else %}unsent{% endif %})
-		<pre>{{ report.message }}</pre>
+			{{ report.message|safe }}
+		</div>
 	{% endfor %}
 	
 	<h3>Recipient Votes</h3>
-	
 	<ul>
 		{% for rvote in user.recipient_votes %}
 			<li>{{ rvote.name }}: 
@@ -33,7 +56,18 @@
 		{% endfor %}
 	</ul>
 	
-	<h3>Logs</h3>
-	<a href="{% url logs %}?private_key={{ user.private_key }}&log_type=E&order_by=-dtime">here</a>
-
+	<script type="text/javascript">
+	$(document).ready( function() {
+		$(".message_clip").click(function() {
+			var message = $(this).siblings(".message");
+			var currently = message.css("display");
+			if (currently == "none") {
+				message.css("display", "visible").show();
+			} else {
+				message.css("display", "none");
+			}
+		});
+	});
+	</script>
+	
 {% endblock %}
