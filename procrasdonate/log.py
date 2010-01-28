@@ -73,14 +73,17 @@ class Log(models.Model):
 
 class LogMixin(object):
     """ mixed into User class """
-    
+
     def pref(self, key, default=None):
         l = self.logs().filter(detail_type="prefs")
         if l:
-            d = json.loads(l[0].message)
-            if key in d:
-                return d[key]
-            else:
+            try:
+                d = json.loads(l[0].message)
+                if key in d:
+                    return d[key]
+                else:
+                    return default
+            except:
                 return default
         return default
     
