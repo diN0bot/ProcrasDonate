@@ -3,7 +3,7 @@ from data import *
 
 import decimal
 import datetime
-
+    
 class Period(models.Model):
     """
     """

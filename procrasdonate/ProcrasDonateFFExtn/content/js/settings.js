@@ -12,9 +12,10 @@ var constants = {};
 	constants.IDLE_LOGGING = false;
 
 	// from https://developer.mozilla.org/En/Code_snippets:On_page_load
-	constants.STATE_START = Components.interfaces.nsIWebProgressListener.STATE_START;
-	constants.STATE_STOP = Components.interfaces.nsIWebProgressListener.STATE_STOP;
-
+	if (window.Components) {
+		constants.STATE_START = Components.interfaces.nsIWebProgressListener.STATE_START;
+		constants.STATE_STOP = Components.interfaces.nsIWebProgressListener.STATE_STOP;
+	}
 	constants.ProcrasDonate__UUID="extension@procrasdonate.com";
 
 	constants.MEDIA_URL = '/procrasdonate_media/';

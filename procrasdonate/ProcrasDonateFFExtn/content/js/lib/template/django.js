@@ -46,7 +46,31 @@ _extend(DjangoTemplate.prototype, {
 			return null;
 		}
 	},
-	
+	render_cond: function(cond, context, env) {
+		var op = cond[0], 
+			lt = cond[1], 
+			rt = cond[2],
+			value = this.render_filter(lt, context, env),
+			rvalue;
+		if (op == "var") return value;
+		if (op == "not") return !pythonTrue(value);
+		if (op == "or")
+			return pythonTrue(value) ? 
+				value : this.render_filter(rt, context, env);
+		if (op == "and")
+			return pythonTrue(value) ? 
+				this.render_filter(rt, context, env) : value;
+		if (op == "in") {
+		}
+		rvalue = this.render_filter(rt, context, env);
+		if (op == '=') return (value == rvalue);
+		if (op == '==') return (value == rvalue);
+		if (op == '!=') return (value != rvalue);
+		if (op == '>') return (value > rvalue);
+		if (op == '>=') return (value >= rvalue);
+		if (op == '<') return (value < rvalue);
+		if (op == '<=') return (value <= rvalue);
+	},
 	render_filter: function(v, context, env) {
 		if (this.DEBUG) logger("\n\nRENDER FILTER ");
 		if (this.DEBUG) _pprint(v);
@@ -107,8 +131,8 @@ _extend(DjangoTemplate.prototype, {
 		
 		if (!isContext(context)) {
 			//Template.DEBUG("render_node: created Context");
-			//context = new Context(context);
-			context = new RequestContext(context);
+			context = new Context(context);
+			//context = new RequestContext(context);
 		}
 		try {
 			if (this.TAGS[n]) {
@@ -172,7 +196,7 @@ _extend(DjangoTemplate.prototype, {
 	},
 	
 	render: function(context, env) {
-		context.assign("constants", constants);
+		//context.assign("constants", constants);
 		env = this.build(context, env);
 		return env.html;
 	},
