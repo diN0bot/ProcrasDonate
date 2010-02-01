@@ -12,10 +12,31 @@
 		{% if user.registration_complete or user.pref_registration_complete %}
 			registration_complete
 		{% endif %}"></div>
-	
+		
 	<div class="private_key">
 		<a href="{% url user user.private_key %}">{{ user.private_key }}</a>
 	</div>
+	
+	<div>
+		{% if user.fps_multiuse_auth %}
+			<span>Auth </span>
+			{% for auth in user.fps_multiuse_auth %}
+				<span class="user_auth status_{{ auth.status }}"
+					 title="{{ auth.get_status_display }}"></span>
+			{% endfor %}
+		{% endif %}
+	</div>
+	
+	<div>
+		{% if user.fps_multiuse_pay %}
+			<span>Payments </span>
+			{% for auth in user.fps_multiuse_pay %}
+				<span class="user_auth status_{{ auth.status }}"
+					 title="{{ auth.get_status_display }}"></span>
+			{% endfor %}
+		{% endif %}
+	</div>
+	
 	<div class="email">{{ user.email }}</div>
 	<div class="last_communication" title="Last communication with extension">{{ user.all_logs.0.dtime|date:"d M (D)" }}</div>
 	<div class="version" title="Extension version">
@@ -26,20 +47,23 @@
 		<table>
 		<tbody>
 			<tr>
-				<th>type</th>
-				<th>($)</th>
-				<th>$</th>
-				<th>hrs</th>
-				<th>goals met</th>
-				<th>hrs saved</th>
+				<th title="D=toDay, W=this Week, F=Forever">type</th>
+				<th title="Total pledged">($)</th>
+				<th title="Total paid">$</th>
+				<th title="Hours">hrs</th>
+				<th title="Goals met this week / goals met ever / total goals ever">goals</th>
+				<th title="Hours saved">hrs</th>
 			</tr>
-			{% with user.total_this_day as d %}
+			{% for d in user.totals_days_this_week %}
+				{% include 'procrasdonate/superuser/snippets/total_dashboard.html' %}
+			{% endfor %}
+			{% with user.total_last_week as d %}
 				{% include 'procrasdonate/superuser/snippets/total_dashboard.html' %}
 			{% endwith %}
 			{% with user.total_this_week as d %}
 				{% include 'procrasdonate/superuser/snippets/total_dashboard.html' %}
 			{% endwith %}
-			{% with user.total_this_forever as d %}
+			{% with user.total_forever as d %}
 				{% include 'procrasdonate/superuser/snippets/total_dashboard.html' %}
 			{% endwith %}
 		</tbody>

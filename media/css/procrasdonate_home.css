@@ -1,1 +1,179 @@
-body {  }
+/******** HOME PAGE *******************************************/
+#video_and_message { margin-top: 2em; text-align: left; width: 100%; }
+#video_and_message td { vertical-align: top; margin: 0em; }
+.slogan {
+	font-size: 1.2em;
+	color: #AAAAAA;
+	font-variant: small-caps;
+	margin-bottom: -1em;
+	margin-left: 9em;
+	padding: 0em;
+	border: none;
+	text-align: left;
+	letter-spacing: .15em;
+}
+#slogan_line1 { margin-top: .8em; }
+#slogan_line2 { margin-top: .1em; }
+
+#big_video { }
+
+.focus_slogans {
+	text-align: center;
+	font-weight: bold;
+	letter-spacing: -0.03em;
+	margin-top: -2.7em;
+}
+.focus_slogans div { }
+
+#focus_slogan_line2 {margin-top:-1.4em; }
+#focus_slogan_line3 {margin-top:1.4em; font-size:1.1em;}
+#focus_slogan_line2.special_line2 { font-size: .8em; }
+#focus_slogan_line2.special_line2 h1 { color: #76481b; }
+#focus_slogan_line3.special_line3 { font-size: .85em; }
+#focus_image {height: 3.4em; margin-top:1em; padding: 0 .8em;}
+
+#left-side-info {margin-bottom: .5em; margin-top: .5em; margin-left: -7em; }
+#download_wrapper { text-align: center; }
+#download { width: 23em; }
+/* inserted by extension on splash page */
+#download_wrapper #ExtensionMenu { margin: 3em 0em 0em 6.7em; width: 8.4em; font-weight: normal; line-height: 1.2em; }
+
+#community {
+	width: 100%;
+	font-size: 1.5em;
+	color: #AAAAAA;
+	margin: 0em;
+	padding: 0em;
+	letter-spacing: .02em;
+}
+#community td { vertical-align: top; }
+#community_left { text-align: left; }
+#community_center { text-align: center; }
+#community_right { text-align: right; }
+
+#charities_bar {
+	background: #AAAAAA;
+	padding: 0.6em 0 1em;
+	border-top: 0.2em solid #bebdac;
+	margin-top: 1em;
+}
+#charities_bar_info {
+	color: white;
+	display: inline;
+	font-size: 1.8em;
+	vertical-align: top;
+	font-family: georgia;
+	letter-spacing: .09em;
+}
+#charities_bar_table { width: 100%; }
+#charities_bar_table #charities { text-align: left; }
+#charities_bar_subtext { font-size: .59em; margin-left: -.4em}
+#charities_bar_table #charities { display: inline; }
+#charities_bar_table #charities .charity_logo {
+	float: right;
+	margin: .3em 1em 0em 1em;
+	border: 0.25em groove #bbba93;
+	padding: 0em 0em;
+	max-width: 6em;
+	max-height: 6em;
+	cursor: pointer;
+	display: inline;
+}
+#below_big_video {
+	margin-bottom: .5em;
+	padding:2px 5px;
+	width:434px;
+	background: #EFEFEF;
+}
+#below_big_video .video_charity_logo {
+	float: left;
+	margin: .3em .7em 0em 0em;
+	border: 0.25em groove #bbba93;
+	padding: 0em 0em;
+	max-width: 5em;
+	max-height: 3.5em;
+	cursor: pointer;
+	display: inline;
+}
+
+
+#more_information { clear: both; }
+.share_button { margin-top: .8em; }
+
+#top_OrganizerMenu { float: right; font-size: .9em; text-align: right; }
+#top_OrganizerMenu div.here_we_are { background: #336699; padding: .3em 1em; }
+/* inefficient: Tag key with 2 descendant selectors and Class overly qualified with tag
+ #top_OrganizerMenu div.here_we_are a*/ 
+.here_we_are .top_OrganizerMenu_a { color: #FFFFFF; text-decoration: none; }
+
+#extra_home_navigation {
+	float: right;
+	margin-top: 1.8em;
+	margin-left: 1em;
+	text-align: center;
+	padding: 0 .7em .6em .7em;
+	background: #EEEEEE;
+}
+#home_menu { padding: .4em; }
+#home_menu div {
+	display: inline;
+	font-weight: bold;
+	padding: 0em 1em;
+}
+#my_progress_screenshot {
+	width: 20em;
+	background: #E4E4E4;
+	border: 1px solid #E4E4E4;
+	margin-top: 1em;
+}
+
+.side_note {
+	float: right;
+	width: 32em;
+	padding: .5em 0em 0em 1em;
+	margin: 4em 0 1em 2em;
+	background: #EEEEEE none repeat scroll 0 0;
+}
+
+.posts { width: 20em; background: white; padding-bottom: .3em;
+}
+.posts h3 {
+	margin: 1em 0em 0em 0em;
+	padding: 1em 0em .1em 0em;
+	border-bottom: 1px solid #D7D7D7;
+	-moz-border-radius: .3em;
+	text-align: center;
+}
+.posts h3 a { text-decoration: none; }
+.post h4 {
+	margin: .7em 0em .5em 1.5em;
+	padding: 0em;
+	font-size: 1.1em;
+	text-align: left;
+}
+.post h4 a { text-decoration: none;}
+.post p { padding: 0em; margin: 0em; }
+
+#procrasdonate_tweets h3 a { color: #119d45; }
+#procrasdonate_tweets .post h4 { color: green; }
+#procrasdonate_tweets .post h4 a { color: #119d45; }
+#procrasdonate_tweets .post h4 a:hover { color: #FF9900; }
+
+#HOME { margin-left: 5.3em; }
+#HOME h2:first-child { margin-top: 0em; }
+#TheBanner {}
+#logo_banner { width: 38em; }
+#firefox_addon_one_liner { border:medium none; }
+#firefox_addon_one_liner span {
+  color:#999999;
+  font-size:0.7em;
+  font-variant:normal;
+  letter-spacing:normal;
+}
+.superheader { color: #669933; font-size: .8em; vertical-align: top; }
+.subheader { color: #669933; font-size: .8em; }
+
+.small-image { width: 3.9em; float: left; margin-left: -5.6em; margin-top: -2.6em; }
+.screenshot-long { width: 13.5em; float: right; margin-right: 1em; margin-left: 1em; margin-top: .45em;
+	border: 0.27em ridge #156451; -moz-border-radius: .4em; padding: .6em .4em;
+}

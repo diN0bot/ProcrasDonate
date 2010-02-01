@@ -376,7 +376,7 @@ function load_models(db, pddb) {
 				type: this.type,
 				subject: this.subject,
 				message: this.message,
-				recipient: this.recipient(),
+				recipient: this.recipient().slug,
 				is_read: this.is_read(),
 				is_sent: this.is_sent(),
 				has_met_goal: this.has_met_goal(),

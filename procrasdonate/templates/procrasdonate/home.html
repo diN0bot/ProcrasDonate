@@ -2,6 +2,7 @@
 
 {% block head %}
 	<link rel="stylesheet" type="text/css" href="{{ MEDIA_URL }}css/procrasdonate_home.css">
+	<script type="text/javascript" charset="utf-8" src="{{ MEDIA_URL }}js/home.js"></script>
 {% endblock %}
 
 {% block supermiddle %}
@@ -120,30 +121,13 @@
 		<img id="my_progress_screenshot" src="{{ MEDIA_URL }}img/MyProgressPreview_cropped.png" />
 		
 		<div id="blog_posts" class="posts">
-			<h3><a href="{{ blog_posts.feed.link }}">{# {{ blog_posts.feed.title }} #}Blog: Mindful Moments</a></h3>
-			{% for post in blog_posts.entries|slice:":5" %}
-			<div class="post">
-				<h4><a href="{{ post.link }}">- {{ post.title }}</a></h4>
-				{% comment %}
-				<p>{{ post.summary|truncatewords:3|safe }}
-					<span><a href="{{ post.link }}">read more</a></span>
-					{# <span><a href="{{ post.comments }}">comments</a></span> #}
-				</p>
-				{% endcomment %}
-			</div>
-			{% endfor %}
+			<h3><a href="http://procrastinateless.wordpress.com/">Blog: Mindful Moments</a></h3>
+			<!-- posts inserted by javascript using procrasdonate/templates/procrasdonate/snippets/post.html -->
 		</div>
 		
 		<div id="procrasdonate_tweets" class="posts">
-			<h3><a href="{{ procrasdonate_tweets.feed.link }}">@procrasdonate</a></h3>
-			{% for post in procrasdonate_tweets.smart_entries|slice:":5" %}
-			<div class="post">
-				<h4>{% if post.link %}<a href="{{ post.link }}">{% endif %}
-					- {{ post.title|slice:"15:" }}
-					{% if post.link %}</a>{% endif %}
-				</h4>
-			</div>
-			{% endfor %}
+			<h3><a href="http://twitter.com/procrasdonate">@procrasdonate</a></h3>
+			<!-- posts inserted by javascript using procrasdonate/templates/procrasdonate/snippets/tweet.html -->
 		</div>
 	</div>
 	<table>

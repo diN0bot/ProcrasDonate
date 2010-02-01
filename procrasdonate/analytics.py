@@ -14,6 +14,14 @@ class Period(models.Model):
     startdate = models.DateTimeField(db_index=True)
     enddate = models.DateTimeField(db_index=True)
     
+    def startdate_html(self):
+        #return self.startdate.strftime("%d %b (%a)")
+        return self.startdate
+    
+    def enddate_display(self):
+        #return self.enddate.strftime("%d %b (%a)")
+        return self.enddate
+    
     @classmethod
     def make(klass, type, startdate, enddate):
         return Period(type=type, startdate=startdate, enddate=enddate)
@@ -24,7 +32,22 @@ class Period(models.Model):
         if not p:
             p = Period.add(type, startdate, enddate)
         return p
-        
+    
+    
+
+    @classmethod
+    def _last_day(klass, d=None):
+        d = d or datetime.datetime.now()
+        return d - datetime.timedelta(days=1)
+    
+    @classmethod
+    def _last_week(klass, d=None):
+        d = d or datetime.datetime.now()
+        x = d - datetime.timedelta(days=7)
+        print "_last_week", d, x
+        return x
+
+
     @classmethod
     def start_of_day(klass, d=None):
         d = d or datetime.datetime.now()
@@ -65,11 +88,19 @@ class Period(models.Model):
     def end_of_forever(klass, d=None):
         return datetime.datetime.max
         
+        
     @classmethod
     def day(klass, d=None):
         return Period.get_or_create(klass.TYPES["DAILY"],
                                     klass.start_of_day(d),
                                     klass.end_of_day(d))
+    
+    @classmethod
+    def last_day(klass, d=None):
+        last_day = Period._last_day(d)
+        return Period.get_or_create(klass.TYPES["DAILY"],
+                                    klass.start_of_day(last_day),
+                                    klass.end_of_day(last_day))
         
     @classmethod
     def week(klass, d=None):
@@ -77,6 +108,16 @@ class Period(models.Model):
                                     klass.start_of_week(d),
                                     klass.end_of_week(d))
     
+    @classmethod
+    def last_week(klass, d=None):
+        last_week = Period._last_week(d)
+        print "datetime last_week", last_week
+        x = Period.get_or_create(klass.TYPES["WEEKLY"],
+                                    klass.start_of_week(last_week),
+                                    klass.end_of_week(last_week))
+        print "period last_week", x
+        return x
+        
     @classmethod
     def year(klass, d=None):
         return Period.get_or_create(klass.TYPES["YEARLY"],
@@ -147,14 +188,67 @@ class GoalMixin(object):
         return self.goals().filter(is_met=True)
     
     def add_goal(self, is_met, difference, hours_saved, period):
-        #print "ADD GOAL:", is_met, difference, hours_saved, period
+        print "ADD GOAL:", is_met, difference, hours_saved, period
         g = Goal.add(is_met, difference, hours_saved, period, self)
-        if is_met:
-            KeyValue.increment(KeyValue.KEYS['total_goals_met'])
-        KeyValue.increment(KeyValue.KEYS['total_goals'])
+        
+        # only add goal and hours to overall total if user is
+        # authorized to make payments and has non-zero rate
+        if self.authorized() and (float(self.pref('pd_dollars_per_hr')) > 0 or 
+                                  float(self.pref('tws_dollars_per_hr')) > 0):
+            if is_met:
+                KeyValue.increment(KeyValue.KEYS['total_goals_met'])
+            KeyValue.increment(KeyValue.KEYS['total_goals'])
+            KeyValue.increment(KeyValue.KEYS['total_hours_saved'], hours_saved)
+            print "ADD to KEY VALUE:"
+            print KeyValue.get_or_none(key=KeyValue.KEYS['total_goals_met'])
+            print KeyValue.get_or_none(key=KeyValue.KEYS['total_goals'])
+            print KeyValue.get_or_none(key=KeyValue.KEYS['total_hours_saved'])
+            
+            if period.type == Period.TYPES['WEEKLY']:
+                UserGoal.add(self, period, is_met, hours_saved)
+            else:
+                print "Cannot add user goal of non-weekly type: %s to %s" % (period, self)
+                
+    def goals_met_forever(self):
+        return UserGoal.objects.filter(user=self, is_met=True).count()
+    
+    def total_goals_forever(self):
+        return UserGoal.objects.filter(user=self).count()
 
-        KeyValue.increment(KeyValue.KEYS['total_hours_saved'], hours_saved)
+class UserGoal(models.Model):
+    """
+    """
+    user = models.ForeignKey(User)
+    period = models.ForeignKey(Period)
+    is_met = models.IntegerField(default=0)
+    hours_saved = models.FloatField(default=0.0)
+    
+    @classmethod
+    def make(klass, user, period, is_met, hours_saved):
+        u = UserGoal.get_or_none(period=period, user=user)
+        if not u:
+            u = UserGoal(period=period,
+                         user=user,
+                         is_met=is_met,
+                         hours_saved=hours_saved)
+        return u
+    
+    def __unicode__(self):
+        return u"%s --- %s: %s %s" % (self.user.private_key,
+                                      self.period,
+                                      self.is_met,
+                                      self.hours_saved)
 
+    @classmethod
+    def Initialize(klass):
+        model_utils.mixin(UserGoalMixin, User)
+        
+class UserGoalMixin(object):
+    """ mixed into User class """
+    
+    def user_goals(self):
+        return UserGoal.objects.filter(user=self)#.order_by('period__startdate')
+    
 class KeyValue(models.Model):
     """
     blarg
@@ -215,8 +309,17 @@ class Total(models.Model):
         return klass.objects.filter(period=Period.day())
     
     @classmethod
+    def last_day(klass):
+        return klass.objects.filter(period=Period.last_day())
+    
+    @classmethod
     def this_week(klass):
         return klass.objects.filter(period=Period.week())
+    
+    @classmethod
+    def last_week(klass):
+        print "totals", klass.objects.filter(period=Period.last_week())
+        return klass.objects.filter(period=Period.last_week())
     
     @classmethod
     def days_this_week(klass):
@@ -345,16 +448,12 @@ class TotalRecipient(Total):
     
     @classmethod
     def process(klass, recipient, total_amount, total_time, dtime):
-        print "TotalRecipient.process"
         for period in Period.periods(dtime):
-            print "period", period
             t = TotalRecipient.get_or_none(period=period, recipient=recipient)
             if not t:
                 t = TotalRecipient.add(recipient, period)
-            print "before", t
             t.total_pledged += total_amount
             t.total_time += total_time
-            print "after", t
             t.save()
     
     def __unicode__(self):
@@ -378,16 +477,12 @@ class TotalRecipientVote(Total):
     
     @classmethod
     def process(klass, recipient_vote, total_amount, total_time, dtime):
-        print "TotalRecipientVote.process"
         for period in Period.periods(dtime):
-            print "period", period
             t = TotalRecipientVote.get_or_none(period=period, recipient_vote=recipient_vote)
             if not t:
                 t = TotalRecipientVote.add(recipient_vote, period)
-            print "before", t
             t.total_pledged += total_amount
             t.total_time += total_time
-            print "after", t
             t.save()
     
     def __unicode__(self):
@@ -429,15 +524,25 @@ class TotalUser(Total):
     """
     """
     user = models.ForeignKey(User)
-    goals_met = models.IntegerField(default=0)
-    hours_saved = models.FloatField(default=0.0)
     
     @classmethod
     def make(klass, user, period):
-       return Total.make(period,
-                         user,
-                         "user",
-                         TotalUser)
+        return Total.make(period,
+                          user,
+                          "user",
+                          TotalUser)
+    
+    def corresponding_user_goal(self):
+        #print
+        #print self.period
+        #print self.user
+        if self.period.type == Period.TYPES["WEEKLY"]:
+            #print "\n",UserGoal.objects.filter(user=self.user)
+            x = UserGoal.get_or_none(user=self.user, period=self.period)
+            #print x
+            return x
+        return None
+                                        
     
     @classmethod
     def process(klass, user, total_amount, total_time, dtime):
@@ -450,10 +555,8 @@ class TotalUser(Total):
             t.save()
 
     def __unicode__(self):
-        return u"%s --- %s: %s %s. %s secs, %s cents" % (self.user.private_key,
+        return u"%s --- %s: %s secs, %s cents" % (self.user.private_key,
                                                          self.user.email.email,
-                                                         self.goals_met,
-                                                         self.hours_saved,
                                                          self.total_time,
                                                          self.total_pledged)
 
@@ -470,8 +573,21 @@ class TotalUserMixin(object):
             print "ERROR: more than one Total per user per day: ", t, self
         return len(t) > 0 and t[0] or None
     
+    def total_last_day(self):
+        t = TotalUser.last_day().filter(user=self)
+        if len(t) > 1:
+            print "ERROR: more than one Total per user per day: ", t, self
+        return len(t) > 0 and t[0] or None
+    
     def total_this_week(self):
         t = TotalUser.this_week().filter(user=self)
+        if len(t) > 1:
+            print "ERROR: more than one Total per user per week ", t, self
+        return len(t) > 0 and t[0] or None
+
+    def total_last_week(self):
+        print TotalUser.last_week()
+        t = TotalUser.last_week().filter(user=self)
         if len(t) > 1:
             print "ERROR: more than one Total per user per week ", t, self
         return len(t) > 0 and t[0] or None
@@ -494,6 +610,7 @@ class TotalUserMixin(object):
 
 ALL_MODELS = [Period,
               Goal,
+              UserGoal,
               KeyValue,
               TotalSiteGroup,
               TotalPDSiteGroup,

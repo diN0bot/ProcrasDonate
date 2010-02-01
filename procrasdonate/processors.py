@@ -164,7 +164,7 @@ class Processor(object):
             "datetime": "1252539581"
           }
         """
-        #print "\nPROCESS REPORT\n", json.dumps(report, indent=2)
+        print "\nPROCESS REPORT\n", json.dumps(report, indent=2)
         type        = report['type']
         message     = report['message']
         subject     = 'subject' in report and report['subject'] or 'no subject'
@@ -177,7 +177,6 @@ class Processor(object):
                 is_met = report['has_met_goal']
                 difference = report['difference']
                 seconds_saved = report['seconds_saved']
-                
                 user.add_goal(is_met, difference, float(seconds_saved) / 3600.0, Period.week(dtime))
         
         if (type == "weekly"):

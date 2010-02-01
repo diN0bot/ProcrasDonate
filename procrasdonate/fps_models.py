@@ -196,6 +196,12 @@ class FPSMultiuseAuthMixin(object):
     @property
     def fps_multiuse_auth(self):
         return self.fpsmultiuseauth_set.all().order_by('timestamp')
+    
+    def authorized(self):
+        for auth in self.fps_multiuse_auth:
+            if auth.good_to_go():
+                return True
+        return False
 
 class FPSMultiusePay(models.Model):
     """

@@ -2709,7 +2709,7 @@ _extend(PageController.prototype, {
 		});
 		// activate recipient suggestion
 		request.jQuery("#new_recipient_submit").click(function() {
-			var value = request.jQuery("#new_recipient_name").attr("value").trim();
+			var value = request.jQuery.trim(request.jQuery("#new_recipient_name").attr("value"));
 			if (!value || value == "") return
 			
 			var slug = slugify(value);
@@ -3283,15 +3283,15 @@ _extend(PageController.prototype, {
 		var ret = true;
 		
 		var old_email = this.prefs.set('email', constants.DEFAULT_EMAIL);
-		var email = request.jQuery("#email").attr("value").trim();
+		var email = request.jQuery.trim(request.jQuery("#email").attr("value"));
 		
-		var weekly_affirmations = request.jQuery("#weekly_affirmations").attr("checked");
+		//var weekly_affirmations = request.jQuery("#weekly_affirmations").attr("checked");
 		var org_thank_yous = request.jQuery("#org_thank_yous").attr("checked");
 		var org_newsletters = request.jQuery("#org_newsletters").attr("checked");
 		var tos = request.jQuery("#tos").attr("checked");
 		
 		this.prefs.set('email', email);
-		this.prefs.set('weekly_affirmations', _dbify_bool(weekly_affirmations));
+		//this.prefs.set('weekly_affirmations', _dbify_bool(weekly_affirmations));
 		this.prefs.set('org_thank_yous', _dbify_bool(org_thank_yous));
 		this.prefs.set('org_newsletters', _dbify_bool(org_newsletters));
 		this.prefs.set('tos', _dbify_bool(tos));
@@ -3702,7 +3702,16 @@ _extend(PageController.prototype, {
 	trigger_schedule_run: function() {
 		logger("triggering schedule run...");
 		this.schedule.run();
-		logger("...daily schedule done");
+		logger("...schedule done");
+	},
+	
+	///
+	/// Triggers scheduled weekly report creation
+	///
+	trigger_create_weekly_report: function() {
+		logger("triggering create_weekly_report...");
+		this.schedule.create_weekly_report();
+		logger("...create_weekly_report done");
 	},
 	
 	///
@@ -3774,10 +3783,13 @@ _extend(PageController.prototype, {
 					t3, t3, t4,
 					t4, t5, t5);
 			
-			var actual = subject.split(" ");
-			_pprint(actual);
-			if (actual.length > 3) {
-				actual = actual[3];
+			var actuals = subject.split(" ");
+			var actual = "";
+			if (actuals.length > 3) {
+				for (var i = 3; i < actuals.length; i++) {
+					actual += actuals[i]+" ";
+				}
+				actual = actual.substr(0, actual.length-1);
 			}
 			
 			/*
@@ -3801,8 +3813,8 @@ _extend(PageController.prototype, {
 				message: message
 			}
 			if (actual != expected) {
-				logger("############# TEST FAILED: expected:"+expected+" actual:"+actual+
-						"\none week = "+pd_hrs_one_week+
+				logger("############# TEST FAILED: expected:"+expected+": actual:"+actual+
+						"-\none week = "+pd_hrs_one_week+
 						"\ntwo week = "+pd_hrs_two_week+
 						"\nthree week = "+pd_hrs_three_week+
 						"\ngoal = "+pd_hr_per_week_goal+
@@ -3816,6 +3828,8 @@ _extend(PageController.prototype, {
 		}
 		
 		var d = [];
+		d.push( message_test(4.7, 10.6, 13.6, 20, 2, 30, "12/22", "12/28", "Winning streak") ); // winning streak
+		
 		d.push( message_test(8, 10, 12, 13, 1, 20, "12/22", "12/28", "Winning streak") ); // winning streak
 		d.push( message_test(8, 10, 12, 11, 1, 20, "12/22", "12/28", "Good work") ); // good work
 		d.push( message_test(8, 10, 12,  9, 1, 20, "12/22", "12/28", "Good work") ); // good work
@@ -3897,6 +3911,7 @@ _extend(PageController.prototype, {
 		var actions = ["trigger_daily_cycle",
 		               "trigger_weekly_cycle",
 		               "trigger_schedule_run",
+		               "trigger_create_weekly_report",
 		               ".",
 		               "send_first_email",
 		               "send_completed_registration_email",
@@ -4009,6 +4024,11 @@ _extend(PageController.prototype, {
 		});
 		html.push("</ol>")
 		request.jQuery("#theatre").html( html.join("\n\n") );
+		
+		request.jQuery(".details").hide();
+		request.jQuery(".summary").click( function() {
+			request.jQuery(this).siblings(".details").toggle();
+		}).css("cursor", "pointer");
 	},
 
 	/// run tester tests (mutates db) and checker checks 
@@ -4247,6 +4267,8 @@ _extend(Schedule.prototype, {
 	create_weekly_report: function() {
 		var self = this;
 		
+		//logger("CREATE WEEKLY REPORT!");
+		
 		/* user might want webpage reports, just not weekly emails. oops.
 		 * if (!_un_dbify_bool(self.prefs.get('weekly_affirmations', constants.DEFAULT_WEEKLY_AFFIRMATIONS))) {
 			// user doesn't want a weekly affirmation
@@ -4268,8 +4290,13 @@ _extend(Schedule.prototype, {
 		var tag_contenttype = self.pddb.ContentType.get_or_null({ modelname: "Tag" });
 		var sitegroup_contenttype = self.pddb.ContentType.get_or_null({ modelname: "SiteGroup" });
 		
+		///
+		/// last week mark should be more than 7 days from now because:
+		///    * condition necessary for weekly tasks to run
+		///    * won't have been updated until after weekly tasks run
+		/// 
 		var one_week = _un_dbify_date(this.prefs.get("last_week_mark", 0));
-		one_week.setDate(one_week.getDate() - 7);
+		//one_week.setDate(one_week.getDate() - 7);
 		
 		//logger("ONE WEEK "+one_week);
 		
@@ -4455,6 +4482,8 @@ _extend(Schedule.prototype, {
 		var difference = null;
 		var seconds_saved = null;
 		
+		logger("about to call create_message_logic");
+		
 		[message, subject, met_goal, difference, seconds_saved] = this.create_message_logic(
 				pd_hrs_one_week, pd_hrs_two_week, pd_hrs_three_week,
 				tws_hrs_one_week, tws_hrs_two_week, tws_hrs_three_week,
@@ -4466,7 +4495,11 @@ _extend(Schedule.prototype, {
 				pd_culprit_two_week, tws_culprit_two_week, u_culprit_two_week,
 				pd_culprit_three_week, tws_culprit_three_week, u_culprit_three_week);
 		
+		logger("done calling create_message_logic");
+		
 		var pd = self.pddb.Recipient.get_or_null({ slug: "PD" });
+		
+		logger("about to create report");
 		self.pddb.Report.create({
 			datetime: _dbify_date(end_date_one_week),
 			type: self.pddb.Report.WEEKLY,
@@ -4479,6 +4512,7 @@ _extend(Schedule.prototype, {
 			difference: difference,
 			seconds_saved: seconds_saved,
 		});
+		logger("done creating report");
 	},
 	
 	create_message_logic: function(pd_hrs_one_week, pd_hrs_two_week, pd_hrs_three_week,

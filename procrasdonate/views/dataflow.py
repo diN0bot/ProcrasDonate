@@ -1,4 +1,4 @@
-from lib.view_utils import render_response, HttpResponseRedirect, extract_parameters
+from lib.view_utils import render_response, render_string, HttpResponseRedirect, extract_parameters
 from lib.json_utils import json_success, json_failure
 from lib import html_emailer
 from procrasdonate.applib.xpi_builder import XpiBuilder
@@ -6,7 +6,6 @@ from procrasdonate.models import *
 
 from procrasdonate.processors import *
 
-import urllib, urllib2
 from django.utils import simplejson as json
 
 from django.core.urlresolvers import reverse
@@ -15,6 +14,10 @@ from django.template import loader, Context
 import settings
 from settings import pathify, path, PROJECT_PATH, MEDIA_ROOT
 
+from ext import feedparser
+
+'''
+import urllib, urllib2
 def _POST(url, values):
     """
     POSTs values to url. Returns whatever url returns
@@ -23,6 +26,8 @@ def _POST(url, values):
     req = urllib2.Request(url, data)
     response = urllib2.urlopen(req).read()
     return json.loads(response)
+'''
+
 
 """
 OLD :::
@@ -393,4 +398,32 @@ def adword_email_form(request):
             #return HttpResponseRedirect(reverse('waitlist'))
             return HttpResponseRedirect("%s?email=%s&is_added=True" % (reverse('waitlist'),
                                                                        w.email.email))
+
+
+url_in_text = re.compile("([\w-]+://[^\s,\)]*)")
+
+def procrasdonate_tweets(request):
+    procrasdonate_tweets = feedparser.parse("http://twitter.com/statuses/user_timeline/30937077.rss")
+    html = []
+    for entry in procrasdonate_tweets.entries[:5]:
+        title = url_in_text.sub('', entry.title)
+        tweet_link = entry.link
+        urls = url_in_text.findall(entry.title)
+        link = urls and urls[0] or ''
+        html.append(render_string(request,
+                                  'procrasdonate/snippets/tweet.html',
+                                  {'post':{'title': title,
+                                           'tweet_link': tweet_link,
+                                           'link': urls and urls[0] or ''}}))
+    return json_success({'html': ''.join(html)})
+
+def mindful_moments(request):
+    blog_posts = feedparser.parse("http://procrastinateless.wordpress.com/feed/")
+    html = []
+    for entry in blog_posts.entries[:5]:
+        html.append(render_string(request,
+                                  'procrasdonate/snippets/post.html',
+                                  {'post':{'title': entry.title,
+                                           'link': entry.link}}))
+    return json_success({'html': ''.join(html)})
 

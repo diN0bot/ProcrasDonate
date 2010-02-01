@@ -2,12 +2,10 @@ from __future__ import division
 
 import settings
 from lib.view_utils import render_response, HttpResponseRedirect, HttpResponseNotFound
-from lib.json_utils import json_response
 from lib.forms import get_form, EDIT_TYPE
 from procrasdonate.models import *
 
 import urllib, urllib2
-from django.utils import simplejson as json
 
 from django.core.urlresolvers import reverse
 
@@ -23,35 +21,18 @@ from django.contrib.auth.backends import ModelBackend
 from procrasdonate.applib.xpi_builder import XpiBuilder
 
 from django.db.models import Avg
-from ext import feedparser
 
 import re
+import time
 
 #### HOME ###################################
 
-url_in_text = re.compile("([\w-]+://[^\s,\)]*)")
-
 def recipient_splash(request, slug=None):
     big_video = "%sswf/LaptopIntro.swf" % settings.MEDIA_URL
-    blog_posts = feedparser.parse("http://procrastinateless.wordpress.com/feed/")
-    cwallardo_tweets = feedparser.parse("http://twitter.com/statuses/user_timeline/18369704.rss")
-    procrasdonate_tweets = feedparser.parse("http://twitter.com/statuses/user_timeline/30937077.rss")
-    procrasdonate_tweets['smart_entries'] = []
-    for entry in procrasdonate_tweets.entries:
-        title = entry.title
-        tweet_link = entry.link
-        urls = url_in_text.findall(title)
-        title = url_in_text.sub('', title)
-        procrasdonate_tweets['smart_entries'].append({'title': title,
-                                                      'tweet_link': tweet_link,
-                                                      'urls': urls,
-                                                      'link': urls and urls[0] or ''})
-    
     pd = Recipient.get_or_none(slug="PD")
     bilumi = Recipient.get_or_none(slug="bilumi")
     charities = Recipient.objects.filter(is_visible=True)
     special = Recipient.get_or_none(slug=slug)
-    
     analytics = _get_analytics_data()
     analytics.update(locals())
     return render_response(request, 'procrasdonate/home.html', analytics)
@@ -96,12 +77,10 @@ def _get_analytics_data():
     total_goals_met = KeyValue.get_or_none(key=KeyValue.KEYS["total_goals_met"])
     total_goals = KeyValue.get_or_none(key=KeyValue.KEYS["total_goals"])
     total_hours_saved = KeyValue.get_or_none(key=KeyValue.KEYS["total_hours_saved"])
-    print "DN WP", total_hours_saved
     
     total_goals_met = total_goals_met and total_goals_met.value or 0
     total_goals = total_goals and total_goals.value or 0
     total_hours_saved = total_hours_saved and total_hours_saved.value or 0
-    print "DN WP 2", total_hours_saved
     
     return locals()
 

@@ -163,3 +163,22 @@
 #report_list .newsletter { background: #f4f3d0;}
 #report_list .somethingelse { background: #e9d0f4;}
 */
+
+.user_auth {
+	display: inline;
+	padding: 0em .5em;
+	border: black 1px solid;
+}
+.status_SA { background: green; }
+.status_SB { background: green; }
+.status_SC { background: green; }
+.status_SE { background: red; }
+.status_A { background: black; }
+.status_CE { background: orange; }
+.status_PE { background: orange; }
+.status_NP { background: orange; }
+.status_NM { background: orange; }
+.status_0 { background: blue; }
+.status_1 { background: blue; }
+.status_C { background: white; }
+.status_EX { background: yellow; }

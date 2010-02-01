@@ -149,6 +149,7 @@ $(document).ready( function() {
 		$("#below_big_video .video_charity_logo").attr("src", logo);
 		$("#below_big_video .video_charity_video").text(video_src);
 	});
+
 });
 
 function is_windows() { return navigator.appVersion.indexOf("Win")!=-1; }
