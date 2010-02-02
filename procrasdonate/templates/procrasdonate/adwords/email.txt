@@ -1,13 +1,22 @@
 Hi!
 
 {% spaceless %}
-{% ifequal group "pandora" %}Welcome to the Pandora Dashboard{% endifequal %}
-{% ifequal group "download_pandora" %}We'll let you know when to download{% endifequal %}
-{% ifequal group "bike_lock" %}Thanks for trying bike locksssss{% endifequal %}
-{% ifequal group "download_bike_lock" %}Thanks for trying bike locksssss{% endifequal %}
+{% ifequal group "FundraisingToolsCartoon" %}Thanks for your interest in community fundraising tools.{% endifequal %}
+{% ifequal group "FundraisingToolsList" %}Thanks for your interest in community fundraising tools.{% endifequal %}
+{% ifequal group "GiftCardPersonal" %}Thanks for your interest in time management giftcards.{% endifequal %}
+{% ifequal group "GiftCardTrial" %}Thanks for your interest in time management giftcards.{% endifequal %}
+{% ifequal group "GivingCircle" %}Thanks for your interest in giving circles!{% endifequal %}
+{% ifequal group "MatchingGift" %}Thanks for your interest in matching gifts.{% endifequal %}
+{% ifequal group "StudentIncentives" %}Thanks for your interest in student incentives.{% endifequal %}
 {% endspaceless %}
 
-Blah blah blah.
+Unfortunately we're still developing this service.  We'll email you when it is ready.  If you have specific suggestions or ideas then please email Service@ProcrasDonate.com.
 
-Clay
-{{ settings.EMAIL }} <---service@ProcrasDonate.com
+Our current service, charitable incentives for better time management, can be accessed at <a href="http://www.ProcrasDonate.com">http://www.ProcrasDonate.com</a>.
+
+Sincerely,
+
+
+Clay Ward
+ProcrasDonate Co-founder
+{{ settings.EMAIL }}

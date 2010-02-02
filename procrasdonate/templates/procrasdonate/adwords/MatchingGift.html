@@ -1,0 +1,35 @@
+{% extends 'procrasdonate/adwords/adwords_base.html' %}
+
+{% block descriptive_text %}
+    <h2>Save the world - donate with a friend.</h2>
+{% endblock %}
+
+{% block screen_shot %}
+    <img src="{{ MEDIA_URL }}img/adword_screenshots/MatchingGift5.png" />
+{% endblock %}
+
+{% block advertising_text_1 %}
+    <h1>Have you found your charitable match?</h1>
+{% endblock %}
+
+{% block action_button %}
+	<a href="{% url adword_download_page adword_page %}">
+		<img src="{{ MEDIA_URL }}img/adword_screenshots/FindMatch.png" />						
+	</a>
+{% endblock %}
+
+{% block advertising_text_2 %}
+    <h1>Invite your favorite non-profit.</h1>
+{% endblock %}    
+    
+{% block action_button_2 %}
+	<a href="{% url adword_download_page adword_page %}">
+		<img src="{{ MEDIA_URL }}img/adword_screenshots/SendInvitation.png" />						
+	</a>
+{% endblock %}
+
+{% block advertising_text_3 %}    
+    <h1>Social giving is way social.</h1>
+{% endblock %} 
+
+
