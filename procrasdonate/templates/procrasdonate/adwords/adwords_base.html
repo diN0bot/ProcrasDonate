@@ -58,22 +58,43 @@
 			
 			<div id="a_right_column">
 
+				<div id="find_out_more_top">
+					<a href="{% url adword_download_page adword_page %}">
+						<span class="FindOutMoreSpan">Find Out More</span><img src="{{ MEDIA_URL }}img/FindOutMore.png" />
+					</a>
+				</div>
+			
 				<div id="advertising_text_1">
 					{% block advertising_text_1 %}
 					{% endblock %}
 				</div>
 				
-				<div id="download_button">
-					<a href="{% url adword_download_page adword_page %}">
-						<img src="{{ MEDIA_URL }}img/Download.png" />						
-					</a>
+				<div id="action_button">
+					{% block action_button %}
+					{% endblock %}
 				</div>
 				
 				<div id="advertising_text_2">
 					{% block advertising_text_2 %}
 					{% endblock %}
 				</div>
-			
+				
+				<div id="action_button_2">
+					{% block action_button_2 %}
+					{% endblock %}
+				</div>
+								
+				<div id="advertising_text_3">
+					{% block advertising_text_3 %}
+					{% endblock %}
+				</div>
+								
+				<div id="find_out_more_bottom">
+					<a href="{% url adword_download_page adword_page %}">
+						<span class="FindOutMoreSpan">Find Out More</span><img src="{{ MEDIA_URL }}img/FindOutMore.png" />
+					</a>
+				</div>	
+							
 			</div>
 
 		</div>

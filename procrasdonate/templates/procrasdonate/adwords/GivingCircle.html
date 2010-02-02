@@ -1,0 +1,26 @@
+{% extends 'procrasdonate/adwords/adwords_base.html' %}
+
+{% block descriptive_text %}
+    <h2>Join a Giving Circle and track your donor impact!</h2>
+{% endblock %}
+
+{% block screen_shot %}
+    <img src="{{ MEDIA_URL }}img/adword_screenshots/GivingCircle.png" />
+{% endblock %}
+
+{% block advertising_text_1 %}
+    <h1>Make a charitable pledge and friends who will match it.</h1>
+{% endblock %}
+
+{% block action_button %}
+	<a href="{% url adword_download_page adword_page %}">
+		<img src="{{ MEDIA_URL }}img/adword_screenshots/StartNow.png" />						
+	</a>
+{% endblock %}
+
+{% block advertising_text_2 %}
+    <h1>Or join a group with an interesting profile.</h1>
+    <h1>Giving with a circle is extremely effective.</h1>
+    
+{% endblock %} 
+
