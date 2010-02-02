@@ -804,9 +804,7 @@ class Payment(models.Model):
              payment_service,
              transaction_id,
              settled,
-             total_amount_paid,
-             amount_paid_in_fees,
-             amount_paid_tax_deductibly,
+             amount,
              user,
              extn_id,
              extn_inst,
@@ -832,7 +830,49 @@ class Payment(models.Model):
         return the_inst
     
     def __unicode__(self):
-        return self.name
+        return "%s paid $%s, settled? %s" % (self.user.private_key,
+                                             self.total_amount_paid,
+                                             self.settled)
+    
+
+class MonthlyFee(models.Model):
+    dtime = models.DateTimeField(db_index=True)
+    period_dtime = models.DateTimeField(db_index=True)
+    payment_service = models.ForeignKey(PaymentService)
+    transaction_id = models.CharField(max_length=32, db_index=True)
+    settled = models.BooleanField(default=False)
+    amount = models.FloatField(default=0.0)
+    user = models.ForeignKey(User)
+    extn_id = models.IntegerField()
+
+    @classmethod
+    def make(klass,
+             dtime,
+             period_dtime,
+             payment_service,
+             transaction_id,
+             settled,
+             amount,
+             user,
+             extn_id):
+        m = MonthlyFee.get_or_none(user=user, extn_id=extn_id)
+        if not m:
+            m = MonthlyFee(dtime=dtime,
+                           period_dtime=period_dtime,
+                           payment_service=payment_service,
+                           transaction_id=transaction_id,
+                           settled=settled,
+                           amount=amount,
+                           user=user,
+                           extn_id=extn_id)
+        return m
+        
+    def __unicode__(self):
+        return "%s paid monthly fee of %s on %s for %s, settled? %s" % (self.user.private_key,
+                                                                        self.amount,
+                                                                        self.dtime,
+                                                                        self.period_dtime,
+                                                                        self.settled)
     
 class RecipientPayment(Payment):
     recipient = models.ForeignKey(Recipient)
@@ -848,10 +888,7 @@ class RecipientPayment(Payment):
              amount_paid_in_fees,
              amount_paid_tax_deductibly,
              user,
-             extn_id,
-             extn_inst,
-             extn_inst_name,
-             the_klass):
+             extn_id):
 
         return Payment.make(dtime,
                             payment_service,
@@ -865,6 +902,12 @@ class RecipientPayment(Payment):
                             recipient,
                             "recipient",
                             RecipientPayment)
+        
+    def __unicode__(self):
+        return "%s paid $%s to %s, settled? %s" % (self.user.private_key,
+                                                   self.total_amount_paid,
+                                                   self.recipient.slug,
+                                                   self.settled)
 
 class SitePayment(Payment):
     site = models.ForeignKey(Site)
@@ -880,10 +923,7 @@ class SitePayment(Payment):
              amount_paid_in_fees,
              amount_paid_tax_deductibly,
              user,
-             extn_id,
-             extn_inst,
-             extn_inst_name,
-             the_klass):
+             extn_id):
 
         return Payment.make(dtime,
                             payment_service,
@@ -1094,6 +1134,7 @@ ALL_MODELS = [Email,
               PaymentService,
               SitePayment,
               RecipientPayment,
+              MonthlyFee,
               SiteGroupTagging,
               RecipientUserTagging,
               RecipientVote,

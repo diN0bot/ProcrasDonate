@@ -19,6 +19,7 @@ _extend(ProcrasDonate_API.prototype, {
 		    "UserStudy": "_get_user_studies",
             "Log": "_get_logs",
             "Payment": "_get_payments",
+            "MonthlyFee": "_get_monthly_fees",
             "RequiresPayment": "_get_requires_payments",
             "Report": "_get_reports"
 		};
@@ -144,6 +145,12 @@ _extend(ProcrasDonate_API.prototype, {
 	
 	_get_payments: function() {
 		return this._get_data("Payment", function(row) {
+			return row.deep_dict();
+		});
+	},
+	
+	_get_monthly_fees: function() {
+		return this._get_data("MonthlyFee", function(row) {
 			return row.deep_dict();
 		});
 	},
@@ -313,7 +320,7 @@ _extend(ProcrasDonate_API.prototype, {
 		);
 	},
 
-	pay_multiuse: function(transaction_amount, recipient_slug, requires_payments, after_success, after_failure) {
+	pay_multiuse: function(transaction_amount, recipient_slug, requires_payments, pct, after_success, after_failure) {
 		// 1. create payment
 		// 2. create FPS Multiuse Pay
 		// 3. link payment to all totals
@@ -350,7 +357,7 @@ _extend(ProcrasDonate_API.prototype, {
 			timestamp: dtime,
 			caller_reference: create_caller_reference(),
 			//marketplace_fixed_fee: 0,
-			marketplace_variable_fee: 10.00,
+			marketplace_variable_fee: pct,
 			transaction_amount: transaction_amount,
 			recipient_slug: recipient_slug,
 			sender_token_id: multiauth.token_id,
@@ -404,17 +411,17 @@ _extend(ProcrasDonate_API.prototype, {
 			);
 	},
 	
-	make_payments_if_necessary: function(ignore_threshhold) {
+	make_payments_if_necessary: function(pct, ignore_threshhold) {
 		var self = this;
 		
 		var prevent_payments = self.prefs.get('prevent_payments ', constants.DEFAULT_PREVENT_PAYMENTS);
 		if (prevent_payments) {
-			self.pddb.orthogonals.log("Aborted because prevent_payments flag is: "+prevent_payments, "make_payments")
+			self.pddb.orthogonals.log("Aborted potentially making a payment because prevent_payments flag is: "+prevent_payments, "make_payments")
 			return 
 		}
 		
 		var multiauth = this.pddb.FPSMultiuseAuthorization.get_latest_success();
-		if (!multiauth || !multiauth.token_id) {
+		if (!multiauth || !multiauth.good_to_go()) {
 			self.pddb.orthogonals.log("User is not authorized to make payments: "+multiauth, "pay");
 			return
 		}
@@ -530,6 +537,7 @@ _extend(ProcrasDonate_API.prototype, {
 					value,
 					key,
 					recipient_requires_payments[key],
+					pct,
 					function() {
 						// after success
 					}, function() {
@@ -537,6 +545,117 @@ _extend(ProcrasDonate_API.prototype, {
 					});
 			}
 		});
+	},
+	
+	pay_monthly_fee_if_necessary: function() {
+		var self = this;
+		
+		var prevent_payments = self.prefs.get('prevent_payments ', constants.DEFAULT_PREVENT_PAYMENTS);
+		if (prevent_payments) {
+			self.pddb.orthogonals.log("Aborted potentially paying monthly fee because prevent_payments flag is: "+prevent_payments, "make_payments")
+			return 
+		}
+		
+		var support_method = this.prefs.get('support_method', constants.DEFAULT_SUPPORT_METHOD);
+		if (support_method != 'monthly') {
+			self.pddb.orthogonals.log("User has elected not to pay a monthly fee: "+support_method, "monthly_fee");
+			return
+		}
+		
+		var multiauth = this.pddb.FPSMultiuseAuthorization.get_latest_success();
+		if (!multiauth || !multiauth.good_to_go()) {
+			self.pddb.orthogonals.log("User is not authorized to pay monthly fees: "+multiauth, "monthly_fee");
+			return
+		}
+		
+		// user is able to and intends to pay a monthly fee
+		var monthly_fee = _un_prefify_float(self.prefs.get('monthly_fee', constants.DEFAULT_MONTHLY_FEE));
+		
+		// too low of a monthly fee won't work because of amazon's fixed fee
+		if (monthly_fee < 0.10) {
+			self.pddb.orthogonals.log("User has elected not to pay a non-trivial monthly fee: "+monthly_fee, "monthly_fee");
+			return
+		}
+
+		self.pay_monthly_fee(
+			monthly_fee,
+			_end_of_month(_un_dbify_date(self.prefs.get('last_month_mark', 0))),
+			function() {
+				// after success
+			}, function() {
+				// after_failure
+		});
+	},
+	
+	pay_monthly_fee: function(transaction_amount, period_datetime, after_success, after_failure) {
+		// 1. create MonthlyFee
+		// 2. create FPS Multiuse Pay
+		// 3. send FPS Multiuse Pay to server
+		var self = this;
+		
+		transaction_amount = transaction_amount.toFixed(2);
+		
+		var multiauth = this.pddb.FPSMultiuseAuthorization.get_latest_success();
+		if (!multiauth || !multiauth.token_id) {
+			self.pddb.orthogonals.log("User is not authorized to pay monthly fees: "+multiauth, "monthly_fee");
+			return
+		}
+		
+		var dtime = _dbify_date(new Date());
+		
+		// create payment
+		var monthly_fee = self.pddb.MonthlyFee.create({
+			payment_service_id: self.pddb.AmazonFPS.id,
+			transaction_id: -1,
+			sent_to_service: _dbify_bool(true),
+			settled: _dbify_bool(false),
+			amount: transaction_amount,
+			datetime: dtime,
+			period_datetime: _dbify_date(period_datetime)
+		});
+		
+		// create fps multiuse pay
+		var fps_pay = this.pddb.FPSMultiusePay.create({
+			timestamp: dtime,
+			caller_reference: create_caller_reference(),
+			//marketplace_fixed_fee: 0,
+			marketplace_variable_fee: 0,
+			transaction_amount: transaction_amount,
+			recipient_slug: "PD",
+			sender_token_id: multiauth.token_id,
+			transaction_status: self.pddb.FPSMultiuseAuthorization.PENDING,
+			monthly_fee_id: monthly_fee.id
+		});
+		
+		// send fps multiuse auth to server
+		var data = _extend(fps_pay.deep_dict(), {
+			private_key: this.prefs.get('private_key', constants.DEFAULT_PRIVATE_KEY),
+			version: this.prefs.get('fps_version', constants.DEFAULT_FPS_API_VERSION),
+			timestamp: _dbify_date(new Date())
+		});
+		
+		this._hello_operator_give_me_procrasdonate(
+				constants.PD_API_URL + constants.PAY_MULTIUSE_URL,
+				data,
+				"POST",
+				function(r) {
+					// process returned pay object
+					if (r.pay) {
+						self.pddb.FPSMultiusePay.process_object(r.pay);
+					}
+					if (r.log) {
+						self.pddb.orthogonals.log(r.log, "monthly_fee");
+					} else {
+						self.pddb.orthogonals.log("Successfully paid "+transaction_amount, "monthly_fee");
+					}
+					
+					if (after_success) after_success();
+				},
+				function(r) {
+					self.pddb.orthogonals.log("Failed to pay "+transaction_amount+": "+r.reason, "monthly_fee");
+					if (after_failure) after_failure();
+				}
+			);
 	},
 	
 	request_data_updates: function(after_success, after_failure) {

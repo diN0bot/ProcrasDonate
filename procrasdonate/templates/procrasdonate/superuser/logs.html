@@ -1,12 +1,6 @@
-{% extends 'procrasdonate/base.html' %}
+{% extends 'procrasdonate/superuser/base.html' %}
 
-{% block head %}
-	<link rel="stylesheet" type="text/css" href="{{ MEDIA_URL }}css/superuser.css">
-	{{ block.super }}
-	<script type="text/javascript" charset="utf-8" src="{{ MEDIA_URL }}js/superuser.js"></script>
-{% endblock %}
-
-{% block content %}
+{% block superuser_content %}
 	<h2>Logs</h2>
 	
 	{% comment %}

@@ -143,6 +143,7 @@ def receive_data(request):
                      'logs'            : Processor.process_log,
                      'userstudies'     : Processor.process_userstudy,
                      'payments'        : Processor.process_payment,
+                     'monthly_fees'    : Processor.process_monthly_fee,
                      'requirespayments': Processor.process_requirespayment,
                      'reports'         : Processor.process_report,
                      'prefs'           : Processor.process_prefs}

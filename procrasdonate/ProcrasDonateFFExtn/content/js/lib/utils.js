@@ -304,6 +304,57 @@ var _start_of_year = function(date) {
 	return date;
 }
 
+var _start_of_month = function(date) {
+	if (!date) {
+		date = new Date();
+	} else {
+		date = new Date(date);
+	}
+	date.setDate(1);
+	date.setHours(0);
+	date.setMinutes(0);
+	date.setSeconds(0);
+	date.setMilliseconds(0);
+	return date;
+}
+
+var _end_of_month = function(date) {
+	if (!date) {
+		date = new Date();
+	} else {
+		date = new Date(date);
+	}
+	switch (date.getMonth()) {
+	case 8:
+	case 3:
+	case 5:
+	case 10:
+		date.setDate(30);
+		break
+	case 0:
+	case 2:
+	case 4:
+	case 6:
+	case 7:
+	case 9:
+	case 11:
+		date.setDate(31);
+		break
+	case 1:
+		var isLeap = new Date(date.getYear,1,29).getDate() == 29;
+		if (isLeap) {
+			date.setDate(29);
+		} else {
+			date.setDate(28);
+		}
+	}
+	date.setHours(23);
+	date.setMinutes(23);
+	date.setSeconds(23);
+	date.setMilliseconds(23);
+	return date;
+}
+
 var _end_of_forever = function() { return -3; }
 
 var _end_of_day = function(date) {

@@ -240,3 +240,10 @@ def logs(request):
     detail_types = Log.objects.values_list('detail_type', flat=True).distinct()
     tos_users = User.objects.filter(tos=True)
     return render_response(request, 'procrasdonate/superuser/logs.html', locals())
+
+
+
+@user_passes_test(lambda u: u.is_superuser)
+def payments(request):
+    payments = FPSMultiusePay.objects.all()
+    return render_response(request, 'procrasdonate/superuser/payments.html', locals())

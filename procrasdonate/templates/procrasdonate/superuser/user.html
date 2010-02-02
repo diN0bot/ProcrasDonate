@@ -1,11 +1,6 @@
-{% extends 'procrasdonate/base.html' %}
+{% extends 'procrasdonate/superuser/base.html' %}
 
-{% block head %}
-	<link rel="stylesheet" type="text/css" href="{{ MEDIA_URL }}css/superuser.css">
-	{{ block.super }}
-{% endblock %}
-
-{% block content %}
+{% block superuser_content %}
 	<h2>User page for {{ user.private_key }}</h2>
 	
 	{% include 'procrasdonate/superuser/snippets/user_dashboard.html' %}

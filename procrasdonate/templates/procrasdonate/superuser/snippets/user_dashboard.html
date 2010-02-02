@@ -30,9 +30,9 @@
 	<div>
 		{% if user.fps_multiuse_pay %}
 			<span>Payments </span>
-			{% for auth in user.fps_multiuse_pay %}
-				<span class="user_auth status_{{ auth.status }}"
-					 title="{{ auth.get_status_display }}"></span>
+			{% for pay in user.fps_multiuse_pay %}
+				<span class="user_auth status_{{ pay.transaction_status }}"
+					 title="{{ pay.get_transaction_status_display }}"></span>
 			{% endfor %}
 		{% endif %}
 	</div>

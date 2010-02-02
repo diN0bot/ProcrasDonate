@@ -389,6 +389,11 @@ _extend(InitListener.prototype, {
 			});
 		}
 		
+		if (old_version_number < _version_to_number("0.4.3")) {
+			// add monthly_fee foreignkey to fps pay model
+			this.pddb.FPSMultiusePay.add_column("monthly_fee_id", "INTEGER");
+		}
+		
 		// initialize new state (initialize_state initializes state if necessary.
 		this.controller.initialize_state();
 		

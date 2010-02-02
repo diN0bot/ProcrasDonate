@@ -6,7 +6,7 @@
 	<td title="Dollars pledged">{{ d.dollars_pledged|floatformat:"0" }}</td>
 	<td title="Dollars paid">{{ d.dollars_paid|floatformat:"0" }}</td>
 	<td title="Hours spent">{{ d.hours|floatformat:"0" }}</td>
-	<td title="Goals met">{% if d.corresponding_user_goal %}
+	<td title="Goals met this week / goals met ever / total goals ever">{% if d.corresponding_user_goal %}
 		{% if d.corresponding_user_goal.is_met %}yes{% else %}no{% endif %}
 		/
 		{{ user.goals_met_forever }}

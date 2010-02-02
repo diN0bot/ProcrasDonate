@@ -2584,6 +2584,7 @@ _extend(PageController.prototype, {
 			}));
 		var arrows = Template.get("register_arrows").render(
 				new Context({ substate_menu_items: substate_menu_items }));
+		logger("ARROWS: "+arrows);
 		
 		var categories = [];
 		this.pddb.Category.select({}, function(row) {
@@ -2602,6 +2603,7 @@ _extend(PageController.prototype, {
 						percent_color: self.RECIPIENT_PERCENT_COLORS[chosen_charities.length]
 					})
 				);
+				logger("CHOSEN CHARitiE HTML: "+html);
 				chosen_charities.push(html);
 				chosen_charities_rows.push(recipient);
 			}
@@ -3733,11 +3735,21 @@ _extend(PageController.prototype, {
 	},
 	
 	///
+	/// Triggers monthly cycle. Does not reset monthly period state.
+	///
+	trigger_monthly_cycle: function() {
+		logger("triggering monthly cycle...");
+		this.schedule.do_once_monthly_tasks();
+		logger("...monthly cycle done");
+	},
+	
+	///
 	/// Triggers payment. Does not reset payment period.
 	///
 	trigger_payment: function() {
 		logger("triggering payment...");
-		this.pd_api.make_payments_if_necessary(true);
+		var pct = this.retrieve_percent_for_display('support_pct', constants.DEFAULT_SUPPORT_PCT);
+		this.pd_api.make_payments_if_necessary(pct, true);
 		logger("...payment done");
 	},
 	
@@ -3910,6 +3922,7 @@ _extend(PageController.prototype, {
 	manual_test_suite: function(request) {
 		var actions = ["trigger_daily_cycle",
 		               "trigger_weekly_cycle",
+		               "trigger_monthly_cycle",
 		               "trigger_schedule_run",
 		               "trigger_create_weekly_report",
 		               ".",
@@ -3968,7 +3981,8 @@ _extend(PageController.prototype, {
 	
 	visual_debug: function(request) {
 		var actions = ["show_requires_payment",
-		               "show_test_messages"];
+		               "show_test_messages",
+		               "template_test"];
 		var html = Template.get("visual_debug").render(new Context({
 			actions: actions
 		}));
@@ -3999,6 +4013,22 @@ _extend(PageController.prototype, {
 		});
 		html.push("</ol>")
 		request.jQuery("#theatre").html( html.join("\n\n") );
+	},
+	
+	template_test: function(request) {
+		var self = this;
+		
+		var a = Template.get("if_test").render(
+			new Context({ foo: true }));
+		
+		var b = Template.get("list_test").render(
+				new Context({
+					mylist: ["<div>A</div>", "<div>B</div>", "<div>C</div>"],
+					myobj: {title: "hello world"}
+				}));
+		
+		request.jQuery("#theatre").append( a );
+		request.jQuery("#theatre").append( b );
 	},
 	
 	show_test_messages: function(request) {
@@ -4172,18 +4202,24 @@ function Schedule(pddb, prefs, pd_api) {
 Schedule.prototype = {};
 _extend(Schedule.prototype, {
 	run: function() {
+		if ( this.is_new_month_period() ) {
+			this.pddb.orthogonals.log("Do monthly tasks on "+(new Date())+" for "+_un_dbify_date(this.prefs.get('last_month_mark', 0)), "schedule");
+			this.do_once_monthly_tasks();
+			this.reset_month_period();
+			this.pddb.orthogonals.log("...monthly tasks done, last_month_mark set to "+_un_dbify_date(this.prefs.get('last_month_mark', 0)), "schedule");
+		}
 		if ( this.is_new_week_period() ) {
 			this.pddb.orthogonals.log("Do weekly tasks on "+(new Date())+" for "+_un_dbify_date(this.prefs.get('last_week_mark', 0)), "schedule");
 			this.do_once_weekly_tasks();
-			this.pddb.orthogonals.log("Do weekly tasks on "+(new Date())+" for "+_un_dbify_date(this.prefs.get('last_week_mark', 0))+" !! once_weekly_tasks done", "schedule");
 			this.do_make_payment();
-			this.pddb.orthogonals.log("Do weekly tasks on "+(new Date())+" for "+_un_dbify_date(this.prefs.get('last_week_mark', 0))+" !! make_payments done", "schedule");
 			this.reset_week_period();
+			this.pddb.orthogonals.log("...weekly tasks done, last_week_mark set to "+_un_dbify_date(this.prefs.get('last_week_mark', 0)), "schedule");
 		}
 		if ( this.is_new_24hr_period() ) {
 			this.pddb.orthogonals.log("Do daily tasks on "+(new Date())+" for "+_un_dbify_date(this.prefs.get('last_24hr_mark', 0)), "schedule");
 			this.do_once_daily_tasks();
 			this.reset_24hr_period();
+			this.pddb.orthogonals.log("...daily tasks done, last_24hr_mark set to "+_un_dbify_date(this.prefs.get('last_24hr_mark', 0)), "schedule");
 		}
 	},
 	
@@ -4250,7 +4286,8 @@ _extend(Schedule.prototype, {
 	
 	do_make_payment: function() {
 		/* all logic for whether to make payments is in pd_api */
-		this.pd_api.make_payments_if_necessary(false);
+		var pct = this.retrieve_percent_for_display('support_pct', constants.DEFAULT_SUPPORT_PCT);
+		this.pd_api.make_payments_if_necessary(pct, false);
 	},
 
 	reset_week_period: function() {
@@ -4258,6 +4295,24 @@ _extend(Schedule.prototype, {
 		//var last_week = _un_dbify_date(this.prefs.get('last_week_mark', 0));
 		var start_of_week = _start_of_week();
 		this.prefs.set('last_week_mark', _dbify_date(start_of_week));
+	},
+	
+	is_new_month_period: function() {
+		/** @returns: true if the last marked month is over */
+		var last_month = _un_dbify_date(this.prefs.get('last_month_mark', 0));
+		var start_of_last_month = _start_of_month(last_month);
+		var start_of_month = _start_of_month();
+		return start_of_last_month < start_of_month
+	},
+	
+	do_once_monthly_tasks: function() {
+		this.pd_api.pay_monthly_fee_if_necessary();
+	},
+
+	reset_month_period: function() {
+		/** reset monthly cycle to start of this month */
+		var start_of_month = _start_of_month();
+		this.prefs.set('last_month_mark', _dbify_date(start_of_month));
 	},
 	
 	retrieve_float_for_display: function(key, def) {

@@ -1,0 +1,17 @@
+{% extends 'procrasdonate/superuser/base.html' %}
+
+{% block superuser_content %}
+	<h2>Payments</h2>
+	
+	{% load pagination_tags %}
+	{% autopaginate payments 25 %}
+	
+	{% paginate %}
+	
+	<div id="superuser_payments">
+		{% for payment in payments %}
+			{% include 'procrasdonate/superuser/snippets/payment.html' %}
+		{% endfor %}
+	</div>
+	
+{% endblock %}

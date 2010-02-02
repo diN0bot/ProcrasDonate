@@ -242,8 +242,88 @@ class Processor(object):
     @classmethod
     def process_payment(klass, payment, user):
         """
+        @param user: User
+        @param payment: dict of payment obj, eg
+          {
+              u'amount_paid': 47.350000000000001,
+              u'amount_paid_in_fees': -1,
+              u'id': u'1',
+              u'amount_paid_tax_deductibly': -1,
+              u'payment_service': {
+                  u'user_url': u'https://payments.amazon.com',
+                  u'id': u'1',
+                  u'name': u'Amazon Flexible Payments Service'},
+              u'total_amount_paid': 47.350000000000001,
+              u'datetime': u'2010-01-30T05:48:50.000Z',
+              u'settled': True,
+              u'sent_to_service': True,
+              u'transaction_id': -1
+          }
         """
+        total_amount_paid           = payment['total_amount_paid']
+        amount_paid_in_fees         = payment['amount_paid_in_fees']
+        amount_paid_tax_deductibly  = payment['amount_paid_tax_deductibly']
+        extn_id                     = payment['id']
+        settled                     = payment['settled']
+        transaction_id              = payment['transaction_id']
+        recipient_slug              = payment['recipient_slug']
+        dtime                       = Processor.parse_seconds(int(payment['datetime']))
+        
+        recipient = Recipient.get_or_none(slug=slug)
+        return RecipientPayment.add(recipient,
+                                    dtime,
+                                    payment_service,
+                                    transaction_id,
+                                    settled,
+                                    total_amount_paid,
+                                    amount_paid_in_fees,
+                                    amount_paid_tax_deductibly,
+                                    user,
+                                    extn_id)
+    
+    @classmethod
+    def process_monthly_fee(klass, monthly_fee, user):
+        print monthly_fee
         return None
+        """"
+        @param user: User
+        @param payment: dict of payment obj, eg
+          {
+              u'amount_paid': 47.350000000000001,
+              u'amount_paid_in_fees': -1,
+              u'id': u'1',
+              u'amount_paid_tax_deductibly': -1,
+              u'payment_service': {
+                  u'user_url': u'https://payments.amazon.com',
+                  u'id': u'1',
+                  u'name': u'Amazon Flexible Payments Service'},
+              u'total_amount_paid': 47.350000000000001,
+              u'datetime': u'2010-01-30T05:48:50.000Z',
+              u'settled': True,
+              u'sent_to_service': True,
+              u'transaction_id': -1
+          }
+        """
+        total_amount_paid           = payment['total_amount_paid']
+        amount_paid_in_fees         = payment['amount_paid_in_fees']
+        amount_paid_tax_deductibly  = payment['amount_paid_tax_deductibly']
+        extn_id                     = payment['id']
+        settled                     = payment['settled']
+        transaction_id              = payment['transaction_id']
+        recipient_slug              = payment['recipient_slug']
+        dtime                       = Processor.parse_seconds(int(payment['datetime']))
+        
+        recipient = Recipient.get_or_none(slug=slug)
+        return RecipientPayment.add(recipient,
+                                    dtime,
+                                    payment_service,
+                                    transaction_id,
+                                    settled,
+                                    total_amount_paid,
+                                    amount_paid_in_fees,
+                                    amount_paid_tax_deductibly,
+                                    user,
+                                    extn_id)
     
     @classmethod
     def process_requirespayment(klass, requirespayment, user):

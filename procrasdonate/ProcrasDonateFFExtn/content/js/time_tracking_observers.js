@@ -58,10 +58,15 @@ _extend(TimeTracker.prototype, {
 					"\n diff="+diff+
 					"\n rounded="+Math.round(diff));
 			this.prefs.set("last_start", "");
-			// log diff if greater than flash max...just in case its a bug...
+			// log diff if greater than flash max...
 			if (diff > constants.DEFAULT_FLASH_MAX_IDLE) {
-				this.pddb.orthogonals.warn("store_visit:: diff greater than flash max: "+diff+" start="+start+"="+_un_dbify_date(start)+" url="+url);
+				this.pddb.orthogonals.log("store_visit:: diff greater than flash max: "+diff+" start="+start+"="+_un_dbify_date(start)+" url="+url);
 				//diff = constants.DEFAULT_FLASH_MAX_IDLE + 1;
+			}
+			// cap diff at 3 hrs no matter what.
+			// that's a long time for continuous single viewing of a webpage...
+			if (diff > 60*60*3) {
+				diff = 60*60*3;
 			}
 			var private_browsing_enabled = this.prefs.get("private_browsing_enabled", constants.DEFAULT_PRIVATE_BROWSING_ENABLED);
 			if (diff > 0 && !private_browsing_enabled) {

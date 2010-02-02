@@ -112,6 +112,7 @@
 }
 .private_key {
 	font-size: .8em;
+	margin-bottom: 1em;
 }
 .email {
 	padding: .2em;
@@ -169,6 +170,7 @@
 	padding: 0em .5em;
 	border: black 1px solid;
 }
+/* auth status */
 .status_SA { background: green; }
 .status_SB { background: green; }
 .status_SC { background: green; }
@@ -182,3 +184,13 @@
 .status_1 { background: blue; }
 .status_C { background: white; }
 .status_EX { background: yellow; }
+
+/* pay status */
+.status_S { background: green; }
+.status_P { background: white; }
+.status_C { background: black; }
+.status_R { background: blue; }
+.status_F { background: red; }
+.status_E { background: red; }
+.status_I { background: pink; }
+.status_D { background: purple; }

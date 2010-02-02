@@ -716,7 +716,7 @@ function load_models(db, pddb) {
 			
 			total_time: "INTEGER", //seconds
 			total_amount: "REAL", //cents
-			datetime: "INTEGER", //"DATETIME"
+			datetime: "INTEGER", //"DATETIME" (end of period)
 			timetype_id: "INTEGER"
 		}
 	}, {
@@ -877,6 +877,17 @@ function load_models(db, pddb) {
 		}
 	}, {
 		// instance methods
+		deep_dict: function() {
+			/*
+			 * Extracts foreign keys.
+			 * @return dictionary, not a row factory
+			 */
+			return {
+				id: this.id,
+				name: this.name,
+				user_url: this.user_url
+			}
+		}
 	}, {
 		// class methods
 	});
@@ -924,9 +935,14 @@ function load_models(db, pddb) {
 		},
 		
 		deep_dict: function() {
+			var recipient_slug = null;
+			var fps_pay = this.most_recent_fps_multiuse_pay();
+			if (fps_pay) {
+				recipient_slug = fps_pay.recipient_slug;
+			}
 			return {
 				id: this.id,
-				payment_service: this.payment_service(),
+				payment_service: this.payment_service().deep_dict(),
 				transaction_id: parseInt(this.transaction_id),
 				sent_to_service: this.is_sent_to_service(),
 				settled: this.is_settled(),
@@ -934,7 +950,8 @@ function load_models(db, pddb) {
 				amount_paid: parseFloat(this.amount_paid),
 				amount_paid_in_fees: parseFloat(this.amount_paid_in_fees),
 				amount_paid_tax_deductibly: parseFloat(this.amount_paid_tax_deductibly),
-				datetime: _un_dbify_date(this.datetime)
+				datetime: _un_dbify_date(this.datetime),
+				recipient_slug: recipient_slug
 			}
 		},
 		
@@ -1321,7 +1338,8 @@ function load_models(db, pddb) {
 			         "sender_token_id", "payment_id",
 			         "caller_description", "charge_fee_to", "descriptor_policy", "sender_description",
 			         "request_id", "transaction_id",
-			         "transaction_status", "error_message", "error_code"],
+			         "transaction_status", "error_message", "error_code",
+			         "monthly_fee_id"],
 			id: "INTEGER PRIMARY KEY",
 			timestamp: "INTEGER", //"DATETIME"
 			caller_reference: "VARCHAR", // (128 char)
@@ -1344,7 +1362,10 @@ function load_models(db, pddb) {
 			transaction_id: "VARCHAR",
 			transaction_status: "VARCHAR",
 			error_message: "VARCHAR",
-			error_code: "VARCHAR"				
+			error_code: "VARCHAR",
+				
+			//////// these were added later. populated by extension
+			monthly_fee_id: "INTEGER",
 		}
 	}, {
 		// instance methods
@@ -1358,16 +1379,20 @@ function load_models(db, pddb) {
 		failure: function() { return this.transaction_status == FPSMultiusePay.FAILURE },
 		
 		payment: function() {
-			// @returns Payment row factory (should never be null)
+			// @returns Payment row factory (can be null if monthly_fee is not null)
 			var self = this;
-			var payment = Payment.get_or_null({ id: self.payment_id })
-			if (!payment) {
-				pddb.orthogonals.error("no payment found for FPS Multiuse Pay = "+this, "model");
-			}
-			return payment
+			return Payment.get_or_null({ id: self.payment_id })
+		},
+		
+		monthly_fee: function() {
+			// @returns MonthlyFee row factory (can be null if payment is not null)
+			var self = this;
+			return MonthlyFee.get_or_null({ id: self.monthly_fee_id })
 		},
 		
 		deep_dict: function() {
+			var payment = this.payment();
+			var monthly_fee = this.monthly_fee();
 			return {
 				id: this.id,
 				timestamp: _un_dbify_date(this.timestamp),
@@ -1377,7 +1402,8 @@ function load_models(db, pddb) {
 				transaction_amount: this.transaction_amount,
 				recipient_slug: this.recipient_slug,
 				sender_token_id: this.sender_token_id,
-				payment: this.payment().deep_dict(),
+				payment: (payment ? payment.deep_dict() : {}),
+				monthly_fee: (monthly_fee ? monthly_fee.deep_dict() : {}),
 				
 				caller_description: this.caller_description,
 				charge_fee_to: this.charge_fee_to,
@@ -1447,26 +1473,43 @@ function load_models(db, pddb) {
 				});
 				
 				if (pay.success() || pay.refunded() || pay.cancelled()) {
-					var payment = pay.payment();
-					// if success, refunded or cancelled:
-					//   * remove requires payment
-					//   * set settled to true
-					// if refunded, do we want to do anything else,
-					//     eg remove payment or mark payment as refunded?
-					//    do we really want settled to be true for refund or cancelled?
-					Payment.set({
-						settled: _dbify_bool(true)
-					}, {
-						id: payment.id
-					});
-					_iterate(payment.totals(), function(key, total, index) {
-						var rp = total.requires_payment();
-						if (rp) {
-							RequiresPayment.del({ id: rp.id });
-						} else {
-							pddb.orthogonals.warn("Requires Payment doesn't exist for a total for received FPS Multiuse Pay: "+pay+" "+" total="+total);
-						}
-					});
+					if (pay.payment_id) {
+						payment = pay.payment();
+						
+						// if success, refunded or cancelled:
+						//   * remove requires payment
+						//   * set settled to true
+						// if refunded, do we want to do anything else,
+						//     eg remove payment or mark payment as refunded?
+						//    do we really want settled to be true for refund or cancelled?
+						Payment.set({
+							settled: _dbify_bool(true)
+						}, {
+							id: payment.id
+						});
+						_iterate(payment.totals(), function(key, total, index) {
+							var rp = total.requires_payment();
+							if (rp) {
+								RequiresPayment.del({ id: rp.id });
+							} else {
+								pddb.orthogonals.warn("Requires Payment doesn't exist for a total for received FPS Multiuse Pay: "+pay+" "+" total="+total);
+							}
+						});
+						
+					} else {
+						monthly_fee = pay.monthly_fee();
+						// if success, refunded or cancelled:
+						//   * set settled to true
+						// if refunded, do we want to do anything else,
+						//     eg remove payment or mark payment as refunded?
+						//    do we really want settled to be true for refund or cancelled?
+						MonthlyFee.set({
+							settled: _dbify_bool(true)
+						}, {
+							id: monthly_fee.id
+						});
+					}
+					
 				}
 				
 			} else {
@@ -1498,6 +1541,84 @@ function load_models(db, pddb) {
 		}
 	});
 	
+
+	var MonthlyFee = new Model(db, "MonthlyFee", {
+		table_name: "monthlyfees",
+		columns: {
+			_order: ["id", "payment_service_id", "transaction_id",
+			         "sent_to_service", "settled",
+			         "amount", "datetime", "period_datetime"],
+			id: "INTEGER PRIMARY KEY",
+			payment_service_id: "INTEGER",
+			transaction_id: "INTEGER",
+			sent_to_service: "INTEGER", // boolean 0=false
+			settled: "INTEGER", // boolean 0=false
+			amount: "REAL",
+			datetime: "INTEGER", //"DATETIME"
+			period_datetime: "INTEGER" //"DATETIME" (end of month)
+		}
+	}, {
+		// instance methods
+		payment_service: function() {
+			// all Payment have a payment_service
+			var self = this;
+			var payment_service = PaymentService.get_or_null({ id: self.payment_service_id });
+			if (!payment_service) {
+				pddb.orthogonals.error("no payment_service found for payment = "+this, "model");
+			}
+			return payment_service
+		},
+		
+		is_sent_to_service: function() {
+			return _un_dbify_bool(this.sent_to_service);
+		},
+		
+		is_settled: function() {
+			return _un_dbify_bool(this.settled);
+		},
+		
+		deep_dict: function() {
+			return {
+				id: this.id,
+				payment_service: this.payment_service(),
+				transaction_id: parseInt(this.transaction_id),
+				sent_to_service: this.is_sent_to_service(),
+				settled: this.is_settled(),
+				amount: parseFloat(this.total_amount_paid),
+				datetime: _un_dbify_date(this.datetime),
+				period_datetime: _un_dbify_date(this.period_datetime)
+			}
+		},
+		
+		fps_multiuse_pays: function() {
+			var self = this;
+			var pays = [];
+			FPSMultiusePay.select({ payment_id: self.id }, function(row) {
+				pays.push(row);
+			});
+			return pays;
+		},
+		
+		most_recent_fps_multiuse_pay: function() {
+			var self = this;
+			var pay = null;
+			FPSMultiusePay.select({ payment_id: self.id }, function(row) {
+				if (!pay) { pay = row; }
+			}, "-timestamp");
+			return pay
+		}
+		
+	}, {
+		// class methods
+		get_monthly_fee: function(d) {
+			if (!d) {
+				d = _end_of_month(d);
+			}
+			return MonthlyFee.get_or_null({ period_datetime: d })
+		},
+	});
+	
+	
 	return {
         _order: ["Site", "SiteGroup",
                  "Recipient", "Category", "RecipientPercent",
@@ -1506,7 +1627,7 @@ function load_models(db, pddb) {
 				 "TimeType", "ContentType",
 				 "Log", "UserStudy",
 				 "FPSMultiuseAuthorization", "FPSMultiusePay",
-				 "Report"],
+				 "Report", "MonthlyFee"],
         
         Site                : Site,
 		SiteGroup           : SiteGroup,
@@ -1526,6 +1647,7 @@ function load_models(db, pddb) {
 		UserStudy           : UserStudy,
 		FPSMultiuseAuthorization : FPSMultiuseAuthorization,
 		FPSMultiusePay      : FPSMultiusePay,
-		Report              : Report
+		Report              : Report,
+		MonthlyFee          : MonthlyFee
 	};
 }

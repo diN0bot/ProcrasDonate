@@ -1,28 +1,8 @@
-{% extends 'procrasdonate/base.html' %}
+{% extends 'procrasdonate/superuser/base.html' %}
 
-{% block head %}
-	<link rel="stylesheet" type="text/css" href="{{ MEDIA_URL }}css/superuser.css">
-	{{ block.super }}
-{% endblock %}
-
-{% block content %}
+{% block superuser_content %}
 	<h2>Superuser Dashbaord: {{ user.username }}</h2>
 
-	<div id="superuser_links">
-		<ul>
-			<li><a href="{% url admin "" %}">Django Admin</a></li>
-			<li>Organizer Registration Steps
-				<ol>
-					<li><a href="{% url admin "procrasdonate/recipient/add/" %}">Create Recipient</a></li>
-					<li><a href="{% url register_organizer %}">Create Organizer</a></li>
-				</ol>
-			</li>
-			<li><a href="{% url users %}">Users</a></li>
-			<li><a href="{% url logs %}">Logs</a></li>
-			<li><a href="{% url recipient_votes %}">Recipient Votes</a></li>
-		</ul>
-	</div>
-	
 	<div id="superuser_alerts">
 		{% for alert in alerts %}
 			<div class="superuser_alert {{ alert.type }}">
