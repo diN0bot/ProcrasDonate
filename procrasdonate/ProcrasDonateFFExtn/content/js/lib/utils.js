@@ -482,9 +482,9 @@ var _version_to_number = function(version) {
 	var parts = version.split(".");
 	_iterate(parts, function(key, value, index) {
 		var v = parseInt(value);
-		ret += v*(Math.pow(10, index*2))
+		ret += v*(Math.pow(10, (2-index)*2))
 	});
-	logger("version is "+version+"     ret is "+ret);
+	logger("version "+version+" converted to "+ret)
 	return ret
 }
 

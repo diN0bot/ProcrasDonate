@@ -124,6 +124,11 @@
 	padding: .2em;
 }
 
+.support_stats {
+	float: left;
+}
+.support_stats .selected { background: green; }
+
 .superuser_user .registration_process {
 	width: 1em;
 	height: 1em;

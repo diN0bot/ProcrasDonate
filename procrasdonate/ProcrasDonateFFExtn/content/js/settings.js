@@ -242,7 +242,9 @@ var constants = {};
 	constants.DEFAULT_ORG_NEWSLETTERS = false;
 	constants.DEFAULT_TOS = false
 	constants.DEFAULT_TAX_DEDUCTIONS = true;
-	constants.DEFAULT_SUPPORT_METHOD = "monthly"; // or "percent"
+	constants.MONTHLY_SUPPORT_METHOD = "monthly";
+	constants.PCT_SUPPORT_METHOD = "percent";
+	constants.DEFAULT_SUPPORT_METHOD = constants.MONTHLY_SUPPORT_METHOD;
 	
 	constants.DEFAULT_PRIVATE_BROWSING_ENABLED = false;
 	

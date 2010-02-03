@@ -950,7 +950,7 @@ function load_models(db, pddb) {
 				amount_paid: parseFloat(this.amount_paid),
 				amount_paid_in_fees: parseFloat(this.amount_paid_in_fees),
 				amount_paid_tax_deductibly: parseFloat(this.amount_paid_tax_deductibly),
-				datetime: _un_dbify_date(this.datetime),
+				datetime: parseInt(this.datetime),
 				recipient_slug: recipient_slug
 			}
 		},
@@ -1224,7 +1224,7 @@ function load_models(db, pddb) {
 		deep_dict: function() {
 			return {
 				id: this.id,
-				timestamp: _un_dbify_date(this.timestamp),
+				timestamp: parseInt(this.timestamp),//_un_dbify_date(this.timestamp),
 				caller_reference: this.caller_reference,
 				global_amount_limit: this.global_amount_limit,
 				is_recipient_cobranding: _un_dbify_bool(this.is_recipient_cobranding),
@@ -1395,7 +1395,7 @@ function load_models(db, pddb) {
 			var monthly_fee = this.monthly_fee();
 			return {
 				id: this.id,
-				timestamp: _un_dbify_date(this.timestamp),
+				timestamp: parseInt(this.timestamp),//_un_dbify_date(this.timestamp),
 				caller_reference: this.caller_reference,
 				marketplace_fixed_fee: this.marketplace_fixed_fee,
 				marketplace_variable_fee: this.marketplace_variable_fee,
@@ -1453,7 +1453,7 @@ function load_models(db, pddb) {
                 'error_code': se
 			 */
 			logger("pay process object: ");
-			_pprint(pay);
+			_pprint(p, "p = ");
 			
 			var pay = FPSMultiusePay.get_or_null({
 				caller_reference: p.caller_reference
@@ -1469,12 +1469,16 @@ function load_models(db, pddb) {
 				});
 				
 				var pay = FPSMultiusePay.get_or_null({
-					id: pay.id
+					caller_reference: p.caller_reference
 				});
+				logger("pay = "+pay);
 				
 				if (pay.success() || pay.refunded() || pay.cancelled()) {
 					if (pay.payment_id) {
-						payment = pay.payment();
+						var payment = pay.payment();
+						logger("payment = "+payment);
+						logger("monthly_fee_id = "+pay.monthly_fee_id);
+						logger("monthly_fee = "+pay.monthly_fee());
 						
 						// if success, refunded or cancelled:
 						//   * remove requires payment
@@ -1497,7 +1501,7 @@ function load_models(db, pddb) {
 						});
 						
 					} else {
-						monthly_fee = pay.monthly_fee();
+						var monthly_fee = pay.monthly_fee();
 						// if success, refunded or cancelled:
 						//   * set settled to true
 						// if refunded, do we want to do anything else,
@@ -1514,7 +1518,6 @@ function load_models(db, pddb) {
 				
 			} else {
 				pddb.orthogonals.error("Recieved FPS Multiuse Pay update for FPS Multiuse Pay that does not exist! "+p, "model");
-				
 				/* don't know which payment to use (though could find amount and timestamp similar...
 				 * but if FPS multiuse pay was deleted, then payment and totals might be deleted, too...
 				 * 
@@ -1580,13 +1583,13 @@ function load_models(db, pddb) {
 		deep_dict: function() {
 			return {
 				id: this.id,
-				payment_service: this.payment_service(),
+				payment_service: this.payment_service().deep_dict(),
 				transaction_id: parseInt(this.transaction_id),
 				sent_to_service: this.is_sent_to_service(),
 				settled: this.is_settled(),
-				amount: parseFloat(this.total_amount_paid),
-				datetime: _un_dbify_date(this.datetime),
-				period_datetime: _un_dbify_date(this.period_datetime)
+				amount: parseFloat(this.amount),
+				datetime: parseInt(this.datetime),
+				period_datetime: parseInt(this.period_datetime)
 			}
 		},
 		

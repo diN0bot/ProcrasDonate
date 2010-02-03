@@ -587,6 +587,11 @@ success!!!
     if not response['success']:
         return json_failure("Something went wrong extracting parameters: %s" % response['reason'])
 
+    print
+    for x in response['parameters']:
+        print x, "=", response['parameters'][x]
+    print
+
     response['parameters']['timestamp'] = time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime())
     
     # params to send back to client
@@ -608,11 +613,18 @@ success!!!
     fpsr = recipient.fps_data
     if not fpsr:
         return json_failure("No FPS Recipient data found for %s." % recipient)
+    
+    print recipient
+    print
+    print fpsr
+    print fpsr.token_id
+    print
 
     del lower_parameters['recipient_slug']
     lower_parameters['recipient_token_id'] = fpsr.token_id
     #lower_parameters['refund_token_id'] = fpsr.refund_token_id
-    lower_parameters['marketplace_fixed_fee'] = 0.00
+    #lower_parameters['marketplace_fixed_fee'] = 0.00
+    #lower_parameters['marketplace_variable_fee'] = 10.00
     
     #lower_parameters['RecipientTokenId'] = fpsr.token_id
     #lower_parameters['RefundTokenId'] = fpsr.refund_token_id
@@ -637,6 +649,11 @@ success!!!
     
     full_url = "%s?%s" % (AMAZON_FPS_API_URL,
                           urllib.urlencode(camel_parameters))
+
+    print
+    print
+    print full_url
+    print
 
     content = _get(full_url)
     

@@ -138,18 +138,17 @@ def receive_data(request):
         Log.Error(message, "request_error")
         return json_failure(message)
     
-    datatypes = ["totals", "logs", "userstudies", "payments", "requirespayments", "reports", "prefs"]
     processor_fnc = {'totals'          : Processor.process_total,
                      'logs'            : Processor.process_log,
                      'userstudies'     : Processor.process_userstudy,
                      'payments'        : Processor.process_payment,
-                     'monthly_fees'    : Processor.process_monthly_fee,
+                     'monthlyfees'     : Processor.process_monthly_fee,
                      'requirespayments': Processor.process_requirespayment,
                      'reports'         : Processor.process_report,
                      'prefs'           : Processor.process_prefs}
     
     expected_parameters = ["private_key"]
-    response = extract_parameters(request, "POST", expected_parameters, datatypes)
+    response = extract_parameters(request, "POST", expected_parameters, processor_fnc.keys())
     if not response['success']:
         message = "dataflow.receive_data Failed to extract expected parameters %s from %s" % (expected_parameters,
                                                                                               request.POST)
@@ -166,7 +165,7 @@ def receive_data(request):
         return json_failure(message)
         
     processed_count = 0
-    for datatype in datatypes:
+    for datatype in processor_fnc.keys():
         if datatype in parameters:
             items = json.loads(parameters[datatype])
             print "---- %s %s -------" % (len(items), datatype)

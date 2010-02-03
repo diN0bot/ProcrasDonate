@@ -3328,7 +3328,7 @@ _extend(PageController.prototype, {
 	 */
 	calculate_max_amount: function(pd_dollars_per_hr, pd_hr_per_week_max, min_auth_time, monthly_fee) {
 		var support_method = this.prefs.get('support_method', constants.DEFAULT_SUPPORT_METHOD);
-		if (support_method != "monthly") {
+		if (support_method != constants.MONTHLY_SUPPORT_METHOD) {
 			monthly_fee = 0;
 		}
 		var max_per_week = pd_dollars_per_hr * pd_hr_per_week_max + (monthly_fee / 4.348);
@@ -3476,15 +3476,18 @@ _extend(PageController.prototype, {
 		
 		request.jQuery(".support_method_radio").click(function() {
 			var value = request.jQuery(this).attr("value");
-			self.prefs.set('support_method', value);
 			//self.insert_support_middle(request);
-			if (value == "monthly") {
+			if (value == constants.MONTHLY_SUPPORT_METHOD) {
+				self.prefs.set('support_method', constants.MONTHLY_SUPPORT_METHOD);
+				
 				request.jQuery(".support_method_monthly input").attr("disabled", false);
 				request.jQuery(".support_method_monthly").removeClass("disabled");
 				
 				request.jQuery(".support_method_percent input").attr("disabled", true);
 				request.jQuery(".support_method_percent").addClass("disabled");
 			} else {
+				self.prefs.set('support_method', constants.PCT_SUPPORT_METHOD);
+				
 				request.jQuery(".support_method_monthly input").attr("disabled", true);
 				request.jQuery(".support_method_monthly").addClass("disabled");
 				
@@ -3748,7 +3751,11 @@ _extend(PageController.prototype, {
 	///
 	trigger_payment: function() {
 		logger("triggering payment...");
-		var pct = this.retrieve_percent_for_display('support_pct', constants.DEFAULT_SUPPORT_PCT);
+		var pct = _un_prefify_float(this.prefs.get('support_pct', constants.DEFAULT_SUPPORT_PCT));
+		var support_method = this.prefs.get('support_method', constants.DEFAULT_SUPPORT_METHOD);
+		if (support_method != constants.PERCENT_SUPPORT_METHOD) {
+			pct = 0.0;
+		}
 		this.pd_api.make_payments_if_necessary(pct, true);
 		logger("...payment done");
 	},
@@ -3758,7 +3765,7 @@ _extend(PageController.prototype, {
 	},
 	
 	trigger_on_upgrade: function() {
-		myOverlay.init_listener.onUpgrade("0.3.6", "0.3.7");
+		myOverlay.init_listener.onUpgrade("0.4.0", "0.4.3");
 	},
 	
 	trigger_init_db: function() {
@@ -4286,7 +4293,11 @@ _extend(Schedule.prototype, {
 	
 	do_make_payment: function() {
 		/* all logic for whether to make payments is in pd_api */
-		var pct = this.retrieve_percent_for_display('support_pct', constants.DEFAULT_SUPPORT_PCT);
+		var pct = _un_prefify_float(this.prefs.get('support_pct', constants.DEFAULT_SUPPORT_PCT));
+		var support_method = this.prefs.get('support_method', constants.DEFAULT_SUPPORT_METHOD);
+		if (support_method != constants.PERCENT_SUPPORT_METHOD) {
+			pct = 0.0;
+		}
 		this.pd_api.make_payments_if_necessary(pct, false);
 	},
 

@@ -12,6 +12,13 @@
 		{% if user.registration_complete or user.pref_registration_complete %}
 			registration_complete
 		{% endif %}"></div>
+	
+	<div class="support_stats">
+		<span class="{% ifequal user.support_method "monthly" %}selected{% endifequal %}">
+			${{ user.monthly_fee }}/mo</span>
+		<span class="{% ifequal user.support_method "percent" %}selected{% endifequal %}">
+			{{ user.support_pct }}%</span>
+	</div>
 		
 	<div class="private_key">
 		<a href="{% url user user.private_key %}">{{ user.private_key }}</a>
@@ -29,7 +36,7 @@
 	
 	<div>
 		{% if user.fps_multiuse_pay %}
-			<span>Payments </span>
+			<span>FPS Pays </span>
 			{% for pay in user.fps_multiuse_pay %}
 				<span class="user_auth status_{{ pay.transaction_status }}"
 					 title="{{ pay.get_transaction_status_display }}"></span>

@@ -164,7 +164,7 @@ class Processor(object):
             "datetime": "1252539581"
           }
         """
-        print "\nPROCESS REPORT\n", json.dumps(report, indent=2)
+        #print "\nPROCESS REPORT\n", json.dumps(report, indent=2)
         type        = report['type']
         message     = report['message']
         subject     = 'subject' in report and report['subject'] or 'no subject'
@@ -204,12 +204,12 @@ class Processor(object):
     
     @classmethod
     def process_prefs(klass, pref, user):
-        Log.add(Log.LOG_TYPES["LOG"], "prefs", json.dumps(pref, indent=2), user)
+        Log.Log(json.dumps(pref, indent=2), "prefs", user)
         changed = False
         for field in ['email', 'weekly_affirmations', 'org_thank_yous', 'org_newsletters',
                       'tos', 'registration_done', 'version']:
             if not field in pref:
-                Log.add(Log.LOG_TYPES['LOG'], 'missing_pref', "%s not in %s" % (field, pref), user)
+                Log.Log("%s not in %s" % (field, pref), 'missing_pref', user)
             elif getattr(user, field) != pref[field]:
                 if field == 'email':
                     user.email = Email.get_or_create(pref['email'])
@@ -268,8 +268,17 @@ class Processor(object):
         transaction_id              = payment['transaction_id']
         recipient_slug              = payment['recipient_slug']
         dtime                       = Processor.parse_seconds(int(payment['datetime']))
+        payment_service_name        = payment['payment_service']['name']
         
-        recipient = Recipient.get_or_none(slug=slug)
+        recipient = Recipient.get_or_none(slug=recipient_slug)
+        if not recipient:
+            Log.Error("Payment for non-existent recipient, %s. payment = %s" % (recipient_slug,
+                                                                                payment),
+                      "payment",
+                      user)
+            return None
+        
+        payment_service = PaymentService.get_or_none(name=payment_service_name)
         return RecipientPayment.add(recipient,
                                     dtime,
                                     payment_service,
@@ -283,47 +292,41 @@ class Processor(object):
     
     @classmethod
     def process_monthly_fee(klass, monthly_fee, user):
-        print monthly_fee
-        return None
         """"
         @param user: User
-        @param payment: dict of payment obj, eg
+        @param monthly_fee: dict of monthly_fee obj, eg
           {
-              u'amount_paid': 47.350000000000001,
-              u'amount_paid_in_fees': -1,
-              u'id': u'1',
-              u'amount_paid_tax_deductibly': -1,
-              u'payment_service': {
-                  u'user_url': u'https://payments.amazon.com',
-                  u'id': u'1',
-                  u'name': u'Amazon Flexible Payments Service'},
-              u'total_amount_paid': 47.350000000000001,
-              u'datetime': u'2010-01-30T05:48:50.000Z',
-              u'settled': True,
-              u'sent_to_service': True,
-              u'transaction_id': -1
+            u'period_datetime': 1267417403,
+            u'id': u'18',
+            u'amount': None,
+            u'payment_service': {
+                u'user_url': u'https://payments.amazon.com',
+                u'id': u'1',
+                u'name': u'Amazon Payments'
+            },
+            u'datetime': 1265170628,
+            u'settled': False,
+            u'sent_to_service': True,
+            u'transaction_id': -1
           }
         """
-        total_amount_paid           = payment['total_amount_paid']
-        amount_paid_in_fees         = payment['amount_paid_in_fees']
-        amount_paid_tax_deductibly  = payment['amount_paid_tax_deductibly']
-        extn_id                     = payment['id']
-        settled                     = payment['settled']
-        transaction_id              = payment['transaction_id']
-        recipient_slug              = payment['recipient_slug']
-        dtime                       = Processor.parse_seconds(int(payment['datetime']))
+        period_dtime         = Processor.parse_seconds(int(monthly_fee['period_datetime']))
+        extn_id              = monthly_fee['id']
+        amount               = monthly_fee['amount']
+        payment_service_name = monthly_fee['payment_service']['name']
+        dtime                = Processor.parse_seconds(int(monthly_fee['datetime']))
+        settled              = monthly_fee['settled']
+        transaction_id       = monthly_fee['transaction_id']
         
-        recipient = Recipient.get_or_none(slug=slug)
-        return RecipientPayment.add(recipient,
-                                    dtime,
-                                    payment_service,
-                                    transaction_id,
-                                    settled,
-                                    total_amount_paid,
-                                    amount_paid_in_fees,
-                                    amount_paid_tax_deductibly,
-                                    user,
-                                    extn_id)
+        payment_service = PaymentService.get_or_none(name=payment_service_name)
+        return MonthlyFee.add(dtime,
+                              period_dtime,
+                              payment_service,
+                              transaction_id,
+                              settled,
+                              amount,
+                              user,
+                              extn_id)
     
     @classmethod
     def process_requirespayment(klass, requirespayment, user):

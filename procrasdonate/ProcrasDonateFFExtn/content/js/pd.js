@@ -356,7 +356,7 @@ _extend(ProcrasDonate_API.prototype, {
 		var fps_pay = this.pddb.FPSMultiusePay.create({
 			timestamp: dtime,
 			caller_reference: create_caller_reference(),
-			//marketplace_fixed_fee: 0,
+			marketplace_fixed_fee: 0,
 			marketplace_variable_fee: pct,
 			transaction_amount: transaction_amount,
 			recipient_slug: recipient_slug,
@@ -516,6 +516,11 @@ _extend(ProcrasDonate_API.prototype, {
 				return
 			}
 			
+			// if recipient hasn't registered with pd (eg, user suggested recipient), ignore
+			if (!recipient.is_pd_registered()) {
+				return
+			}
+			
 			// in dollars
 			var amount = parseFloat(total.total_amount) / 100.00;
 			
@@ -618,7 +623,7 @@ _extend(ProcrasDonate_API.prototype, {
 		var fps_pay = this.pddb.FPSMultiusePay.create({
 			timestamp: dtime,
 			caller_reference: create_caller_reference(),
-			//marketplace_fixed_fee: 0,
+			marketplace_fixed_fee: 0,
 			marketplace_variable_fee: 0,
 			transaction_amount: transaction_amount,
 			recipient_slug: "PD",
@@ -728,6 +733,8 @@ _extend(ProcrasDonate_API.prototype, {
 					var response = eval("("+r.responseText+")");
 					if (response.result == "success") {
 						if (onsuccess) {
+							//logger("onsuccess = "+onsuccess);
+							//_pprint(response, "result");
 							onsuccess(response);
 						}
 					} else {
@@ -736,7 +743,8 @@ _extend(ProcrasDonate_API.prototype, {
 						}
 					}
 				} catch (e) {
-					logger("EXCEPTION: pd.js::RETURNED: "+r+"  e.stack: "+e.stack+"\n\n");
+					logger("EXCEPTION while calling server:  e.stack: "+e.stack+"\n\n");
+					_pprint(r, "request to server RETURNED: ");
 				}
 			},
 			onerror

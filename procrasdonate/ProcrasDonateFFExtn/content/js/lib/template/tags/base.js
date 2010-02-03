@@ -43,11 +43,9 @@ var TAGS = {
 			}
 			context.push(new_context);
 			var q = this.render_nodelist(nodelist, context, env);
-			logger("Q: "+q);
 			out.push(q);
 			context.pop();
 		}
-		logger("out: "+out.join(""));
 		return out.join("");
 	},
 	'if': function(args, context, env) {

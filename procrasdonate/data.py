@@ -75,6 +75,15 @@ class User(models.Model):
     def pref_registration_done(self):
         return self.pref('registration_done', False)
     
+    def support_method(self):
+        return self.pref('support_method')
+    
+    def monthly_fee(self):
+        return self.pref('monthly_fee')
+    
+    def support_pct(self):
+        return self.pref('support_pct')
+    
     @classmethod
     def make(klass, private_key, name=None, twitter_name=None, url=None, email=None):
         """
@@ -804,13 +813,14 @@ class Payment(models.Model):
              payment_service,
              transaction_id,
              settled,
-             amount,
+             total_amount_paid,
+             amount_paid_in_fees,
+             amount_paid_tax_deductibly,
              user,
              extn_id,
              extn_inst,
              extn_inst_name,
-             the_klass):
-        
+             the_klass):        
         """
         @param extn_id: 
         @param extn_inst: 
