@@ -1,16 +1,10 @@
-{% if substate_menu_items %}
-	simple case works
-{% endif %}
-
 {% if substate_menu_items.prev %}
-	prev
 	{% if substate_menu_items.prev.url %}<a href="{{ substate_menu_items.prev.url }}">{% endif %}
 		<img
 		  class="prev {{ substate_menu_items.prev.id }}"
 		  src="{{ constants.MEDIA_URL }}img/BackArrow.png" />
   {% if substate_menu_items.prev.url %}</a>{% endif %}
 {% else %}
-	no prev
 	{% if not substate_menu_items.no_spacers %}
 		spacers
 	<img

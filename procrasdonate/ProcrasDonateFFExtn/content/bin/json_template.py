@@ -183,8 +183,8 @@ def prepare_handlers(handlers=None):
         TextNode, VariableNode
     from django.template.defaulttags import \
         AutoEscapeControlNode, ForNode, IfNode, IfEqualNode, \
-        FirstOfNode, WithNode, SpacelessNode, CommentNode, \
-        TemplateLiteral
+        FirstOfNode, WithNode, SpacelessNode, CommentNode#, \
+        #TemplateLiteral
     from django.template.loader_tags import \
         ExtendsNode, IncludeNode, ConstantIncludeNode, BlockNode
     from django.template.debug import \
@@ -219,8 +219,14 @@ def prepare_handlers(handlers=None):
            sequence=FilterExpression,
            is_reversed=Literal,
            nodelist_loop=NodeList)
-    
-    handlers[IfNode] = IfNodeHandler()
+
+    handle(IfNode, 
+           "if", ["bool_exprs", "link_type", "nodelist_true", "nodelist_false"],
+           bool_exprs=List(Tuple(Literal(), FilterExpressionHandler())),
+           link_type=Literal,
+           nodelist_true=NodeList,
+           nodelist_false=NodeList)
+    #handlers[IfNode] = IfNodeHandler()
     
     #handle(IfNode, 
     #       "if", ["var", "nodelist_true", "nodelist_false"],

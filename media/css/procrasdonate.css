@@ -53,6 +53,12 @@ body {
 #download_allow_helper ol li { text-align: left; padding: 1em 0em; }
 #download_allow_helper img { margin-left: .4em; }
 */
+
+#top_OrganizerMenu { float: right; font-size: .9em; text-align: right; }
+#top_OrganizerMenu div.here_we_are { background: #336699; padding: .3em 1em; }
+/* inefficient: Tag key with 2 descendant selectors and Class overly qualified with tag
+ #top_OrganizerMenu div.here_we_are a*/ 
+.here_we_are .top_OrganizerMenu_a { color: #FFFFFF; text-decoration: none; }
                                    
 ul, ol, ul li, ol li { text-align: left; }
 

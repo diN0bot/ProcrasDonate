@@ -587,10 +587,10 @@ success!!!
     if not response['success']:
         return json_failure("Something went wrong extracting parameters: %s" % response['reason'])
 
-    print
-    for x in response['parameters']:
-        print x, "=", response['parameters'][x]
-    print
+    #print
+    #for x in response['parameters']:
+    #    print x, "=", response['parameters'][x]
+    #print
 
     response['parameters']['timestamp'] = time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime())
     
@@ -614,12 +614,6 @@ success!!!
     if not fpsr:
         return json_failure("No FPS Recipient data found for %s." % recipient)
     
-    print recipient
-    print
-    print fpsr
-    print fpsr.token_id
-    print
-
     del lower_parameters['recipient_slug']
     lower_parameters['recipient_token_id'] = fpsr.token_id
     #lower_parameters['refund_token_id'] = fpsr.refund_token_id

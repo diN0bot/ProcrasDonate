@@ -131,8 +131,8 @@ _extend(DjangoTemplate.prototype, {
 		
 		if (!isContext(context)) {
 			//Template.DEBUG("render_node: created Context");
-			context = new Context(context);
-			//context = new RequestContext(context);
+			//context = new Context(context);
+			context = new RequestContext(context);
 		}
 		try {
 			if (this.TAGS[n]) {
@@ -196,7 +196,7 @@ _extend(DjangoTemplate.prototype, {
 	},
 	
 	render: function(context, env) {
-		//context.assign("constants", constants);
+		context.assign("constants", constants);
 		env = this.build(context, env);
 		return env.html;
 	},

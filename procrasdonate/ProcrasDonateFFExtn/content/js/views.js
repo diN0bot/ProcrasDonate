@@ -2603,7 +2603,6 @@ _extend(PageController.prototype, {
 						percent_color: self.RECIPIENT_PERCENT_COLORS[chosen_charities.length]
 					})
 				);
-				logger("CHOSEN CHARitiE HTML: "+html);
 				chosen_charities.push(html);
 				chosen_charities_rows.push(recipient);
 			}
