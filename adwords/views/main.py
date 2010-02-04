@@ -29,7 +29,9 @@ def adword_email_form(request, page, group):
                 # send email for recipient user to reset password
                 txt = render_string(request, 'adwords/email.txt', {'email': email,
                                                                    'settings': settings,
-                                                                   'visitor': visitor})
+                                                                   'visitor': visitor,
+                                                                   'group': group,
+                                                                   'page': page})
                 visitor.send_email("Welcome to ProcrasDonate",
                                    txt,
                                    from_email=settings.EMAIL)
