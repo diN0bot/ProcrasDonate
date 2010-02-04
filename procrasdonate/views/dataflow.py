@@ -369,37 +369,6 @@ def remove_from_waitlist_form(request):
                                                  email))
 
 
-def adword_email_form(request):
-    if request.POST:
-        email = request.POST.get('email', None)
-        group = request.POST.get('group', None)
-        is_download_page = request.POST.get('is_download_page', None)
-        wgroup = is_download_page and "download_%s" % group or group
-        
-        w = WaitList.get_or_none(email__email=email)
-        if not w:
-            w = WaitList.add(email, wgroup)
-        else:
-            Log.Log("Same email address added to waitlist. Group NOT updated from waitlist, %s. New group: %s" % (w, wgroup), "waitlist_duplicate")
-        
-        # send email for recipient user to reset password
-        c = Context({'waiter': w,
-                     'group': group,
-                     'settings': settings})
-        
-        txt_email = loader.get_template('procrasdonate/adwords/email.txt')
-        try:
-            w.email.send_email("Welcome ProcrasDonate Beta Tester",
-                               txt_email.render(c),
-                               from_email=settings.EMAIL)
-            return HttpResponseRedirect(reverse('adword_done', args=(group,)))
-        except:
-            Log.Error("add_to_waitlist::Problem sending added-to-waitlist email to %s (does email address exist?)" % w, "waitlist")
-            #return HttpResponseRedirect(reverse('waitlist'))
-            return HttpResponseRedirect("%s?email=%s&is_added=True" % (reverse('waitlist'),
-                                                                       w.email.email))
-
-
 url_in_text = re.compile("([\w-]+://[^\s,\)]*)")
 
 def procrasdonate_tweets(request):

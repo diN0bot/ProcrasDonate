@@ -1,4 +1,4 @@
-{% extends 'procrasdonate/adwords/adwords_base.html' %}
+{% extends 'adwords/landing_page_base.html' %}
 
 {% block descriptive_text %}
     <h2>Procrastinate less with a charitable incentive.</h2>
@@ -15,9 +15,7 @@
 {% endblock %}
 
 {% block action_button %}
-	<a href="{% url adword_download_page adword_page %}">
-		<img src="{{ MEDIA_URL }}img/adword_screenshots/FreeTrial.png" />						
-	</a>
+	<img src="{{ MEDIA_URL }}img/adword_screenshots/FreeTrial.png" />						
 {% endblock %}
 
 {% block advertising_text_2 %}

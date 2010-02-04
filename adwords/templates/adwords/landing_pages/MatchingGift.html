@@ -1,4 +1,4 @@
-{% extends 'procrasdonate/adwords/adwords_base.html' %}
+{% extends 'adwords/landing_page_base.html' %}
 
 {% block descriptive_text %}
     <h2>Save the world - donate with a friend.</h2>
@@ -13,9 +13,7 @@
 {% endblock %}
 
 {% block action_button %}
-	<a href="{% url adword_download_page adword_page %}">
-		<img src="{{ MEDIA_URL }}img/adword_screenshots/FindMatch.png" />						
-	</a>
+	<img src="{{ MEDIA_URL }}img/adword_screenshots/FindMatch.png" />						
 {% endblock %}
 
 {% block advertising_text_2 %}
@@ -23,9 +21,7 @@
 {% endblock %}    
     
 {% block action_button_2 %}
-	<a href="{% url adword_download_page adword_page %}">
-		<img src="{{ MEDIA_URL }}img/adword_screenshots/SendInvitation.png" />						
-	</a>
+	<img src="{{ MEDIA_URL }}img/adword_screenshots/SendInvitation.png" />						
 {% endblock %}
 
 {% block advertising_text_3 %}    

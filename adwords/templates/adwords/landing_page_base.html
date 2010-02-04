@@ -1,0 +1,78 @@
+{% extends 'adwords/superbase.html' %}
+
+{% block content %}
+	<div id="content">
+		
+		<!-- LEFT COLUMN -->
+		
+		<div id="a_left_column">
+	
+			<div id="descriptive_text">
+				{% block descriptive_text %}
+				{% endblock %}
+			</div>
+			
+			<div id="screen_shot">
+				<a href="{% url adword_click "image" group %}">
+					{% block screen_shot %}
+					{% endblock %}
+				</a>
+			</div>
+			
+			<div id="email_list">
+				{% include 'adwords/snippets/email_form.html' %}
+			</div>
+			
+		</div>
+		
+		<!-- RIGHT COLUMN -->
+		
+		<div id="a_right_column">
+
+			<div id="find_out_more_top">
+				<a href="{% url adword_click "find_out_more_top" group %}">
+					<span class="FindOutMoreSpan">Find Out More</span>
+					<img src="{{ MEDIA_URL }}img/adword_screenshots/FindOutMore.png" />
+				</a>
+			</div>
+		
+			<div id="advertising_text_1">
+				{% block advertising_text_1 %}
+				{% endblock %}
+			</div>
+			
+			<div id="action_button">
+				<a href="{% url adword_click "action" group %}">
+					{% block action_button %}
+					{% endblock %}
+				</a>
+			</div>
+			
+			<div id="advertising_text_2">
+				{% block advertising_text_2 %}
+				{% endblock %}
+			</div>
+			
+			<div id="action_button_2">
+				<a href="{% url adword_click "action2" group %}">
+					{% block action_button_2 %}
+					{% endblock %}
+				</a>
+			</div>
+							
+			<div id="advertising_text_3">
+				{% block advertising_text_3 %}
+				{% endblock %}
+			</div>
+							
+			<div id="find_out_more_bottom">
+				<a href="{% url adword_click "find_out_more_bottom" group %}">
+					<span class="FindOutMoreSpan">Find Out More</span>
+					<img src="{{ MEDIA_URL }}img/adword_screenshots/FindOutMore.png" />
+				</a>
+			</div>	
+						
+		</div>
+
+	</div>
+{% endblock %}

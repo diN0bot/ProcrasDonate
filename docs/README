@@ -27,6 +27,10 @@ alias pd_live='everything; ./manage.py migrate; chown -hR www-data:www-data ${RE
 
 ##### SOUTH DATABASE SCHEMA AND DATA MIGRATIONS
 
+to add a new app:
+./manage.py startmigration XXX-new-app-XXX --initial
+
+
 ./manage.py startmigration procrasdonate XXX-migrationname-XXX --auto
 
 then run

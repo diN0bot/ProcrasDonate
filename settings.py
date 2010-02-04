@@ -45,7 +45,7 @@ ADMINS = (
 )
 MANAGERS = ADMINS
 
-APPS = ('procrasdonate', 'crosstester')
+APPS = ('procrasdonate', 'crosstester', 'adwords')
 
 EMAIL = "service@ProcrasDonate.com"
 
@@ -116,9 +116,10 @@ if DEBUG_TOOLBAR:
     MIDDLEWARE_CLASSES += (
         'debug_toolbar.middleware.DebugToolbarMiddleware',
     )
-        
+
 TEMPLATE_DIRS = (
-    'procrasdonate/ProcrasDonateFFExtn/content/templates',
+    #'procrasdonate/ProcrasDonateFFExtn/content/templates',
+    pathify([PROJECT_PATH, path('procrasdonate/ProcrasDonateFFExtn/content/templates')]),
 )
 
 for app in APPS:

@@ -1,11 +1,11 @@
-{% extends 'procrasdonate/adwords/adwords_base.html' %}
+{% extends 'adwords/landing_page_base.html' %}
 
 {% block descriptive_text %}
     <h2>Custom tools for online fundraising campaigns.</h2>
 {% endblock %}
 
 {% block screen_shot %}
-    <img src="{{ MEDIA_URL }}img/adword_screenshots/CommunityFundraising1.png" />
+    <img src="{{ MEDIA_URL }}img/adword_screenshots/CommunityFundraising7.png" />
 {% endblock %}
 
 {% block advertising_text_1 %}
@@ -14,11 +14,9 @@
 {% endblock %}
 
 {% block action_button %}
-	<a href="{% url adword_download_page adword_page %}">
-		<img src="{{ MEDIA_URL }}img/adword_screenshots/StartNow.png" />						
-	</a>
+	<img src="{{ MEDIA_URL }}img/adword_screenshots/StartNow.png" />						
 {% endblock %}
-
+					
 {% block advertising_text_2 %}
     <h1>Get your FREE checklist.</h1>
 {% endblock %} 

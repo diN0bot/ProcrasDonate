@@ -1,13 +1,5 @@
 <!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
 
-{% comment %}
-<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
-<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
-
-<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
-<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
-{% endcomment %}
-
 <html>
 	<head>
 		<meta http-equiv="Content-Type" content="text/html; charset=utf-8" >
@@ -15,33 +7,19 @@
 		
 		<link rel="shortcut icon" href="{{ MEDIA_URL }}img/ToolbarImages/ProcrasDonateIcon.png" type="image/x-icon" >
 
-		{# <link rel="stylesheet" type="text/css" href="{{ MEDIA_URL }}css/ui.all.css"> #}
 		<link rel="stylesheet" type="text/css" href="{{ MEDIA_URL }}css/procrasdonate.css">
 		<link rel="stylesheet" type="text/css" href="{{ MEDIA_URL }}css/adwords.css">
 	
 		<script type="text/javascript" charset="utf-8" src="{{ MEDIA_URL }}js/jquery-1.2.6.min.js"></script>
-		{# <script type="text/javascript" charset="utf-8" src="{{ MEDIA_URL }}js/ui.core.js"></script> #}
-	 	{# <script type="text/javascript" charset="utf-8" src="{{ MEDIA_URL }}js/ui.slider.js"></script> #}
-		
-		{# <script type="text/javascript" charset="utf-8" src="{{ MEDIA_URL }}js/json2.js"></script> #}
-		<script type="text/javascript" charset="utf-8" src="{{ MEDIA_URL }}js/procrasdonate.js"></script>
-		{% block head %}{% endblock %}
 
+		{# <script type="text/javascript" charset="utf-8" src="{{ MEDIA_URL }}js/procrasdonate.js"></script> #}
+		
+		{% block head %}{% endblock %}
 	</head>
 
 	<body>
-		<div id="content">
-			<div id="done_page">
-			
-				You are done!
-				{% ifequal group "pandora" %}
-					Thanks for trying the Pandora Dashboard
-				{% endifequal %}
-				{% ifequal group "bike_lock" %}
-					Thanks for giving the BIke Lock a try
-				{% endifequal %}
-			</div>
-		</div>
+		{% block content %}
+		{% endblock %}
 
 		{# google analytics #}
 		<script type="text/javascript">
@@ -53,7 +31,6 @@
 		var pageTracker = _gat._getTracker("UA-2115025-7");
 		pageTracker._trackPageview();
 		} catch(err) {}</script>
-		
 	</body>
 
 </html>

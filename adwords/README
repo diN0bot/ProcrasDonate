@@ -1,0 +1,61 @@
+
+The adword test pages all live in the following folder:
+    adwords/templates/adwords
+
+-~=[ CAMPAIGN LANDING PAGES ]=~-
+
+Every adword campaign landing page has a corresponding URL. For example,
+the following adword test page and url are a pair:
+
+    adwords/templates/adwords/pandora.html
+    http://localhost:8000/a/t/pandora/
+
+There are three things to note about the URL:
+    1. the final part of the URL, 'pandora', matches the tmeplate page name
+    2. the URL does NOT include '.html'
+    3. the middle part of the URL, 'a/t', is constant
+
+-~=[ LANDING PAGE TEMPLATES ]=~-
+
+Each adword test page should extend landing_page_base.html:
+    {% extends 'adwords/landing_page_base.html' %}
+    
+The adwords base template extends 'adwords/superbase.html'.
+
+All landing pages are located in:
+    adwords/templates/adwords/landing_pages/
+
+Each adword landing page can contain blocks from the landing page base.
+
+Some blocks are links to action pages. The links should live in 
+landing_page_base.html; the landing pages simply provide the content.
+
+-~=[ CLICK TO PAGES ]=~-
+
+Click to pages open when users click links on the landing page, such as
+"Find out more", the main image, and action buttons.
+
+Click to templates are located in:
+    adwords/templates/adwords/click_to/
+
+Currently, these templates are all empty.
+
+Each template page should extend click_to_page_base.html:
+    {% extends 'adwords/click_to_page_base.html' %}
+
+-~=[ DONE PAGE ]=~-
+
+The done page opens after users submit their email address, both from an 
+adwords landing page or click to page.
+
+The done template is located at:
+    adwords/templates/adwords/download_page.html
+
+
+-~=[ EMAIL ]=~-
+
+An email is automatically sent to users after they submit their email address.
+
+The email template is located at:
+    adwords/templates/adwords/email.txt
+

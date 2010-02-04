@@ -10,9 +10,9 @@ Hi!
 {% ifequal group "StudentIncentives" %}Thanks for your interest in student incentives.{% endifequal %}
 {% endspaceless %}
 
-Unfortunately we're still developing this service.  We'll email you when it is ready.  If you have specific suggestions or ideas then please email Service@ProcrasDonate.com.
+Unfortunately we're still developing this service.  We'll email you when it is ready.  If you have specific suggestions or ideas then please email {{ settings.EMAIL }}
 
-Our current service, charitable incentives for better time management, can be accessed at <a href="http://www.ProcrasDonate.com">http://www.ProcrasDonate.com</a>.
+Our current service, charitable incentives for better time management, can be accessed at {{ settings.DOMAIN }}
 
 Sincerely,
 
