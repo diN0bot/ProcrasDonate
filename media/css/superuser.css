@@ -199,3 +199,15 @@
 .status_E { background: red; }
 .status_I { background: pink; }
 .status_D { background: purple; }
+
+
+
+/****** ADWORDS DASHBOARD *******/
+
+/* { clear: both; }*/
+
+#dashboard table td {
+	border: 1px solid #BBB;
+	border-spacing: 0em;
+	padding: .5em;
+}

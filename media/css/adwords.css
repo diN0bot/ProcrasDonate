@@ -124,17 +124,3 @@ h2 {
 	text-align: center;
 	padding: 0em 1em;
 }
-
-/****** RESULTS DASHBOARD *******/
-
-#dashboard {
-	/*width: 45em;*/
-	margin: auto;
-	text-align: center;
-	padding: 0em 1em;
-}
-
-table td {
-	border: 1px solid #BBB;
-	border-spacing: 0em;
-}

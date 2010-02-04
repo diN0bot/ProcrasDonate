@@ -2584,7 +2584,6 @@ _extend(PageController.prototype, {
 			}));
 		var arrows = Template.get("register_arrows").render(
 				new Context({ substate_menu_items: substate_menu_items }));
-		logger("ARROWS: "+arrows);
 		
 		var categories = [];
 		this.pddb.Category.select({}, function(row) {

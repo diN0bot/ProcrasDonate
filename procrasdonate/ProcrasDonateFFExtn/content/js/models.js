@@ -370,13 +370,17 @@ function load_models(db, pddb) {
 		},
 		
 		deep_dict: function() {
+			var recipient_slug = "None";
+			if (this.recipient()) {
+				recipient_slug = this.recipient().slug;
+			}
 			return {
 				id: this.id,
 				datetime: this.datetime,
 				type: this.type,
 				subject: this.subject,
 				message: this.message,
-				recipient: this.recipient().slug,
+				recipient: recipient_slug,
 				is_read: this.is_read(),
 				is_sent: this.is_sent(),
 				has_met_goal: this.has_met_goal(),

@@ -427,7 +427,8 @@ _extend(InitListener.prototype, {
 			subject: "Getting started with ProcrasDonate",
 			message: message,
 			read: _dbify_bool(false),
-			sent: _dbify_bool(false)
+			sent: _dbify_bool(false),
+			recipient_id: pd.id
 		});
 	}
 	
