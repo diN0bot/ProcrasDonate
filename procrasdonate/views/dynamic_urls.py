@@ -76,7 +76,6 @@ urlpatterns += patterns('',
     
     # send recipeints and multi auths to clients
     (r'^get/data/$', dataflow.return_data),
-    (r'^get/ping/$', dataflow.ping),
     
     # generate xpi
     url(r'^generate_xpi/(?P<slug>%s)/$' % slug_re, dataflow.generate_xpi, name='generate_xpi'), 
