@@ -396,3 +396,6 @@ def mindful_moments(request):
                                            'link': entry.link}}))
     return json_success({'html': ''.join(html)})
 
+def ping(request):
+    print "\nPING\n"
+    return json_success()
