@@ -6,8 +6,5 @@ from django.core.urlresolvers import reverse
 
 from django.contrib.auth.decorators import user_passes_test
 
-from procrasdonate.models import KeyValue
-
-def set_ring_ip(request, ip):
-    KeyValue.increment('ring_ip', ip)
-    return json_success()
+def info(request):
+    return json_success({'hello':'world'})

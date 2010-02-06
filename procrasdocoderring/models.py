@@ -4,8 +4,9 @@ import datetime
 from lib import model_utils
 from procrasdonate.models import Log
 
-
+'''
 class DocoderRing(models.Model):
+    ip = models.CharField(max_length=200, null=True, blank=True, verbose_name="Organization's Name")
 
     @classmethod
     def Initialize(klass):
@@ -14,7 +15,6 @@ class DocoderRing(models.Model):
     @classmethod
     def send_to_ring(klass, action):
         KeyValue.increment('ring_ip', ip)
+'''
 
-        
-
-ALL_MODELS = [Visitor]
+ALL_MODELS = []
