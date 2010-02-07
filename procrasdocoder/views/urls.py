@@ -1,5 +1,5 @@
 from django.conf.urls.defaults import *
-from procrasdocoderring.views import main
+from procrasdocoder.views import main
 
 urlpatterns = patterns('',
     (r'^$', main.info),

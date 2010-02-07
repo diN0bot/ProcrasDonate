@@ -45,11 +45,11 @@ ADMINS = (
 )
 MANAGERS = ADMINS
 
-APPS = ('procrasdonate', 'crosstester', 'adwords', 'procrasdocoderring')
+APPS = ('procrasdonate', 'crosstester', 'adwords', 'procrasdocoder')
 
 EMAIL = "service@ProcrasDonate.com"
 
-DOMAIN = 'https://procrasdonate.com'
+DOMAIN = 'http://procrasdonate.com'
 API_DOMAIN = 'https://procrasdonate.com'
 
 # Local time zone for this installation. Choices can be found here:
