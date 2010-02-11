@@ -343,7 +343,6 @@ def edit_promo_cards(request):
 
 @login_required
 def edit_public_information(request):
-    print settings.TEMPLATE_DIRS
     recipient = request.user.get_profile().recipient
     substate_menu_items = _organizer_submenu(request, "public", recipient)
     submenu_id = "organizer_submenu"

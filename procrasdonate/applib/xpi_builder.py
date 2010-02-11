@@ -105,6 +105,7 @@ function generated_input() {
         
         return (xpi_url, xpi_hash)
     
+    @classmethod
     def generate_private_key(self):
         alphas = "abcdefghijklmnopqrstuvwxyz0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ"
         ret = ""

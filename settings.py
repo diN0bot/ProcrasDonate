@@ -1,4 +1,4 @@
-# Global Django settings for BILUMI project
+# Global Django settings for ProcrasDonate project
 # For help setting up local settings, see the dev-flock wiki:
 #     http://bilumi.org/trac/wiki/FAQ#Projectsetupoptional
 
@@ -45,7 +45,7 @@ ADMINS = (
 )
 MANAGERS = ADMINS
 
-APPS = ('procrasdonate', 'crosstester', 'adwords', 'procrasdocoder')
+APPS = ('procrasdonate', 'crosstester', 'adwords', 'procrasdocoder', 'rescuetime_interface')
 
 EMAIL = "service@ProcrasDonate.com"
 

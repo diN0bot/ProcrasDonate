@@ -1,0 +1,16 @@
+{% extends 'rescuetime_interface/superbase.html' %}
+
+{% block content %}
+	<div id="dashboard">
+		<h2>Sign up to ProcrasDonate using your RescueTime account</h2>
+		
+		<form method="post">
+			<table>
+			<tbody>
+				{{ form }}
+			</tbody>
+			</table>
+			<input type="submit" value="Sign up" />
+		</form>
+	</div>
+{% endblock %}

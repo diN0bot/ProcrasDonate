@@ -1,0 +1,30 @@
+{% extends 'rescuetime_interface/superbase.html' %}
+
+{% block content %}
+	<div id="dashboard">
+		<h2>RescueTime Dashboard</h2>
+		
+		<p>Dollars per hour: ${{ dollars_per_hr|floatformat:"2" }}</p>
+		
+		<p>Donations go to {{ recipient.name }}</p>
+		
+		<p>ProcrasDonation</p>
+		
+		<table>
+		<tbody>
+			<tr>
+				<th>domain</th>
+				<th>hours</th>
+				<th>pledge</th>
+			</tr>
+		{% for payment in payments %}
+			<tr>
+				<td>{{ payment.domain }}</td>
+				<td>{{ payment.hrs|floatformat:"2" }}</td>
+				<td>${{ payment.amt|floatformat:"2" }}</td>
+			</tr>
+		{% endfor %}
+		</tbody>
+		</table>		
+	</div>
+{% endblock %}
