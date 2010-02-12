@@ -899,3 +899,22 @@ Generic ThemeRoller Classes
 /* End hide from IE-mac */
 
 /************************************************************************************************/
+
+/**** rescuetime interface ****/
+
+#rescuetime_interface_signup_table {
+	margin-top: 2em;
+}
+
+#rescuetime_interface_signup_table td {
+	text-align: left;
+	padding-top: 2em;
+}
+
+#rescuetime_settings li {
+	margin-bottom: 2em;
+}
+
+#authorize_input, #not_authorized { color: red; }
+
+#recipients_list { margin-top: 2em; margin-bottom: 4em; }

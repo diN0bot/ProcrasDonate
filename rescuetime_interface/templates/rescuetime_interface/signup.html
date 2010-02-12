@@ -1,16 +1,41 @@
-{% extends 'rescuetime_interface/superbase.html' %}
+{% extends 'procrasdonate/base.html' %}
 
 {% block content %}
-	<div id="dashboard">
-		<h2>Sign up to ProcrasDonate using your RescueTime account</h2>
+	<div id="rescuetime_interface_signup">
+		<h2>Sign in to ProcrasDonate using your RescueTime account</h2>
 		
 		<form method="post">
-			<table>
-			<tbody>
-				{{ form }}
-			</tbody>
-			</table>
+			<label>RescueTime key</label>
+			<input type="text" name="rescuetime_key" size="53" />
 			<input type="submit" value="Sign up" />
 		</form>
+		
+		<table id="rescuetime_interface_signup_table">
+		<tbody>
+			<tr>
+				<td>
+					1. Activate your personal RescueTime API key by 
+					<a href="https://www.rescuetime.com/anapi/setup">
+						following this link</a>
+					and clicking "activate the key"
+				</td>
+				<td>
+					2. Copy your key and paste it into the above input box
+				</td>
+			</tr>
+			<tr>
+				<td>
+					<img style="width: 20em;" src="{{ MEDIA_URL }}img/rescuetime_api_setup.png">
+				</td>
+				
+				<td>
+					<img style="width: 20em;" src="{{ MEDIA_URL }}img/rescuetime_api_setup_done.png">
+				</td>
+			</tr>
+		</tbody>
+		</table>
+		
+		
+		
 	</div>
 {% endblock %}

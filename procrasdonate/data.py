@@ -593,7 +593,7 @@ class SiteGroupTagging(models.Model):
                                 user=user)
     
     def __unicode__(self):
-        return "%s: %s -> %s" % (user, tag, sitegroup)
+        return "%s: %s -> %s" % (self.user, self.tag, self.sitegroup)
 
 class Category(models.Model):
     """
@@ -806,6 +806,8 @@ class Payment(models.Model):
 
     class Meta:
         abstract = True
+        ordering = ('dtime', )
+    
 
     @classmethod
     def make(klass,
@@ -912,6 +914,10 @@ class RecipientPayment(Payment):
                             recipient,
                             "recipient",
                             RecipientPayment)
+    
+    @classmethod
+    def Initialize(klass):
+        model_utils.mixin(RecipientPaymentMixin, User)
         
     def __unicode__(self):
         return "%s paid $%s to %s, settled? %s" % (self.user.private_key,
@@ -919,6 +925,13 @@ class RecipientPayment(Payment):
                                                    self.recipient.slug,
                                                    self.settled)
 
+class RecipientPaymentMixin(object):
+    """ mixed into User class """
+    
+    @property
+    def recipient_payments(self):
+        return RecipientPayment.objects.filter(user=self)
+    
 class SitePayment(Payment):
     site = models.ForeignKey(Site)
     

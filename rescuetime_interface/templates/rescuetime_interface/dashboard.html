@@ -1,30 +1,122 @@
-{% extends 'rescuetime_interface/superbase.html' %}
+{% extends 'procrasdonate/base.html' %}
 
 {% block content %}
 	<div id="dashboard">
-		<h2>RescueTime Dashboard</h2>
+		<h2>ProcrasDonate: Incentive better time management</h2>
 		
-		<p>Dollars per hour: ${{ dollars_per_hr|floatformat:"2" }}</p>
+		<p>
+			Donate to a good cause for every hour you procrastinate according to your
+			RescueTime <em>productivity</em> score. It's a feel good incentive to not waste
+			<em>too</em> much time.
+		</p>
 		
-		<p>Donations go to {{ recipient.name }}</p>
+		<h3>ProcrasDonation Pledges</h3>
 		
-		<p>ProcrasDonation</p>
+		<p>
+			Donate to your selected charity for all activities with a negative 
+			RescueTime productivity score 
+			(<a href="https://www.rescuetime.com/categories/manage">change productivity scores</a>).
+		</p>
 		
 		<table>
 		<tbody>
 			<tr>
-				<th>domain</th>
-				<th>hours</th>
-				<th>pledge</th>
+				<th>Activity</th>
+				<th>Hours</th>
+				<th>Pledge</th>
+				<th>Productivity Score</th>
 			</tr>
-		{% for payment in payments %}
+		{% for pledge in pledges %}
 			<tr>
-				<td>{{ payment.domain }}</td>
-				<td>{{ payment.hrs|floatformat:"2" }}</td>
-				<td>${{ payment.amt|floatformat:"2" }}</td>
+				<td>{{ pledge.name }}</td>
+				<td>{{ pledge.hrs|floatformat:"2" }}</td>
+				<td>${{ pledge.amt|floatformat:"2" }}</td>
+				<td style="color: #999;">{{ pledge.productivity }}</td>
 			</tr>
 		{% endfor %}
 		</tbody>
-		</table>		
+		</table>
+		
+		<h3>Past Payments</h3>
+		
+		<div id="superuser_payments">
+			{% for payment in rt.recipient_payments %}
+				{% include 'procrasdonate/superuser/snippets/payment.html' %}
+			{% endfor %}
+			
+			{% if not rt.receipient_payments %}
+				<p>None so far</p>
+			{% endif %}
+		</div>
+		
+		
+		<h3>Settings</h3>
+		
+		<ol id="rescuetime_settings">
+			<li>
+				Dollars per hr: 
+					<span id="dollars_per_hr">${{ rt.dollars_per_hr|floatformat:"2" }}</span>
+				<a id="dollars_per_hr_edit">change</a>
+				<form method="post" action="{% url rt_edit_dollars_per_hr rt.rescuetime_key %}">
+					$<input type="text" name="dollars_per_hr" size="5" /> per hour procrastinated
+					<input type="submit">
+				</form>
+			</li>
+		
+			<li {% if not rt.recipient.name %}id="not_authorized"{% endif %}>
+				Non-profit receiving donations: {{ rt.recipient.name }}
+				<a id="recipient_edit">
+				{% if rt.recipient.name %}
+					change
+				{% else %}
+					select
+				{% endif %}
+				</a>
+				<ul id="recipients_list">
+					{% for recipient in recipients %}
+						<li>
+							<img style="float: left; margin-right: 1em;" class="charity_logo" src="{{ recipient.thumbnail_url }}" />
+							<b>{{ recipient.name }}</b>
+							<blockquote>
+								{{ recipient.mission }}
+								<a href="{% url rt_choose_recipient rt.rescuetime_key recipient.slug %}">
+									<input type="button" value="Select as donation recipient" />
+								</a>
+							</blockquote>
+						</li>
+					{% endfor %}
+				</ul>
+			</li>
+			
+			<li>
+				{% if not rt.user.authorized %}
+					<a href="{% url rt_authorize rt.rescuetime_key %}">
+						<input 
+							type="submit"
+							{% if rt.recipient %}
+								id="authorize_input"
+							{% else %}
+								disabled="disable"
+							{% endif %}
+							value="Authorize donations {% if rt.recipient %}to {{ rt.recipient.name }}{% endif %}" />
+					</a>
+				{% else %}
+					Successfull authorized to automatically turn accumulated pledges into donations.
+				{% endif %}
+			</li>
+		</ol>
+	
 	</div>
+	
+	<script type="text/javascript">
+		$(function() {
+			$("#dollars_per_hr_edit").click(function() {
+				$(this).hide().next().show();
+			}).next().hide();
+
+			$("#recipient_edit").click(function() {
+				$(this).hide().next().show();
+			}).next().hide();
+		});
+	</script>
 {% endblock %}
