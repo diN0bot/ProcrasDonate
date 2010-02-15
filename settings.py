@@ -1,4 +1,4 @@
-# Global Django settings for BILUMI project
+# Global Django settings for ProcrasDonate project
 # For help setting up local settings, see the dev-flock wiki:
 #     http://bilumi.org/trac/wiki/FAQ#Projectsetupoptional
 
@@ -45,11 +45,11 @@ ADMINS = (
 )
 MANAGERS = ADMINS
 
-APPS = ('procrasdonate', 'crosstester', 'adwords')
+APPS = ('procrasdonate', 'crosstester', 'adwords', 'procrasdocoder', 'rescuetime_interface')
 
 EMAIL = "service@ProcrasDonate.com"
 
-DOMAIN = 'https://procrasdonate.com'
+DOMAIN = 'http://procrasdonate.com'
 API_DOMAIN = 'https://procrasdonate.com'
 
 # Local time zone for this installation. Choices can be found here:

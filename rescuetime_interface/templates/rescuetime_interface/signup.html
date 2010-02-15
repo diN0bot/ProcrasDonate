@@ -1,0 +1,48 @@
+{% extends 'procrasdonate/base.html' %}
+
+{% block content %}
+	<div id="rescuetime_interface_signup">
+	  <p>
+			Donate to a good cause for every hour you procrastinate. It's a feel good incentive to not waste
+			<em>too</em> much time.
+		</p>
+	  <p>Select a charity and donation rate, and then authorize automatic Amazon payments. Your <a href="http://rescuetime.com">RescueTime</a> activities
+	  with negative productivity scores are automically considered procrastination.</p>
+
+		<h2>Sign in to ProcrasDonate using your RescueTime account</h2>
+		
+		<form method="post">
+			<label>RescueTime key</label>
+			<input type="text" name="rescuetime_key" size="53" />
+			<input type="submit" value="Sign up" />
+		</form>
+		
+		<table id="rescuetime_interface_signup_table">
+		<tbody>
+			<tr>
+				<td>
+					1. Activate your personal RescueTime API key by 
+					<a href="https://www.rescuetime.com/anapi/setup">
+						following this link</a>
+					and clicking "activate the key"
+				</td>
+				<td>
+					2. Copy your key and paste it into the above input box
+				</td>
+			</tr>
+			<tr>
+				<td>
+					<img style="width: 20em;" src="{{ MEDIA_URL }}img/rescuetime_api_setup.png">
+				</td>
+				
+				<td>
+					<img style="width: 20em;" src="{{ MEDIA_URL }}img/rescuetime_api_setup_done.png">
+				</td>
+			</tr>
+		</tbody>
+		</table>
+		
+		
+		
+	</div>
+{% endblock %}
