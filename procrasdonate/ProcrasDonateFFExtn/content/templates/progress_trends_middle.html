@@ -21,16 +21,17 @@
 <div class="trend_list tag_list" alt="{{ tagtype.id }}" >
 <h4>Classification totals</h4>
 <ul>
-	<li><input type="checkbox" class="{{ ProcrasDonate.id }}" checked value="ProcrasDonate" />
+	<li class="trend_list_li">
+		<input type="checkbox" class="{{ ProcrasDonate.id }}" checked value="ProcrasDonate" />
 		<img src="{{ constants.MEDIA_URL }}img/ToolbarImages/ProcrasDonateIcon.png" />
 		ProcrasDonate
 	</li>
-	<li>
+	<li class="trend_list_li">
 		<input type="checkbox" class="{{ TimeWellSpent.id }}" checked value="TimeWellSpent" />
 		<img src="{{ constants.MEDIA_URL }}img/ToolbarImages/TimeWellSpentIcon.png" />
 		TimeWellSpent
 	</li>
-	<li>
+	<li class="trend_list_li">
 		<input type="checkbox" class="{{ Unsorted.id }}" value="Unsorted" />
 		<img src="{{ constants.MEDIA_URL }}img/ToolbarImages/UnsortedIcon.png" />
 		Unsorted

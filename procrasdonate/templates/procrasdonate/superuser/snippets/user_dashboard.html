@@ -1,0 +1,106 @@
+<div class="superuser_user {% if user.tos %}tos{% endif %}">
+	<div class="registration_process
+		{% if user.sent_initial_email %}
+			sent_initial_email
+		{% endif %}
+		{% if user.sent_completed_registration_email %}
+			sent_completed_registration_email
+		{% endif %}
+		{% if user.sent_stalling_registration_email %}
+			sent_stalling_registration_email
+		{% endif %}
+		{% if user.registration_complete or user.pref_registration_complete %}
+			registration_complete
+		{% endif %}"></div>
+	
+	<div class="support_stats">
+		<span class="{% ifequal user.support_method "monthly" %}selected{% endifequal %}">
+			${{ user.monthly_fee }}/mo</span>
+		<span class="{% ifequal user.support_method "percent" %}selected{% endifequal %}">
+			{{ user.support_pct }}%</span>
+	</div>
+		
+	<div class="private_key">
+		<a href="{% url user user.private_key %}">{{ user.private_key }}</a>
+	</div>
+	
+	<div>
+		{% if user.fps_multiuse_auth %}
+			<span>Auth </span>
+			{% for auth in user.fps_multiuse_auth %}
+				<span class="user_auth status_{{ auth.status }}"
+					 title="{{ auth.get_status_display }}"></span>
+			{% endfor %}
+		{% endif %}
+	</div>
+	
+	<div>
+		{% if user.fps_multiuse_pay %}
+			<span>FPS Pays </span>
+			{% for pay in user.fps_multiuse_pay %}
+				<span class="user_auth status_{{ pay.transaction_status }}"
+					 title="{{ pay.get_transaction_status_display }}"></span>
+			{% endfor %}
+		{% endif %}
+	</div>
+	
+	<div class="email">{{ user.email }}</div>
+	<div class="last_communication" title="Last communication with extension">{{ user.all_logs.0.dtime|date:"d M (D)" }}</div>
+	<div class="version" title="Extension version">
+		{% if user.version %}{{ user.version }}{% else %}{{ user.pref_version }}{% endif %}
+	</div>
+	
+	{% if user.total_this_day %}
+		<table>
+		<tbody>
+			<tr>
+				<th title="D=toDay, W=this Week, F=Forever">type</th>
+				<th title="Total pledged">($)</th>
+				<th title="Total paid">$</th>
+				<th title="Hours">hrs</th>
+				<th title="Goals met this week / goals met ever / total goals ever">goals</th>
+				<th title="Hours saved">hrs</th>
+			</tr>
+			{% for d in user.totals_days_this_week %}
+				{% include 'procrasdonate/superuser/snippets/total_dashboard.html' %}
+			{% endfor %}
+			{% with user.total_last_week as d %}
+				{% include 'procrasdonate/superuser/snippets/total_dashboard.html' %}
+			{% endwith %}
+			{% with user.total_this_week as d %}
+				{% include 'procrasdonate/superuser/snippets/total_dashboard.html' %}
+			{% endwith %}
+			{% with user.total_forever as d %}
+				{% include 'procrasdonate/superuser/snippets/total_dashboard.html' %}
+			{% endwith %}
+		</tbody>
+		</table>
+	{% endif %}
+	
+	{% if user.errors or user.warnings or user.failures %}
+	<table>
+	<tbody>
+		<tr><th></th><th>today</th><th>week</th><th>ever</th></tr>
+		{% if user.errors %}
+		<tr><td>errors</td>
+			<td>{{ user.errors_today.count }}</td>
+			<td>{{ user.errors_week.count }}</td>
+			<td>{{ user.errors.count }}</td>
+		</tr>
+		{% endif %}{% if user.warnings %}
+		<tr><td>warnings</td>
+			<td>{{ user.warnings_today.count }}</td>
+			<td>{{ user.warnings_week.count }}</td>
+			<td>{{ user.warnings.count }}</td>
+		</tr>
+		{% endif %}{% if user.failures %}
+		<tr><td>failures</td>
+			<td>{{ user.failures_today.count }}</td>
+			<td>{{ user.failures_week.count }}</td>
+			<td>{{ user.failures.count }}</td>
+		</tr>
+		{% endif %}
+	</tbody>
+	</table>
+	{% endif %}
+</div>

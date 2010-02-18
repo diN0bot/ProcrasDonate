@@ -12,9 +12,10 @@ var constants = {};
 	constants.IDLE_LOGGING = false;
 
 	// from https://developer.mozilla.org/En/Code_snippets:On_page_load
-	constants.STATE_START = Components.interfaces.nsIWebProgressListener.STATE_START;
-	constants.STATE_STOP = Components.interfaces.nsIWebProgressListener.STATE_STOP;
-
+	if (window.Components) {
+		constants.STATE_START = Components.interfaces.nsIWebProgressListener.STATE_START;
+		constants.STATE_STOP = Components.interfaces.nsIWebProgressListener.STATE_STOP;
+	}
 	constants.ProcrasDonate__UUID="extension@procrasdonate.com";
 
 	constants.MEDIA_URL = '/procrasdonate_media/';
@@ -36,6 +37,7 @@ var constants = {};
 	constants.PROGRESS_URL = '/my_progress/';
 	constants.MESSAGES_URL = '/my_messages/';
 	constants.ADMIN_URL = '/admin/';
+	constants.TWS_SETTINGS_URL = '/my_settings/time_well_spent/';
 
 	constants.FEEDBACK_URL = 'http://feedback.procrasdonate.com/';
 
@@ -46,7 +48,10 @@ var constants = {};
 	constants.AUTHORIZE_PAYMENTS_URL = '/fps/user/payment/authorize/';
 	constants.AUTHORIZE_PAYMENTS_CALLBACK_URL = '/fps/user/payment/authorize_callback/';
 	
-	constants.SEND_EMAIL_URL = '/post/email/';
+	constants.SEND_FIRST_EMAIL_URL = '/send_email/first/';
+	constants.SEND_COMPLETED_REGISTRATION_EMAIL_URL = '/send_email/completed_registration/';
+	constants.SEND_STALLING_REGISTRATION_EMAIL_URL = '/send_email/stalling_registration/';
+	
 	constants.SEND_DATA_URL = '/post/data/';
 	constants.RECEIVE_DATA_URL = '/get/data/';
 	
@@ -62,6 +67,7 @@ var constants = {};
 	
 	constants.ON_INSTALL_URL = '/on_install/';
 	constants.AFTER_INSTALL_URL = '/after_install/';
+	constants.AFTER_REGISTER_URL = '/after_register/';
 	constants.AFTER_UPGRADE_URL = '/after_upgrade/';
 	
 	// used for development and testing
@@ -69,6 +75,7 @@ var constants = {};
 	constants.AUTOMATIC_TEST_SUITE_URL = '/dev/automatic_test_suite/';
 	constants.AUTOTESTER_TEST_SUITE_URL = '/dev/autotester_test_suite/';
 	constants.TIMING_TEST_SUITE_URL = '/dev/timing_test_suite/';
+	constants.VISUAL_DEBUG_URL = '/dev/visual_debug/';
 	
 	constants.AMAZON_USER_URL = "https://payments.amazon.com";
 	
@@ -187,24 +194,24 @@ var constants = {};
 		'incentive', 
 		'charities', 
 		'updates', 
-		'payments',
-		'time_well_spent'
+		'payments'/*,
+		'time_well_spent'*/
 	];
 	constants.REGISTER_STATE_TAB_NAMES = [
-		'Incentive', 'Charities', 'Services', 'Payments', 'XXXX']; // XXXX won't show done arrow, XXX will
+		'Incentive', 'Charities', 'Services', 'Payments'/*, 'XXXX'*/]; // XXXX won't show done arrow, XXX will
 	constants.REGISTER_STATE_INSERTS = [
 		"insert_register_incentive", 
 		"insert_register_charities", 
 		"insert_register_updates",
-		"insert_register_payments",
-		"insert_register_time_well_spent",
+		"insert_register_payments"/*,
+		"insert_register_time_well_spent",*/
 	];
 	constants.REGISTER_STATE_PROCESSORS = [
 		"process_register_incentive", 
 		"process_register_charities",  
 		"process_register_updates",
-		"process_register_payments",
-		"process_register_time_well_spent"
+		"process_register_payments"/*,
+		"process_register_time_well_spent"*/
 	];
 	
 	constants.DEFAULT_HASH = "nohash";
@@ -214,12 +221,12 @@ var constants = {};
 	constants.DEFAULT_EMAIL = "";
 	constants.DEFAULT_PROCRASDONATE_REASON = "ProcrasDonating for a good cause";
 	constants.DEFAULT_TIMEWELLSPENT_REASON = "TimeWellSpent for a good cause";
-	constants.DEFAULT_PD_DOLLARS_PER_HR = 5;
-	constants.DEFAULT_PD_HR_PER_WEEK_GOAL = 15;
-	constants.DEFAULT_PD_HR_PER_WEEK_MAX = 30;
+	constants.DEFAULT_PD_DOLLARS_PER_HR = 2;
+	constants.DEFAULT_PD_HR_PER_WEEK_GOAL = 10;
+	constants.DEFAULT_PD_HR_PER_WEEK_MAX = 20;
 	constants.DEFAULT_TWS_DOLLARS_PER_HR = 0;
 	constants.DEFAULT_TWS_HR_PER_WEEK_GOAL = 15;
-	constants.DEFAULT_TWS_HR_PER_WEEK_MAX = 30;
+	constants.DEFAULT_TWS_HR_PER_WEEK_MAX = 25;
 	constants.DEFAULT_SUPPORT_PCT = _prefify_float(0.07);
 	constants.DEFAULT_MONTHLY_FEE = _prefify_float(7.00);
 	constants.DEFAULT_PAYMENT_THRESHHOLD = 10;
@@ -235,7 +242,9 @@ var constants = {};
 	constants.DEFAULT_ORG_NEWSLETTERS = false;
 	constants.DEFAULT_TOS = false
 	constants.DEFAULT_TAX_DEDUCTIONS = true;
-	constants.DEFAULT_SUPPORT_METHOD = "monthly"; // or "percent"
+	constants.MONTHLY_SUPPORT_METHOD = "monthly";
+	constants.PCT_SUPPORT_METHOD = "percent";
+	constants.DEFAULT_SUPPORT_METHOD = constants.MONTHLY_SUPPORT_METHOD;
 	
 	constants.DEFAULT_PRIVATE_BROWSING_ENABLED = false;
 	

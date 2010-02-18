@@ -1,17 +1,23 @@
-from lib.view_utils import render_response, HttpResponseRedirect, extract_parameters
+from lib.view_utils import render_response, render_string, HttpResponseRedirect, extract_parameters
 from lib.json_utils import json_success, json_failure
+from lib import html_emailer
 from procrasdonate.applib.xpi_builder import XpiBuilder
 from procrasdonate.models import *
 
 from procrasdonate.processors import *
 
-import urllib, urllib2
 from django.utils import simplejson as json
 
 from django.core.urlresolvers import reverse
+from django.template import loader, Context
 
+import settings
 from settings import pathify, path, PROJECT_PATH, MEDIA_ROOT
 
+from ext import feedparser
+
+'''
+import urllib, urllib2
 def _POST(url, values):
     """
     POSTs values to url. Returns whatever url returns
@@ -20,52 +26,102 @@ def _POST(url, values):
     req = urllib2.Request(url, data)
     response = urllib2.urlopen(req).read()
     return json.loads(response)
+'''
 
-def send_email(request):
-    """
-    Sends email to user. Triggered by extension.
-    Possible types:
-      -~={ USERS }=~-
-        * WELCOME: triggered as soon as a user installs the extension
-        * UPDATE: triggered as soon as a user updates the extension
-        * TIME TO UPDATE EXTENSION: triggered when current extension version 
-                            differs from latest version received from server
-        * THANK YOU BLURBS (opt-in) -- 3 donation amount steps + blurb.
-         
-      -~={ CRON JOBS }=~-
-        * END OF YEAR EMAIL FOR TAXES
-        * END OF YEAR CHARITY NOTIFICATION (opt-in)
-        * WEEKLY (EVERY SUNDAY NIGHT):
-            their performance
-            alerts (register? reauthorize? pre-selected recipient officially signed up)
-            blog posts
-            company updates
-            tech updates
-            recipient blurb
-            * UPDATES FROM THEIR CHARITIES
-        
-      -~={ RECIPIENTS }=~-
-        * WEEKLY TO RECIPIENT: their performance, company updates, tech updates
-    """
-    #try:
-    if not request.POST:
-        return json_failure("must *POST* data")
+
+"""
+OLD :::
+
+Sends email to user. Triggered by extension.
+Possible types:
+  -~={ USERS }=~-
+    * WELCOME: triggered as soon as a user installs the extension
+    * UPDATE: triggered as soon as a user updates the extension
+    * TIME TO UPDATE EXTENSION: triggered when current extension version 
+                        differs from latest version received from server
+    * THANK YOU BLURBS (opt-in) -- 3 donation amount steps + blurb.
+     
+  -~={ CRON JOBS }=~-
+    * END OF YEAR EMAIL FOR TAXES
+    * END OF YEAR CHARITY NOTIFICATION (opt-in)
+    * WEEKLY (EVERY SUNDAY NIGHT):
+        their performance
+        alerts (register? reauthorize? pre-selected recipient officially signed up)
+        blog posts
+        company updates
+        tech updates
+        recipient blurb
+        * UPDATES FROM THEIR CHARITIES
     
+  -~={ RECIPIENTS }=~-
+    * WEEKLY TO RECIPIENT: their performance, company updates, tech updates
+"""
+
+def send_email(request, type):
     expected_parameters = ["private_key",
-                           "opt_in_status",
-                           "email_type"]
+                           "prefs"]
     response = extract_parameters(request, "POST", expected_parameters)
     if not response['success']:
-        message = "dataflow.send_email Failed to extract expected parameters %s from %s" % (expected_parameters,
-                                                                                            request.POST)
+        message = "dataflow.send_email %s Failed to extract expected parameters %s from %s" % (type,
+                                                                                               expected_parameters,
+                                                                                               request.POST)
         Log.Error(message, "DATA_FROM_EXTN")
         return json_failure(message)
     parameters = response['parameters']
-
-    #email_address = parameters['email_address']
-    #email = Email.add(email_address)
+    prefs = parameters['prefs'][0]
     
-    return json_success()
+    user = User.get_or_none(private_key=parameters['private_key'])
+    if not user:
+        message = "unknown user: %s, request=%s" % (parameters['private_key'], request)
+        Log.Error(message, "unknown_user")
+        return json_failure(message)
+    
+    if not 'email' in prefs:
+        if not user.email:
+            message = "dataflow.send_email %s: prefs does not include email, and user email is unknown. private key = %s, user = %s" % (type, parameters['private_key'], user)
+            Log.Error(message, "DATA_FROM_EXTN")
+            return json_failure(message)
+        else:
+            email = user.email.email
+    else:
+        email = prefs['email']
+        user.email = Email.get_or_create(email)
+        user.save()
+
+    if type == "first":
+        txt_t = "procrasdonate/emails/after_download_email.txt"
+        #html_t = "procrasdonate/emails/after_download_email.txt"
+        subject = "Welcome to ProcrasDonate!"
+    elif type == "stalling_registration":
+        txt_t = "procrasdonate/emails/stalling_amazon_email.txt"
+        #html_t = "procrasdonate/emails/stalling_amazon_email.txt"
+        subject = "ProcrasDonate registration almost complete!"
+    elif type == "completed_registration":
+        txt_t = "procrasdonate/emails/completed_amazon_email.txt"
+        #html_t = "procrasdonate/emails/completed_amazon_email.txt"
+        subject = "ProcrasDonate registration completed"
+    else:
+        return json_failure("Unknown email type. Please use one of 'first', 'stalling_registration', 'completed_registration'")
+    
+    c = Context({ 'name': user.name or email, 'settings': settings })
+    #txt_email = loader.get_template(txt_t)
+    #html_email = loader.get_template(html_t)
+    try:
+        txt_email = loader.get_template(txt_t)
+        message = txt_email.render(c)
+        user.email.send_email(subject, message, from_email=settings.EMAIL)
+        """
+        html_emailer.send_email(sender=settings.EMAIL,
+                                recipient=email,
+                                subject=subject,
+                                text=txt_email.render(c),
+                                html=html_email.render(c))
+        """
+        return json_success()
+    except:
+        msg = "send_email %s::Problem sending email to %s (does email address exist?)" % (type, email)
+        Log.Error(msg, "email")
+        return json_failure(msg)
 
 def receive_data(request):
     """
@@ -82,17 +138,17 @@ def receive_data(request):
         Log.Error(message, "request_error")
         return json_failure(message)
     
-    datatypes = ["totals", "logs", "userstudies", "payments", "requirespayments", "reports", "prefs"]
     processor_fnc = {'totals'          : Processor.process_total,
                      'logs'            : Processor.process_log,
                      'userstudies'     : Processor.process_userstudy,
                      'payments'        : Processor.process_payment,
+                     'monthlyfees'     : Processor.process_monthly_fee,
                      'requirespayments': Processor.process_requirespayment,
                      'reports'         : Processor.process_report,
                      'prefs'           : Processor.process_prefs}
     
     expected_parameters = ["private_key"]
-    response = extract_parameters(request, "POST", expected_parameters, datatypes)
+    response = extract_parameters(request, "POST", expected_parameters, processor_fnc.keys())
     if not response['success']:
         message = "dataflow.receive_data Failed to extract expected parameters %s from %s" % (expected_parameters,
                                                                                               request.POST)
@@ -109,7 +165,7 @@ def receive_data(request):
         return json_failure(message)
         
     processed_count = 0
-    for datatype in datatypes:
+    for datatype in processor_fnc.keys():
         if datatype in parameters:
             items = json.loads(parameters[datatype])
             print "---- %s %s -------" % (len(items), datatype)
@@ -209,17 +265,137 @@ def return_data(request):
                          'update_hash': info['update_hash']})
 
 def generate_xpi(request, slug):
-    recipient = slug != '__none__' and Recipient.get_or_none(slug=slug) or None
-    xpi_builder = XpiBuilder(pathify([PROJECT_PATH, 'procrasdonate', 'ProcrasDonateFFExtn'], file_extension=True),
-                             "%s%s" % (MEDIA_ROOT, 'xpi'),
-                             "%s%s" % (MEDIA_ROOT, 'rdf'),
-                             recipient)
-    
-    private_key = xpi_builder.write_input_json(is_update=False)
-    user = User.add(private_key)
-    Log.Log("Built XPI for download", detail="usage", user=user)
-    
-    (xpi_url, xpi_hash) = xpi_builder.build_xpi(is_update=False)
-    return json_success({'xpi_url': xpi_url,
-                         'xpi_hash': xpi_hash})
+    if not hasattr(settings, "MAX_USERS") or User.objects.count() < settings.MAX_USERS:
+        recipient = slug != '__none__' and Recipient.get_or_none(slug=slug) or None
+        xpi_builder = XpiBuilder(pathify([PROJECT_PATH, 'procrasdonate', 'ProcrasDonateFFExtn'], file_extension=True),
+                                 "%s%s" % (MEDIA_ROOT, 'xpi'),
+                                 "%s%s" % (MEDIA_ROOT, 'rdf'),
+                                 recipient)
+        
+        private_key = xpi_builder.write_input_json(is_update=False)
+        user = User.add(private_key)
+        Log.Log("Built XPI for download", detail="usage", user=user)
+        
+        (xpi_url, xpi_hash) = xpi_builder.build_xpi(is_update=False)
+        return json_success({'xpi_url': xpi_url,
+                             'xpi_hash': xpi_hash,
+                             'wait_list': False,
+                             'wait_list_url': reverse('waitlist') })
+    else:
+        return json_success({'xpi_url': None,
+                             'xpi_hash': None,
+                             'wait_list': True,
+                             'wait_list_url': reverse('waitlist') })
 
+def waitlist(request):
+    email = request.GET and request.GET.get('email', '') or ''
+    is_added = request.GET and request.GET.get('is_added', '') or ''
+    is_removed = request.GET and request.GET.get('is_removed', '') or ''
+    email = request.POST and request.POST.get('email', email) or email
+    is_added = request.POST and request.POST.get('is_added', is_added) or is_added
+    is_removed = request.POST and request.POST.get('is_removed', is_removed) or is_removed
+    group = request.GET and request.GET.get('group', 'default') or 'default'
+    print group
+    return render_response(request, 'procrasdonate/wait_list/waitlist.html', locals())
+
+def add_to_waitlist(request, group):
+    if request.POST:
+        expected_parameters = ["email"]
+        optional_parameters = ["note"]
+
+        response = extract_parameters(request, "POST", expected_parameters, optional_parameters)
+        if not response['success']:
+            Log.Error("add_to_waitlist::Something went wrong extracting parameters (no email?): %s for %s" % (response['reason'], request.GET), "waitlist")
+            return HttpResponseRedirect(reverse('waitlist'))
+            #return json_failure("oops")
+        
+        parameters = response['parameters']
+        note = 'note' in parameters and parameters['note'] or None
+        
+        w = WaitList.get_or_none(email__email=parameters['email'])
+        if not w:
+            w = WaitList.add(parameters['email'], group, note)
+        else:
+            Log.Log("Same email address added to waitlist. Note and group NOT updated from waitlist, %s. New note: %s, new group: %s" % (w, note, group), "waitlist_duplicate")
+        
+        # send email for recipient user to reset password
+        c = Context({'waiter': w,
+                     'remove_link': reverse('remove_from_waitlist', args=(w.remove_key,)),
+                     'settings': settings})
+        txt_email = loader.get_template('procrasdonate/wait_list/added_to_waitlist_email.txt')
+        html_email = loader.get_template('procrasdonate/wait_list/added_to_waitlist_email.html')
+        """
+        html_emailer.send_email(sender=settings.EMAIL,
+                                    recipient=w.email.email,
+                                    subject="Welcome ProcrasDonate Beta Tester",
+                                    text=txt_email.render(c),
+                                    html=html_email.render(c))
+        """
+        try:
+            html_emailer.send_email(sender=settings.EMAIL,
+                                    recipient=w.email.email,
+                                    subject="Welcome ProcrasDonate Beta Tester",
+                                    text=txt_email.render(c),
+                                    html=html_email.render(c))
+            return HttpResponseRedirect("%s?email=%s&is_added=True" % (reverse('waitlist'),
+                                                                       w.email.email))
+            #return json_success()
+        except:
+            Log.Error("add_to_waitlist::Problem sending added-to-waitlist email to %s (does email address exist?)" % w, "waitlist")
+            #return HttpResponseRedirect(reverse('waitlist'))
+            return HttpResponseRedirect("%s?email=%s&is_added=True" % (reverse('waitlist'),
+                                                                       w.email.email))
+            #return json_failure("oops")
+
+def remove_from_waitlist(request, remove_key):
+    w = WaitList.get_or_none(remove_key=remove_key)
+    if w:
+        Log.Log("Remove from waitlist: %s" % w, "waitlist_remove")
+        w.delete()
+        return HttpResponseRedirect("%s?email=%s&is_removed=True" % (reverse('waitlist'),
+                                                                     w.email.email))
+    return HttpResponseRedirect("%s?email=%s" % (reverse('waitlist'),
+                                                 w and w.email.email or ''))
+
+def remove_from_waitlist_form(request):
+    email = request.POST and request.POST.get('remove_email', '') or ''
+    w = WaitList.get_or_none(email__email=email)
+    if w:
+        Log.Log("Remove from waitlist: %s" % w, "waitlist_remove")
+        w.delete()
+        return HttpResponseRedirect("%s?email=%s&is_removed=True" % (reverse('waitlist'),
+                                                                     w.email.email))
+    return HttpResponseRedirect("%s?email=%s" % (reverse('waitlist'),
+                                                 email))
+
+
+url_in_text = re.compile("([\w-]+://[^\s,\)]*)")
+
+def procrasdonate_tweets(request):
+    procrasdonate_tweets = feedparser.parse("http://twitter.com/statuses/user_timeline/30937077.rss")
+    html = []
+    for entry in procrasdonate_tweets.entries[:5]:
+        title = url_in_text.sub('', entry.title)
+        tweet_link = entry.link
+        urls = url_in_text.findall(entry.title)
+        link = urls and urls[0] or ''
+        html.append(render_string(request,
+                                  'procrasdonate/snippets/tweet.html',
+                                  {'post':{'title': title,
+                                           'tweet_link': tweet_link,
+                                           'link': urls and urls[0] or ''}}))
+    return json_success({'html': ''.join(html)})
+
+def mindful_moments(request):
+    blog_posts = feedparser.parse("http://procrastinateless.wordpress.com/feed/")
+    html = []
+    for entry in blog_posts.entries[:5]:
+        html.append(render_string(request,
+                                  'procrasdonate/snippets/post.html',
+                                  {'post':{'title': entry.title,
+                                           'link': entry.link}}))
+    return json_success({'html': ''.join(html)})
+
+def ping(request):
+    print "\nPING\n"
+    return json_success()

@@ -1,0 +1,23 @@
+{% extends 'procrasdonate/base.html' %}
+
+{% block head %}
+	{{ block.super }}
+{% endblock %}
+
+{% block content %}
+	<h1>Congratulations!</h1>			
+		
+	<h2>
+		<img src="{{ MEDIA_URL }}img/Laptop.png" class="right-image">
+		You have registered for ProcrasDonate. <small>(version {{ version }})</small>
+	</h2>
+	<h4 class="what_next">What to do next...</h4>
+	
+	{% include 'procrasdonate/extension_pages/after_install_or_upgrade/standard_text.html' %}
+	
+	<br>
+	
+	<h2>New in version {{ version }}</h2>
+	{{ features }}
+
+{% endblock %}

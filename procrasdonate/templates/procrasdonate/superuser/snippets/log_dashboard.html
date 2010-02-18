@@ -1,0 +1,20 @@
+<div class="log {{ log.log_type }} {% cycle 'odd' 'even' %}">
+	<div class="datetime">
+		<div><i>{{ log.dtime|date:"N d" }}</i></div>
+		<div<i>{{ log.dtime|date:"H:i" }}</i></div>
+		<div class="detail_type">{{ log.detail_type }}</div>
+	</div>
+	{% if show_user %}
+		<div class="user">
+			<div>{{ log.user.private_key }}</div>
+			<div>{{ log.user.email.email }}</div>
+		</div>
+	{% endif %}
+	<div class="message_clip">{{ log.message }}</div>
+	{% ifequal log.detail_type "prefs" %}
+		<pre class="message">{{ log.message }}</pre>
+	{% else %}
+		<p class="message">{{ log.message }}</p>
+	{% endifequal %}
+	<div style="clear:both;"> </div>
+</div>

@@ -1,0 +1,19 @@
+<tr>
+	<td title="D=toDay, W=this Week, F=Forever">
+		{{ d.period.startdate_html }}
+		{{ d.period.type }}
+	</td>
+	<td title="Dollars pledged">{{ d.dollars_pledged|floatformat:"0" }}</td>
+	<td title="Dollars paid">{{ d.dollars_paid|floatformat:"0" }}</td>
+	<td title="Hours spent">{{ d.hours|floatformat:"0" }}</td>
+	<td title="Goals met this week / goals met ever / total goals ever">{% if d.corresponding_user_goal %}
+		{% if d.corresponding_user_goal.is_met %}yes{% else %}no{% endif %}
+		/
+		{{ user.goals_met_forever }}
+		/
+		{{ user.total_goals_forever }}
+	{% endif %}</td>
+	<td title="Hours saved">{% if d.corresponding_user_goal %}
+		{{ d.corresponding_user_goal.hours_saved }}
+	{% endif %}</td>
+</tr>

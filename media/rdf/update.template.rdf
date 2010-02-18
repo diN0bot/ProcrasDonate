@@ -1,4 +1,13 @@
 <?xml version="1.0" encoding="UTF-8"?>
+
+<!--
+This template shows what update.rdf should look like more or less.
+The xpi build script alters the following fields in the actual update.rdf:
+ * version
+ * updateLink
+ * updateHash
+-->
+
 <r:RDF xmlns:r="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
         xmlns="http://www.mozilla.org/2004/em-rdf#">
 
@@ -13,8 +22,8 @@
             <id>{ec8030f7-c20a-464f-9b0e-13a3a9e97384}</id>
             <minVersion>1.5</minVersion>
             <maxVersion>3.5.*</maxVersion>
-            <updateLink>https://procrasdonate.com/procrasdonate_media/xpi/ProcrasDonate_Update_0.3.7.xpi</updateLink>
-            <updateHash>sha1:ea682f137fda691a217e8c10ab3a67bfb33a0631</updateHash>
+            <updateLink>http://localhost:8000/procrasdonate_media/xpi/ProcrasDonate_Update_0.3.7.xpi</updateLink>
+            <updateHash>sha1:5ed3880298119eb70df8837b1ebf918010f4c16f</updateHash>
             </r:Description>
         </targetApplication>
     </r:Description>

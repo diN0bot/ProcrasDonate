@@ -1,0 +1,102 @@
+{% extends 'procrasdonate/superuser/base.html' %}
+
+{% block superuser_content %}
+	<h2>Logs</h2>
+	
+	{% comment %}
+	<div id="parameters">
+		{% if parameters %}
+			<table><tbody>
+			{% for k,v in parameters %}
+				<tr><td>{{ k }}</td><td>{{ v }}</td></tr>
+			{% endfor %}
+			</tbody></table>
+		{% else %}
+			All
+		{% endif %}
+	</div>
+	{% endcomment %}
+	
+	<label>log type</label>
+	<select onChange="dropdown_submit('log_type', this);">
+		<option value="none">all log types</option>
+		{% for log_type in log_types %}
+			<option
+				value="{{ log_type }}"
+				class="{{ log_type }}"
+				{% ifequal log_type selected_log_type %}selected{% endifequal %}
+				>
+				{{ log_type }}
+			</option>
+		{% endfor %}
+	</select>
+	
+	<label>detail type</label>
+	<select onChange="dropdown_submit('detail_type', this);">
+		<option value="none">all detail types</option>
+		{% for detail_type in detail_types %}
+			<option
+				value="{{ detail_type }}"
+				class="{{ detail_type }}"
+				{% ifequal detail_type selected_detail_type %}selected{% endifequal %}
+				>
+				{{ detail_type }}
+			</option>
+		{% endfor %}
+	</select>
+	<br />
+	<label>tos users</label>
+	<select onChange="dropdown_submit('private_key', this);">
+		<option value="none">all users</option>
+		{% for user in tos_users %}
+			<option
+				value="{{ user.private_key }}"
+				{% ifequal user.private_key selected_private_key %}selected{% endifequal %}
+				>
+				{{ user.private_key }}    ---    {{ user.email.email }}
+			</option>
+		{% endfor %}
+	</select>
+	
+	{% load pagination_tags %}
+	{% autopaginate logs 25 %}
+
+	{% paginate %}
+	{% for log in logs %}
+		<div class="log {{ log.log_type }} {% cycle 'odd' 'even' %}">
+			<div class="datetime">
+				<div><i>{{ log.dtime|date:"N d" }}</i></div>
+				<div<i>{{ log.dtime|date:"H:i" }}</i></div>
+				<div class="detail_type">{{ log.detail_type }}</div>
+			</div>
+			{% if show_user %}
+				<div class="user">
+					<div>{{ log.user.private_key }}</div>
+					<div>{{ log.user.email.email }}</div>
+				</div>
+			{% endif %}
+			<div class="message_clip">{{ log.message }}</div>
+			{% ifequal log.detail_type "prefs" %}
+				<pre class="message">{{ log.message }}</pre>
+			{% else %}
+				<p class="message">{{ log.message }}</p>
+			{% endifequal %}
+			<div style="clear:both;"> </div>
+		</div>
+	{% endfor %}
+	{% paginate %}
+	
+	<script type="text/javascript">
+	$(document).ready( function() {
+		$(".message_clip").click(function() {
+			var message = $(this).siblings(".message");
+			var currently = message.css("display");
+			if (currently == "none") {
+				message.css("display", "visible").show();
+			} else {
+				message.css("display", "none");
+			}
+		});
+	});
+	</script>
+{% endblock %}

@@ -1,0 +1,12 @@
+<ul>
+	<li>caller reference: {{ payment.caller_reference }}</li>
+	<li>{{ payment.user.private_key }}</li>
+	<li>{{ payment.recipient.name }}</li>
+	<li>{{ payment.timestamp }}</li>
+	<li>${{ payment.transaction_amount }}</li>
+	<li>(fixed fee: ${{ payment.marketplace_fixed_fee }})</li>
+	<li>(variable fee: {{ payment.marketplace_variable_fee }}%)</li>
+	<li>{{ payment.get_transaction_status_display }}</li>
+	<li>{{ payment.error_code }}</li>
+	<li>{{ payment.error_message }}</li>
+</ul>

@@ -58,10 +58,15 @@ _extend(TimeTracker.prototype, {
 					"\n diff="+diff+
 					"\n rounded="+Math.round(diff));
 			this.prefs.set("last_start", "");
-			// log diff if greater than flash max...just in case its a bug...
+			// log diff if greater than flash max...
 			if (diff > constants.DEFAULT_FLASH_MAX_IDLE) {
-				this.pddb.orthogonals.warn("store_visit:: diff greater than flash max: "+diff+" start="+start+"="+_un_dbify_date(start)+" url="+url);
+				this.pddb.orthogonals.log("store_visit:: diff greater than flash max: "+diff+" start="+start+"="+_un_dbify_date(start)+" url="+url);
 				//diff = constants.DEFAULT_FLASH_MAX_IDLE + 1;
+			}
+			// cap diff at 3 hrs no matter what.
+			// that's a long time for continuous single viewing of a webpage...
+			if (diff > 60*60*3) {
+				diff = 60*60*3;
 			}
 			var private_browsing_enabled = this.prefs.get("private_browsing_enabled", constants.DEFAULT_PRIVATE_BROWSING_ENABLED);
 			if (diff > 0 && !private_browsing_enabled) {
@@ -70,18 +75,14 @@ _extend(TimeTracker.prototype, {
 		}
 	},
 	
+	/**
+	 * @return: list of Total ids effected
+	 */
 	store_visit: function(url, start_time, duration, enter_type, leave_type) {
 		var site = this.pddb.Site.get_or_null({url__eq: url });
 		
 		if (!site) {
-			var host = _host(url);
-			var sitegroup = this.pddb.SiteGroup.get_or_create({
-				host: host
-			}, {
-				name: host,
-				host: host,
-				tag_id: this.pddb.Unsorted.id
-			});
+			var sitegroup = this.pddb.SiteGroup.create_from_url(url);
 
 			site = this.pddb.Site.create({
 				url: url,
@@ -99,11 +100,16 @@ _extend(TimeTracker.prototype, {
 			leave_type: leave_type
 		});
 		
-		this.update_totals(site, visit);
+		return this.update_totals(site, visit);
 	},
-		
+	
+	/**
+	 * @return: list of Total ids effected
+	 */
 	update_totals: function(site, visit) {
+		if (STORE_VISIT_LOGGING) logger("VISIT: "+visit);
 		var self = this;
+		var ret = [];
 		
 		var sitegroup = site.sitegroup();
 		var tag = site.tag();
@@ -124,7 +130,7 @@ _extend(TimeTracker.prototype, {
 		var pd_dollars_per_hr = _un_prefify_float(this.prefs.get('pd_dollars_per_hr', constants.PD_DEFAULT_DOLLARS_PER_HR));
 		var tws_dollars_per_hr = _un_prefify_float(this.prefs.get('tws_dollars_per_hr', constants.TWS_DEFAULT_DOLLARS_PER_HR));
 		
-		if (STORE_VISIT_LOGGING) logger("pd_dollars_per_hr="+pd_dollars_per_hr);
+		if (STORE_VISIT_LOGGING) logger("UPDATE TOTALS: pd dollars per hr:   "+pd_dollars_per_hr);
 		
 		// time_delta is in seconds
 		var time_delta = parseInt(visit.duration);
@@ -143,6 +149,8 @@ _extend(TimeTracker.prototype, {
 			}
 		}
 		
+		if (STORE_VISIT_LOGGING) logger("UPDATE TOTALS: limited time delta:     "+limited_time_delta);
+		
 		// full amount. still have to calculate recipient percents
 		// use limited_time_delta for calculation (in seconds, so turn into hours)
 		// NOTE: pd support gets taken automatically by amazon !!
@@ -152,7 +160,7 @@ _extend(TimeTracker.prototype, {
 		var pd_full_amount_delta = ( limited_time_delta / (60.0*60.0) ) * pd_dollars_per_hr;
 		var tws_full_amount_delta = ( limited_time_delta / (60.0*60.0) ) * tws_dollars_per_hr;
 		
-		if (STORE_VISIT_LOGGING) logger("time_delta="+time_delta+"limited_time_delta="+limited_time_delta+" pd_dollars_per_hr="+pd_dollars_per_hr+" tws_dollars_per_hr="+tws_dollars_per_hr);
+		if (STORE_VISIT_LOGGING) logger("UPDATE TOTALS: pd full amount delta:     "+pd_full_amount_delta);
 		
 		// don't need these anymore. see above note
 		var pd_skim_amount = pd_full_amount_delta * pd_pct;
@@ -167,18 +175,20 @@ _extend(TimeTracker.prototype, {
 		var skim_amount = 0;
 		var rest_amount = 0;
 		if ( tag.id == this.pddb.ProcrasDonate.id ) {
+			if (STORE_VISIT_LOGGING) logger("   PD tag");
 			full_amount_delta = pd_full_amount_delta;
 			skim_amount = pd_skim_amount;
 			rest_amount = pd_rest_amount;
 		} else if ( tag.id == this.pddb.TimeWellSpent.id ) {
+			if (STORE_VISIT_LOGGING) logger("   TWS tag");
 			full_amount_delta = tws_full_amount_delta;
 			skim_amount = tws_skim_amount;
 			rest_amount = tws_rest_amount;
 		} else if ( tag.id == this.pddb.Unsorted.id ) {
+			if (STORE_VISIT_LOGGING) logger("   U tag");
 			// no money changes hands
 		}
-		
-		if (STORE_VISIT_LOGGING) logger("tag == "+tag.tag+"\nfull_amount_delta="+full_amount_delta+" skim_amount="+skim_amount+" rest_amount="+rest_amount);
+		if (STORE_VISIT_LOGGING) logger("full amount delta = "+full_amount_delta);
 		
 		/// array objects containing:
 		///	contenttype instance
@@ -236,8 +246,8 @@ _extend(TimeTracker.prototype, {
 				
 			} else {
 				this.pddb.orthogonals.warn("update_totals:: not a content type we care about:"+row);
-				if (STORE_VISIT_LOGGING) logger("update_totals:: not a content type we care about");
 			}
+			if (STORE_VISIT_LOGGING) _pprint(content_instances[content_instances.length-1], "content: ");
 		});
 
 		for (var i = 0; i < timetypes.length; i++) {
@@ -248,15 +258,8 @@ _extend(TimeTracker.prototype, {
 				var content = tuple.content;
 				var amt = tuple.amt;
 				var requires_payment = tuple.requires_payment && timetypes[i].id == this.pddb.Weekly.id;
-				if (STORE_VISIT_LOGGING) logger(" ------------------------------------------------ ");
-				if (STORE_VISIT_LOGGING) logger(" `````` i "+i+"  j "+j);
-				if (STORE_VISIT_LOGGING) logger(" `````contenttype: "+contenttype);
-				if (STORE_VISIT_LOGGING) logger(" `````content: "+content);
-				if (STORE_VISIT_LOGGING) logger(" `````amt: "+amt);
-				if (STORE_VISIT_LOGGING) logger(" `````requires_payment: "+requires_payment);
+				if (STORE_VISIT_LOGGING) logger(" do TOTAL UPDATE:  amt:"+amt+", contenttype:"+contenttype+", requresp:"+requires_payment);
 				
-				if (STORE_VISIT_LOGGING) logger(" .....timetypes="+timetypes[i]);
-				if (STORE_VISIT_LOGGING) logger(" .....times="+times[i]);
 				var total = this.pddb.Total.get_or_create({
 					contenttype_id: contenttype.id,
 					content_id: content.id,
@@ -266,18 +269,21 @@ _extend(TimeTracker.prototype, {
 					total_time: 0,
 					total_amount: 0,
 				});
-				if (STORE_VISIT_LOGGING) logger(" .....before.. total... ="+total);
+				ret.push(total.id);
+				if (STORE_VISIT_LOGGING) logger("   total="+total);
 				
 				var new_total_time = parseInt(total.total_time) + time_delta;
-				var new_total_amount = parseFloat(total.total_amount) + parseFloat(amt);
+				// amt is in dollars but total_amount is in cents
+				var new_total_amount = parseFloat(total.total_amount) + parseFloat(amt)*100.0;
 				
 				this.pddb.Total.set({
-					total_time: parseInt(total.total_time) + time_delta,
-					total_amount: parseFloat(total.total_amount) + parseFloat(amt)
+					total_time: new_total_time,
+					total_amount: new_total_amount
 				}, {
 					id: total.id
 				});
-				if (STORE_VISIT_LOGGING) logger("updated total="+this.pddb.Total.get_or_null({ id: total.id }));
+				if (STORE_VISIT_LOGGING) logger("     new time="+new_total_time);
+				if (STORE_VISIT_LOGGING) logger("     new amt ="+new_total_amount);
 				
 				if ( requires_payment && timetypes[i].id == this.pddb.Weekly.id ) {
 					this.pddb.RequiresPayment.get_or_create({
@@ -289,6 +295,7 @@ _extend(TimeTracker.prototype, {
 				}
 			}
 		}
+		return ret
 	},
 	
 	check_limit: function( limit, time_delta, end_of_week, contenttype, tag ) {
@@ -303,7 +310,6 @@ _extend(TimeTracker.prototype, {
 		 *    if total_time - limit < 0, return Math.round( limit - total-time )
 		 *         this difference is the amount to add to meet limit exactly.
 		 */
-		if (STORE_VISIT_LOGGING) logger("main.js::check_limit: time_delta="+time_delta+" ||end_of_week="+end_of_week+" ||contenttype="+contenttype+" ||tag="+tag);
 		// put limit into seconds/wk not hours/wk
 		limit = limit * 3600;
 		if ( tag.id == this.pddb.Unsorted.id ) {
@@ -318,28 +324,20 @@ _extend(TimeTracker.prototype, {
 		});
 		if ( total ) {
 			var total_time = parseInt(total.total_time);
-			if (STORE_VISIT_LOGGING) logger("    total="+total);
 			var diff = total_time + time_delta;
 			var diff_m_limit = diff - limit;
-			if (STORE_VISIT_LOGGING) logger("    total_time + time_delta = diff::::"+total_time+" "+time_delta+" "+diff);
-			if (STORE_VISIT_LOGGING) logger("    diff - limit = diff_m_limit::::"+diff+" "+limit+" "+diff_m_limit);
 
 			if ( diff_m_limit <= 0 ) {
-				if (STORE_VISIT_LOGGING) logger("    dml < 0, return time_delta="+time_delta);
 				return time_delta;
 			} else {
 				var short = Math.round( limit - total_time );
 				if ( short < 0 ) {
-					if (STORE_VISIT_LOGGING) logger("    limit - total_time < 0 >>> "+total_time+" "+limit+"   return 0");
-					if (STORE_VISIT_LOGGING) logger("    short "+short);
 					return 0;
 				} else {
-					if (STORE_VISIT_LOGGING) logger("    return "+short);
 					return short;
 				}
 			}
 		} else {
-			if (STORE_VISIT_LOGGING) logger("    NO TOTAL");
 		}
 		return time_delta;
 	}

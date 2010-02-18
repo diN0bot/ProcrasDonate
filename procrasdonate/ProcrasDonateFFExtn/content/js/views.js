@@ -21,7 +21,7 @@ _extend(Controller.prototype, {
 		//    if visiting first ProcrasDonate website of the day
 		if (!this.prefs.get("inserted_top_bar_today", false)) {
 			if (this.page.top_bar_has_content()) {
-				var sitegroup = this.pddb.SiteGroup.get_or_null({ host: host });
+				var sitegroup = this.pddb.SiteGroup.get_from_url(request.url);
 				if (sitegroup) {
 					if (sitegroup.tag_id == this.pddb.ProcrasDonate.id) {
 						this.page.insert_top_bar(request);
@@ -112,6 +112,9 @@ _extend(Controller.prototype, {
 				constants.MESSAGES_STATE_ENUM, 
 				constants.MESSAGES_STATE_INSERTS);
 			break;
+		case constants.TWS_SETTINGS_URL:
+			this.page.insert_register_time_well_spent(request);
+			break;
 		case constants.HOME_URL:
 			this.page.handle_home_url(request);
 			break;
@@ -128,6 +131,9 @@ _extend(Controller.prototype, {
 			break;
 		case constants.TIMING_TEST_SUITE_URL:
 			this.page.timing_test_suite(request);
+			break;
+		case constants.VISUAL_DEBUG_URL:
+			this.page.visual_debug(request);
 			break;
 		case constants.AUTHORIZE_PAYMENTS:
 			break;
@@ -897,89 +903,97 @@ _extend(PageController.prototype, {
 	/******************************** IMPACT *********************************/
 	
 	insert_impact_totals: function(request) {
+		/*
+		 * Iterate through all RequiresPayment to determine pledges.
+		 * Iterate through all Payment to determine paid.
+		 *  -> put in right bucket based on _end_of_year( datetime )
+		 */
+		
 		var self = this;
 		this.prefs.set('impact_state', 'totals');
 		
 		var substate_menu_items = this.make_substate_menu_items('totals',
 			constants.IMPACT_STATE_ENUM, constants.IMPACT_STATE_TAB_NAMES);
 
-		var recipient_contenttype = self.pddb.ContentType.get_or_null({ modelname: "Recipient" });
-		var sitegroup_contenttype = self.pddb.ContentType.get_or_null({ modelname: "SiteGroup" });
+		var end_of_year = _end_of_year();
+		var end_of_last_year = _end_of_last_year();
 		
-		// total $$ PLEDGED for [this year, last year]
-		var taxdeduct_total_amounts = [0.0, 0.0];
-		var NOT_taxdeduct_total_amounts = [0.0, 0.0];
-		// payment {id: row, ...} for [this year, last year]
-		var taxdeduct_payments = [{}, {}];
-		var NOT_taxdeduct_payments = [{}, {}];
-		// total $$ PAID for [this year, last year]
-		var taxdeduct_payment_totals = [0.0, 0.0];
-		var NOT_taxdeduct_payment_totals = [0.0, 0.0];
+		var pledges_taxdeduct = 0.0;
+		var pledges_not = 0.0;
 
-		_iterate([recipient_contenttype, sitegroup_contenttype], function(key, contenttype, index) {
-			_iterate([_end_of_year(), _end_of_last_year()], function(key2, endtime, YEAR_INDEX) {
-				// iterate through all recipients and sitegroups for this or last year
-				self.pddb.Total.select({
-					contenttype_id: contenttype.id,
-					datetime: _dbify_date(endtime),
-					timetype_id: self.pddb.Yearly.id
-				}, function(row) {
-					var amt = row.dollars()
-					if (row.recipient() && row.recipient().has_tax_exempt_status()) {
-						taxdeduct_total_amounts[index] += amt;
-						_iterate(row.payments(), function(key3, payment, index3) {
-							taxdeduct_payments[YEAR_INDEX][payment.id] += payment;
-						});
-					} else {
-						NOT_taxdeduct_total_amounts[index] += amt;
-						_iterate(row.payments(), function(key3, payment, index3) {
-							NOT_taxdeduct_payments[YEAR_INDEX][payment.id] += payment;
-						});
-					}
-				});
-			});
+		var payments_taxdeduct = {
+				total: 0.0,
+				end_of_year: 0.0,
+				end_of_last_year: 0.0};
+		
+		var payments_not = {
+				total: 0.0,
+				end_of_year: 0.0,
+				end_of_last_year: 0.0};
+		
+		this.pddb.RequiresPayment.select({}, function(row) {
+			var total = row.total();
+			var sitegroup = total.sitegroup();
+			var recipient = total.recipient();
+			if (!sitegroup && !recipient) {
+				self.pddb.orthogonals.warn("Expected RequiresPayment for sitegroup or recipient. Found this instead: "+total+" requires_payment: "+row);
+				return
+			}
+
+			if (total.content().has_tax_exempt_status()) {
+				pledges_taxdeduct += total.dollars();
+			} else {
+				pledges_not += total.dollars();
+			}
 		});
 		
-		_iterate([0, 1], function(key, year_idx, idx) {
-			_iterate(taxdeduct_payments[idx], function(key, payment, index) {
-				taxdeduct_payment_totals[idx] += parseFloat(payment.total_amount_paid);
-			});
-			
-			_iterate(NOT_taxdeduct_payments[idx], function(key, payment, index) {
-				NOT_taxdeduct_payment_totals[idx] += parseFloat(payment.total_amount_paid);
-			});
+		/* todo for Payment
+		this.pddb.RequiresPayment.select({}, function(row) {
+			var total = row.total();
+			var date_idx = _end_of_year( _un_dbify_date(total.datetime) );
+			var sitegroup = total.sitegroup();
+			var recipient = total.recipient();
+			if (!sitegroup && !recipient) {
+				self.pddb.orthogonals.warn("Expected RequiresPayment for sitegroup or recipient. Found this instead: "+total+" requires_payment: "+row);
+				return
+			}
+			var d = taxdeduct_total_amounts;
+			if (!total.content().has_tax_exempt_status()) {
+				d = NOT_taxdeduct_total_amounts;
+			}
+			if (!d[date_idx]) { d[date_idx] = 0.0; }
+			d[date_idx] += total.dollars();
 		});
-		
+		 */
+
 		var table_headers = ["Recipients",
 		                     "Current Pledges",
-		                     "2009 Donations To Date",
-		                     "2008 All Donations",
-		                     "All Time Donations",
-		                     /*"Messages"*/];
+		                     _end_of_year().strftime("%Y Donations To Date"),
+		                     _end_of_last_year().strftime("%Y All Donations"),
+		                     "All Time Donations"];
 		var table_rows = [
 			["Total, tax-deductible recipients",
-			 (taxdeduct_total_amounts[0]+taxdeduct_total_amounts[1]) - (taxdeduct_payment_totals[0]+taxdeduct_payment_totals[1]),
-			 taxdeduct_payment_totals[0],
-			 taxdeduct_payment_totals[1],
-			 taxdeduct_payment_totals[0] + taxdeduct_payment_totals[1],
-			 /**/],
+			 pledges_taxdeduct,
+			 payments_taxdeduct[end_of_year],
+			 payments_taxdeduct[end_of_last_year],
+			 payments_taxdeduct.total
+			],
 			 
 		    ["Total, other recipients",
-		     (NOT_taxdeduct_total_amounts[0]+NOT_taxdeduct_total_amounts[1]) - (NOT_taxdeduct_payment_totals[0]+NOT_taxdeduct_payment_totals[1]),
-			 NOT_taxdeduct_payment_totals[0],
-			 NOT_taxdeduct_payment_totals[1],
-			 NOT_taxdeduct_payment_totals[0] + NOT_taxdeduct_payment_totals[1],
-			 /**/]
+		     pledges_not,
+		     payments_not[end_of_year],
+			 payments_not[end_of_last_year],
+			 payments_not.total
+			],
 		];
 		table_rows.push([
 		    "Combined total of all recipients",
 		    table_rows[0][1] + table_rows[1][1],
 		    table_rows[0][2] + table_rows[1][2],
 		    table_rows[0][3] + table_rows[1][3],
-		    table_rows[0][4] + table_rows[1][4],
-		    /**/
+		    table_rows[0][4] + table_rows[1][4]
 		]);
-		_pprint(table_rows);
+		
 		_iterate(table_rows, function(k1, row, i1) {
 			_iterate(row, function(k2, cell, i2) {
 				if (isNumber(cell)) {
@@ -1016,83 +1030,119 @@ _extend(PageController.prototype, {
 		var recipient_contenttype = self.pddb.ContentType.get_or_null({ modelname: "Recipient" });
 		var sitegroup_contenttype = self.pddb.ContentType.get_or_null({ modelname: "SiteGroup" });
 
+		var end_of_year = _end_of_year();
+		var end_of_last_year = _end_of_last_year();
+		
 		var row_data = {};
+		// total is _paid_ today, and thus sum of years data. excludes pledges. 
 		//{
-		//	 r: { slug: {thisyear: total,  lastyear: total}, ... }
-		//	sg: { host: {thisyear: total,  lastyear: total}, ... }
+		//	 r: { slug: { name: "", logo: "", pledge: 0.0, total: 0.0, end_of_year: 0.0, end_of_last_year: 0.0, ... }, ... }
+		//	sg: { host: { pledge: 0.0, total: 0.0, end_of_year: 0.0, end_of_last_year: 0.0, ... }, ... }
 		//}
 		row_data[recipient_contenttype.id] = {};
 		row_data[sitegroup_contenttype.id] = {};
 		
-		_iterate([recipient_contenttype, sitegroup_contenttype], function(key, contenttype, index) {
-			_iterate([_end_of_year(), _end_of_last_year()], function(key2, endtime, YEAR_INDEX) {
-				// iterate through all recipients and sitegroups for this or last year
-				self.pddb.Total.select({
-					contenttype_id: contenttype.id,
-					datetime: _dbify_date(endtime),
-					timetype_id: self.pddb.Yearly.id
-				}, function(total) {
-					if (filter_fn(total)) {
-						var fieldname = "slug";
-						if (contenttype.id == sitegroup_contenttype.id) fieldname = "host";
-						
-						if (!row_data[contenttype.id][total.content()[fieldname]]) {
-							row_data[contenttype.id][total.content()[fieldname]] = {}
-						}
-						row_data[contenttype.id][total.content()[fieldname]][endtime] = total;
-					};
-				});
-			});
+		this.pddb.RequiresPayment.select({}, function(row) {
+			var total = row.total();
+			
+			if (filter_fn(total)) {
+				var date_idx = _end_of_year( _un_dbify_date(total.datetime) );
+				var sitegroup = total.sitegroup();
+				var recipient = total.recipient();
+				
+				var d = null;
+				var idx = null;
+				if (sitegroup) {
+					d = row_data[sitegroup_contenttype.id];
+					idx = sitegroup.host;
+				} else if (recipient) {
+					d = row_data[recipient_contenttype.id];
+					idx = recipient.slug;
+				} else if (!sitegroup && !recipient) {
+					self.pddb.orthogonals.warn("Expected RequiresPayment for sitegroup or recipient. Found this instead: "+total+" requires_payment: "+row);
+					return
+				}
+				
+				if (!d[idx]) {
+					d[idx] = {
+						pledge: 0.0,
+						end_of_year: 0.0,
+						end_of_last_year: 0.0,
+						total: 0.0};
+					if (recipient) {
+						d[idx].logo = recipient.logo_thumbnail;
+						d[idx].name = recipient.name;
+					}
+				}
+				d[idx].pledge += total.dollars();
+			}
 		});
 		
-		// row_data
-		// {
-		//	  r: { slug: {thisyear: total,  lastyear: total}, ... }
-		//	 sg: { host: {thisyear: total,  lastyear: total}, ... }
-		// }
+		this.pddb.Payment.select({}, function(row) {
+			var total = row.total();
+			
+			if (filter_fn(total)) {
+				var date_idx = _end_of_year( _un_dbify_date(total.datetime) );
+				var sitegroup = total.sitegroup();
+				var recipient = total.recipient();
+				
+				var d = null;
+				var idx = null;
+				if (sitegroup) {
+					d = row_data[sitegroup_contenttype.id];
+					idx = sitegroup.host;
+				} else if (recipient) {
+					d = row_data[recipient_contenttype.id];
+					idx = recipient.slug;
+				} else if (!sitegroup && !recipient) {
+					self.pddb.orthogonals.warn("Expected RequiresPayment for sitegroup or recipient. Found this instead: "+total+" requires_payment: "+row);
+					return
+				}
+				
+				if (!d[idx]) {
+					d[idx] = {
+						pledge: 0.0,
+						end_of_year: 0.0,
+						end_of_last_year: 0.0,
+						total: 0.0 };
+					if (recipient) {
+						d[idx].logo = recipient.logo_thumbnail;
+						d[idx].name = recipient.name;
+					}
+				}
+				d[idx][date_idx] += parseFloat(row.total_amount_paid);
+				d[idx].total += parseFloat(row.total_amount_paid);
+			}
+		});
 		
 		// calculate row table
+		
 		var table_rows = [];
 		_iterate([recipient_contenttype, sitegroup_contenttype], function(key, contenttype, index) {
-			_iterate(row_data[contenttype.id], function(slug, twoyears, index2) {
-				var thisyear = twoyears[_end_of_year()];
-				var lastyear = twoyears[_end_of_last_year()];
-				
-				var contentname = "recipient";
-				if (contenttype.id == sitegroup_contenttype.id) contentname = "sitegroup";
-				
-				if (!thisyear[contentname]() || 
-						(lastyear && !lastyear[contentname]()) || 
-						(lastyear && thisyear[contentname]().id != lastyear[contentname]().id)) {
-					self.pddb.orthogonals.warn("Something impossible happened on impact state "+substate+": thisyear="+thisyear+" lastyear="+lastyear);
+			var d = row_data[contenttype.id];
+			var contentname = "recipient";
+			if (contenttype.id == sitegroup_contenttype.id) { contentname = "sitegroup"; }
+			
+			_iterate(d, function(slug_or_host_name, data, idx) {
+				if (data.total > 0 || data.pledge > 0) {
+					var html_name = "";
+					if (contentname == "recipient") {
+						html_name = "<img src=\""+data.logo+"\" /><span>"+data.name+"</span>";
+					} else {
+						html_name = "<span>"+slug_or_host_name+"</span>";
+					}
+					var row = [html_name,
+					           data.pledge,
+					           data[end_of_year],
+					           data[end_of_last_year],
+					           data.total];
+					
+					table_rows.push(row);
 				}
-				
-				var thispayments = 0.0;
-				_iterate(thisyear.payments(), function(k, payment, i) {
-					thispayments += parseFloat(payment.total_amount_paid);
-				});
-				
-				var lastpayments = 0.0;
-				if (lastyear) {
-					_iterate(lastyear.payments(), function(k, payment, i) {
-						lastpayments += parseFloat(payment.total_amount_paid);
-					});
-				}
-				
-				var totalpledges = thisyear.dollars();
-				if (lastyear) totalpledges += lastyear.dollars();
-				
-				table_rows.push([thisyear[contentname](),
-				                 totalpledges - (thispayments + lastpayments),
-				                 thispayments,
-				                 lastpayments,
-				                 thispayments + lastpayments
-				                 ]);
 			});
 		});
 		
-		var new_table_rows = [];
-  		_iterate(table_rows, function(k1, row, i1) {
+		_iterate(table_rows, function(k1, row, i1) {
 			_iterate(row, function(k2, cell, i2) {
 				if (isNumber(cell)) {
 					var amt = cell.toFixed(2);
@@ -1103,6 +1153,7 @@ _extend(PageController.prototype, {
 					}
 				}
 			});
+			/*
 			// format first cell
 			var first_cell = null;
 			if (table_rows[i1][0]["host"]) {
@@ -1114,32 +1165,14 @@ _extend(PageController.prototype, {
 					table_rows[i1][0]["name"]+
 					"</span>";
 			}
-			
-			// for sitegroup rows, delete if trivial
-			if (table_rows[i1][0]["host"]) {
-				var allblank = true;
-				for (var i2 = 1; i2 < table_rows[i1].length; i2++) {
-					if (table_rows[i1][i2] != "-") {
-						allblank = false;
-					}
-				}
-				if (!allblank) {
-					table_rows[i1][0] = first_cell;
-					new_table_rows.push(table_rows[i1]);
-				}
-			} else {
-				table_rows[i1][0] = first_cell;
-				new_table_rows.push(table_rows[i1]);
-			}
+			*/
 		});
-  		table_rows = new_table_rows;
-  		
+		
 		var table_headers = ["Recipients",
 		                     "Current Pledges",
-		                     "2009 Donations To Date",
-		                     "2008 All Donations",
-		                     "All Time Donations",
-		                     /*"Messages"*/];
+		                     _end_of_year().strftime("%Y Donations To Date"),
+		                     _end_of_last_year().strftime("%Y All Donations"),
+		                     "All Time Donations"];
 		
 		var middle = Template.get("impact_middle").render(
 			new Context({
@@ -1595,7 +1628,7 @@ _extend(PageController.prototype, {
 			var new_elem = request.jQuery(
 				self.make_site_box(
 					request,
-					site.sitegroup().host,
+					site.sitegroup().name,
 					site.sitegroup().host,
 					lower_case_tag_name
 				));
@@ -1658,7 +1691,9 @@ _extend(PageController.prototype, {
 		
 		var visits = [];
 		this.pddb.Visit.select({ enter_at__gte: _dbify_date(_start_of_day()) }, function(row) {
-			visits.push(row);
+			if (row.site().tag().id == self.pddb.ProcrasDonate.id) {
+				visits.push(row);
+			}
 		}, "-enter_at");
 		
 		var middle = Template.get("progress_visits_middle").render(
@@ -2315,6 +2350,13 @@ _extend(PageController.prototype, {
 				}));
 		var arrows = Template.get("register_arrows").render(
 				new Context({ substate_menu_items: substate_menu_items }));
+
+		var pd_dollars_per_hr = self.retrieve_float_for_display('pd_dollars_per_hr', constants.DEFAULT_PD_DOLLARS_PER_HR);
+		var pd_hr_per_week_max = self.retrieve_float_for_display('pd_hr_per_week_max', constants.DEFAULT_PD_HR_PER_WEEK_MAX);
+		var pd_dollars_per_week_max = (parseFloat(pd_dollars_per_hr) * parseFloat(pd_hr_per_week_max)).toFixed(2);
+		logger("INCENTIVE:\npd_dollars_per_hr"+pd_dollars_per_hr+
+				"\npd_hr_per_week_max"+pd_hr_per_week_max+
+				"\npd_dollars_per_week_max"+pd_dollars_per_week_max);
 		
 		var middle = Template.get("register_incentive_middle").render(
 			new Context({
@@ -2322,9 +2364,10 @@ _extend(PageController.prototype, {
 				substate_menu: substate_menu,
 				arrows: arrows,
 				constants: constants,
-				pd_dollars_per_hr: self.retrieve_float_for_display('pd_dollars_per_hr', constants.DEFAULT_PD_DOLLARS_PER_HR),
+				pd_dollars_per_hr: pd_dollars_per_hr,
 				pd_hr_per_week_goal: self.retrieve_float_for_display('pd_hr_per_week_goal', constants.DEFAULT_PD_HR_PER_WEEK_GOAL),
-				pd_hr_per_week_max: self.retrieve_float_for_display('pd_hr_per_week_max', constants.DEFAULT_PD_HR_PER_WEEK_MAX),
+				pd_hr_per_week_max: pd_hr_per_week_max,
+				pd_dollars_per_week_max: pd_dollars_per_week_max
 			})
 		);
 		request.jQuery("#content").html( middle );
@@ -2340,29 +2383,89 @@ _extend(PageController.prototype, {
 	activate_register_incentive: function(request) {
 		var self = this;
 
+		request.jQuery("input[name='pd_dollars_per_hr']").keyup(function() {
+			request.jQuery("#rate_error, error").html("");
+			var value = request.jQuery.trim(request.jQuery(this).attr("value"));
+			if (!value) { return; }
+			
+			if ( !self.validate_dollars_input(value) ) {
+				request.jQuery("#rate_error").html("Please enter a valid dollar amount. For example, to donate $2.34 per hour, please enter 2.34");
+			} else {
+				var pd_dollars_per_hr = parseFloat(self.clean_dollars_input(value));
+				var pd_hr_per_week_max = _un_prefify_float( self.prefs.get('pd_hr_per_week_max', constants.DEFAULT_PD_HR_PER_WEEK_MAX) );
+				var pd_dollars_per_week_max = parseFloat(self.clean_dollars_input(request.jQuery("input[name='pd_dollars_per_week_max']").attr("value")));
+				
+				var pd_hr_per_week_max = pd_dollars_per_week_max / pd_dollars_per_hr;
+				var pd_hr_per_week_goal = self.prefs.get('pd_hr_per_week_goal', constants.DEFAULT_PD_HR_PER_WEEK_GOAL);
+				
+				self.prefs.set('pd_dollars_per_hr', _prefify_float(pd_dollars_per_hr));
+				self.prefs.set('pd_hr_per_week_max', _prefify_float(pd_hr_per_week_max));
+				
+				request.jQuery("#pd_hr_per_week_max_span").text(pd_hr_per_week_max.toFixed(2));
+				request.jQuery("#pd_dollars_per_week_max").attr("value", pd_dollars_per_week_max.toFixed(2));
+				
+				self.insert_example_gauges(request);
+				
+				if (pd_hr_per_week_max < pd_hr_per_week_goal) {
+					request.jQuery("#max_error").html("Your hourly <span class=\"hourly_rate_color\">incentive</span> "+
+							"multiplied by your weekly <span class=\"weekly_goal_color\">goal</span> "+
+							"must be less than your weekly <span class=\"weekly_limit_color\">limit</span>.");
+				}
+			}
+		});
+		
 		request.jQuery("input[name='pd_hr_per_week_goal']").keyup(function() {
-			request.jQuery("#goal_error").text("");
+			request.jQuery("#goal_error, error").html("");
 			var value = request.jQuery.trim(request.jQuery(this).attr("value"));
 			if (!value) { return; }
 			
 			if ( !self.validate_hours_input(value) ) {
-				request.jQuery("#goal_error").text("Please enter number of hours. For example, to strive for 8 hrs and 15 minutes, please enter 1.25");
+				request.jQuery("#goal_error").html("Please enter number of hours. For example, to strive for 8 hrs and 15 minutes, please enter 1.25");
 			} else {
 				self.prefs.set('pd_hr_per_week_goal', self.clean_hours_input(value));
 				self.insert_example_gauges(request);
 			}
 		});
 		
+		// this input no longer used in favor of pd_dollars_per_week_max
 		request.jQuery("input[name='pd_hr_per_week_max']").keyup(function() {
-			request.jQuery("#max_error").text("");
+			request.jQuery("#max_error, error").html("");
 			var value = request.jQuery.trim(request.jQuery(this).attr("value"));
 			if (!value) { return; }
 			
 			if ( !self.validate_hours_input(value) ) {
-				request.jQuery("#max_error").text("Please enter number of hours. For example, enter 30 minutes as .5");
+				request.jQuery("#max_error").html("Please enter number of hours. For example, enter 30 minutes as .5");
 			} else {
 				self.prefs.set('pd_hr_per_week_max', self.clean_hours_input(value));
 				self.insert_example_gauges(request);
+			}
+		});
+		
+		request.jQuery("input[name='pd_dollars_per_week_max']").keyup(function() {
+			request.jQuery("#max_error, error").html("");
+			var value = request.jQuery.trim(request.jQuery(this).attr("value"));
+			if (!value) { return; }
+			
+			if ( !self.validate_dollars_input(value) ) {
+				request.jQuery("#max_error").html("Please enter the maximum dollar amount you would spend each week.");
+			} else {
+				var pd_dollars_per_hr = request.jQuery("input[name='pd_dollars_per_hr']").attr("value");
+				var pd_hr_per_week_max = _un_prefify_float( self.prefs.get('pd_hr_per_week_max', constants.DEFAULT_PD_HR_PER_WEEK_MAX) );
+				var pd_dollars_per_week_max = parseFloat( self.clean_dollars_input(value) );
+				
+				var pd_hr_per_week_max = pd_dollars_per_week_max / pd_dollars_per_hr;
+				var pd_hr_per_week_goal = self.prefs.get('pd_hr_per_week_goal', constants.DEFAULT_PD_HR_PER_WEEK_GOAL);
+				
+				self.prefs.set('pd_hr_per_week_max', _prefify_float( pd_hr_per_week_max ));
+				
+				request.jQuery("#pd_hr_per_week_max_span").text( pd_hr_per_week_max.toFixed(2) );
+				self.insert_example_gauges(request);
+				
+				if (pd_hr_per_week_max < pd_hr_per_week_goal) {
+					request.jQuery("#max_error").html("Your hourly <span class=\"hourly_rate_color\">incentive</span> "+
+							"multiplied by your weekly <span class=\"weekly_goal_color\">goal</span> "+
+							"must be less than your weekly <span class=\"weekly_limit_color\">limit</span>.");
+				}
 			}
 		});
 	},
@@ -2428,20 +2531,24 @@ _extend(PageController.prototype, {
 		var self = this;
 		var pd_dollars_per_hr = request.jQuery("input[name='pd_dollars_per_hr']").attr("value");
 		var pd_hr_per_week_goal = request.jQuery("input[name='pd_hr_per_week_goal']").attr("value");
-		var pd_hr_per_week_max = request.jQuery("input[name='pd_hr_per_week_max']").attr("value");
-
-		request.jQuery("#errors").text("");
+		var pd_dollars_per_week_max = request.jQuery("input[name='pd_dollars_per_week_max']").attr("value");
+	
+		var pd_hr_per_week_max = pd_dollars_per_week_max / pd_dollars_per_hr;
+		
+		request.jQuery("#errors").html("");
 		if ( !this.validate_dollars_input(pd_dollars_per_hr) ) {
-			request.jQuery("#rate_error").text("Please enter a valid dollar amount. For example, to donate $2.34 per hour, please enter 2.34");
+			request.jQuery("#rate_error").html("Please enter a valid dollar amount. For example, to donate $2.34 per hour, please enter 2.34");
 			
 		} else if ( !this.validate_hours_input(pd_hr_per_week_goal) ) {
-			request.jQuery("#goal_error").text("Please enter number of hours. For example, to strive for 8 hrs and 15 minutes, please enter 1.25");
+			request.jQuery("#goal_error").html("Please enter number of hours. For example, to strive for 8 hrs and 15 minutes, please enter 1.25");
 			
 		} else if ( !this.validate_hours_input(pd_hr_per_week_max) ) {
-			request.jQuery("#max_error").text("Please enter number of hours. For example, enter 30 minutes as .5");
+			request.jQuery("#max_error").html("Please enter number of hours. For example, enter 30 minutes as .5");
 			
 		} else if (parseFloat(pd_hr_per_week_goal) > parseFloat(pd_hr_per_week_max)) { 
-			request.jQuery("#max_error").text("You maximum hours cannot be less than your goal");
+			request.jQuery("#max_error").html("Your hourly <span class=\"hourly_rate_color\">incentive</span> "+
+					"multiplied by your weekly <span class=\"weekly_goal_color\">goal</span> "+
+					"must be less than your weekly <span class=\"weekly_limit_color\">limit</span>.");
 
 		} else {
 			this.prefs.set('pd_dollars_per_hr', this.clean_dollars_input(pd_dollars_per_hr));
@@ -2546,6 +2653,14 @@ _extend(PageController.prototype, {
 	},
 	
 	insert_register_charities_pie_chart: function(request) {
+		// clear existing chart
+		request.jQuery("#pie_chart").html("");
+		
+		// if no chart to show then leave
+		if (this.pddb.RecipientPercent.count() == 0) {
+			return
+		}
+		
 		var self = this;
 		var data = [];
 		var legend = [];
@@ -2559,8 +2674,7 @@ _extend(PageController.prototype, {
 		init_raphael(request.get_document());
 		init_graphael();
 		init_graphael_pie();
-		// clear existing chart
-		request.jQuery("#pie_chart").html("");
+		
 		// create pie chart
 		var paper = Raphael("pie_chart", 550, 250);
 		var pie = paper.g.piechart(125, 125, 100,
@@ -2595,7 +2709,7 @@ _extend(PageController.prototype, {
 		});
 		// activate recipient suggestion
 		request.jQuery("#new_recipient_submit").click(function() {
-			var value = request.jQuery("#new_recipient_name").attr("value").trim();
+			var value = request.jQuery.trim(request.jQuery("#new_recipient_name").attr("value"));
 			if (!value || value == "") return
 			
 			var slug = slugify(value);
@@ -2883,18 +2997,18 @@ _extend(PageController.prototype, {
 	process_register_charities: function(request) {
 		var self = this;
 		var ret = true;
-		request.jQuery("#errors").html("");
+		request.jQuery("#errors, .arrow_errors").html("");
 		
 		request.jQuery(".recipient_percent input").each( function() {
 			var percent = request.jQuery(this).attr("value");
 			try {
 				percent = parseFloat(percent) / 100.0;
 				if (percent <= 0 || percent > 1.0) {
-					request.jQuery("#errors").append("<p>Please enter a percent greater than 0 and at most 100</p>");
+					request.jQuery("#errors, .arrow_errors").append("<p>Please enter a percent greater than 0 and at most 100</p>");
 					ret = false;
 				}
 			} catch(e) {
-				request.jQuery("#errors").append("<p>Please enter a number, such as 5.24 for 5.24%</p>");
+				request.jQuery("#errors, .arrow_errors").append("<p>Please enter a number, such as 5.24 for 5.24%</p>");
 				ret = false;
 			}
 			var recipient_id = request.jQuery(this).parent().siblings(".recipient_id").text();
@@ -2904,7 +3018,7 @@ _extend(PageController.prototype, {
 		});
 		if (self.pddb.RecipientPercent.count() == 0) {
 			ret = false
-			request.jQuery("#errors").append("<p>Please add at least one recipient</p>");
+			request.jQuery("#errors, .arrow_errors").append("<p>Please add at least one recipient</p>");
 		}
 		return ret;
 	},
@@ -2945,15 +3059,15 @@ _extend(PageController.prototype, {
 		//var tws_hr_per_week_goal = request.jQuery("input[name='tws_hr_per_week_goal']").attr("value");
 		var tws_hr_per_week_max = request.jQuery("input[name='tws_hr_per_week_max']").attr("value");
 
-		request.jQuery("#errors").text("");
+		request.jQuery("#errors, .arrow_errors").text("");
 		if ( !this.validate_dollars_input(tws_dollars_per_hr) ) {
-			request.jQuery("#errors").append("<p>Please enter a valid dollar amount. For example, to donate $2.34 per hour, please enter 2.34</p>");
+			request.jQuery("#errors, .arrow_errors").append("<p>Please enter a valid dollar amount. For example, to donate $2.34 per hour, please enter 2.34</p>");
 			
 		//} else if ( !this.validate_hours_input(tws_hr_per_week_goal) ) {
 		//	request.jQuery("#errors").append("<p>Please enter number of hours. For example, to strive for 8 hrs and 15 minutes, please enter 1.25</p>");
 			
 		} else if ( !this.validate_hours_input(tws_hr_per_week_max) ) {
-			request.jQuery("#errors").append("<p>Please enter number of hours. For example, enter 30 minutes as .5</p>");
+			request.jQuery("#errors, .arrow_errors").append("<p>Please enter number of hours. For example, enter 30 minutes as .5</p>");
 			
 		} else {
 			this.prefs.set('tws_dollars_per_hr', this.clean_dollars_input(tws_dollars_per_hr));
@@ -3043,15 +3157,15 @@ _extend(PageController.prototype, {
 		var support_pct = request.jQuery("input[name='support_pct']").attr("value");
 		var monthly_fee = request.jQuery("input[name='monthly_fee']").attr("value");
 
-		request.jQuery(".error").text("");
+		request.jQuery(".error, .arrow_errors").text("");
 		if ( !this.validate_positive_float_input(support_pct) ) {
-			request.jQuery("#support_error").append("<p>Please enter a valid percent. For example, 6.75 for 6.75%</p>");
+			request.jQuery("#support_error, .arrow_errors").append("<p>Please enter a valid percent. For example, 6.75 for 6.75%</p>");
 			
 		} else if ( !this.validate_dollars_input(monthly_fee) ) {
-			request.jQuery("#monthly_error").append("<p>Please enter a valid amount. For example, 4.99 for $4.99</p>");
+			request.jQuery("#monthly_error, .arrow_errors").append("<p>Please enter a valid amount. For example, 4.99 for $4.99</p>");
 			
 		} else if ( parseFloat(support_pct) > 10.0 ) {
-			request.jQuery("#support_error").append("<p>We cannot accept more than 10%. Please enter a lower percent. For example, 10 for 10%.</p>");
+			request.jQuery("#support_error, .arrow_errors").append("<p>We cannot accept more than 10%. Please enter a lower percent. For example, 10 for 10%.</p>");
 		} else {
 			this.prefs.set('support_pct', this.clean_percent_input(support_pct));
 			this.prefs.set('monthly_fee', this.clean_dollars_input(monthly_fee));
@@ -3165,30 +3279,31 @@ _extend(PageController.prototype, {
 	},
 	
 	process_register_updates: function(request) {
-		request.jQuery("#error").text("");
+		request.jQuery("#error, .arrow_errors").text("");
 		var ret = true;
 		
 		var old_email = this.prefs.set('email', constants.DEFAULT_EMAIL);
-		var email = request.jQuery("#email").attr("value").trim();
+		var email = request.jQuery.trim(request.jQuery("#email").attr("value"));
 		
-		var weekly_affirmations = request.jQuery("#weekly_affirmations").attr("checked");
+		//var weekly_affirmations = request.jQuery("#weekly_affirmations").attr("checked");
 		var org_thank_yous = request.jQuery("#org_thank_yous").attr("checked");
 		var org_newsletters = request.jQuery("#org_newsletters").attr("checked");
 		var tos = request.jQuery("#tos").attr("checked");
 		
 		this.prefs.set('email', email);
-		this.prefs.set('weekly_affirmations', _dbify_bool(weekly_affirmations));
+		//this.prefs.set('weekly_affirmations', _dbify_bool(weekly_affirmations));
 		this.prefs.set('org_thank_yous', _dbify_bool(org_thank_yous));
 		this.prefs.set('org_newsletters', _dbify_bool(org_newsletters));
 		this.prefs.set('tos', _dbify_bool(tos));
 		
 		if (!tos) {
-			request.jQuery("#error").text("To use our service you must agree to the terms of service by checking the Terms of Service checkbox below");
+			request.jQuery("#error, .arrow_errors").text("To use our service you must agree to the terms of service by checking the Terms of Service checkbox");
 			ret = false;
 		}
 		
 		if (old_email != email) {
 			this.pd_api.send_data();
+			this.pd_api.send_first_email();
 		}
 		
 		if (this.prefs.get('tax_deductions', constants.DEFAULT_TAX_DEDUCTIONS)) {
@@ -3197,7 +3312,7 @@ _extend(PageController.prototype, {
 			_iterate(address_field_names, function(key, value, index) {
 				var value = request.jQuery("input[name="+value+"]").attr("value");
 				if (!value) {
-					request.jQuery("#error").text("To be eligible for tax deductions, you must provide your mailing address.");
+					request.jQuery("#error, .arrow_errors").text("To be eligible for tax deductions, you must provide your mailing address.");
 					ret = false;
 				}
 			});
@@ -3211,7 +3326,7 @@ _extend(PageController.prototype, {
 	 */
 	calculate_max_amount: function(pd_dollars_per_hr, pd_hr_per_week_max, min_auth_time, monthly_fee) {
 		var support_method = this.prefs.get('support_method', constants.DEFAULT_SUPPORT_METHOD);
-		if (support_method != "monthly") {
+		if (support_method != constants.MONTHLY_SUPPORT_METHOD) {
 			monthly_fee = 0;
 		}
 		var max_per_week = pd_dollars_per_hr * pd_hr_per_week_max + (monthly_fee / 4.348);
@@ -3305,14 +3420,23 @@ _extend(PageController.prototype, {
 		this.activate_register_payments(request);
 		
 		// Receive updates from server
+		self.multi_auth_update(request);	
+	},
+	
+	multi_auth_update: function(request) {
+		var self = this;
 		this.pd_api.request_data_updates(
 			function() {
+				//logger("SERVER SAYS YAY");
 				// after success
 				var multi_auth = self.pddb.FPSMultiuseAuthorization.get_latest_success()
+				//logger("multi auth="+multi_auth);
 				if (!multi_auth) {
 					multi_auth = self.pddb.FPSMultiuseAuthorization.most_recent();
+					//logger("B multi auth="+multi_auth);
 				}
-				if (multi_auth.good_to_go()) {
+				if (multi_auth && multi_auth.good_to_go()) {
+					//logger("C multi auth="+multi_auth);
 					self.insert_register_done(request);
 					return
 				}
@@ -3350,15 +3474,18 @@ _extend(PageController.prototype, {
 		
 		request.jQuery(".support_method_radio").click(function() {
 			var value = request.jQuery(this).attr("value");
-			self.prefs.set('support_method', value);
 			//self.insert_support_middle(request);
-			if (value == "monthly") {
+			if (value == constants.MONTHLY_SUPPORT_METHOD) {
+				self.prefs.set('support_method', constants.MONTHLY_SUPPORT_METHOD);
+				
 				request.jQuery(".support_method_monthly input").attr("disabled", false);
 				request.jQuery(".support_method_monthly").removeClass("disabled");
 				
 				request.jQuery(".support_method_percent input").attr("disabled", true);
 				request.jQuery(".support_method_percent").addClass("disabled");
 			} else {
+				self.prefs.set('support_method', constants.PCT_SUPPORT_METHOD);
+				
 				request.jQuery(".support_method_monthly input").attr("disabled", true);
 				request.jQuery(".support_method_monthly").addClass("disabled");
 				
@@ -3370,7 +3497,7 @@ _extend(PageController.prototype, {
 		
 		request.jQuery("#support_pct").keyup(function() {
 			var support_pct = request.jQuery(this).attr("value");
-			request.jQuery(".error").text("");
+			request.jQuery(".error, .arrow_errors").text("");
 			
 			if ( !self.validate_positive_float_input(support_pct) ) {
 				request.jQuery("#support_error").append("<p>Please enter a valid percent. For example, 6.75 for 6.75%</p>");
@@ -3438,10 +3565,13 @@ _extend(PageController.prototype, {
 	},
 	
 	insert_register_done: function(request) {
+		logger("INSERT REGISTER DONE!");
 		this.prefs.set('registration_done', true);
-		this.insert_register_time_well_spent(request);
-		/*
-		this.prefs.set('registration_done', true);
+		
+		this.pd_api.send_completed_registration_email();
+		
+		//this.insert_register_time_well_spent(request);
+
 		var unsafeWin = request.get_unsafeContentWin();//event.target.defaultView;
 		if (unsafeWin.wrappedJSObject) {
 			unsafeWin = unsafeWin.wrappedJSObject;
@@ -3456,7 +3586,11 @@ _extend(PageController.prototype, {
 		// Error: Component is not available = NS_ERROR_NOT_AVAILABLE
 		// Source file: chrome://procrasdonate/content/js/ext/jquery-1.2.6.js
 		// Line: 2020
-		new XPCNativeWrapper(unsafeWin, "location").location = constants.PD_URL + constants.SETTINGS_URL;*/
+		var version = this.prefs.get("version", "0.0.0");
+		logger("version = "+version);
+		var url = constants.PD_URL + constants.AFTER_REGISTER_URL + version + "/";
+		logger("url = "+url);
+		new XPCNativeWrapper(unsafeWin, "location").location = url;
 	}, 
 	
 	process_register_done: function(request) {
@@ -3484,13 +3618,13 @@ _extend(PageController.prototype, {
 		var self = this;
 
 		request.jQuery("input").keyup(function() {
-			request.jQuery(this).siblings(".error").text("");
+			request.jQuery(this).siblings(".error, .arrow_errors").text("");
 			var name = request.jQuery(this).attr("name");
 			var value = request.jQuery.trim(request.jQuery(this).attr("value"));
 			if (!value) { value = "0"; }
 			
 			if ( !self.validate_hours_input(value) ) {
-				request.jQuery(this).siblings(".error").text("Please enter a number");
+				request.jQuery(this).siblings(".error, .arrow_errors").text("Please enter a number");
 			} else {
 				self.prefs.set(name, _prefify_float(value));
 			}
@@ -3526,18 +3660,8 @@ _extend(PageController.prototype, {
 	add_random_visits: function() {
 		var self = this;
 		
-		var test1 = this.pddb.SiteGroup.get_or_create({
-			host: "test_pd.com"
-		}, {
-			name: "test_pd.com",
-			tag_id: self.pddb.ProcrasDonate.id
-		});
-		var test2 = this.pddb.SiteGroup.get_or_create({
-			host: "test_tws.com"
-		}, {
-			name: "test_tws.com",
-			tag_id: self.pddb.TimeWellSpent.id
-		});
+		var test1 = this.pddb.SiteGroup.create_from_url("test_pd.com", self.pddb.ProcrasDonate);
+		var test2 = this.pddb.SiteGroup.create_from_url("test_tws.com", self.pddb.TimeWellSpent);
 		
 		// add visits for last four weeks
 		// this week
@@ -3581,7 +3705,16 @@ _extend(PageController.prototype, {
 	trigger_schedule_run: function() {
 		logger("triggering schedule run...");
 		this.schedule.run();
-		logger("...daily schedule run");
+		logger("...schedule done");
+	},
+	
+	///
+	/// Triggers scheduled weekly report creation
+	///
+	trigger_create_weekly_report: function() {
+		logger("triggering create_weekly_report...");
+		this.schedule.create_weekly_report();
+		logger("...create_weekly_report done");
 	},
 	
 	///
@@ -3603,11 +3736,25 @@ _extend(PageController.prototype, {
 	},
 	
 	///
+	/// Triggers monthly cycle. Does not reset monthly period state.
+	///
+	trigger_monthly_cycle: function() {
+		logger("triggering monthly cycle...");
+		this.schedule.do_once_monthly_tasks();
+		logger("...monthly cycle done");
+	},
+	
+	///
 	/// Triggers payment. Does not reset payment period.
 	///
 	trigger_payment: function() {
 		logger("triggering payment...");
-		this.pd_api.make_payments_if_necessary(true);
+		var pct = _un_prefify_float(this.prefs.get('support_pct', constants.DEFAULT_SUPPORT_PCT));
+		var support_method = this.prefs.get('support_method', constants.DEFAULT_SUPPORT_METHOD);
+		if (support_method != constants.PERCENT_SUPPORT_METHOD) {
+			pct = 0.0;
+		}
+		this.pd_api.make_payments_if_necessary(pct, true);
 		logger("...payment done");
 	},
 	
@@ -3616,7 +3763,7 @@ _extend(PageController.prototype, {
 	},
 	
 	trigger_on_upgrade: function() {
-		myOverlay.init_listener.onUpgrade("0.3.6", "0.3.7");
+		myOverlay.init_listener.onUpgrade("0.4.0", "0.4.3");
 	},
 	
 	trigger_init_db: function() {
@@ -3653,12 +3800,16 @@ _extend(PageController.prototype, {
 					t3, t3, t4,
 					t4, t5, t5);
 			
-			var actual = subject.split(" ");
-			_pprint(actual);
-			if (actual.length > 3) {
-				actual = actual[3];
+			var actuals = subject.split(" ");
+			var actual = "";
+			if (actuals.length > 3) {
+				for (var i = 3; i < actuals.length; i++) {
+					actual += actuals[i]+" ";
+				}
+				actual = actual.substr(0, actual.length-1);
 			}
 			
+			/*
 			logger("\none week = "+pd_hrs_one_week+
 					"\ntwo week = "+pd_hrs_two_week+
 					"\nthree week = "+pd_hrs_three_week+
@@ -3666,88 +3817,137 @@ _extend(PageController.prototype, {
 					"\n"+subject);
 					//"\n"+subject+
 					//"\n"+message);
-
+			*/
+			
+			ret = {
+				expected: expected,
+				actual: actual,
+				pd_hrs_one_week: pd_hrs_one_week,
+				pd_hrs_two_week: pd_hrs_two_week,
+				pd_hrs_three_week: pd_hrs_three_week,
+				pd_hr_per_week_goal: pd_hr_per_week_goal,
+				subject: subject,
+				message: message
+			}
 			if (actual != expected) {
-				logger("############# TEST FAILED: expected:"+expected+" actual:"+actual+
-						"\none week = "+pd_hrs_one_week+
+				logger("############# TEST FAILED: expected:"+expected+": actual:"+actual+
+						"-\none week = "+pd_hrs_one_week+
 						"\ntwo week = "+pd_hrs_two_week+
 						"\nthree week = "+pd_hrs_three_week+
 						"\ngoal = "+pd_hr_per_week_goal+
 						"\n"+subject);/*+
 						"\n"+message);*/
-				return 1
+				ret.is_fail = true;
 			} else {
-				return 0
+				ret.is_fail = false;
 			}
+			return ret
 		}
 		
+		var d = [];
+		d.push( message_test(4.7, 10.6, 13.6, 20, 2, 30, "12/22", "12/28", "Winning streak") ); // winning streak
+		
+		d.push( message_test(8, 10, 12, 13, 1, 20, "12/22", "12/28", "Winning streak") ); // winning streak
+		d.push( message_test(8, 10, 12, 11, 1, 20, "12/22", "12/28", "Good work") ); // good work
+		d.push( message_test(8, 10, 12,  9, 1, 20, "12/22", "12/28", "Good work") ); // good work
+		d.push( message_test(8, 10, 12,  7, 1, 20, "12/22", "12/28", "Getting better") ); // getting better
+		
+		d.push( message_test(12, 10, 8, 13, 1, 20, "12/22", "12/28", "Winning streak") ); // 
+		d.push( message_test(12, 10, 8, 11, 1, 20, "12/22", "12/28", "Downturn") ); // 
+		d.push( message_test(12, 10, 8,  9, 1, 20, "12/22", "12/28", "Getting worse") ); // 
+		d.push( message_test(12, 10, 8,  7, 1, 20, "12/22", "12/28", "Getting worse") ); // 
+		
+		d.push( message_test(8, 12, 10, 13, 1, 20, "12/22", "12/28", "Winning streak") ); // 
+		d.push( message_test(8, 12, 10, 11, 1, 20, "12/22", "12/28", "Good work") ); // 
+		d.push( message_test(8, 12, 10,  9, 1, 20, "12/22", "12/28", "Good work") ); // 
+		d.push( message_test(8, 12, 10,  7, 1, 20, "12/22", "12/28", "Getting better") ); // 
+		
+		d.push( message_test(10, 12, 8, 13, 1, 20, "12/22", "12/28", "Winning streak") ); // 
+		d.push( message_test(10, 12, 8, 11, 1, 20, "12/22", "12/28", "Good work") ); // 
+		d.push( message_test(10, 12, 8,  9, 1, 20, "12/22", "12/28", "Getting better") ); // 
+		d.push( message_test(10, 12, 8,  7, 1, 20, "12/22", "12/28", "Getting better") ); // 
+		
+		d.push( message_test(10, 8, 12, 13, 1, 20, "12/22", "12/28", "Winning streak") ); // 
+		d.push( message_test(10, 8, 12, 11, 1, 20, "12/22", "12/28", "Good work") ); // 
+		d.push( message_test(10, 8, 12,  9, 1, 20, "12/22", "12/28", "Downturn") ); // 
+		d.push( message_test(10, 8, 12,  7, 1, 20, "12/22", "12/28", "Getting worse") ); // 
+		
+		d.push( message_test(12, 8, 10, 13, 1, 20, "12/22", "12/28", "Winning streak") ); // 
+		d.push( message_test(12, 8, 10, 11, 1, 20, "12/22", "12/28", "Downturn") ); // 
+		d.push( message_test(12, 8, 10,  9, 1, 20, "12/22", "12/28", "Downturn") ); // 
+		d.push( message_test(12, 8, 10,  7, 1, 20, "12/22", "12/28", "Getting worse") ); // 
+		
+		d.push( message_test(null, null, null, 13, 1, 20, "12/22", "12/28", "No ProcrasDonation") ); // 
+		
+		d.push( message_test(12, null, null, 13, 1, 20, "12/22", "12/28", "Good job") ); // 
+		d.push( message_test(12, null, null, 12, 1, 20, "12/22", "12/28", "Good job") ); // 
+		d.push( message_test(12, null, null, 11, 1, 20, "12/22", "12/28", "You can do better") ); // 
+		
+		d.push( message_test(10, 8, null, 7, 1, 20, "12/22", "12/28", "Getting worse") ); // 
+		d.push( message_test(10, 8, null, 9, 1, 20, "12/22", "12/28", "Downturn") ); // 
+		d.push( message_test(10, 8, null, 11, 1, 20, "12/22", "12/28", "Good work") ); // 
+		
+		d.push( message_test(10, 12, null, 9, 1, 20, "12/22", "12/28", "Getting better") ); // 
+		d.push( message_test(10, 12, null, 10, 1, 20, "12/22", "12/28", "Good work") ); // 
+		d.push( message_test(10, 12, null, 13, 1, 20, "12/22", "12/28", "Good work") ); // 
+		
+		d.push( message_test(10, 10, null, 10, 1, 20, "12/22", "12/28", "Pinball champion") ); //
+		
 		var fails = 0;
-		fails += message_test(8, 10, 12, 13, 1, 20, "12/22", "12/28", "Winning streak"); // winning streak
-		fails += message_test(8, 10, 12, 11, 1, 20, "12/22", "12/28", "Good work"); // good work
-		fails += message_test(8, 10, 12,  9, 1, 20, "12/22", "12/28", "Good work"); // good work
-		fails += message_test(8, 10, 12,  7, 1, 20, "12/22", "12/28", "Getting better"); // getting better
-		
-		fails += message_test(12, 10, 8, 13, 1, 20, "12/22", "12/28", "Winning streak"); // 
-		fails += message_test(12, 10, 8, 11, 1, 20, "12/22", "12/28", "Downturn"); // 
-		fails += message_test(12, 10, 8,  9, 1, 20, "12/22", "12/28", "Getting worse"); // 
-		fails += message_test(12, 10, 8,  7, 1, 20, "12/22", "12/28", "Getting worse"); // 
-		
-		fails += message_test(8, 12, 10, 13, 1, 20, "12/22", "12/28", "Winning streak"); // 
-		fails += message_test(8, 12, 10, 11, 1, 20, "12/22", "12/28", "Good work"); // 
-		fails += message_test(8, 12, 10,  9, 1, 20, "12/22", "12/28", "Good work"); // 
-		fails += message_test(8, 12, 10,  7, 1, 20, "12/22", "12/28", "Getting better"); // 
-		
-		fails += message_test(10, 12, 8, 13, 1, 20, "12/22", "12/28", "Winning streak"); // 
-		fails += message_test(10, 12, 8, 11, 1, 20, "12/22", "12/28", "Good work"); // 
-		fails += message_test(10, 12, 8,  9, 1, 20, "12/22", "12/28", "Getting better"); // 
-		fails += message_test(10, 12, 8,  7, 1, 20, "12/22", "12/28", "Getting better"); // 
-		
-		fails += message_test(10, 8, 12, 13, 1, 20, "12/22", "12/28", "Winning streak"); // 
-		fails += message_test(10, 8, 12, 11, 1, 20, "12/22", "12/28", "Good work"); // 
-		fails += message_test(10, 8, 12,  9, 1, 20, "12/22", "12/28", "Downturn"); // 
-		fails += message_test(10, 8, 12,  7, 1, 20, "12/22", "12/28", "Getting worse"); // 
-		
-		fails += message_test(12, 8, 10, 13, 1, 20, "12/22", "12/28", "Winning streak"); // 
-		fails += message_test(12, 8, 10, 11, 1, 20, "12/22", "12/28", "Downturn"); // 
-		fails += message_test(12, 8, 10,  9, 1, 20, "12/22", "12/28", "Downturn"); // 
-		fails += message_test(12, 8, 10,  7, 1, 20, "12/22", "12/28", "Getting worse"); // 
-		
-		fails += message_test(null, null, null, 13, 1, 20, "12/22", "12/28", "No ProcrasDonation"); // 
-		
-		fails += message_test(12, null, null, 13, 1, 20, "12/22", "12/28", "Good job"); // 
-		fails += message_test(12, null, null, 12, 1, 20, "12/22", "12/28", "Good job"); // 
-		fails += message_test(12, null, null, 11, 1, 20, "12/22", "12/28", "You can do better"); // 
-		
-		fails += message_test(10, 8, null, 7, 1, 20, "12/22", "12/28", "Getting worse"); // 
-		fails += message_test(10, 8, null, 9, 1, 20, "12/22", "12/28", "Downturn"); // 
-		fails += message_test(10, 8, null, 11, 1, 20, "12/22", "12/28", "Good work"); // 
-		
-		fails += message_test(10, 12, null, 9, 1, 20, "12/22", "12/28", "Getting better"); // 
-		fails += message_test(10, 12, null, 10, 1, 20, "12/22", "12/28", "Good work"); // 
-		fails += message_test(10, 12, null, 13, 1, 20, "12/22", "12/28", "Good work"); // 
-		
-		fails += message_test(10, 10, null, 10, 1, 20, "12/22", "12/28", "Pinball champion"); //
-		
+		_iterate(d, function(key, value, index) {
+			if (value.is_fail) {
+				fails += 1;
+			}
+		});
 		logger(">>>>>>>>> "+fails+" failures");
+		
+		return d
+	},
+	
+	/**
+	 * Sends a specific set of data to check that everything goes through exactly right,
+	 * and so that data reception can be tested manually by server.
+	 */
+	send_fake_data: function() {
+		this.pd_api.send_fake_data();
+	},
+	
+	send_first_email: function() {
+		this.pd_api.send_first_email();
+	},
+	
+	send_completed_registration_email: function() {
+		this.pd_api.send_completed_registration_email();
+	},
+	
+	send_stalling_registration_email: function() {
+		this.pd_api.send_stalling_registration_email();
 	},
 	
 	manual_test_suite: function(request) {
 		var actions = ["trigger_daily_cycle",
 		               "trigger_weekly_cycle",
+		               "trigger_monthly_cycle",
 		               "trigger_schedule_run",
-		               "",
+		               "trigger_create_weekly_report",
+		               ".",
+		               "send_first_email",
+		               "send_completed_registration_email",
+		               "send_stalling_registration_email",
+		               ".",
 		               "trigger_payment",
-		               "",
+		               ".",
 		               "trigger_on_install",
 		               "trigger_on_upgrade",
 		               "trigger_init_db",
-		               "",
+		               ".",
 		               "test_messages",
-		               "",
+		               ".",
 		               "reset_state_to_defaults",
 		               "reset_account_to_defaults",
 		               "initialize_state",
-		               "add_random_visits"];
+		               "add_random_visits",
+		               "send_fake_data"];
 		var html = Template.get("manual_test_suite").render(new Context({
 			actions: actions
 		}));
@@ -3782,6 +3982,88 @@ _extend(PageController.prototype, {
 			//self[event](request);
 			logger("inside _self_fn for "+fnname);
 		};
+	},
+	
+	visual_debug: function(request) {
+		var actions = ["show_requires_payment",
+		               "show_test_messages",
+		               "template_test"];
+		var html = Template.get("visual_debug").render(new Context({
+			actions: actions
+		}));
+		request.jQuery("#content").append( html );
+
+		var self = this;
+		for (var i = 0; i < actions.length; i++) {
+			var action = actions[i];
+			request.jQuery("#"+action).click(
+				// closure to call self[action].
+				// extra function needed to provide appropriate 'this'
+				(function(a) { return function() {
+					self[a](request);
+				}})(action)
+				//// the above code is complicated to remember, anyway.
+				//self._self_fn(action);
+			);
+		}
+	},
+	
+	show_requires_payment: function(request) {
+		var self = this;
+		var html = ["<ol>"];
+		this.pddb.RequiresPayment.select({}, function(row) {
+			var rp = Template.get("requires_payment").render(
+				new Context({ rp: row }));
+			html.push("<li>"+rp+"</li>");
+		});
+		html.push("</ol>")
+		request.jQuery("#theatre").html( html.join("\n\n") );
+	},
+	
+	template_test: function(request) {
+		var self = this;
+		
+		var a = Template.get("if_test").render(
+			new Context({ foo: true }));
+		
+		var b = Template.get("list_test").render(
+				new Context({
+					mylist: ["<div>A</div>", "<div>B</div>", "<div>C</div>"],
+					myobj: {title: "hello world"}
+				}));
+		
+		request.jQuery("#theatre").append( a );
+		request.jQuery("#theatre").append( b );
+	},
+	
+	show_test_messages: function(request) {
+		var self = this;
+		
+		var data = this.test_messages();
+		
+		var html = ["<ol>"];
+		_iterate(data, function(key, value, index) {
+			var m = Template.get("test_message").render(
+				new Context({
+					expected: value.expected,
+					actual: value.actual,
+					pd_hrs_one_week: value.pd_hrs_one_week,
+					pd_hrs_two_week: value.pd_hrs_two_week,
+					pd_hrs_three_week: value.pd_hrs_three_week,
+					pd_hr_per_week_goal: value.pd_hr_per_week_goal,
+					subject: value.subject,
+					message: value.message,
+					is_fail: value.is_fail
+				}));
+			html.push("<li>"+m+"</li>");
+		});
+		html.push("</ol>")
+		request.jQuery("#theatre").html( html.join("\n\n") );
+		
+		request.jQuery(".details").hide();
+		request.jQuery(".summary").click( function() {
+			request.jQuery(this).siblings(".details").toggle();
+		}).css("cursor", "pointer");
 	},
 
 	/// run tester tests (mutates db) and checker checks 
@@ -3841,6 +4123,7 @@ _extend(PageController.prototype, {
 		} catch(e) {
 			self.pddb.orthogonals.error(e+"\n\n"+e.stack);
 		}
+		tester.uninit();
 		
 		self.pddb = original_pddb;
 		
@@ -3886,6 +4169,7 @@ _extend(PageController.prototype, {
 		} catch(e) {
 			self.pddb.orthogonals.error(e+"\n\n"+e.stack);
 		}
+		tester.uninit();
 		
 		self.pddb = original_pddb;
 		
@@ -3923,16 +4207,24 @@ function Schedule(pddb, prefs, pd_api) {
 Schedule.prototype = {};
 _extend(Schedule.prototype, {
 	run: function() {
+		if ( this.is_new_month_period() ) {
+			this.pddb.orthogonals.log("Do monthly tasks on "+(new Date())+" for "+_un_dbify_date(this.prefs.get('last_month_mark', 0)), "schedule");
+			this.do_once_monthly_tasks();
+			this.reset_month_period();
+			this.pddb.orthogonals.log("...monthly tasks done, last_month_mark set to "+_un_dbify_date(this.prefs.get('last_month_mark', 0)), "schedule");
+		}
 		if ( this.is_new_week_period() ) {
 			this.pddb.orthogonals.log("Do weekly tasks on "+(new Date())+" for "+_un_dbify_date(this.prefs.get('last_week_mark', 0)), "schedule");
 			this.do_once_weekly_tasks();
 			this.do_make_payment();
 			this.reset_week_period();
+			this.pddb.orthogonals.log("...weekly tasks done, last_week_mark set to "+_un_dbify_date(this.prefs.get('last_week_mark', 0)), "schedule");
 		}
 		if ( this.is_new_24hr_period() ) {
 			this.pddb.orthogonals.log("Do daily tasks on "+(new Date())+" for "+_un_dbify_date(this.prefs.get('last_24hr_mark', 0)), "schedule");
 			this.do_once_daily_tasks();
 			this.reset_24hr_period();
+			this.pddb.orthogonals.log("...daily tasks done, last_24hr_mark set to "+_un_dbify_date(this.prefs.get('last_24hr_mark', 0)), "schedule");
 		}
 	},
 	
@@ -3984,8 +4276,12 @@ _extend(Schedule.prototype, {
 	is_new_week_period: function() {
 		/** @returns: true if the last marked week is over */
 		var last_week = _un_dbify_date(this.prefs.get('last_week_mark', 0));
+		//this.pddb.orthogonals.log("Do weekly tasks on "+(new Date())+" for "+_un_dbify_date(this.prefs.get('last_week_mark', 0))+" !! last_week = "+last_week, "schedule");
 		var start_of_last_week = _start_of_week(last_week);
+		//this.pddb.orthogonals.log("Do weekly tasks on "+(new Date())+" for "+_un_dbify_date(this.prefs.get('last_week_mark', 0))+" !! start_of_last_week = "+start_of_last_week, "schedule");
 		var start_of_week = _start_of_week();
+		//this.pddb.orthogonals.log("Do weekly tasks on "+(new Date())+" for "+_un_dbify_date(this.prefs.get('last_week_mark', 0))+" !! start_of_week = "+start_of_week, "schedule");
+		//this.pddb.orthogonals.log("Do weekly tasks on "+(new Date())+" for "+_un_dbify_date(this.prefs.get('last_week_mark', 0))+" !! (start_of_last_week < start_of_week) = "+(start_of_last_week < start_of_week), "schedule");
 		return start_of_last_week < start_of_week
 	},
 	
@@ -3995,7 +4291,12 @@ _extend(Schedule.prototype, {
 	
 	do_make_payment: function() {
 		/* all logic for whether to make payments is in pd_api */
-		this.pd_api.make_payments_if_necessary(false);
+		var pct = _un_prefify_float(this.prefs.get('support_pct', constants.DEFAULT_SUPPORT_PCT));
+		var support_method = this.prefs.get('support_method', constants.DEFAULT_SUPPORT_METHOD);
+		if (support_method != constants.PERCENT_SUPPORT_METHOD) {
+			pct = 0.0;
+		}
+		this.pd_api.make_payments_if_necessary(pct, false);
 	},
 
 	reset_week_period: function() {
@@ -4005,12 +4306,32 @@ _extend(Schedule.prototype, {
 		this.prefs.set('last_week_mark', _dbify_date(start_of_week));
 	},
 	
+	is_new_month_period: function() {
+		/** @returns: true if the last marked month is over */
+		var last_month = _un_dbify_date(this.prefs.get('last_month_mark', 0));
+		var start_of_last_month = _start_of_month(last_month);
+		var start_of_month = _start_of_month();
+		return start_of_last_month < start_of_month
+	},
+	
+	do_once_monthly_tasks: function() {
+		this.pd_api.pay_monthly_fee_if_necessary();
+	},
+
+	reset_month_period: function() {
+		/** reset monthly cycle to start of this month */
+		var start_of_month = _start_of_month();
+		this.prefs.set('last_month_mark', _dbify_date(start_of_month));
+	},
+	
 	retrieve_float_for_display: function(key, def) {
 		return _un_prefify_float( this.prefs.get(key, def) ).toFixed(2)
 	},
 	
 	create_weekly_report: function() {
 		var self = this;
+		
+		//logger("CREATE WEEKLY REPORT!");
 		
 		/* user might want webpage reports, just not weekly emails. oops.
 		 * if (!_un_dbify_bool(self.prefs.get('weekly_affirmations', constants.DEFAULT_WEEKLY_AFFIRMATIONS))) {
@@ -4033,8 +4354,13 @@ _extend(Schedule.prototype, {
 		var tag_contenttype = self.pddb.ContentType.get_or_null({ modelname: "Tag" });
 		var sitegroup_contenttype = self.pddb.ContentType.get_or_null({ modelname: "SiteGroup" });
 		
+		///
+		/// last week mark should be more than 7 days from now because:
+		///    * condition necessary for weekly tasks to run
+		///    * won't have been updated until after weekly tasks run
+		/// 
 		var one_week = _un_dbify_date(this.prefs.get("last_week_mark", 0));
-		one_week.setDate(one_week.getDate() - 7);
+		//one_week.setDate(one_week.getDate() - 7);
 		
 		//logger("ONE WEEK "+one_week);
 		
@@ -4216,7 +4542,13 @@ _extend(Schedule.prototype, {
 				"\n"+u_culprit_three_week);
 		*/
 		
-		[message, subject] = this.create_message_logic(
+		var met_goal = null;
+		var difference = null;
+		var seconds_saved = null;
+		
+		logger("about to call create_message_logic");
+		
+		[message, subject, met_goal, difference, seconds_saved] = this.create_message_logic(
 				pd_hrs_one_week, pd_hrs_two_week, pd_hrs_three_week,
 				tws_hrs_one_week, tws_hrs_two_week, tws_hrs_three_week,
 				u_hrs_one_week, u_hrs_two_week, u_hrs_three_week,
@@ -4227,7 +4559,11 @@ _extend(Schedule.prototype, {
 				pd_culprit_two_week, tws_culprit_two_week, u_culprit_two_week,
 				pd_culprit_three_week, tws_culprit_three_week, u_culprit_three_week);
 		
+		logger("done calling create_message_logic");
+		
 		var pd = self.pddb.Recipient.get_or_null({ slug: "PD" });
+		
+		logger("about to create report");
 		self.pddb.Report.create({
 			datetime: _dbify_date(end_date_one_week),
 			type: self.pddb.Report.WEEKLY,
@@ -4235,8 +4571,12 @@ _extend(Schedule.prototype, {
 			message: message,
 			recipient_id: pd.id,
 			read: _dbify_bool(false),
-			sent: _dbify_bool(false)
+			sent: _dbify_bool(false),
+			met_goal: met_goal,
+			difference: difference,
+			seconds_saved: seconds_saved,
 		});
+		logger("done creating report");
 	},
 	
 	create_message_logic: function(pd_hrs_one_week, pd_hrs_two_week, pd_hrs_three_week,
@@ -4262,6 +4602,42 @@ _extend(Schedule.prototype, {
 		}
 		if (pd_hrs_three_week !== null) {
 			pd_hrs_three_week_diff = Math.abs(pd_hr_per_week_goal - pd_hrs_three_week).toFixed(1);
+		}
+		
+		var met_goal = null;
+		var difference = null;
+		var seconds_saved = null;
+		
+		var pd_hrs_max_week = _un_prefify_float( this.prefs.get("pd_hrs_max_week", 0) );
+		if (pd_hrs_one_week > pd_hrs_max_week) {
+			pd_hrs_max_week = pd_hrs_one_week;
+			this.prefs.set("pd_hrs_max_week", _prefify_float(pd_hrs_max_week));
+		}
+		var tws_hrs_max_week = _un_prefify_float(this.prefs.get("tws_hrs_max_week", 0) );
+		if (tws_hrs_one_week > tws_hrs_max_week) {
+			tws_hrs_max_week = tws_hrs_one_week;
+			this.prefs.set("tws_hrs_max_week", _prefify_float(tws_hrs_max_week));
+		}
+		var u_hrs_max_week = _un_prefify_float(this.prefs.get("u_hrs_max_week", 0) );
+		if (u_hrs_one_week > u_hrs_max_week) {
+			u_hrs_max_week = u_hrs_one_week;
+			this.prefs.set("u_hrs_max_week", _prefify_float(u_hrs_max_week));
+		}
+		
+		if (pd_hrs_one_week) {
+			if (pd_hrs_one_week < pd_hr_per_week_goal) {
+				met_goal = true;
+				difference = pd_hr_per_week_goal - pd_hrs_one_week;
+				seconds_saved = (pd_hrs_max_week - pd_hrs_one_week) * 3600.0;
+			} else {
+				met_goal = false;
+				difference = pd_hr_per_week_goal - pd_hrs_one_week;
+				seconds_saved = 0;
+			}
+		} else {
+			met_goal = true;
+			difference = 0;
+			seconds_saved = pd_hrs_max_week;
 		}
 		
 		var no_data, one_week_good, one_week_bad, match, good_in_a_row, good, sudden_bad, getting_worse, getting_better = false;
@@ -4375,7 +4751,7 @@ _extend(Schedule.prototype, {
 			})
 		);
 		
-		return [message, subject]
+		return [message, subject, met_goal, difference, seconds_saved]
 	},
 
 });

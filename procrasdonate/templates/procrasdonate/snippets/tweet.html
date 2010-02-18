@@ -1,0 +1,7 @@
+
+<div class="post">
+	<h4>{% if post.link %}<a href="{{ post.link }}">{% endif %}
+		- {{ post.title|slice:"15:"|safe }}
+		{% if post.link %}</a>{% endif %}
+	</h4>
+</div>

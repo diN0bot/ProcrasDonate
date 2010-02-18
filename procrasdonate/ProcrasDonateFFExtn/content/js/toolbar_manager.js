@@ -144,6 +144,7 @@ _extend(ToolbarManager.prototype, {
 	 * @param options: contains either {sitegroup, tag} or {url}
 	 */
 	updateButtons : function(options) {
+		///_pprint(options, "updateButtons");
 		if (!this.initialized) { return }
 		
 		if (this.classify_button) {
@@ -160,7 +161,9 @@ _extend(ToolbarManager.prototype, {
 				} else {
 					url = _href();
 				}
+				///logger("updateButtons url: "+url);
 				var d = this.getDbRowsForLocation(url);
+				///_pprint(d, "updateButtons d:");
 				sitegroup = d.sitegroup;
 				tag = d.tag;
 			}
@@ -289,20 +292,14 @@ _extend(ToolbarManager.prototype, {
     	/* 
     	 * returns { sitegroup: {}, sitegrouptagging: {}, tag: {} }
     	 */
-		var href = url;
-		var host = _host(href);
+		//var host = _host(url);
+    	///logger("getDbRowsForLocation url:"+url);
 		var sitegroup = null;
 		var tag = null;
 
-		var self = this;
-		sitegroup = this.pddb.SiteGroup.get_or_create(
-			{ host: host },
-			{ name: host,
-			  host: host,
-			  tag_id: 1
-			}
-		);
-		tag = this.pddb.Tag.get_or_null({ id: sitegroup.tag_id })
+		var sitegroup = this.pddb.SiteGroup.create_from_url(url);
+		///logger("sitegroup:"+sitegroup);
+		tag = sitegroup.tag();
 		
 		return { sitegroup: sitegroup, tag: tag }
 

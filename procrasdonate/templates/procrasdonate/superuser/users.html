@@ -1,29 +1,50 @@
-{% extends 'procrasdonate/base.html' %}
+{% extends 'procrasdonate/superuser/base.html' %}
 
-{% block head %}
-	{{ block.super }}
-{% endblock %}
-
-{% block content %}
+{% block superuser_content %}
 	<h2>Users</h2>
 	
-	<ul>
-	{% for user in users %}
-		{% if user.tos %}
-			<li><a href="{% url user user.private_key %}">
-				{{ user.private_key }}: {{ user.email|default:"no email" }}</a></li>
-		{% endif %}
-	{% endfor %}
-	</ul>
+	<div class="stats">
+		<p>Number of users who...</p>
+		<table><tbody>
+			<tr>{% for key, title in stats_keys %}
+				<td title="{{ title }}">{{ key }}</td>
+			{% endfor %}</tr>
+			<tr>{% for value in stats_values %}
+				<td>{{ value }}</td>
+			{% endfor %}</tr>
+		</tbody></table>
+	</div>
 	
-	<h3>Users that have not agreed to the Terms of Use</h3>
+	<div class="stats">
+		<p>Number of users using a particular extension release</p>
+		<table><tbody>
+			<tr>{% for key in version_keys %}
+				<td>{{ key }}</td>
+			{% endfor %}</tr>
+			<tr>{% for value in version_values %}
+				<td>{{ value }}</td>
+			{% endfor %}</tr>
+		</tbody></table>
+	</div>
 	
-	<ul>
-	{% for user in users %}
-		{% if not user.tos %}
-			<li><a href="{% url user user.private_key %}">
-				{{ user.private_key }}: {{ user.email|default:"no email" }}</a></li>
-		{% endif %}
-	{% endfor %}
-	</ul>
+	<h3>Users</h3>
+	
+	{% load pagination_tags %}
+	{% autopaginate users 25 %}
+	
+	<input
+		type="checkbox"
+		name="tos"
+		onChange="checkbox_submit('tos', this);"
+		{% if tos %}checked{% endif %}/>
+	<label>Exclude users who have not agree to the TOS</label>
+	
+	{% paginate %}
+	
+	<div id="superuser_users">
+		{% for user in users %}
+			{% include 'procrasdonate/superuser/snippets/user_dashboard.html' %}
+		{% endfor %}
+	</div>
+	
 {% endblock %}

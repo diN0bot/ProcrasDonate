@@ -20,20 +20,24 @@ install.rdf
  * Incremented version numbers from v to v'.
 
 main.js
- * Add do_install_<v'> and do_upgrade_<v'> logic
-   * Evolve data base schema if necessary
+ * Add do_install_<v'> and do_upgrade_<v'> logic if necessary
+   eg: migrate database schema; initialize existing data 
 
 views.js
    * add state changes to ACCOUNT and STATE defaults.
      -- or should every call to a variable just use the settings.DEFAULT for default?
+        ^^ yes for now
 
 === procrasdonate Django app ===
 
  record changes in new template file
-   * <v'> in templates/procrasdonate/extn_pages/after_install_or_upgrade
+   * templates/procrasdonate/extn_pages/after_install_or_upgrade/<v'>.html
 
- generate update xpi
-   * xpi_it alias from command line (see README)
++++ on server +++
 
- on server:
-   chown -hR www-data:www-data /var/sites/ProcrasDonate
+use "pd_live" alias to 
+ - rebuild templates
+ - generate javascript
+ - create xpi
+ - set file ownership
+ - reload server

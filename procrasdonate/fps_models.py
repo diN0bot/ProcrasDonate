@@ -84,7 +84,7 @@ class FPSRecipientMixin(object):
             return ret[0]
     
     def pd_registered(self):
-        return self.fps_data and self.fps_data.good_to_go()
+        return (self.fps_data and self.fps_data.good_to_go())
         
 class FPSMultiuseAuth(models.Model):
     """
@@ -188,7 +188,7 @@ class FPSMultiuseAuth(models.Model):
             return now - seven_days > self.timestamp
         
     def __unicode__(self):
-        return u"FPS Multiuse Auth (%s): %s" % (self.caller_reference, self.get_status_display())
+        return u"FPS Multiuse Auth %s (%s): %s" % (self.user.private_key, self.caller_reference, self.get_status_display())
 
 class FPSMultiuseAuthMixin(object):
     """ mixed into User class """
@@ -196,6 +196,12 @@ class FPSMultiuseAuthMixin(object):
     @property
     def fps_multiuse_auth(self):
         return self.fpsmultiuseauth_set.all().order_by('timestamp')
+    
+    def authorized(self):
+        for auth in self.fps_multiuse_auth:
+            if auth.good_to_go():
+                return True
+        return False
 
 class FPSMultiusePay(models.Model):
     """

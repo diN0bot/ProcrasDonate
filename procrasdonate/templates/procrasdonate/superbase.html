@@ -29,6 +29,21 @@
 	</head>
 
 	<body>
+		<div id="download_allow_helper" class="hidden">
+			<img style="float:right; " class="floating_over_up_arrow" src="/procrasdonate_media/img/OverAndUpArrow.png"/>
+			<table>
+			<tr><td>To install <b>ProcrasDonate</b>:</td></tr>
+			<tr><td><p>1. Click ''<b>Allow</b>'' in upper right corner.</p></td>
+				<td><p>2. Click ''<b>Install Now</b>''.</p></td></tr>
+			</table>
+			{% comment %}
+			<ol>
+				<li>Click <b>Allow</b></li>
+				<li>Click <b>Install Now</b></li>
+			</ol>
+			{% endcomment %}
+			<p id="download_allow_helper_close">[close]</p>			
+		</div>
 		<div id="top_bar">
 			<div class="center_column">
 				<a href="{% url splash %}">
@@ -48,12 +63,12 @@
 			<div id="top_OrganizerMenu">
 				<div {% ifequal selected "dashboard" %}class="here_we_are"{% endifequal %}>
 				{% if request.user.is_authenticated %}
-					<a href="{% url recipient_organizer_dashboard %}">Dashboard</a>
+					<a class="top_OrganizerMenu_a" href="{% url recipient_organizer_dashboard %}">Dashboard</a>
 				</div>
 				<div>
-					<a href="{% url logout %}">Logout</a>
+					<a class="top_OrganizerMenu_a" href="{% url logout %}">Logout</a>
 				{% else %}
-					<a href="{% url login %}">Organizers</a>
+					<a class="top_OrganizerMenu_a" href="{% url login %}">Organizers</a>
 				{% endif %}
 				</div>
 			</div>

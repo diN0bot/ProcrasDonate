@@ -1,4 +1,7 @@
-import exceptions, re, os
+import exceptions
+import re
+import os
+import datetime
 
 import settings
 
@@ -23,7 +26,11 @@ def mixin(mixin, klasses, last=0):
             if last:
                 klass.__bases__ = klass.__bases__+(mixin,)
             else:
-                klass.__bases__ = (mixin,)+klass.__bases__
+                # sometimes this fails, but if change order seems to work
+                try:
+                    klass.__bases__ = (mixin,)+klass.__bases__
+                except:
+                    klass.__bases__ = klass.__bases__+(mixin,)
 
 def mixin_method(klasses):
     if not isinstance(klasses, (list, tuple)):
@@ -386,3 +393,62 @@ def convert_to_choices(choice_names, visible_names=None):
         choice_idx += 1
             
     return max_length, ENUM, CHOICES
+
+
+def send_email(subject, message, to_email, from_email=None):
+    """
+    Sends an e-mail.
+    If DJANGO_SERVER is true, then prints email to console instead
+    """
+    if settings.DJANGO_SERVER:
+        print "="*60
+        print "FROM:", from_email
+        print "TO:", to_email
+        print "SUBJECT:", subject
+        print "MESSAGE:", message
+    else:
+        from django.core.mail import send_mail
+        send_mail(subject, message, from_email, [to_email])
+
+def datetime_from_sqlite(inst, fieldname):
+    """
+    sqlite3 2.6.13 and 2.6.22 both return unicode datetimes....
+        or maybe processor is storing them in unicode??
+        sqlite stores them as text...django is supposed to wrap them as datetime, right?
+    this method fixes this problem...
+    @param inst: Django model instance
+    @param fieldname: name of a DateTimeField field
+    @return: field as a datetime
+    """
+    attr = getattr(inst, fieldname)
+    
+    if settings.DJANGO_SERVER and isinstance(attr, basestring):
+        #print "%s :::: %s is unicode (%s %s)" % (inst,
+        #                                         fieldname,
+        #                                         type(attr),
+        #                                         attr)
+        try:
+            v = datetime.datetime.strptime(attr, "%Y-%m-%d %H:%M:%S")
+            #print "   no microseconds"
+        except ValueError, e:
+            try:
+                v = datetime.datetime.strptime(attr, "%Y-%m-%d %H:%M:%S.%f")
+                #print "   used \%f to get microseconds"
+            except:
+                if '.' in attr:
+                    try:
+                        v = datetime.datetime.strptime(attr[:attr.rfind('.')],
+                                                       "%Y-%m-%d %H:%M:%S")
+                        #print "   removed microseconds from unicode"
+                    except:
+                        v = datetime.datetime.now()
+                        print "%s :::: %s is unicode (%s %s)" % (inst,
+                                                                 fieldname,
+                                                                 type(attr),
+                                                                 attr)
+                        print "ERROR: nothing worked...using now instead ?! %s" % v
+        print "  -> converted to datetime: %s" % v
+    else:
+        v = attr
+    
+    return v

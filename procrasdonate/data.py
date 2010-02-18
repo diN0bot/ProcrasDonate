@@ -17,14 +17,19 @@ import Image as PIL
 import re
 import random
 import os
+import datetime
 
 class Email(models.Model):
     """
     """
     email = models.EmailField(db_index=True)
     
-    def send_email(self, message, subject, sender):
-        pass
+    def send_email(self, subject, message, from_email=None):
+        """
+        Sends an e-mail to this User.
+        If DJANGO_SERVER is true, then prints email to console
+        """
+        model_utils.send_email(subject, message, self.email, from_email)
     
     @classmethod
     def get_or_create(klass, email):
@@ -57,6 +62,27 @@ class User(models.Model):
     org_thank_yous = models.BooleanField(default=False)
     org_newsletters = models.BooleanField(default=False)
     tos = models.BooleanField(default=False)
+    registration_done = models.BooleanField(default=False)
+    version = models.CharField(max_length=10, default="0.0.0")
+    
+    sent_initial_email = models.BooleanField(default=False)
+    sent_completed_registration_email = models.BooleanField(default=False)
+    sent_stalling_registration_email = models.BooleanField(default=False)
+    
+    def pref_version(self):
+        return self.pref('version', '0.0.0')
+    
+    def pref_registration_done(self):
+        return self.pref('registration_done', False)
+    
+    def support_method(self):
+        return self.pref('support_method')
+    
+    def monthly_fee(self):
+        return self.pref('monthly_fee')
+    
+    def support_pct(self):
+        return self.pref('support_pct')
     
     @classmethod
     def make(klass, private_key, name=None, twitter_name=None, url=None, email=None):
@@ -84,7 +110,7 @@ class Site(models.Model):
     This is not a website that someone simple visited, 
     but rather a content provider that someone paid to visit.
     """
-    url = models.URLField(max_length=400)
+    url = models.URLField(max_length=400, db_index=True)
     sitegroup = models.ForeignKey('SiteGroup')
     
     @classmethod
@@ -107,25 +133,57 @@ class SiteGroup(models.Model):
     """
     Domain-based group of Sites
     """
-    host = models.CharField(max_length=400)
+    host = models.CharField(max_length=400, db_index=True)
+    ##protocol = models.CharField(max_length=20)
     # describes valid urls
     url_re = models.CharField(max_length=256, null=True, blank=True)
     name = models.CharField(max_length=200, null=True, blank=True)
     
-    HOST_RE = re.compile("(https?|ftp|file)://([^/]+)")
+    # there are so many!
+    # http://en.wikipedia.org/wiki/URI_scheme#Official_IANA-registered_schemes
+    # (s?https?|ftp|file|about|chrome|mailto|gopher|feeds?|im|news|nfs|nntp|rtsp|tv|xmpp)
+    HOST_RE = re.compile("(^[\w-]+):(//)?(www\.)?([^/]+)")
+    FILE_RE = re.compile("^file://(.*)")
+    
+    """
+    expected outputs:
+    HOST_RE.match("http://www.wikipedia.org").groups()
+    ('http', '//', 'www.', 'wikipedia.org')
+
+    HOST_RE.match("http://en.wikipedia.org").groups()
+    ('http', '//', None, 'en.wikipedia.org')
+
+    HOST_RE.match("about:config").groups()
+    ('about', None, None, 'config')
+    
+    FILE_RE.match("file:///Users/lucy/SciFi/Vernor Vinge").groups()
+    ('/Users/lucy/SciFi/Vernor Vinge',)
+
+
+    """
     
     @classmethod
     def extract_host(klass, url):
+        file_match = SiteGroup.FILE_RE.match(url)
+        if file_match:
+            #return { 'protocol': 'file', 'host': file_match.groups()[0][:30] }
+            file_match.groups()[0][:30]
+        
         match = SiteGroup.HOST_RE.match(url)
         if match:
-            return match.groups()[1]
-        return url
-    
+            g = match.groups()
+            if len(g) >= 4:
+                #return { 'protocol': g[0][:19], 'host': g[3][:390] }
+                g[3][:390]
+        
+        #return { 'protocol': '', 'host': url[:390] }
+        return url[:390]
+
     @classmethod
     def get_or_create(klass, host, url_re=None, name=None):
         s = SiteGroup.get_or_none(host=host)
         if not s:
-            s = SiteGroup.add(host)
+            s = SiteGroup.add(host, url_re, name)
         return s
     
     @classmethod
@@ -135,7 +193,8 @@ class SiteGroup(models.Model):
                          name=name)
     
     def __unicode__(self):
-        return u"%s" % self.host
+        #return u"%s, %s" % (self.protocol, self.host)
+        return u"%s" % (self.host)
     
 
 # where files are stored after settings.MEDIA_ROOT
@@ -206,11 +265,17 @@ class Recipient(models.Model):
     country = models.CharField(max_length=100, blank=True, null=True, default='USA')
     
     logo = models.ImageField(upload_to=get_image_path, blank=True, null=True)
+    # set to True in pre_save when new logo is saved
+    # set to False in post_save
+    do_scale_logo = models.BooleanField(default=False)
     
+    # saved all as png
+    # maximum size on disk of logo (largest dimension is max)
     SCALED_MAX_HEIGHT = 300
     SCALED_MAX_WIDTH = 300
-    THUMBNAIL_MAX_HEIGHT = 50
-    THUMBNAIL_MAX_WIDTH = 50
+    # maximum size on disk of thumbnail (largest dimension is max)
+    THUMBNAIL_MAX_HEIGHT = 120
+    THUMBNAIL_MAX_WIDTH = 120
     
     promotional_video = models.URLField(blank=True, null=True, help_text="A good way to attract new donors is to have your organization's video rotating through the ProcrasDonate website.  Copy the <b>full</b> website address of the Youtube video that best represents your organization and paste it here. (optional)")
     pd_experience_video = models.URLField(blank=True, null=True, help_text="The secondary video box on our website is reserved for videos about using ProcrasDonate. If you'd like to share your organization's experience using ProcrasDonate then add that Youtube address here. (optional)")
@@ -223,7 +288,6 @@ class Recipient(models.Model):
         ordering = ('name',)
 
     def deep_dict(self):
-        print self.slug, "last_modified", self.last_modified, type(self.last_modified)
         return {'slug': self.slug,
                 'name': self.name,
                 'category': self.category.category,
@@ -239,7 +303,7 @@ class Recipient(models.Model):
                 'is_visible': self.is_visible,
                 'pd_registered': self.pd_registered(),
                 'tax_exempt_status': self.tax_exempt_status,
-                'last_modified': self.last_modified.ctime()}
+                'last_modified': model_utils.datetime_from_sqlite(self, 'last_modified')}
     
     def public_information_incomplete(self):
         return not (self.name and self.category and self.mission and self.description and self.url)
@@ -256,6 +320,7 @@ class Recipient(models.Model):
         models.signals.pre_save.connect(Recipient.process_videos, sender=Recipient)
         models.signals.pre_save.connect(Recipient.sanitize_user_input, sender=Recipient)
         #models.signals.pre_save.connect(Recipient.set_logo_dimensions, sender=Recipient)
+        models.signals.pre_save.connect(Recipient.detect_scale_logo, sender=Recipient)
         models.signals.post_save.connect(Recipient.scale_logo, sender=Recipient)
         
     @classmethod
@@ -337,34 +402,45 @@ class Recipient(models.Model):
             return ""
     
     @classmethod
+    def detect_scale_logo(klass, signal, sender, instance, **kwargs):
+        #print "INSTANCE", instance
+        #print "   logo", instance.logo
+        r = Recipient.get_or_none(slug=instance.slug)
+        #print "r", r
+        #print "   r", r.logo
+        if r and instance.logo and r.logo != instance.logo:
+            #print " TRUE "
+            instance.do_scale_logo = True
+    
+    @classmethod
     def scale_logo(klass, signal, sender, instance, created, **kwargs):
         """
         @summary: scales the logo based on MAX_SCALED_<dimension>
         """
         if not instance.logo:
+            #print "no logo"
+            return
+        if not instance.do_scale_logo:
+            #print "scale_logo instance", instance
+            #print "  logo", instance.logo
+            #print "don't scale logo"
             return
 
-        if instance.logo.width <= Recipient.SCALED_MAX_WIDTH and instance.logo.height <= Recipient.SCALED_MAX_HEIGHT:
-            im = PIL.open(instance.logo.path)
-            th = im.copy()
-            th.thumbnail((Recipient.THUMBNAIL_MAX_WIDTH, Recipient.THUMBNAIL_MAX_HEIGHT), PIL.ANTIALIAS)
-            th.save(instance.thumbnail_path(), th.format)
-            return
-        
         im = PIL.open(instance.logo.path)
-        th = im.copy()
+        
         #@TODO how log here? dependencies...
         #Log.Log("image: info=%s, format=%s, mode=%s" % (im.info, im.format, im.mode))
         if 'duration' in im.info:
             #Log.Error("animation uploaded for logo: %s for %s" % (instance.logo.path, self.slug))
             pass
         else:
-            im.thumbnail((Recipient.SCALED_MAX_WIDTH, Recipient.SCALED_MAX_HEIGHT), PIL.ANTIALIAS)
-            im.save(instance.logo.path, im.format)
-
+            sc = im.copy().convert("RGB");
+            sc.thumbnail((Recipient.SCALED_MAX_WIDTH, Recipient.SCALED_MAX_HEIGHT), PIL.ANTIALIAS)
+            sc.save(instance.logo.path, "PNG")
+            
+            th = im.copy().convert("RGB");
             th.thumbnail((Recipient.THUMBNAIL_MAX_WIDTH, Recipient.THUMBNAIL_MAX_HEIGHT), PIL.ANTIALIAS)
-            th.save(instance.thumbnail_path(), th.format)
-
+            th.save(instance.thumbnail_path(), "PNG")
         """
         looked at but didn't use: http://www.djangosnippets.org/snippets/224/
         @summary: Rescale the given image, optionally cropping it to 
@@ -436,16 +512,8 @@ class RecipientUserTagging(models.Model):
         Sends an e-mail to this User.
         If DJANGO_SERVER is true, then prints email to console
         """
-        import settings
-        if settings.DJANGO_SERVER:
-            print "="*60
-            print "FROM:", from_email
-            print "TO:", self.user.email
-            print "SUBJECT:", subject
-            print "MESSAGE:", message
-        else:
-            from django.core.mail import send_mail
-            send_mail(subject, message, from_email, [self.user.email])
+        print "Tagging.send_email"
+        model_utils.send_email(subject, message, self.user.email, from_email)
     
     @classmethod
     def create_confirmation_code(klass):
@@ -525,7 +593,7 @@ class SiteGroupTagging(models.Model):
                                 user=user)
     
     def __unicode__(self):
-        return "%s: %s -> %s" % (user, tag, sitegroup)
+        return "%s: %s -> %s" % (self.user, self.tag, self.sitegroup)
 
 class Category(models.Model):
     """
@@ -674,6 +742,27 @@ class RecipientVisit(Visit):
     def __unicode__(self):
         return "%s [[%s]]" % (self.recipient, super(RecipientVisit, self).__unicode__())
 
+
+class RecipientVoteVisit(Visit):
+    """
+    """
+    recipient_vote = models.ForeignKey('RecipientVote')
+    
+    @classmethod
+    def make(klass, recipient_vote, dtime, total_time, total_amount, user, extn_id):
+       return Visit.make(dtime,
+                         total_time,
+                         total_amount,
+                         user,
+                         extn_id,
+                         recipient_vote,
+                         "recipient_vote",
+                         RecipientVoteVisit)
+    
+    def __unicode__(self):
+        return "%s [[%s]]" % (self.recipient_vote, super(RecipientVoteVisit, self).__unicode__())
+
+
 class TagVisit(Visit):
     """
     """
@@ -717,6 +806,8 @@ class Payment(models.Model):
 
     class Meta:
         abstract = True
+        ordering = ('dtime', )
+    
 
     @classmethod
     def make(klass,
@@ -731,8 +822,7 @@ class Payment(models.Model):
              extn_id,
              extn_inst,
              extn_inst_name,
-             the_klass):
-        
+             the_klass):        
         """
         @param extn_id: 
         @param extn_inst: 
@@ -752,7 +842,49 @@ class Payment(models.Model):
         return the_inst
     
     def __unicode__(self):
-        return self.name
+        return "%s paid $%s, settled? %s" % (self.user.private_key,
+                                             self.total_amount_paid,
+                                             self.settled)
+    
+
+class MonthlyFee(models.Model):
+    dtime = models.DateTimeField(db_index=True)
+    period_dtime = models.DateTimeField(db_index=True)
+    payment_service = models.ForeignKey(PaymentService)
+    transaction_id = models.CharField(max_length=32, db_index=True)
+    settled = models.BooleanField(default=False)
+    amount = models.FloatField(default=0.0)
+    user = models.ForeignKey(User)
+    extn_id = models.IntegerField()
+
+    @classmethod
+    def make(klass,
+             dtime,
+             period_dtime,
+             payment_service,
+             transaction_id,
+             settled,
+             amount,
+             user,
+             extn_id):
+        m = MonthlyFee.get_or_none(user=user, extn_id=extn_id)
+        if not m:
+            m = MonthlyFee(dtime=dtime,
+                           period_dtime=period_dtime,
+                           payment_service=payment_service,
+                           transaction_id=transaction_id,
+                           settled=settled,
+                           amount=amount,
+                           user=user,
+                           extn_id=extn_id)
+        return m
+        
+    def __unicode__(self):
+        return "%s paid monthly fee of %s on %s for %s, settled? %s" % (self.user.private_key,
+                                                                        self.amount,
+                                                                        self.dtime,
+                                                                        self.period_dtime,
+                                                                        self.settled)
     
 class RecipientPayment(Payment):
     recipient = models.ForeignKey(Recipient)
@@ -768,10 +900,7 @@ class RecipientPayment(Payment):
              amount_paid_in_fees,
              amount_paid_tax_deductibly,
              user,
-             extn_id,
-             extn_inst,
-             extn_inst_name,
-             the_klass):
+             extn_id):
 
         return Payment.make(dtime,
                             payment_service,
@@ -785,7 +914,24 @@ class RecipientPayment(Payment):
                             recipient,
                             "recipient",
                             RecipientPayment)
+    
+    @classmethod
+    def Initialize(klass):
+        model_utils.mixin(RecipientPaymentMixin, User)
+        
+    def __unicode__(self):
+        return "%s paid $%s to %s, settled? %s" % (self.user.private_key,
+                                                   self.total_amount_paid,
+                                                   self.recipient.slug,
+                                                   self.settled)
 
+class RecipientPaymentMixin(object):
+    """ mixed into User class """
+    
+    @property
+    def recipient_payments(self):
+        return RecipientPayment.objects.filter(user=self)
+    
 class SitePayment(Payment):
     site = models.ForeignKey(Site)
     
@@ -800,10 +946,7 @@ class SitePayment(Payment):
              amount_paid_in_fees,
              amount_paid_tax_deductibly,
              user,
-             extn_id,
-             extn_inst,
-             extn_inst_name,
-             the_klass):
+             extn_id):
 
         return Payment.make(dtime,
                             payment_service,
@@ -962,6 +1105,43 @@ class MetaReportMixin(object):
     def reports(self):
         return Report.objects.filter(user=self).order_by('-dtime')
     
+class WaitList(models.Model):
+    """
+    """
+    email = models.ForeignKey(Email)
+    note = models.TextField(blank=True, null=True)
+    number_times_contacted = models.IntegerField(default=0)
+    last_contacted_date = models.DateTimeField(auto_now=True)
+    date_added = models.DateTimeField(auto_now_add=True)
+    remove_key = models.CharField(max_length=20, default="")
+    # url path when clicked download
+    group = models.CharField(max_length=100, default="default")
+    
+    @classmethod
+    def make(klass, email, group="default", note=None):
+        """
+        @param email: string email
+        """
+        email = email and Email.get_or_create(email) or None
+        return WaitList(email=email, group=group, note=note, remove_key=klass._create_remove_key(16))
+        
+    @classmethod
+    def _create_remove_key(klass, bits):
+        alphas = "abcdefghijklmnopqrstuvwxyz0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ"
+        ret = []
+        for i in range(bits):
+            ret.append(alphas[random.randint(0,len(alphas)-1)])
+        return "".join(ret)
+
+    def __unicode__(self):
+        return u"%s %s [%s] - %s - %s - %s - %s" % (self.email,
+                                                    self.group,
+                                                    self.remove_key,
+                                                    self.number_times_contacted,
+                                                    self.last_contacted_date,
+                                                    self.date_added,
+                                                    self.note)
+    
 ALL_MODELS = [Email,
               User,
               Site,
@@ -972,13 +1152,16 @@ ALL_MODELS = [Email,
               SiteVisit,
               SiteGroupVisit,
               RecipientVisit,
+              RecipientVoteVisit,
               TagVisit,
               PaymentService,
               SitePayment,
               RecipientPayment,
+              MonthlyFee,
               SiteGroupTagging,
               RecipientUserTagging,
               RecipientVote,
               Report,
-              MetaReport]
+              MetaReport,
+              WaitList]
 

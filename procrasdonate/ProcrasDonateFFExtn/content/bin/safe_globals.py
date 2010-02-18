@@ -46,3 +46,18 @@ if __name__=="__main__":
     output_file = pathify(['content', 'js', 'generated_javascript.js'], file_extension=True)
     
     concatenate(root, input_file, output_file)
+    
+    """
+    # procrasdonate files
+    input_file = pathify(['content', 'overlay_procrasdonate.txt'], file_extension=True)
+    output_file = pathify(['content', 'js', 'generated_pd_javascript.js'], file_extension=True)
+    
+    concatenate(root, input_file, output_file)
+    
+    # externals
+    input_file = pathify(['content', 'overlay_externals.txt'], file_extension=True)
+    output_file = pathify(['content', 'js', 'generated_externals_javascript.js'], file_extension=True)
+    
+    concatenate(root, input_file, output_file)
+    """
+    
