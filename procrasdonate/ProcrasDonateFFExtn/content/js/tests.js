@@ -189,9 +189,33 @@ _extend(PDChecks.prototype, {
 var PDTests = function PDTests(pddb, prefs) {
 	this.pddb = pddb;
 	this.prefs = prefs;
+	
+	// create listeners
+ 	this.observerService = Cc['@mozilla.org/observer-service;1'].getService(
+ 			Components.interfaces.nsIObserverService);
+ 	this.idleService = Components.classes["@mozilla.org/widget/idleservice;1"].getService(
+ 			Components.interfaces.nsIIdleService);
+	 	
+ 	this.time_tracker = new TimeTracker(this.pddb, this.prefs);
+ 	this.toolbar_manager = new ToolbarManager(this.pddb, this.prefs);
+ 	this.blur_focus_listener = new BlurFocusListener(this.pddb, this.prefs, this.time_tracker);
+ 	this.sleep_wake_listener = new SleepWakeListener(this.observerService, this.pddb, this.prefs, this.time_tracker);
+ 	this.idle_back_noflash_listener = new IdleBack_NoFlash_Listener(this.idleService, this.pddb, this.prefs, this.time_tracker, constants.DEFAULT_MAX_IDLE);
+ 	this.idle_back_flash_listener = new IdleBack_Flash_Listener(this.idleService, this.pddb, this.prefs, this.time_tracker, constants.DEFAULT_FLASH_MAX_IDLE);
+ 	this.private_browsing_listener = new PrivateBrowsingListener(this.observerService, this.pddb, this.prefs, this.toolbar_manager);
+
 };
 PDTests.prototype = {};
 _extend(PDTests.prototype, {
+
+ 	uninit: function(event) {
+ 		// remove listeners
+ 		this.blur_focus_listener.unregister();
+ 		this.sleep_wake_listener.unregister();
+ 		this.idle_back_noflash_listener.unregister();
+ 		this.idle_back_flash_listener.unregister();
+ 		this.private_browsing_listener.unregister();
+ 	},
 
 	test_update_totals: function(testrunner) {
 		var self = this;
@@ -273,7 +297,7 @@ _extend(PDTests.prototype, {
 	//
 	visit_new_site: function(self, tag, seconds) {
 		var site = self.new_site(tag);
-		self.pddb.store_visit(site.url, _dbify_date(new Date()), seconds);
+		self.time_tracker.store_visit(site.url, _dbify_date(new Date()), seconds);
 		return site.url
 	},
 	
