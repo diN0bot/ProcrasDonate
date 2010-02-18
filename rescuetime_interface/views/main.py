@@ -79,10 +79,10 @@ def dashboard(request, rescuetime_key):
 
 
 def authorize(request, rescuetime_key):
-    if not settings.DJANGO_SERVER and not request.is_secure():
-        message = "must secure data via HTTPS: request=%s" % request
-        Log.Error(message, "request_error")
-        return json_failure(message)
+    #if not settings.DJANGO_SERVER and not request.is_secure():
+    #    message = "must secure data via HTTPS: request=%s" % request
+    #    Log.Error(message, "request_error")
+    #    return HttpResponseRedirect(reverse('rt_dashboard', args=(rescuetime_key, )))
     
     rt = RescueTimeUser.get_or_none(rescuetime_key=rescuetime_key)
     if not rt:
@@ -177,10 +177,10 @@ def authorize_callback(request, rescuetime_key, caller_reference):
             status=CE
             callerReference=AmOYgYlAUMd6
     """
-    if not settings.DJANGO_SERVER and not request.is_secure():
-        message = "must secure data via HTTPS: request=%s" % request
-        Log.Error(message, "request_error")
-        return json_failure(message)
+    #if not settings.DJANGO_SERVER and not request.is_secure():
+    #    message = "must secure data via HTTPS: request=%s" % request
+    #    Log.Error(message, "request_error")
+    #    return HttpResponseRedirect(reverse('rt_dashboard', args=(rescuetime_key, )))
     
     print request
     print "PAYMENT AUTH CALLBACK GET: ", caller_reference, json.dumps(request.GET, indent=2)
@@ -198,7 +198,7 @@ def authorize_callback(request, rescuetime_key, caller_reference):
     if not response['success']:
         multi_auth.status = FPSMultiuseAuth.STATUSES['RESPONSE_ERROR']
         multi_auth.save()
-        return HttpResponseRedirect(reverse('register'))
+        return HttpResponseRedirect(reverse('rt_dashboard', args=(rescuetime_key, )))
     
     parameters = response['parameters']
     print "PARAMS FROM EXTRACTOR", json.dumps(parameters, indent=2)
