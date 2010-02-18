@@ -32,8 +32,6 @@
 var PDChecks = function PDChecks(pddb, prefs) {
 	this.pddb = pddb;
 	this.prefs = prefs;
-	
-	this.time_tracker = TimeTracker(pddb, prefs);
 };
 PDChecks.prototype = {};
 _extend(PDChecks.prototype, {
@@ -191,6 +189,7 @@ _extend(PDChecks.prototype, {
 var PDTests = function PDTests(pddb, prefs) {
 	this.pddb = pddb;
 	this.prefs = prefs;
+	this.time_tracker = TimeTracker(pddb, prefs);
 };
 PDTests.prototype = {};
 _extend(PDTests.prototype, {
