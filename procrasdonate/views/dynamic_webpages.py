@@ -68,11 +68,13 @@ def _get_analytics_data():
     sum_total_time = pd_total_time + tws_total_time
     
     user_totals_count = User.objects.count()
-    recip_totals_count = Recipient.objects.count()
+    #recip_totals_count = Recipient.objects.count()
+    recip_totals_count = FPSRecipient.objects.filter(status="SR").count()
     sitegroup_totals_count = TotalSiteGroup.objects.filter(total_pledged__gt=0,
                                                            period__type=Period.TYPES["FOREVER"]).count()
     sitegroup_raw_totals_count = TotalSiteGroup.objects.count()                                                           
-    sum_total_count = recip_totals_count + sitegroup_totals_count
+    #sum_total_count = recip_totals_count + sitegroup_totals_count
+    sum_total_count = recip_totals_count
     
     total_goals_met = KeyValue.get_or_none(key=KeyValue.KEYS["total_goals_met"])
     total_goals = KeyValue.get_or_none(key=KeyValue.KEYS["total_goals"])

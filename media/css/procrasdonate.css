@@ -918,3 +918,4 @@ Generic ThemeRoller Classes
 #authorize_input, #not_authorized { color: red; }
 
 #recipients_list { margin-top: 2em; margin-bottom: 4em; }
+#rescuetime_settings li { clear: both; }

@@ -2,8 +2,10 @@
 
 {% block content %}
 	<div id="dashboard">
-		<h2>ProcrasDonate: Incentive better time management</h2>
+		<h2>ProcrasDonate: Incentivize better time management</h2>
 		
+		<div id="error" style="padding:3em; background: #FFFFDD;">{{ error|safe }}</div>
+
 		<p>
 			Donate to a good cause for every hour you procrastinate according to your
 			RescueTime <em>productivity</em> score. It's a feel good incentive to not waste
@@ -64,7 +66,14 @@
 			</li>
 		
 			<li {% if not rt.recipient.name %}id="not_authorized"{% endif %}>
-				Non-profit receiving donations: {{ rt.recipient.name }}
+				Non-profit receiving donations: <div style="clear:both; margin-top: 1em;">
+				{% if rt.recipient %}
+					<img style="float: left; margin-right: 1em;" class="charity_logo" src="{{ rt.recipient.thumbnail_url }}" />
+					<b>{{ rt.recipient.name }}</b>
+					<blockquote>
+						{{ rt.recipient.mission }}
+					</blockquote>
+				{% endif %}</div>
 				<a id="recipient_edit">
 				{% if rt.recipient.name %}
 					change
