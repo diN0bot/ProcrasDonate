@@ -23,7 +23,11 @@ The xpi build script alters the following fields in the actual update.rdf:
             <minVersion>1.5</minVersion>
             <maxVersion>3.5.*</maxVersion>
             <updateLink>http://localhost:8000/procrasdonate_media/xpi/ProcrasDonate_Update_0.3.7.xpi</updateLink>
+<<<<<<< HEAD:media/rdf/update.rdf
+            <updateHash>sha1:a4769cdc14f11ebff0d6fe32eea20239cd5cc289</updateHash>
+=======
             <updateHash>sha1:5ed3880298119eb70df8837b1ebf918010f4c16f</updateHash>
+>>>>>>> 790793f52ade64240842af2e9a613bd12aa7829b:media/rdf/update.template.rdf
             </r:Description>
         </targetApplication>
     </r:Description>

@@ -32,8 +32,11 @@
 var PDChecks = function PDChecks(pddb, prefs) {
 	this.pddb = pddb;
 	this.prefs = prefs;
+<<<<<<< HEAD:procrasdonate/ProcrasDonateFFExtn/content/js/tests.js
+=======
 	
 	this.time_tracker = new TimeTracker(pddb, prefs);
+>>>>>>> ad45eee9a626791837d19f378897aac3fc063032:procrasdonate/ProcrasDonateFFExtn/content/js/tests.js
 };
 PDChecks.prototype = {};
 _extend(PDChecks.prototype, {
@@ -191,6 +194,26 @@ _extend(PDChecks.prototype, {
 var PDTests = function PDTests(pddb, prefs) {
 	this.pddb = pddb;
 	this.prefs = prefs;
+<<<<<<< HEAD:procrasdonate/ProcrasDonateFFExtn/content/js/tests.js
+	
+	// create listeners
+ 	this.observerService = Cc['@mozilla.org/observer-service;1'].getService(
+ 			Components.interfaces.nsIObserverService);
+ 	this.idleService = Components.classes["@mozilla.org/widget/idleservice;1"].getService(
+ 			Components.interfaces.nsIIdleService);
+	 	
+ 	this.time_tracker = new TimeTracker(this.pddb, this.prefs);
+ 	this.toolbar_manager = new ToolbarManager(this.pddb, this.prefs);
+ 	this.blur_focus_listener = new BlurFocusListener(this.pddb, this.prefs, this.time_tracker);
+ 	this.sleep_wake_listener = new SleepWakeListener(this.observerService, this.pddb, this.prefs, this.time_tracker);
+ 	this.idle_back_noflash_listener = new IdleBack_NoFlash_Listener(this.idleService, this.pddb, this.prefs, this.time_tracker, constants.DEFAULT_MAX_IDLE);
+ 	this.idle_back_flash_listener = new IdleBack_Flash_Listener(this.idleService, this.pddb, this.prefs, this.time_tracker, constants.DEFAULT_FLASH_MAX_IDLE);
+ 	this.private_browsing_listener = new PrivateBrowsingListener(this.observerService, this.pddb, this.prefs, this.toolbar_manager);
+
+=======
+<<<<<<< HEAD:procrasdonate/ProcrasDonateFFExtn/content/js/tests.js
+	this.time_tracker = TimeTracker(pddb, prefs);
+=======
 	
 	// create listeners
 	this.observerService = Cc['@mozilla.org/observer-service;1'].getService(
@@ -205,10 +228,23 @@ var PDTests = function PDTests(pddb, prefs) {
 	this.idle_back_noflash_listener = new IdleBack_NoFlash_Listener(this.idleService, this.pddb, this.prefs, this.time_tracker, constants.DEFAULT_MAX_IDLE);
 	this.idle_back_flash_listener = new IdleBack_Flash_Listener(this.idleService, this.pddb, this.prefs, this.time_tracker, constants.DEFAULT_FLASH_MAX_IDLE);
 	this.private_browsing_listener = new PrivateBrowsingListener(this.observerService, this.pddb, this.prefs, this.toolbar_manager);
+>>>>>>> ad45eee9a626791837d19f378897aac3fc063032:procrasdonate/ProcrasDonateFFExtn/content/js/tests.js
+>>>>>>> 790793f52ade64240842af2e9a613bd12aa7829b:procrasdonate/ProcrasDonateFFExtn/content/js/tests.js
 };
 PDTests.prototype = {};
 _extend(PDTests.prototype, {
 
+<<<<<<< HEAD:procrasdonate/ProcrasDonateFFExtn/content/js/tests.js
+ 	uninit: function(event) {
+ 		// remove listeners
+ 		this.blur_focus_listener.unregister();
+ 		this.sleep_wake_listener.unregister();
+ 		this.idle_back_noflash_listener.unregister();
+ 		this.idle_back_flash_listener.unregister();
+ 		this.private_browsing_listener.unregister();
+ 	},
+
+=======
 	uninit: function(event) {
 		// remove listeners
 		this.blur_focus_listener.unregister();
@@ -218,6 +254,7 @@ _extend(PDTests.prototype, {
 		this.private_browsing_listener.unregister();
 	},
 	
+>>>>>>> 790793f52ade64240842af2e9a613bd12aa7829b:procrasdonate/ProcrasDonateFFExtn/content/js/tests.js
 	test_update_totals: function(testrunner) {
 		var self = this;
 		
@@ -298,9 +335,15 @@ _extend(PDTests.prototype, {
 	// specified tag is not Unosrted
 	// @param tag: tag instance
 	//
+<<<<<<< HEAD:procrasdonate/ProcrasDonateFFExtn/content/js/tests.js
+	visit_new_site: function(self, tag, seconds) {
+		var site = self.new_site(tag);
+		self.time_tracker.store_visit(site.url, _dbify_date(new Date()), seconds);
+=======
 	visit_new_site: function(tag, seconds) {
 		var site = this.new_site(tag);
 		this.time_tracker.store_visit(site.url, _dbify_date(new Date()), seconds);
+>>>>>>> 790793f52ade64240842af2e9a613bd12aa7829b:procrasdonate/ProcrasDonateFFExtn/content/js/tests.js
 		return site.url
 	},
 	

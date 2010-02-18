@@ -1,10 +1,10 @@
 import settings
 
-from lib.view_utils import render_response, render_string, HttpResponseRedirect
-from lib.json_utils import json_success, json_failure
-from django.core.urlresolvers import reverse
+from lib.view_utils import render_response#, render_string, HttpResponseRedirect
+#from lib.json_utils import json_success, json_failure
+#from django.core.urlresolvers import reverse
 
-from django.contrib.auth.decorators import user_passes_test
+#from django.contrib.auth.decorators import user_passes_test
 
 from procrasdonate.models import *
 from adwords.models import *

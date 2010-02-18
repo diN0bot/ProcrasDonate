@@ -68,14 +68,14 @@ then
     if [ $pass = $total ]
     then
 	echo -e "\n            pass equals total: ${pass}, total = ${total}, fail = ${fail}"
-	firefox -P freshly_made "https://procrasdonate.com/crosstester/report/testrun?test_type=macX4_ff35&dtime=${dtime}&is_pass=True&number_fail=${fail}&total=${total}"
+	firefox -P freshly_made "https://procrasdonate.com/crosstester/report/testrun?test_type=macX4_ff35&dtime=${dtime}&is_pass=True&number_fail=${fail}&total=${total}" &
     else
 	echo -e "\n            pass does not equal total: ${pass}, total = ${total}, fail = ${fail}"
-	firefox -P freshly_made "https://procrasdonate.com/crosstester/report/testrun?test_type=macX4_ff35&dtime=${dtime}&is_pass=False&number_fail=${fail}&total=${total}"
+	firefox -P freshly_made "https://procrasdonate.com/crosstester/report/testrun?test_type=macX4_ff35&dtime=${dtime}&is_pass=False&number_fail=${fail}&total=${total}" &
     fi
 else
     echo -e "\n            tests didn't run"
-    firefox -P freshly_made "https://procrasdonate.com/crosstester/report/testrun?test_type=macX4_ff35&dtime=${dtime}&is_pass=False"
+    firefox -P freshly_made "https://procrasdonate.com/crosstester/report/testrun?test_type=macX4_ff35&dtime=${dtime}&is_pass=False" &
 fi
 sleep 15
 pid_ff4=`ps aux | grep freshly_made | grep -v grep | awk '{ print $2 }'`
