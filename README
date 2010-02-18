@@ -1,7 +1,15 @@
 
 h2. Documentation
 
-see the 'docs' folder
+See the following "docs" folders:
+    docs
+    procrasdonate/ProcrasDonateFFExtn/docs
+    crosstester/docs
+
+These contain textual overviews, as well as architectural, object model and database relation diagrams
+   - most by hand, some kept in synch using http://github.com/diN0bot/Auto-Models
+
+Technical highlights on blog:  http://proudly.procrasdonate.com
 
 h2. License
 
