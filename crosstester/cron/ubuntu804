@@ -1,0 +1,10 @@
+# m h  dom mon dow   command
+
+PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games
+DJANGO_SETTINGS_MODULE=settings
+DISPLAY=:0.0
+
+# min (0-59)    hour (0-23)     day of month (1-31)     month (1-12)    day of week (0-6, 0=Sunday)
+55      23       *       *       *       /bin/bash /home/lucy/.mozilla/firefox/ProcrasDonate/crosstester/appbin/app_tester_ubuntu804.sh &> /home/lucy/.mozilla/firefox/cron_tester.log
+
+#37      *       *       *       *       /bin/bash /home/lucy/test.sh > /home/lucy/cron_test.out

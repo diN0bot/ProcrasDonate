@@ -11,9 +11,7 @@ ProcrasDonate_API.prototype = new API();
 _extend(ProcrasDonate_API.prototype, {
 	/*
 	 * 
-	 * 
 	 */
-	
 	send_data: function() {
 		var self = this;
 		var models_to_methods = {
@@ -21,6 +19,7 @@ _extend(ProcrasDonate_API.prototype, {
 		    "UserStudy": "_get_user_studies",
             "Log": "_get_logs",
             "Payment": "_get_payments",
+            "MonthlyFee": "_get_monthly_fees",
             "RequiresPayment": "_get_requires_payments",
             "Report": "_get_reports"
 		};
@@ -50,6 +49,58 @@ _extend(ProcrasDonate_API.prototype, {
 			},
 			function(r) { //onerror
 				self.pddb.orthogonals.log("pd.js::send_data: communication error", "dataflow");
+			}
+		);
+	},
+	
+	send_fake_data: function() {
+		var self = this;
+		
+		var time_tracker = new TimeTracker(this.pddb, this.prefs);
+
+		var totals = [];
+		var now = _dbify_date(new Date());
+		var url = "http://"+now+"/send_fake_data_test";
+		this.pddb.SiteGroup.create_from_url(url, self.pddb.ProcrasDonate);
+		
+		var total_ids = time_tracker.store_visit(
+			url,
+			now,
+			3600,
+			this.pddb.Visit.TEST,
+			this.pddb.Visit.TEST);
+		
+		_iterate(total_ids, function(key, value, index) {
+			var t = self.pddb.Total.get_or_null({
+				id: value,
+				timetype_id: self.pddb.Daily.id
+			});
+			if (t) {
+				totals.push(t.deep_dict());
+			}
+		});
+		
+		var data = {
+			private_key: self.prefs.get('private_key', constants.DEFAULT_PRIVATE_KEY),
+			prefs: JSON.stringify([self.prefs.get_all()]),
+			totals: JSON.stringify(totals)
+		}
+		
+		var url = constants.PD_API_URL + constants.SEND_DATA_URL;
+		self.pddb.orthogonals.log("pd.js:: about to send fake data to "+url, "dataflow");
+
+		this._hello_operator_give_me_procrasdonate(
+			url,
+			data,
+			"POST",
+			function(r) { //onsuccess
+				self.pddb.orthogonals.log("pd.js::send_fake_data: server says successfully processed "+r.process_success_count+" items", "dataflow");
+			},
+			function(r) { //onfailure
+				self.pddb.orthogonals.warn("pd.js::send_fake_data: server says receiving data failed because "+r.reason, "dataflow");
+			},
+			function(r) { //onerror
+				self.pddb.orthogonals.warn("pd.js::send_fake_data: communication error", "dataflow");
 			}
 		);
 	},
@@ -98,6 +149,12 @@ _extend(ProcrasDonate_API.prototype, {
 		});
 	},
 	
+	_get_monthly_fees: function() {
+		return this._get_data("MonthlyFee", function(row) {
+			return row.deep_dict();
+		});
+	},
+	
 	_get_requires_payments: function() {
 		var data = [];
 		this.pddb.RequiresPayment.select({}, function(row) {
@@ -115,8 +172,19 @@ _extend(ProcrasDonate_API.prototype, {
 	},
 	
 	_get_totals: function() {
+		var self = this;
 		return this._get_data("Total", function(row) {
-			return row.deep_dict();
+			var d = row.deep_dict();
+			var week_total = self.pddb.Total.get_or_null({
+				timetype_id: self.pddb.Weekly.id,
+				contenttype_id: row.contenttype_id,
+				content_id: row.content_id,
+				datetime: _dbify_date(_end_of_week(_un_dbify_date(row.datetime)))
+			});
+			return _extend(d, {
+				weekly_requires_payment: week_total && week_total.requires_payment_dict() || {},
+				weekly_payments: week_total && week_total.payments_dict() || []
+			});
 		}, {
 			timetype_id: this.pddb.Daily.id
 		});
@@ -145,21 +213,42 @@ _extend(ProcrasDonate_API.prototype, {
 		);
 	},
 	
-	send_welcome_email: function() {
-		logger("send welcome email: "+this.prefs.get('email', constants.DEFAULT_EMAIL))
-		this.make_request(
-			constants.PD_API_URL + constants.SEND_WELCOME_EMAIL_URL,
-			{
-				email_address: this.prefs.get('email', constants.DEFAULT_EMAIL),
-				private_key: this.prefs.get('private_key', constants.DEFAULT_PRIVATE_KEY)
-			},
+	_send_type_email: function(url) {
+		var self = this;
+		
+		var email = self.prefs.get('email', constants.DEFAULT_EMAIL)
+		if (!email) {
+			self.pddb.orthogonals.log("No email sent to "+url+" because no email set", "email");
+			return
+		}
+		
+		var data = {
+			private_key: self.prefs.get('private_key', constants.DEFAULT_PRIVATE_KEY),
+			prefs: JSON.stringify([self.prefs.get_all()]),
+		}
+		
+		var url = constants.PD_API_URL + url;
+		
+		this._hello_operator_give_me_procrasdonate(
+			url,
+			data,
 			"POST",
-			function() {}
+			function() {}, //onsuccess,
+			function() {}, //onfailure,
+			function() {} //onerror
 		);
 	},
 	
-	send_regular_email: function() {
-		
+	send_first_email: function() {
+		this._send_type_email(constants.SEND_FIRST_EMAIL_URL);
+	},
+	
+	send_completed_registration_email: function() {
+		this._send_type_email(constants.SEND_COMPLETED_REGISTRATION_EMAIL_URL);
+	},
+	
+	send_stalling_registration_email: function() {
+		this._send_type_email(constants.SEND_STALLING_REGISTRATION_EMAIL_URL);
 	},
 	
     authorize_multiuse: function(onsuccess, onfailure) {
@@ -231,7 +320,7 @@ _extend(ProcrasDonate_API.prototype, {
 		);
 	},
 
-	pay_multiuse: function(transaction_amount, recipient_slug, requires_payments, after_success, after_failure) {
+	pay_multiuse: function(transaction_amount, recipient_slug, requires_payments, pct, after_success, after_failure) {
 		// 1. create payment
 		// 2. create FPS Multiuse Pay
 		// 3. link payment to all totals
@@ -267,8 +356,8 @@ _extend(ProcrasDonate_API.prototype, {
 		var fps_pay = this.pddb.FPSMultiusePay.create({
 			timestamp: dtime,
 			caller_reference: create_caller_reference(),
-			//marketplace_fixed_fee: 0,
-			marketplace_variable_fee: 10.00,
+			marketplace_fixed_fee: 0,
+			marketplace_variable_fee: pct,
 			transaction_amount: transaction_amount,
 			recipient_slug: recipient_slug,
 			sender_token_id: multiauth.token_id,
@@ -322,17 +411,17 @@ _extend(ProcrasDonate_API.prototype, {
 			);
 	},
 	
-	make_payments_if_necessary: function(ignore_threshhold) {
+	make_payments_if_necessary: function(pct, ignore_threshhold) {
 		var self = this;
 		
 		var prevent_payments = self.prefs.get('prevent_payments ', constants.DEFAULT_PREVENT_PAYMENTS);
 		if (prevent_payments) {
-			self.pddb.orthogonals.log("Aborted because prevent_payments flag is: "+prevent_payments, "make_payments")
+			self.pddb.orthogonals.log("Aborted potentially making a payment because prevent_payments flag is: "+prevent_payments, "make_payments")
 			return 
 		}
 		
 		var multiauth = this.pddb.FPSMultiuseAuthorization.get_latest_success();
-		if (!multiauth || !multiauth.token_id) {
+		if (!multiauth || !multiauth.good_to_go()) {
 			self.pddb.orthogonals.log("User is not authorized to make payments: "+multiauth, "pay");
 			return
 		}
@@ -427,6 +516,11 @@ _extend(ProcrasDonate_API.prototype, {
 				return
 			}
 			
+			// if recipient hasn't registered with pd (eg, user suggested recipient), ignore
+			if (!recipient.is_pd_registered()) {
+				return
+			}
+			
 			// in dollars
 			var amount = parseFloat(total.total_amount) / 100.00;
 			
@@ -448,6 +542,7 @@ _extend(ProcrasDonate_API.prototype, {
 					value,
 					key,
 					recipient_requires_payments[key],
+					pct,
 					function() {
 						// after success
 					}, function() {
@@ -455,6 +550,117 @@ _extend(ProcrasDonate_API.prototype, {
 					});
 			}
 		});
+	},
+	
+	pay_monthly_fee_if_necessary: function() {
+		var self = this;
+		
+		var prevent_payments = self.prefs.get('prevent_payments ', constants.DEFAULT_PREVENT_PAYMENTS);
+		if (prevent_payments) {
+			self.pddb.orthogonals.log("Aborted potentially paying monthly fee because prevent_payments flag is: "+prevent_payments, "make_payments")
+			return 
+		}
+		
+		var support_method = this.prefs.get('support_method', constants.DEFAULT_SUPPORT_METHOD);
+		if (support_method != 'monthly') {
+			self.pddb.orthogonals.log("User has elected not to pay a monthly fee: "+support_method, "monthly_fee");
+			return
+		}
+		
+		var multiauth = this.pddb.FPSMultiuseAuthorization.get_latest_success();
+		if (!multiauth || !multiauth.good_to_go()) {
+			self.pddb.orthogonals.log("User is not authorized to pay monthly fees: "+multiauth, "monthly_fee");
+			return
+		}
+		
+		// user is able to and intends to pay a monthly fee
+		var monthly_fee = _un_prefify_float(self.prefs.get('monthly_fee', constants.DEFAULT_MONTHLY_FEE));
+		
+		// too low of a monthly fee won't work because of amazon's fixed fee
+		if (monthly_fee < 0.10) {
+			self.pddb.orthogonals.log("User has elected not to pay a non-trivial monthly fee: "+monthly_fee, "monthly_fee");
+			return
+		}
+
+		self.pay_monthly_fee(
+			monthly_fee,
+			_end_of_month(_un_dbify_date(self.prefs.get('last_month_mark', 0))),
+			function() {
+				// after success
+			}, function() {
+				// after_failure
+		});
+	},
+	
+	pay_monthly_fee: function(transaction_amount, period_datetime, after_success, after_failure) {
+		// 1. create MonthlyFee
+		// 2. create FPS Multiuse Pay
+		// 3. send FPS Multiuse Pay to server
+		var self = this;
+		
+		transaction_amount = transaction_amount.toFixed(2);
+		
+		var multiauth = this.pddb.FPSMultiuseAuthorization.get_latest_success();
+		if (!multiauth || !multiauth.token_id) {
+			self.pddb.orthogonals.log("User is not authorized to pay monthly fees: "+multiauth, "monthly_fee");
+			return
+		}
+		
+		var dtime = _dbify_date(new Date());
+		
+		// create payment
+		var monthly_fee = self.pddb.MonthlyFee.create({
+			payment_service_id: self.pddb.AmazonFPS.id,
+			transaction_id: -1,
+			sent_to_service: _dbify_bool(true),
+			settled: _dbify_bool(false),
+			amount: transaction_amount,
+			datetime: dtime,
+			period_datetime: _dbify_date(period_datetime)
+		});
+		
+		// create fps multiuse pay
+		var fps_pay = this.pddb.FPSMultiusePay.create({
+			timestamp: dtime,
+			caller_reference: create_caller_reference(),
+			marketplace_fixed_fee: 0,
+			marketplace_variable_fee: 0,
+			transaction_amount: transaction_amount,
+			recipient_slug: "PD",
+			sender_token_id: multiauth.token_id,
+			transaction_status: self.pddb.FPSMultiuseAuthorization.PENDING,
+			monthly_fee_id: monthly_fee.id
+		});
+		
+		// send fps multiuse auth to server
+		var data = _extend(fps_pay.deep_dict(), {
+			private_key: this.prefs.get('private_key', constants.DEFAULT_PRIVATE_KEY),
+			version: this.prefs.get('fps_version', constants.DEFAULT_FPS_API_VERSION),
+			timestamp: _dbify_date(new Date())
+		});
+		
+		this._hello_operator_give_me_procrasdonate(
+				constants.PD_API_URL + constants.PAY_MULTIUSE_URL,
+				data,
+				"POST",
+				function(r) {
+					// process returned pay object
+					if (r.pay) {
+						self.pddb.FPSMultiusePay.process_object(r.pay);
+					}
+					if (r.log) {
+						self.pddb.orthogonals.log(r.log, "monthly_fee");
+					} else {
+						self.pddb.orthogonals.log("Successfully paid "+transaction_amount, "monthly_fee");
+					}
+					
+					if (after_success) after_success();
+				},
+				function(r) {
+					self.pddb.orthogonals.log("Failed to pay "+transaction_amount+": "+r.reason, "monthly_fee");
+					if (after_failure) after_failure();
+				}
+			);
 	},
 	
 	request_data_updates: function(after_success, after_failure) {
@@ -497,8 +703,9 @@ _extend(ProcrasDonate_API.prototype, {
 				
 				self.prefs.set('since_received_data', _dbify_date(new_since));
 				self.pddb.orthogonals.log("Data successfully updated on "+new_since, "dataflow");
+				
 				if (after_success) {
-					after_success(r);
+					after_success();
 				}
 			},
 			function(r) {
@@ -526,6 +733,8 @@ _extend(ProcrasDonate_API.prototype, {
 					var response = eval("("+r.responseText+")");
 					if (response.result == "success") {
 						if (onsuccess) {
+							//logger("onsuccess = "+onsuccess);
+							//_pprint(response, "result");
 							onsuccess(response);
 						}
 					} else {
@@ -534,7 +743,8 @@ _extend(ProcrasDonate_API.prototype, {
 						}
 					}
 				} catch (e) {
-					logger("EXCEPTION: pd.js::RETURNED: "+r+"  e.stack: "+e.stack+"\n\n");
+					logger("EXCEPTION while calling server:  e.stack: "+e.stack+"\n\n");
+					_pprint(r, "request to server RETURNED: ");
 				}
 			},
 			onerror

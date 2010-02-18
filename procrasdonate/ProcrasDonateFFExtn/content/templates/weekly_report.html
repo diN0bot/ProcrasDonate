@@ -27,17 +27,6 @@ tws_hr_per_week_max: tws_hr_per_week_max,
 start_date: last weeks start time
 end_date:   last weeks end time
 
->>>>> message blocks <<<<<<<<
-no_data: true if no data for last week or earlier
-one_week_good: true if no data for two weeks ago and last week meets goal
-one_week_bad: true if no data for two weeks ago and last week exceeds goal
-match: true if last week and two weeks ago are the same
-good_in_a_row: true if past 3 weeks meet goal
-good: true if last week meets goal
-sudden_bad: true if two weeks ago exceeds goal but last week meets goal
-getting_worse: true if last week and two weeks ago exceed goal, but last week is better than two weeks ago 
-getting_better: true if last week and two weeks ago exceed goal, but last week is worse than two weeks ago 
-
 weeks_in_a_row_met: how many weeks in row exceed data (1, 2 or 3)
 
 >>>>> top influencing websites for each week and website classification <<<<<<<<
@@ -58,78 +47,108 @@ payments: list of all payments made this week
 {% endcomment %}
 
 {% if match %}
+	{% comment %}
+		match: true if last week and two weeks ago are the same
+	{% endcomment %}
 	<p>
-		It's a match! You ProcrasDonated for exactly
+		It's a match! You ProcrasDonated
 		{{ pd_hrs_one_week }} hours two weeks in a row!
-		That would win you a free game if we were playing pinball.
+		That would win you a free game if you were playing pinball.
 		{% if met_goal %}
-			You would also get extra points for meeting your goal of
-			{{ pd_hr_per_week_goal }} hours per week.
+			You would also get a bonus for meeting your goal of
+			{{ pd_hr_per_week_goal }} hours this week.
 		{% else %}
-			Unfortunately, you'd lose a turn for exceeding
-			your goal of {{ pd_hr_per_week_goal }} hours per week.
+			But you still might lose a turn for exceeding
+			your goal of {{ pd_hr_per_week_goal }} hours.
 		{% endif %}
 	</p>
 {% else %}
 {% if no_data %}
-	<p>You haven't visited any websites tagged as ProcrasDonate. You can tag sites by clicking the "?" icon in your
-	Firefox toolbar next to the URL address bar, or by visiting the "Sites" tab of 
-	<a href="{{ constants.PD_URL }}{{ constants.PROGRESS_URL }}">My Progress</a>.</p>
+	{% comment %}
+		no_data: true if no data for last week or earlier
+	{% endcomment %}
+	<p>It looks like you haven't started using ProcrasDonate yet.  
+	To classify a website that you are on as ProcrasDonation: click the 
+		<img class="text-image" src="/procrasdonate_media/img/ToolbarImages/UnsortedIcon.png"/>
+	 	icon in your web browser's toolbar until the 
+		<img class="text-image" src="/procrasdonate_media/img/ToolbarImages/ProcrasDonateIcon.png"/> 
+		icon appears.  
+	You can also go to the "Sites" tab of your 
+	<a href="{{ constants.PD_URL }}{{ constants.PROGRESS_URL }}">My Progress</a> page to classify several websites at once.</p>
 {% else %}
 {% if one_week_good %}
+	{% comment %}
+		one_week_good: true if no data for two weeks ago and last week meets goal
+	{% endcomment %}
 	<p>
 		Congratulations{% if name %}, {{ name }}!{% else %}!{% endif %}
-		You ProcrasDonated less than your goal of {{ pd_hr_per_week_goal }} hours.
+		You ProcrasDonated less than your goal of {{ pd_hr_per_week_goal }} hours this week.
 		Keep up the good work!
 	</p>
 {% else %}
 {% if one_week_bad %}
+	{% comment %}
+		one_week_bad: true if no data for two weeks ago and last week misses goal
+	{% endcomment %}
 	<p>
-		Too bad{% if name %}, {{ name }}.{% else %}.{% endif %}
+		Oops{% if name %}, {{ name }}.{% else %}.{% endif %}
 		You ProcrasDonated more than your goal of {{ pd_hr_per_week_goal }} hours.
-		We know you can do better!
+		Don't worry, you can improve!
 	</p>
 {% else %}
 {% if good_in_a_row %}
+	{% comment %}
+		good_in_a_row: true if past 3 weeks meet goal
+	{% endcomment %}
 	<p>
 		You're on a roll{% if name %}, {{ name }}!{% else %}!{% endif %}
-		You ProcrasDonated less than your goal of {{ pd_hr_per_week_goal }} hours
-		for at least {{ weeks_in_a_row_met }} weeks in a row. ProcrasDonating less means donating less.
-		Would you like to celebrate by <a href="{{ constants.PD_URL }}{{ constants.SETTINGS_URL }}">
-		raising your hourly giving</a> to {{ top_charity.name }}? Woohoo!</p>
+		You have ProcrasDonated less than your goal of {{ pd_hr_per_week_goal }} hours
+		for at least {{ weeks_in_a_row_met }} weeks in a row.  
+		Now that you're ProcrasDonating fewer hours would you like to celebrate your streak by <a href="{{ constants.PD_URL }}{{ constants.SETTINGS_URL }}">
+		giving more</a> to {{ top_charity.name }} per hour?  Enjoy another productive week!</p>
 {% else %}
 {% if good %}
+	{% comment %}
+		good: true if last week meets goal
+	{% endcomment %}
 	<p>
 		Congratulations{% if name %}, {{ name }}!{% else %}!{% endif %}
-		You ProcrasDonated less than your goal of {{ pd_hr_per_week_goal }} hours.
+		You ProcrasDonated less than your goal of {{ pd_hr_per_week_goal }} hours this week.
 		Keep up the good work!
 	</p>
 {% else %}
 {% if sudden_bad %}
+	{% comment %}
+		sudden_bad: true if two weeks ago met goal but last week missed goal
+	{% endcomment %}
 	<p>
 	{% if name %}{{ name }}, your{% else %}Your{% endif %} streak has ended.  
 	You had met your goal for at least {{ weeks_in_a_row_met }} weeks in a row.
-	This week you ProcrasDonated {{ pd_hrs_one_week }} hours, exceeding 
-	your goal of {{ pd_hr_per_week_goal }} hours by {{ pd_hrs_one_week_diff }}.
-	We know you can get back on track!
+	But this week you ProcrasDonated {{ pd_hrs_one_week }} hours, exceeding 
+	your goal by {{ pd_hrs_one_week_diff }} hours.
+	Don't worry, you can get back on track!
 	</p>
 {% else %}
 {% if getting_worse %}
+	{% comment %}
+		getting_worse: true if last week and two weeks ago misses goal, but last week is worse than two weeks ago 
+	{% endcomment %}
 	<p>
-		What happened{% if name %}, {{ name }}?{% else %}?{% endif %}
-		You ProcrasDonated {{ pd_hrs_one_week_two_week_diff }} hours more than the week before.
-		That's a total of {{ pd_hrs_one_week_diff }} hours more than your goal
-		of {{ pd_hr_per_week_goal }} hours.
-		What are you going to do about this?
+		Uh oh{% if name %}, {{ name }}.{% else %}.{% endif %}
+		You ProcrasDonated {{ pd_hrs_one_week_two_week_diff }} more hours than you did last week.
+		That's {{ pd_hrs_one_week_diff }} hours more than your goal.
+		Let's reverse that trend!
 	</p>
 {% else %}
 {% if getting_better %}
+	{% comment %}
+		getting_better: true if last week and two weeks ago meets goal, but last week is better than two weeks ago 
+	{% endcomment %}
 	<p>
-	You're getting closer to your goal{% if name %}, {{ name }}.{% else %}.{% endif %}
-	Awesome!
-	You ProcrasDonated {{ pd_hrs_one_week_two_week_diff }} hours less than the week before,
-	which means you're on track to meeting your goal of {{ pd_hr_per_week_goal }} hours per week.
-	Keep it up! You can do it!
+	You're getting closer to your goal{% if name %}, {{ name }}!{% else %}!{% endif %}
+	You ProcrasDonated {{ pd_hrs_one_week_two_week_diff }} hours less this week than last week.
+	At this rate you'll meet your goal of {{ pd_hr_per_week_goal }} hours in no time.
+	Keep up the good work!
 	</p>
 {% endif %}{% endif %}{% endif %}{% endif %}{% endif %}{% endif %}{% endif %}{% endif %}{% endif %}
 

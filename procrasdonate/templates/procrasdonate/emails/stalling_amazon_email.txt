@@ -1,0 +1,16 @@
+Hi{% if name %}, {{ name }}{% endif %}.
+
+You are almost done registering for ProcrasDonate.  You've done most of the hard work already and soon you'll be able to take advantage of our incentive program to improve your time management.  The only step left is authorizing payments via Amazon.com. 
+
+There are a couple of things to remember about setting up your Amazon.com payments.  First, we haven't had any donations made by mistake yet and we're committed to keeping it that way.  That means that we'll make sure that any donations made in error are fully refunded.  Second, Amazon.com puts a cap on the combined total dollar value of donations that can be made from your account.  We've set that number to be the maximum number of dollars you can give per week multiplied by 52 weeks.  So you may have to register with Amazon.com after a year or two of using ProcrasDonate. 
+
+If you have any questions or concerns please don't hesitate to email us: {{ settings.EMAIL }}
+
+Sincerely,
+
+
+Clay Ward
+cofounder
+
+{{ settings.EMAIL }}
+{{ settings.DOMAIN }}

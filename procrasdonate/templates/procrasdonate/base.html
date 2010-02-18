@@ -16,7 +16,7 @@
 
 		<div id="MainMenu" class="menu">
 			<div {% ifequal selected "home" %}class="here_we_are"{% endifequal %} id='home_menu_item'><a href="{% url splash %}">Home</a></div>
-			<div {% ifequal selected "community" %}class="here_we_are"{% endifequal %} id='community_menu_item'><a href="{% url community %}">Community</a></div>
+			{# <div {% ifequal selected "community" %}class="here_we_are"{% endifequal %} id='community_menu_item'><a href="{% url community %}">Community</a></div> #}
 			<div {% ifequal selected "faq" %}class="here_we_are"{% endifequal %} id='faq_menu_item'><a href="{% url faq %}">FAQ</a></div>
 			<div {% ifequal selected "about_us" %}class="here_we_are"{% endifequal %}id='about_us_menu_item'><a href="{% url about_us %}">About Us</a></div> 
 		</div>

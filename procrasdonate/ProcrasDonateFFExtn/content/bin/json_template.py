@@ -80,6 +80,13 @@ class AttributeHandler(Handler):
         
     def handle_node(self, converter, node):
         value = getattr(node, self.name, self.default)
+        if value == None:
+            print "\n --> %s had None for value and default (%s and %s)." % (self.name,
+                                                                             value,
+                                                                             self.default)
+            print "node =", node
+            print "Set to empty string so template builder doesn't barf\n"
+            #value = ""
         return self.handle(converter, value)
     
     def handle(self, converter, value):
@@ -132,6 +139,41 @@ class NodeHandler(Handler):
         return [self.label] + args
     
 
+class TemplateLiteralHandler(Handler):
+    def handle(self, converter, node):
+        if node is None:
+            return None
+        from django.template import smartif, defaulttags
+        if isinstance(node, defaulttags.TemplateLiteral):
+            return FilterExpressionHandler().handle(converter, node.value)
+        elif isinstance(node, smartif.TokenBase):
+            return ['cond', 
+                    node.id, 
+                    TemplateLiteralHandler().handle(converter, node.first),
+                    TemplateLiteralHandler().handle(converter, node.second)]
+        else:
+            raise RuntimeError()
+
+class IfNodeHandler(Handler):
+    #old_IfNodeHandler = NodeHandler.make(
+    #        "if", ["bool_exprs", "link_type", "nodelist_true", "nodelist_false"],
+    #        bool_exprs=List(Tuple(Literal(), FilterExpressionHandler())),
+    #        link_type=Literal,
+    #        nodelist_true=NodeList,
+    #        nodelist_false=NodeList)
+    
+    def handle(self, converter, node):
+        nodelist_true = NodeListHandler(node.nodelist_true)
+        nodelist_false = NodeListHandler(node.nodelist_false)
+        
+        if hasattr(node, 'var'):
+            return TemplateLiteralHandler().handle(converter, node.var)
+        elif hasattr(node, 'bool_exprs') and hasattr(node, 'link_type'):
+            return self.old_IfNodeHandler().handle(converter, node)
+        else:
+            raise RuntimeError()
+        
+
 def prepare_handlers(handlers=None):
     # These are the types we use as attributes
     from django.template import Template, Variable, FilterExpression, NodeList
@@ -141,7 +183,8 @@ def prepare_handlers(handlers=None):
         TextNode, VariableNode
     from django.template.defaulttags import \
         AutoEscapeControlNode, ForNode, IfNode, IfEqualNode, \
-        FirstOfNode, WithNode, SpacelessNode, CommentNode
+        FirstOfNode, WithNode, SpacelessNode, CommentNode#, \
+        #TemplateLiteral
     from django.template.loader_tags import \
         ExtendsNode, IncludeNode, ConstantIncludeNode, BlockNode
     from django.template.debug import \
@@ -165,6 +208,7 @@ def prepare_handlers(handlers=None):
     handlers[DebugNodeList] = handlers[NodeList]
     handlers[DebugVariableNode] = handlers[VariableNode]
     
+    #handlers[TemplateLiteral] = TemplateLiteralHandler()
     
     handle(AutoEscapeControlNode, 
            "autoescape")
@@ -175,13 +219,22 @@ def prepare_handlers(handlers=None):
            sequence=FilterExpression,
            is_reversed=Literal,
            nodelist_loop=NodeList)
-    
+
     handle(IfNode, 
            "if", ["bool_exprs", "link_type", "nodelist_true", "nodelist_false"],
            bool_exprs=List(Tuple(Literal(), FilterExpressionHandler())),
            link_type=Literal,
            nodelist_true=NodeList,
            nodelist_false=NodeList)
+    #handlers[IfNode] = IfNodeHandler()
+    
+    #handle(IfNode, 
+    #       "if", ["var", "nodelist_true", "nodelist_false"],
+    #       var=TemplateLiteralHandler(),
+    #       #bool_exprs=List(Tuple(Literal(), FilterExpressionHandler())),
+    #       #link_type=Literal,
+    #       nodelist_true=NodeList,
+    #       nodelist_false=NodeList)
     
     handle(IfEqualNode, 
            "ifequal", ["var1", "var2", "nodelist_true", "nodelist_false"],

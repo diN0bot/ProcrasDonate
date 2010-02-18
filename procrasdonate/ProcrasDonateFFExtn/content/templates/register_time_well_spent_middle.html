@@ -4,34 +4,35 @@
 	
 <h1>Time Well Spent</h1>
 
-<h2>Incentive: 
-	<span class="subheader">What is your time worth? </span></h2>
+<ul><li>The time that you spend on websites you've marked as Time Well Spent will not result in donations to your favorite charities.
+</li><li>
+If you'd like to support quality websites directly then you can set up hourly donations that benefit the content providers of TWS sites.
+</li></ul>
+
+<h2>Payments:
+	<span class="subheader">What is quality online content worth to you?</span></h2>
 <p id="rate_error" class="error"></p>
 
-<p>Create an incentive for good time management 
-	by making a pledge to your favorite charities.  
-	<br>This is a pledge to 
-	automatically donate for every hour you spend TimeWellSpent online.
-</p>
-<p><input
+<p>What would you like to pay content providers of websites that you mark as TimeWellSpent for the time that you spend using them?  
+	</p>
+	
+<p>''I will pay <input
 	type="text"
 	id="tws_dollars_per_hr"
 	name="tws_dollars_per_hr" 
 	value="{{ tws_dollars_per_hr }}" />
-   <span class="units">dollars per hour</span></p>
+   <span class="units">dollars</span> per hour I spend on TimeWellSpent websites.''</p>
 
-<h2>TimeWellSpent Limit: 
-	<span class="subheader">What is your weekly limit? </span></h2>
+<h2>Limit: 
+	<span class="subheader">What is the most you'd like to pay per week of TWS? </span></h2>
 <p id="max_error" class="error"></p>
-<p>What is the most number hours in a week that you want to keep track of?  
-	<br>No further pledges can be made in a week where you have 
-	already reached your limit.</p>
-<p><input
+<p>''Limit my total TWS donations to
+	<input
 	type="text"
 	id="tws_hr_per_week_max"
 	name="tws_hr_per_week_max" 
 	value="{{ tws_hr_per_week_max }}" />
-   <span class="units">hours per week</span></p>
+   <span class="units">hours</span> per week.  This will not change my existing ProcrasDonation limit.''</p>
 
 <img
 	class="done {{ substate_menu_items.next.id }}"

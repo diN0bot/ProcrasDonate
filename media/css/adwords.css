@@ -1,0 +1,126 @@
+
+#content {
+	width: 85em;
+	margin: auto;
+	text-align: center;
+}
+
+#a_left_column {
+	float: left;
+	width: 45em;
+}
+
+#a_right_column {
+	float: left;
+	width: 35em;
+}
+
+#descriptive_text {
+	font-size: 1.4em;
+	padding-bottom: .8em;
+	padding-left: 1em;
+}
+
+#screen_shot {
+	background: white;
+}
+
+#screen_shot img {
+	width: 100%;
+}
+
+#email_list {
+	padding-top: 1.7em;
+}
+
+#email_waiting_list {
+	padding-top: 0em;
+	text-align: left;
+}
+
+#email_input {
+	color: #999999;
+}
+#email_input.user_typing {
+	color: black;
+}
+
+/*** h1 is redefined here for adwords only. ***/
+
+h1 {
+  /*clear: both;*/
+  font-family: Helvetica,Jamrul,sans-serif;
+  font-size: 2.5em;
+  color: black;
+  font-weight: bold;
+  letter-spacing: .03em;
+}
+
+/*** h2 is redfined here for adwords only. ***/
+
+h2 {
+  /*clear: both;*/
+  font-family:"Trebuchet MS",Helvetica,Jamrul,sans-serif;
+  font-size: 1.9em;
+  color: #cd8047;
+  margin: .7em 0em .5em 0em;
+  font-variant: small-caps;
+  font-weight: bold;
+  letter-spacing: .09em;
+  border-bottom: .5px solid #ccff99;
+  padding: .7em 0em 0em .5em;
+  margin-left: -.5em;
+  text-align: left;
+}
+
+#action_button {
+}
+
+#action_button_2 {
+}
+
+#action_button img {
+	width: 20em;
+}
+
+#action_button_2 img {
+	width: 20em;
+}
+
+#advertising_text_1 {
+	margin: 5em 2em 0em 2em;
+}
+
+#advertising_text_2 {
+	margin: 0 2em;
+}
+
+#advertising_text_3 {
+	margin: 0 2em;
+}
+
+.FindOutMoreSpan {
+	font-size: 1.3em; 
+}
+
+#find_out_more_top {
+	margin-top: 6em;
+	margin-bottom: -2.2em;
+}
+
+#find_out_more_bottom {
+	margin-top: 1.3em;
+}
+
+.EmailUpdateListSignup {
+	font-size: 1.3em; 
+}
+
+/***** CLICK TO PAGES *****/
+
+#click_to_page {
+	width: 45em;
+	margin: auto;
+	text-align: center;
+	padding: 0em 1em;
+}

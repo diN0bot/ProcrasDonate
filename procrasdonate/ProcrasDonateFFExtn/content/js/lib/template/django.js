@@ -1,9 +1,11 @@
 	
 function pythonTrue(o) {
+	// logger("o = "+o);
 	if (isString(o) && o.length == 0) 
 		return false;
 	if (isArray(o) && o.length == 0)
 		return false;
+	// logger("   !!o = "+(!!o));
 	return !!o;
 }
 
@@ -44,7 +46,31 @@ _extend(DjangoTemplate.prototype, {
 			return null;
 		}
 	},
-	
+	render_cond: function(cond, context, env) {
+		var op = cond[0], 
+			lt = cond[1], 
+			rt = cond[2],
+			value = this.render_filter(lt, context, env),
+			rvalue;
+		if (op == "var") return value;
+		if (op == "not") return !pythonTrue(value);
+		if (op == "or")
+			return pythonTrue(value) ? 
+				value : this.render_filter(rt, context, env);
+		if (op == "and")
+			return pythonTrue(value) ? 
+				this.render_filter(rt, context, env) : value;
+		if (op == "in") {
+		}
+		rvalue = this.render_filter(rt, context, env);
+		if (op == '=') return (value == rvalue);
+		if (op == '==') return (value == rvalue);
+		if (op == '!=') return (value != rvalue);
+		if (op == '>') return (value > rvalue);
+		if (op == '>=') return (value >= rvalue);
+		if (op == '<') return (value < rvalue);
+		if (op == '<=') return (value <= rvalue);
+	},
 	render_filter: function(v, context, env) {
 		if (this.DEBUG) logger("\n\nRENDER FILTER ");
 		if (this.DEBUG) _pprint(v);

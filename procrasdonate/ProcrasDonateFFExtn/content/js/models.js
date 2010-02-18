@@ -40,7 +40,7 @@ function load_models(db, pddb) {
 				if (notrequired) {
 					return null;
 				} else {
-					pddb.orthogonals.error("no SiteGroup found for site = "+this);
+					pddb.orthogonals.error("no SiteGroup found for site = "+this, "model");
 				}
 			}
 			return sitegroup;
@@ -69,14 +69,8 @@ function load_models(db, pddb) {
 				tag_id = pddb.Unsorted.id;
 			}
 			if (!site) {
-				var host = _host(url);
-				var sitegroup = SiteGroup.get_or_create({
-					host: host
-				}, {
-					name: host,
-					host: host,
-					tag_id: tag_id
-				});
+				var tag = Tag.get_or_null({ id: tag_id });
+				var sitegroup = SiteGroup.create_from_url(url, tag);
 	
 				site = this.create({
 					url: url,
@@ -128,13 +122,17 @@ function load_models(db, pddb) {
 			var self = this;
 			var tag = Tag.get_or_null({ id: self.tag_id })
 			if (!tag) {
-				pddb.orthogonals.error("no Tag found for sitegroup = "+this);
+				pddb.orthogonals.error("no Tag found for sitegroup = "+this, "model");
 			}
 			return tag
 		},
 		
 		has_tax_exempt_status: function() {
 			return _un_dbify_bool(this.tax_exempt_status);
+		},
+		
+		display_host: function() {
+			return decodeURI(this.host);
 		},
 		
 		deep_dict: function() {
@@ -149,6 +147,26 @@ function load_models(db, pddb) {
 		}
 	}, {
 		// class methods
+		create_from_url: function(url, tag) {
+			if (!tag) { tag = pddb.Unsorted; }
+			var host = decodeURI(_host(url));
+			var sitegroup = SiteGroup.get_or_create({
+				host: host
+			}, {
+				name: decodeURI(host),
+				host: host,
+				tag_id: tag.id
+			});
+			return sitegroup
+		},
+		
+		get_from_url: function(url) {
+			var host = _host(url);
+			var sitegroup = SiteGroup.get_or_null({
+				host: host
+			});
+			return sitegroup
+		}
 	});
 	
 	var Recipient = new Model(db, "Recipient", {
@@ -180,7 +198,7 @@ function load_models(db, pddb) {
 			var self = this;
 			var category = Category.get_or_null({ id: self.category_id })
 			if (!category) {
-				pddb.orthogonals.error("no Category found for recipient = "+this);
+				pddb.orthogonals.error("no Category found for recipient = "+this, "model");
 			}
 			return category
 		},
@@ -296,7 +314,9 @@ function load_models(db, pddb) {
 	var Report = new Model(db, "Report", {
 		table_name: "reports",
 		columns: {
-			_order: ["id", "datetime", "type", "message", "read", "sent", "subject", "recipient_id"],
+			_order: ["id", "datetime", "type", "message", "read", 
+			         "sent", "subject", "recipient_id",
+			         "met_goal", "difference", "seconds_saved"],
 			id: "INTEGER PRIMARY KEY",
 			datetime: "INTEGER", //"DATETIME",
 			type: "VARCHAR", // 
@@ -304,7 +324,14 @@ function load_models(db, pddb) {
 			read: "INTEGER", // bool
 			sent: "INTEGER", // bool
 			subject: "VARCHAR",
-			recipient_id: "INTEGER"
+			// points to recipient for thankyous and newsletters
+			// otherwise points to ProcrasDonate recipient
+			recipient_id: "INTEGER", 
+			
+			// these only make sense for weekly reports
+			met_goal: "INTEGER", // bool
+			difference: "INTEGER", // seconds
+			seconds_saved: "INTEGER", // seconds
 		},
 		indexes: []
 	}, {
@@ -324,6 +351,9 @@ function load_models(db, pddb) {
 		is_sent: function() {
 			return _un_dbify_bool(this.sent)
 		},
+		has_met_goal: function() {
+			return _un_dbify_bool(this.met_goal)
+		},
 		
 		friendly_datetime: function() {
 			return _un_dbify_date(this.datetime).strftime("%b %d, %Y")
@@ -340,15 +370,22 @@ function load_models(db, pddb) {
 		},
 		
 		deep_dict: function() {
+			var recipient_slug = "None";
+			if (this.recipient()) {
+				recipient_slug = this.recipient().slug;
+			}
 			return {
 				id: this.id,
 				datetime: this.datetime,
 				type: this.type,
 				subject: this.subject,
 				message: this.message,
-				recipient: this.recipient(),
+				recipient: recipient_slug,
 				is_read: this.is_read(),
-				is_sent: this.is_sent()
+				is_sent: this.is_sent(),
+				has_met_goal: this.has_met_goal(),
+				difference: this.difference,
+				seconds_saved: this.seconds_saved
 			}
 		}
 	}, {
@@ -447,7 +484,7 @@ function load_models(db, pddb) {
 			var self = this;
 			var recipient = Recipient.get_or_null({ id: self.recipient_id })
 			if (!recipient) {
-				pddb.orthogonals.error("no Recipient found for recipientpercent = "+this);
+				pddb.orthogonals.error("no Recipient found for recipientpercent = "+this, "model");
 			}
 			return recipient
 		},
@@ -538,7 +575,7 @@ function load_models(db, pddb) {
 			var self = this;
 			var site = Site.get_or_null({ id: self.site_id })
 			if (!site) {
-				pddb.orthogonals.error("no Site found for visit = "+this);
+				pddb.orthogonals.error("no Site found for visit = "+this, "model");
 			}
 			return site
 		},
@@ -613,6 +650,8 @@ function load_models(db, pddb) {
 				return "Entered new URL into address bar"
 			case(Visit.UNKNOWN):
 				return "Unknown"
+			case(Visit.TEST):
+				return "Test"
 			default:
 				return "-"
 			}
@@ -656,6 +695,8 @@ function load_models(db, pddb) {
 		URL_LINK: "UL", // click a link
 		URL_BAR: "UB", // type/paste a new url into the url bar
 		
+		TEST: "T", // created by a test
+		
 		by_tag: function(tag_id) {
 			//SELECT  Artists.ArtistName, CDs.Title FROM Artists INNER JOIN CDs ON Artists.ArtistID=CDs.ArtistID; 
 		}
@@ -679,7 +720,7 @@ function load_models(db, pddb) {
 			
 			total_time: "INTEGER", //seconds
 			total_amount: "REAL", //cents
-			datetime: "INTEGER", //"DATETIME"
+			datetime: "INTEGER", //"DATETIME" (end of period)
 			timetype_id: "INTEGER"
 		}
 	}, {
@@ -701,7 +742,7 @@ function load_models(db, pddb) {
 			var self = this;
 			var contenttype = ContentType.get_or_null({ id: self.contenttype_id });
 			if (!contenttype) {
-				pddb.orthogonals.error("no contenttype found for total = "+this);
+				pddb.orthogonals.error("no contenttype found for total = "+this, "model");
 			}
 			return contenttype
 		},
@@ -713,7 +754,7 @@ function load_models(db, pddb) {
 			if (!self.cached_content) {
 				var content = pddb[self.contenttype().modelname].get_or_null({ id: self.content_id });
 				if (!content) {
-					pddb.orthogonals.error("no content found for total = "+self);
+					pddb.orthogonals.error("no content found for total = "+self, "model");
 				} else {
 					self.cached_content = content;
 				}
@@ -758,9 +799,13 @@ function load_models(db, pddb) {
 			var self = this;
 			var timetype = pddb.TimeType.get_or_null({ id: self.timetype_id });
 			if (!timetype) {
-				pddb.orthogonals.error("no timetype found for total = "+this);
+				pddb.orthogonals.error("no timetype found for total = "+this, "model");
 			}
 			return timetype
+		},
+		
+		friendly_datetime: function() {
+			return _un_dbify_date(this.datetime).strftime("%b %d, %Y")
 		},
 		
 		_payments: function(deep_dictify) {
@@ -783,12 +828,25 @@ function load_models(db, pddb) {
 			return this._payments(false);
 		},
 		
-		payment_dicts: function() {
+		payments_dict: function() {
 			return this._payments(true);
 		},
 		
 		requires_payment: function() {
-			return RequiresPayment.get_or_null({ total_id: this.id });
+			var self = this;
+			return RequiresPayment.get_or_null({ total_id: self.id });
+		},
+		
+		requires_payment_dict: function() {
+			var rp = this.requires_payment();
+			if (rp) {
+				return {
+					partially_paid: rp.is_partially_paid(),
+					pending: rp.is_pending()
+				}
+			} else {
+				return {}
+			}
 		},
 		
 		deep_dict: function() {
@@ -804,7 +862,8 @@ function load_models(db, pddb) {
 				total_amount: parseFloat(this.total_amount),
 				datetime: parseInt(this.datetime),
 				timetype: this.timetype().timetype,
-				payments: this.payment_dicts()
+				payments: this.payments_dict(),
+				requires_payment: this.requires_payment_dict()
 			}
 		}
 	}, {
@@ -822,6 +881,17 @@ function load_models(db, pddb) {
 		}
 	}, {
 		// instance methods
+		deep_dict: function() {
+			/*
+			 * Extracts foreign keys.
+			 * @return dictionary, not a row factory
+			 */
+			return {
+				id: this.id,
+				name: this.name,
+				user_url: this.user_url
+			}
+		}
 	}, {
 		// class methods
 	});
@@ -855,7 +925,7 @@ function load_models(db, pddb) {
 			var self = this;
 			var payment_service = PaymentService.get_or_null({ id: self.payment_service_id });
 			if (!payment_service) {
-				pddb.orthogonals.error("no payment_service found for payment = "+this);
+				pddb.orthogonals.error("no payment_service found for payment = "+this, "model");
 			}
 			return payment_service
 		},
@@ -869,9 +939,14 @@ function load_models(db, pddb) {
 		},
 		
 		deep_dict: function() {
+			var recipient_slug = null;
+			var fps_pay = this.most_recent_fps_multiuse_pay();
+			if (fps_pay) {
+				recipient_slug = fps_pay.recipient_slug;
+			}
 			return {
 				id: this.id,
-				payment_service: this.payment_service(),
+				payment_service: this.payment_service().deep_dict(),
 				transaction_id: parseInt(this.transaction_id),
 				sent_to_service: this.is_sent_to_service(),
 				settled: this.is_settled(),
@@ -879,7 +954,8 @@ function load_models(db, pddb) {
 				amount_paid: parseFloat(this.amount_paid),
 				amount_paid_in_fees: parseFloat(this.amount_paid_in_fees),
 				amount_paid_tax_deductibly: parseFloat(this.amount_paid_tax_deductibly),
-				datetime: _un_dbify_date(this.datetime)
+				datetime: parseInt(this.datetime),
+				recipient_slug: recipient_slug
 			}
 		},
 		
@@ -960,7 +1036,7 @@ function load_models(db, pddb) {
 			var self = this;
 			var total = Total.get_or_null({ id: self.total_id });
 			if (!total) {
-				pddb.orthogonals.error("no total found for RequiresPayment = "+this);
+				pddb.orthogonals.error("no total found for RequiresPayment = "+this, "model");
 			}
 			return total
 		},
@@ -1024,7 +1100,7 @@ function load_models(db, pddb) {
 			var self = this;
 			var total = Total.get_or_null({ id: self.total_id })
 			if (!total) {
-				pddb.orthogonals.error("no Total found for PaymentTotalTagging = "+this);
+				pddb.orthogonals.error("no Total found for PaymentTotalTagging = "+this, "model");
 			}
 			return total
 		},
@@ -1034,7 +1110,7 @@ function load_models(db, pddb) {
 			var self = this;
 			var payment = Payment.get_or_null({ id: self.payment_id })
 			if (!payment) {
-				pddb.orthogonals.error("no payment found for PaymentTotalTagging = "+this);
+				pddb.orthogonals.error("no payment found for PaymentTotalTagging = "+this, "model");
 			}
 			return payment
 		}
@@ -1152,7 +1228,7 @@ function load_models(db, pddb) {
 		deep_dict: function() {
 			return {
 				id: this.id,
-				timestamp: _un_dbify_date(this.timestamp),
+				timestamp: parseInt(this.timestamp),//_un_dbify_date(this.timestamp),
 				caller_reference: this.caller_reference,
 				global_amount_limit: this.global_amount_limit,
 				is_recipient_cobranding: _un_dbify_bool(this.is_recipient_cobranding),
@@ -1266,7 +1342,8 @@ function load_models(db, pddb) {
 			         "sender_token_id", "payment_id",
 			         "caller_description", "charge_fee_to", "descriptor_policy", "sender_description",
 			         "request_id", "transaction_id",
-			         "transaction_status", "error_message", "error_code"],
+			         "transaction_status", "error_message", "error_code",
+			         "monthly_fee_id"],
 			id: "INTEGER PRIMARY KEY",
 			timestamp: "INTEGER", //"DATETIME"
 			caller_reference: "VARCHAR", // (128 char)
@@ -1289,7 +1366,10 @@ function load_models(db, pddb) {
 			transaction_id: "VARCHAR",
 			transaction_status: "VARCHAR",
 			error_message: "VARCHAR",
-			error_code: "VARCHAR"				
+			error_code: "VARCHAR",
+				
+			//////// these were added later. populated by extension
+			monthly_fee_id: "INTEGER",
 		}
 	}, {
 		// instance methods
@@ -1303,26 +1383,31 @@ function load_models(db, pddb) {
 		failure: function() { return this.transaction_status == FPSMultiusePay.FAILURE },
 		
 		payment: function() {
-			// @returns Payment row factory (should never be null)
+			// @returns Payment row factory (can be null if monthly_fee is not null)
 			var self = this;
-			var payment = Payment.get_or_null({ id: self.payment_id })
-			if (!payment) {
-				pddb.orthogonals.error("no payment found for FPS Multiuse Pay = "+this);
-			}
-			return payment
+			return Payment.get_or_null({ id: self.payment_id })
+		},
+		
+		monthly_fee: function() {
+			// @returns MonthlyFee row factory (can be null if payment is not null)
+			var self = this;
+			return MonthlyFee.get_or_null({ id: self.monthly_fee_id })
 		},
 		
 		deep_dict: function() {
+			var payment = this.payment();
+			var monthly_fee = this.monthly_fee();
 			return {
 				id: this.id,
-				timestamp: _un_dbify_date(this.timestamp),
+				timestamp: parseInt(this.timestamp),//_un_dbify_date(this.timestamp),
 				caller_reference: this.caller_reference,
 				marketplace_fixed_fee: this.marketplace_fixed_fee,
 				marketplace_variable_fee: this.marketplace_variable_fee,
 				transaction_amount: this.transaction_amount,
 				recipient_slug: this.recipient_slug,
 				sender_token_id: this.sender_token_id,
-				payment: this.payment().deep_dict(),
+				payment: (payment ? payment.deep_dict() : {}),
+				monthly_fee: (monthly_fee ? monthly_fee.deep_dict() : {}),
 				
 				caller_description: this.caller_description,
 				charge_fee_to: this.charge_fee_to,
@@ -1372,7 +1457,7 @@ function load_models(db, pddb) {
                 'error_code': se
 			 */
 			logger("pay process object: ");
-			_pprint(pay);
+			_pprint(p, "p = ");
 			
 			var pay = FPSMultiusePay.get_or_null({
 				caller_reference: p.caller_reference
@@ -1388,35 +1473,55 @@ function load_models(db, pddb) {
 				});
 				
 				var pay = FPSMultiusePay.get_or_null({
-					id: pay.id
+					caller_reference: p.caller_reference
 				});
+				logger("pay = "+pay);
 				
 				if (pay.success() || pay.refunded() || pay.cancelled()) {
-					var payment = pay.payment();
-					// if success, refunded or cancelled:
-					//   * remove requires payment
-					//   * set settled to true
-					// if refunded, do we want to do anything else,
-					//     eg remove payment or mark payment as refunded?
-					//    do we really want settled to be true for refund or cancelled?
-					Payment.set({
-						settled: _dbify_bool(true)
-					}, {
-						id: payment.id
-					});
-					_iterate(payment.totals(), function(key, total, index) {
-						var rp = total.requires_payment();
-						if (rp) {
-							RequiresPayment.del({ id: rp.id });
-						} else {
-							pddb.orthogonals.warn("Requires Payment doesn't exist for a total for received FPS Multiuse Pay: "+pay+" "+" total="+total);
-						}
-					});
+					if (pay.payment_id) {
+						var payment = pay.payment();
+						logger("payment = "+payment);
+						logger("monthly_fee_id = "+pay.monthly_fee_id);
+						logger("monthly_fee = "+pay.monthly_fee());
+						
+						// if success, refunded or cancelled:
+						//   * remove requires payment
+						//   * set settled to true
+						// if refunded, do we want to do anything else,
+						//     eg remove payment or mark payment as refunded?
+						//    do we really want settled to be true for refund or cancelled?
+						Payment.set({
+							settled: _dbify_bool(true)
+						}, {
+							id: payment.id
+						});
+						_iterate(payment.totals(), function(key, total, index) {
+							var rp = total.requires_payment();
+							if (rp) {
+								RequiresPayment.del({ id: rp.id });
+							} else {
+								pddb.orthogonals.warn("Requires Payment doesn't exist for a total for received FPS Multiuse Pay: "+pay+" "+" total="+total);
+							}
+						});
+						
+					} else {
+						var monthly_fee = pay.monthly_fee();
+						// if success, refunded or cancelled:
+						//   * set settled to true
+						// if refunded, do we want to do anything else,
+						//     eg remove payment or mark payment as refunded?
+						//    do we really want settled to be true for refund or cancelled?
+						MonthlyFee.set({
+							settled: _dbify_bool(true)
+						}, {
+							id: monthly_fee.id
+						});
+					}
+					
 				}
 				
 			} else {
-				pddb.orthogonals.error("Recieved FPS Multiuse Pay update for FPS Multiuse Pay that does not exist! "+p);
-				
+				pddb.orthogonals.error("Recieved FPS Multiuse Pay update for FPS Multiuse Pay that does not exist! "+p, "model");
 				/* don't know which payment to use (though could find amount and timestamp similar...
 				 * but if FPS multiuse pay was deleted, then payment and totals might be deleted, too...
 				 * 
@@ -1443,6 +1548,84 @@ function load_models(db, pddb) {
 		}
 	});
 	
+
+	var MonthlyFee = new Model(db, "MonthlyFee", {
+		table_name: "monthlyfees",
+		columns: {
+			_order: ["id", "payment_service_id", "transaction_id",
+			         "sent_to_service", "settled",
+			         "amount", "datetime", "period_datetime"],
+			id: "INTEGER PRIMARY KEY",
+			payment_service_id: "INTEGER",
+			transaction_id: "INTEGER",
+			sent_to_service: "INTEGER", // boolean 0=false
+			settled: "INTEGER", // boolean 0=false
+			amount: "REAL",
+			datetime: "INTEGER", //"DATETIME"
+			period_datetime: "INTEGER" //"DATETIME" (end of month)
+		}
+	}, {
+		// instance methods
+		payment_service: function() {
+			// all Payment have a payment_service
+			var self = this;
+			var payment_service = PaymentService.get_or_null({ id: self.payment_service_id });
+			if (!payment_service) {
+				pddb.orthogonals.error("no payment_service found for payment = "+this, "model");
+			}
+			return payment_service
+		},
+		
+		is_sent_to_service: function() {
+			return _un_dbify_bool(this.sent_to_service);
+		},
+		
+		is_settled: function() {
+			return _un_dbify_bool(this.settled);
+		},
+		
+		deep_dict: function() {
+			return {
+				id: this.id,
+				payment_service: this.payment_service().deep_dict(),
+				transaction_id: parseInt(this.transaction_id),
+				sent_to_service: this.is_sent_to_service(),
+				settled: this.is_settled(),
+				amount: parseFloat(this.amount),
+				datetime: parseInt(this.datetime),
+				period_datetime: parseInt(this.period_datetime)
+			}
+		},
+		
+		fps_multiuse_pays: function() {
+			var self = this;
+			var pays = [];
+			FPSMultiusePay.select({ payment_id: self.id }, function(row) {
+				pays.push(row);
+			});
+			return pays;
+		},
+		
+		most_recent_fps_multiuse_pay: function() {
+			var self = this;
+			var pay = null;
+			FPSMultiusePay.select({ payment_id: self.id }, function(row) {
+				if (!pay) { pay = row; }
+			}, "-timestamp");
+			return pay
+		}
+		
+	}, {
+		// class methods
+		get_monthly_fee: function(d) {
+			if (!d) {
+				d = _end_of_month(d);
+			}
+			return MonthlyFee.get_or_null({ period_datetime: d })
+		},
+	});
+	
+	
 	return {
         _order: ["Site", "SiteGroup",
                  "Recipient", "Category", "RecipientPercent",
@@ -1451,7 +1634,7 @@ function load_models(db, pddb) {
 				 "TimeType", "ContentType",
 				 "Log", "UserStudy",
 				 "FPSMultiuseAuthorization", "FPSMultiusePay",
-				 "Report"],
+				 "Report", "MonthlyFee"],
         
         Site                : Site,
 		SiteGroup           : SiteGroup,
@@ -1471,6 +1654,7 @@ function load_models(db, pddb) {
 		UserStudy           : UserStudy,
 		FPSMultiuseAuthorization : FPSMultiuseAuthorization,
 		FPSMultiusePay      : FPSMultiusePay,
-		Report              : Report
+		Report              : Report,
+		MonthlyFee          : MonthlyFee
 	};
 }

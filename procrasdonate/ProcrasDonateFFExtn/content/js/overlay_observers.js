@@ -194,7 +194,7 @@ _extend(InitListener.prototype, {
 		// The example below loads a page by opening a new tab.
 		// Useful for loading a mini tutorial
 		window.setTimeout(function() {
-			gBrowser.selectedTab = gBrowser.addTab(constants.PD_URL + constants.AFTER_INSTALL_URL + version + "/");
+			gBrowser.selectedTab = gBrowser.addTab(constants.PD_URL + constants.REGISTER_URL);
 		}, 1500); //Firefox 2 fix - or else tab will get closed
 
 		// initialize state
@@ -320,6 +320,80 @@ _extend(InitListener.prototype, {
 			});
 		}
 		
+		if (old_version_number < _version_to_number("0.3.8")) {
+			// add columns to report and populate
+			this.pddb.Report.add_column("met_goal", "INTEGER");
+			this.pddb.Report.add_column("difference", "INTEGER");
+			this.pddb.Report.add_column("seconds_saved", "INTEGER");
+			
+			var pd_hrs_max_week = 0;
+			
+			this.pddb.Report.select({}, function(row) {
+				var a_re = new RegExp(/this week: ([\d\.]+) hours/);
+				var l_re = new RegExp(/limit: ([\d\.]+) hours/);
+				var g_re = new RegExp(/goal: ([\d\.]+) hours/);
+				
+				//logger(" update report: "+row);
+				if (row.is_weekly()) {
+					var met_goal = 0;
+					var difference = 0;
+					var hours_saved = 0;
+					
+					met_goal = (row.message.indexOf("Congratulations") > -1 ||
+							row.message.indexOf("You're on a roll") > -1);
+					
+					//logger("...met_goal = "+met_goal);
+					var a = a_re.exec(row.message);
+					var l = l_re.exec(row.message);
+					var g = g_re.exec(row.message);
+					
+					if (a && a.length >= 2) { a = parseFloat(a[1]); }
+					else { a = 0; }
+					if (l && l.length >= 2) { l = parseFloat(l[1]); }
+					else { l = 0; }
+					if (g && g.length >= 2) { g = parseFloat(g[1]); }
+					else { g = 0; }
+					
+					//logger("... a:"+a+" l:"+l+" g:"+g);
+
+					// set max hrs procrasdonated ever
+					if (a > pd_hrs_max_week) { pd_hrs_max_week = a; }
+					if (l > pd_hrs_max_week) { pd_hrs_max_week = l; }
+
+					if (l > a) { hours_saved = 0; }
+					difference = g - a;    
+					
+					//logger("hours saved="+hours_saved+", diff="+difference);
+
+					self.pddb.Report.set({
+						met_goal: _dbify_bool(met_goal),
+						difference: difference,
+						seconds_saved: (hours_saved * 3600.0),
+					}, {
+						id: row.id
+					});
+				}
+			});
+			self.prefs.set("pd_hrs_max_week", _prefify_float(pd_hrs_max_week));
+		}
+		
+		if (old_version_number < _version_to_number("0.3.9")) {
+			// encodeURI all host, decodeURI all name
+			self.pddb.SiteGroup.select({}, function(sitegroup) {
+				self.pddb.SiteGroup.set({
+					host: encodeURI(sitegroup.host),
+					name: decodeURI(sitegroup.name)
+				}, {
+					id: sitegroup.id
+				});
+			});
+		}
+		
+		if (old_version_number < _version_to_number("0.4.3")) {
+			// add monthly_fee foreignkey to fps pay model
+			this.pddb.FPSMultiusePay.add_column("monthly_fee_id", "INTEGER");
+		}
+		
 		// initialize new state (initialize_state initializes state if necessary.
 		this.controller.initialize_state();
 		
@@ -353,7 +427,8 @@ _extend(InitListener.prototype, {
 			subject: "Getting started with ProcrasDonate",
 			message: message,
 			read: _dbify_bool(false),
-			sent: _dbify_bool(false)
+			sent: _dbify_bool(false),
+			recipient_id: pd.id
 		});
 	}
 	
@@ -445,11 +520,11 @@ _extend(URLBarListener.prototype, {
 	},
 	
 	processNewURL: function(win, url) {
-		//logger(jQuery("#content", win.document.defaultView).length);
 		this.schedule.run();
 	},
 	
 	// For definitions of the remaining functions see XULPlanet.com
+	// https://developer.mozilla.org/en/Code_snippets/Progress_Listeners
 	onProgressChange: function(aWebProgress, aRequest, curSelf, maxSelf, curTot, maxTot) {
 	},
 	

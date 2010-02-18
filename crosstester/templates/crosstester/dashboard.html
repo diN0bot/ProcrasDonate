@@ -17,7 +17,7 @@
 	</div>
 	
 	{% for type in test_types %}
-	<div class="row">
+	<div class="row {% cycle "even" "odd" %}">
 		<div class="cell header">{{ type.name }}</div>
 		{% for runs in type.test_runs_by_day %}
 			<div class="cell">

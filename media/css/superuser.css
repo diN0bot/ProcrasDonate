@@ -1,0 +1,213 @@
+
+/********** LOGS ***********/
+#parameters { font-size: 1.4em; color: #89958C; }
+#parameters td { padding: 0em 2em 0em 0em; }
+
+.log { clear:both; padding: 1em; margin: 1em 0em; }
+.log .datetime { float: left; font-size: .8em; }
+.log .datetime div { display: inline; margin-right: 1em; }
+.log .user { float: left; font-size: .8em; clear: both; }
+.log .message { background: #FFFFFF; margin: 0em; padding: 1em; clear: both; text-align: left; display: none; }
+.log .message_clip { overflow: hidden; height: 1.4em; }
+.log .detail_type { margin-right: 2em; }
+
+.E, .ERROR { background: #f4d0d8; }
+.F, .FAIL { background: #f4f3d0; }
+.W, .WARN { background: #e9d0f4; }
+.L, .LOG { background: #d4d0f4; }
+.D, .DEBUG { background: #daf4d0; }
+.I, .INFO { background: #e9d0f4; }
+
+.ddeven { background: #F7EDB4; }
+
+.next { margin: 0em 0em 0em 1em; }
+
+
+
+/********** DASHBOARD ***********/
+
+#superuser_links {
+	float: right;
+	border: 1px #AAA solid;
+	-moz-border-radius: .5em;
+	padding: .2em 1em;
+	background: white;
+}
+#superuser_links ul {
+	padding: 0em;
+	margin: 0em;
+	list-style: none;
+}
+#superuser_links ul li {
+	margin: .7em 0em;
+}
+#superuser_links ul li ol li {
+	margin: 0em;
+}
+
+
+.superuser_alert {
+	-moz-border-radius: 0.5em;
+	background: #E1FFE1;
+	/*border: 1px solid #999/*CCFF99;*/
+	max-width: 10em;
+	margin: 1em;
+	padding: 0.5em;
+	float: left;
+}
+.alert_name {
+	display: block;
+}
+.alert_value {
+	color: #777;
+}
+
+
+.superuser_alert.rank { background: #daf4d0;}
+.superuser_alert.empty_watch { background: #d4d0f4;}
+.superuser_alert.trigger_watch { background: #f4d0d8; }
+.superuser_alert.trigger_watch .alert_value { color: red; }
+/*
+#report_list .weekly { background: #daf4d0;}
+#report_list .welcome { background: #d4d0f4;}
+#report_list .thankyou { background: #f4d0d8;}
+#report_list .newsletter { background: #f4f3d0;}
+#report_list .somethingelse { background: #e9d0f4;}
+*/
+
+/********** USERS ***********/
+
+.stats table td {
+	border-right: 1px solid #AAA;
+	/*border-left: 1px dotted #AAA;*/
+	margin: 0em;
+	padding: 0em .3em;
+	border-spacing: 0em;
+}
+.stats {
+	background: #f4f3d0;
+	padding: .5em;
+	margin: 1em 0em;
+	-moz-border-radius: .5em;
+}
+.stats p {
+	text-align: left;
+	margin: 0em 0em .4em 0em;
+	padding: 0em;
+	color: #999;
+}
+
+.pagination {
+	margin: 1em 0em .7em;
+}
+
+.superuser_user {
+	-moz-border-radius: 0.5em;
+	background: #f4d0d8;
+	/*border: 1px solid #999/*CCFF99;*/
+	/*max-width: 10em;*/
+	margin: 1em;
+	padding: 0.5em;
+	float: left;
+}
+.private_key {
+	font-size: .8em;
+	margin-bottom: 1em;
+}
+.email {
+	padding: .2em;
+}
+.last_communication {
+	padding: .2em .4em;
+}
+.version {
+	padding: .2em;
+}
+
+.support_stats {
+	float: left;
+}
+.support_stats .selected { background: green; }
+
+.superuser_user .registration_process {
+	width: 1em;
+	height: 1em;
+	float: right;
+}
+.superuser_user .sent_initial_email {
+	background: #green;
+}
+.superuser_user .sent_completed_registration_email {
+	background: #black;
+}
+.superuser_user .sent_stalling_registration_email {
+	background: #red;
+}
+.superuser_user .registration_complete {
+	background: #white;
+}
+
+
+.superuser_user table {
+	width: 100%;
+	border-top: 1px solid #BBB;
+	border-bottom: 1px solid #BBB;
+}
+.superuser_user table tr td, .superuser_user table tr th {
+	border-right: 1px dotted #AAA;
+	border-left: 1px dotted #AAA;
+	margin: 0em;
+	padding: 0em .3em;
+	border-spacing: 0em;
+}
+
+.superuser_user.tos { background: #E1FFE1;}
+/*
+#report_list .weekly { background: #daf4d0;}
+#report_list .welcome { background: #d4d0f4;}
+#report_list .thankyou { background: #f4d0d8;}
+#report_list .newsletter { background: #f4f3d0;}
+#report_list .somethingelse { background: #e9d0f4;}
+*/
+
+.user_auth {
+	display: inline;
+	padding: 0em .5em;
+	border: black 1px solid;
+}
+/* auth status */
+.status_SA { background: green; }
+.status_SB { background: green; }
+.status_SC { background: green; }
+.status_SE { background: red; }
+.status_A { background: black; }
+.status_CE { background: orange; }
+.status_PE { background: orange; }
+.status_NP { background: orange; }
+.status_NM { background: orange; }
+.status_0 { background: blue; }
+.status_1 { background: blue; }
+.status_C { background: white; }
+.status_EX { background: yellow; }
+
+/* pay status */
+.status_S { background: green; }
+.status_P { background: white; }
+.status_C { background: black; }
+.status_R { background: blue; }
+.status_F { background: red; }
+.status_E { background: red; }
+.status_I { background: pink; }
+.status_D { background: purple; }
+
+
+
+/****** ADWORDS DASHBOARD *******/
+
+/* { clear: both; }*/
+
+#dashboard table td {
+	border: 1px solid #BBB;
+	border-spacing: 0em;
+	padding: .5em;
+}

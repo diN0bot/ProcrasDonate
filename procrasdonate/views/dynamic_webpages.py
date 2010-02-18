@@ -1,11 +1,11 @@
+from __future__ import division
+
 import settings
 from lib.view_utils import render_response, HttpResponseRedirect, HttpResponseNotFound
-from lib.json_utils import json_response
 from lib.forms import get_form, EDIT_TYPE
 from procrasdonate.models import *
 
 import urllib, urllib2
-from django.utils import simplejson as json
 
 from django.core.urlresolvers import reverse
 
@@ -21,24 +21,68 @@ from django.contrib.auth.backends import ModelBackend
 from procrasdonate.applib.xpi_builder import XpiBuilder
 
 from django.db.models import Avg
-from ext import feedparser
+
+import re
+import time
 
 #### HOME ###################################
 
 def recipient_splash(request, slug=None):
     big_video = "%sswf/LaptopIntro.swf" % settings.MEDIA_URL
-    blog_posts = feedparser.parse("http://procrastinateless.wordpress.com/feed/")
     pd = Recipient.get_or_none(slug="PD")
     bilumi = Recipient.get_or_none(slug="bilumi")
     charities = Recipient.objects.filter(is_visible=True)
     special = Recipient.get_or_none(slug=slug)
-    print special
-    return render_response(request, 'procrasdonate/home.html', locals())
+    analytics = _get_analytics_data()
+    analytics.update(locals())
+    return render_response(request, 'procrasdonate/home.html', analytics)
 
 def home(request):
     return recipient_splash(request)
 
 #### COMMUNITY ###################################
+
+def _get_analytics_data():
+    pd = Tag.get_or_none(tag="ProcrasDonate")
+    tws = Tag.get_or_none(tag="TimeWellSpent")
+    u = Tag.get_or_none(tag="Unsorted")
+    
+    pd_total_pledged = TotalTag.get_or_none(tag=pd, period__type=Period.TYPES["FOREVER"])
+    tws_total_pledged = TotalTag.get_or_none(tag=tws, period__type=Period.TYPES["FOREVER"])
+    u_total_pledged = TotalTag.get_or_none(tag=u, period__type=Period.TYPES["FOREVER"])
+    
+    pd_total_pledged = pd_total_pledged and pd_total_pledged.dollars_pledged() or 0
+    tws_total_pledged = tws_total_pledged and tws_total_pledged.dollars_pledged() or 0
+    u_total_pledged = u_total_pledged and u_total_pledged.dollars_pledged() or 0
+    
+    sum_total_pledged = pd_total_pledged + tws_total_pledged
+    
+    pd_total_time = TotalTag.get_or_none(tag=pd, period__type=Period.TYPES["FOREVER"])
+    tws_total_time = TotalTag.get_or_none(tag=tws, period__type=Period.TYPES["FOREVER"])
+    u_total_time = TotalTag.get_or_none(tag=u, period__type=Period.TYPES["FOREVER"])
+    
+    pd_total_time = pd_total_time and pd_total_time.hours() or 0
+    tws_total_time = tws_total_time and tws_total_time.hours() or 0
+    u_total_time = u_total_time and u_total_time.hours() or 0
+    
+    sum_total_time = pd_total_time + tws_total_time
+    
+    user_totals_count = User.objects.count()
+    recip_totals_count = Recipient.objects.count()
+    sitegroup_totals_count = TotalSiteGroup.objects.filter(total_pledged__gt=0,
+                                                           period__type=Period.TYPES["FOREVER"]).count()
+    sitegroup_raw_totals_count = TotalSiteGroup.objects.count()                                                           
+    sum_total_count = recip_totals_count + sitegroup_totals_count
+    
+    total_goals_met = KeyValue.get_or_none(key=KeyValue.KEYS["total_goals_met"])
+    total_goals = KeyValue.get_or_none(key=KeyValue.KEYS["total_goals"])
+    total_hours_saved = KeyValue.get_or_none(key=KeyValue.KEYS["total_hours_saved"])
+    
+    total_goals_met = total_goals_met and total_goals_met.value or 0
+    total_goals = total_goals and total_goals.value or 0
+    total_hours_saved = total_hours_saved and total_hours_saved.value or 0
+    
+    return locals()
 
 def community(request):
     try:
@@ -51,7 +95,10 @@ def community(request):
     most_time = AggregateRecipient.max('total_time')
     staff_pick = StaffPick.get_random()
     tags = AggregateTag.objects.filter(time_type=Aggregate.TIME_TYPES['FOREVER'])
-    return render_response(request, 'procrasdonate/community_pages/community_portal.html', locals())
+    
+    analytics = _get_analytics_data()
+    analytics.update(locals())
+    return render_response(request, 'procrasdonate/community_pages/community_portal.html', analytics)
 
 def community_type(request, type):
     #tag = Tag.objects.get_or_none(tag=type)
@@ -296,7 +343,6 @@ def edit_promo_cards(request):
 
 @login_required
 def edit_public_information(request):
-    print settings.TEMPLATE_DIRS
     recipient = request.user.get_profile().recipient
     substate_menu_items = _organizer_submenu(request, "public", recipient)
     submenu_id = "organizer_submenu"

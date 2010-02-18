@@ -1,0 +1,27 @@
+<html>
+  <head></head>
+  <body>
+    <p>Hi, thanks for signing up for the ProcrasDonate waitlist.</p>
+
+	<p>We'll let you know when there is space available for you to download 
+	ProcrasDonate.  While you're on the waitlist you'll get the same email updates 
+	about our progress as beta testers.</p>
+	
+	<p>You can also check out our blogs if you are interested in <a href="http://procrastinateless.wordpress.com">
+	stories and lessons	of procrastination</a> or <a href="http://proudly.procrasdonate.com">
+	technical thoughts on our progress</a>.</p>
+	
+	<p>To unsubscribe from the waitlist, copy and paste the following URL into 
+	Firefox's address bar:</p>
+	
+	<p><a href="{{ settings.DOMAIN }}/{% url remove_from_waitlist waiter.remove_key %}">
+		{{ settings.DOMAIN }}/{% url remove_from_waitlist waiter.remove_key %}</a></p>
+	
+	<p>woo!</p>
+	
+	<p>The ProcrasDonate Team
+	<br />{{ settings.EMAIL }}
+	<br />{{ settings.DOMAIN }}</p>
+	    
+  </body>
+</html>

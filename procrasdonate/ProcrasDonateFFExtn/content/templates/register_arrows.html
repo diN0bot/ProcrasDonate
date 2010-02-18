@@ -1,15 +1,14 @@
-
 {% if substate_menu_items.prev %}
 	{% if substate_menu_items.prev.url %}<a href="{{ substate_menu_items.prev.url }}">{% endif %}
 		<img
 		  class="prev {{ substate_menu_items.prev.id }}"
-		  src="/procrasdonate_media/img/BackArrow.png" />
+		  src="{{ constants.MEDIA_URL }}img/BackArrow.png" />
   {% if substate_menu_items.prev.url %}</a>{% endif %}
 {% else %}
 	{% if not substate_menu_items.no_spacers %}
 	<img
 	  class="prev"
-	  src="/procrasdonate_media/img/Spacer.png" />
+	  src="{{ constants.MEDIA_URL }}img/Spacer.png" />
 	{% endif %}
 {% endif %}
 
@@ -17,7 +16,7 @@
 	{% ifequal substate_menu_items.next.value "XXX" %}
 		<img
 		  class="done {{ substate_menu_items.next.id }}"
-		  src="/procrasdonate_media/img/DoneButton.png" />
+		  src="{{ constants.MEDIA_URL }}img/DoneButton.png" />
 	{% else %}
 		{% ifequal substate_menu_items.next.value "XXXX" %}
 			{# ifnotequal does not work #}
@@ -25,7 +24,7 @@
 			{% if substate_menu_items.next.url %}<a href="{{ substate_menu_items.next.url }}">{% endif %}
 				<img
 				  class="next {{ substate_menu_items.next.id }}"
-				  src="/procrasdonate_media/img/NextArrow.png" />
+				  src="{{ constants.MEDIA_URL }}img/NextArrow.png" />
 			{% if substate_menu_items.next.url %}</a>{% endif %}
 		{% endifequal %}
 	{% endifequal %}
@@ -33,7 +32,8 @@
 	{% if not substate_menu_items.no_spacers %}
 	<img
 	  class="next"
-	  src="/procrasdonate_media/img/Spacer.png" />
+	  src="{{ constants.MEDIA_URL }}img/Spacer.png" />
 	{% endif %}
 {% endif %}
 
+<div class="arrow_errors errors"></div>

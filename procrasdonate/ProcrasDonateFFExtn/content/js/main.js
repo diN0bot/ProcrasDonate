@@ -60,7 +60,7 @@ PDDB.prototype = {
 		
 		////// PAYMENT SERVICES ////////
 		this.AmazonFPS = this.PaymentService.get_or_create({
-			name: "Amazon Flexible Payments Service",
+			name: "Amazon Payments",
 			user_url: constants.AMAZON_USER_URL
 		});
 
@@ -120,9 +120,10 @@ Orthogonals.prototype = {
 		try {
 			this.FAIL(); // we expect this to fail because we haven't defined a FAIL property!
 		} catch (e) {
-			logger("Orthogonals ERROR: "+detail_type+": "+msg+"\n"+e.stack);
+			logger("Orthogonals ERROR (caught so execution continues): "+detail_type+": "+msg+"\n"+e.stack);
 		}
-		throw "Orthogonals ERROR: "+detail_type+": "+msg
+		// don't actually throw an error!
+		//throw "Orthogonals ERROR: "+detail_type+": "+msg
 	},
 	
 	UserStudy: function(type, msg, quant) {

@@ -1,0 +1,29 @@
+{% extends 'procrasdonate/base.html' %}
+
+{% block head %}
+	<link rel="stylesheet" type="text/css" href="{{ MEDIA_URL }}css/superuser.css">
+	{{ block.super }}
+	<script type="text/javascript" charset="utf-8" src="{{ MEDIA_URL }}js/superuser.js"></script>
+{% endblock %}
+
+{% block content %}
+	<div id="superuser_links">
+		<ul>
+			<li><a href="{% url admin "" %}">Django Admin</a></li>
+			<li>Organizer Registration Steps
+				<ol>
+					<li><a href="{% url admin "procrasdonate/recipient/add/" %}">Create Recipient</a></li>
+					<li><a href="{% url register_organizer %}">Create Organizer</a></li>
+				</ol>
+			</li>
+			<li><a href="{% url users %}">Users</a></li>
+			<li><a href="{% url logs %}">Logs</a></li>
+			<li><a href="{% url payments %}">Payments</a></li>
+			<li><a href="{% url recipient_votes %}">Recipient Votes</a></li>
+			<li><a href="{% url adword_dashboard %}">Adword Dashboard</a></li>
+		</ul>
+	</div>
+	
+	{% block superuser_content %}
+	{% endblock %}
+{% endblock %}

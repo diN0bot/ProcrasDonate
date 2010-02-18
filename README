@@ -1,31 +1,14 @@
 
-h2. INSTALLATION
+h2. Documentation
 
-# Clone or fork from git http://github.com/diN0bot/ProcrasDonate/tree/master
-# cd into root of repo directory
-## ./manage syncdb
-## ./manage runserver
-# If necessary, install dependencies listed below.
-# Set up personal working environment in env
-## env/CURRENT should contain name of personal folder
-## specified personal folder should contain settings.py, which is imported at the bottom of the global settings.py
+see the 'docs' folder
 
-h2. EXTENSION PACKAGIN
+h2. License
 
-    cd procrasdonate/ff_extn/ProcrasDonate
-    rm -rf ../../../media/xpi/*
-    zip -r ../../../media/xpi/ProcrasDonate_0.1.1.xpi *
+see the 'LICENSE' file
 
-h3. Dependencies
-
-h4. Git
+h2. Miscellaneous
 
 * http://metastatic.org/source/git-osx.html
 * http://github.com/guides/git-cheat-sheet
-   
-h4. Django Evolution (optional)
-
-h2. THIS DOCUMENT
-
-Formatted with Textile http://github.com/guides/textile-formatting
-
+* Formatted with Textile http://github.com/guides/textile-formatting

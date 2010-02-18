@@ -64,12 +64,14 @@ var logger = function(msg) {
  * show output there.
  *     eg, $ /Applications/Firefox.app/Contents/MacOS/firefox > o.out
  */
-logger = function(msg, show_stack) {
+var logger = function(msg, show_stack) {
 	now = new Date();
 	dump("\n---------"+now+"---------\n" + msg + "\n");
 	try {
 		if (show_stack) {
 			logger.FAIL();
+		} else {
+			//logger.FAIL();
 		}
 	} catch (e) {
 		dump(e.stack);
@@ -302,6 +304,57 @@ var _start_of_year = function(date) {
 	return date;
 }
 
+var _start_of_month = function(date) {
+	if (!date) {
+		date = new Date();
+	} else {
+		date = new Date(date);
+	}
+	date.setDate(1);
+	date.setHours(0);
+	date.setMinutes(0);
+	date.setSeconds(0);
+	date.setMilliseconds(0);
+	return date;
+}
+
+var _end_of_month = function(date) {
+	if (!date) {
+		date = new Date();
+	} else {
+		date = new Date(date);
+	}
+	switch (date.getMonth()) {
+	case 8:
+	case 3:
+	case 5:
+	case 10:
+		date.setDate(30);
+		break
+	case 0:
+	case 2:
+	case 4:
+	case 6:
+	case 7:
+	case 9:
+	case 11:
+		date.setDate(31);
+		break
+	case 1:
+		var isLeap = new Date(date.getYear,1,29).getDate() == 29;
+		if (isLeap) {
+			date.setDate(29);
+		} else {
+			date.setDate(28);
+		}
+	}
+	date.setHours(23);
+	date.setMinutes(23);
+	date.setSeconds(23);
+	date.setMilliseconds(23);
+	return date;
+}
+
 var _end_of_forever = function() { return -3; }
 
 var _end_of_day = function(date) {
@@ -429,9 +482,9 @@ var _version_to_number = function(version) {
 	var parts = version.split(".");
 	_iterate(parts, function(key, value, index) {
 		var v = parseInt(value);
-		ret += v*(Math.pow(10, index*2))
+		ret += v*(Math.pow(10, (2-index)*2))
 	});
-	logger("version is "+version+"     ret is "+ret);
+	logger("version "+version+" converted to "+ret)
 	return ret
 }
 
@@ -462,11 +515,29 @@ var _prefify_float = function(x) {
 	return x.toString();
 }
 
-// we expect wikipedia.org to split into   [,    ,wikipedia.org  ,]
-// we expect www.bluecar.com to split into [,www.,bluecar.com    ,]
-// we expect docs.google.com to split into [,    ,docs.google.com,]
-var host_regexp =  /^[\w]+:\/\/(www\.)?([^\/]+).*/g;
 
+// added \/? for file
+var host_regexp =  /^[\w]+:(\/\/)?(www\.)?([^\/]+).*/g;
+var file_regexp =  /^file:\/\/(.*)/g;
+
+/**
+ * 
+ * @param href: fully qualified url, includes http or whatever. 
+ * 	uses urlbar if no href
+ * @return just the hostname, eg procrasdonate.com
+ * 	automatically strips out www
+ * 	for file:// returns first 30 characters of path
+ * 
+ * // https://procrasdonate.com/my_messages/  ["", "", "procrasdonate.com", ""]
+ * // http://procrasdonate.com/my_messages/   ["", "", "procrasdonate.com", ""]
+ * // http://wikipedia.org/                   ["", "", "wikipedia.org", ""]
+ * // http://www.wikipedia.org/               ["", "www.", "wikipedia.org", ""]
+ * // file:///Users/lucy/SciFi                ["", "/Users/lucy/SciFi", ""]
+ * 
+ * if split fails, returns ['<< entire input >>']
+ * 
+ * always returned encodeURI result
+ */
 var _host = function(href) {
 	if (!href) {
 		var urlbar = document.getElementById('urlbar');
@@ -476,21 +547,32 @@ var _host = function(href) {
 		}
 		href = urlbar.value;
 	}
-	var splits = href.split(host_regexp);
+	href = encodeURI(href);
+	
+	var splits = href.split(file_regexp);
 	if ( splits.length > 2 ) {
-		return splits[2];
+		return splits[1].substr(0, 30);
+	}
+	
+	var splits = href.split(host_regexp);
+	if ( splits.length >= 4 ) {
+		return splits[3];
 	} else {
 		return href
 	}
 };
 
+/**
+ * 
+ * @return current URL, eg http://procrasdonate.com/my_settings
+ */
 var _href = function() {
 	var urlbar = document.getElementById('urlbar');
 	if (!urlbar) {
 		logger("WARNING: urlbar is false. utils::_href is returning the empty string.");
 		return "";
 	}
-	return urlbar.value
+	return encodeURI(urlbar.value)
 };
 
 function isEmpty(ob) {

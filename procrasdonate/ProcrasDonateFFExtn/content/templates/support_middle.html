@@ -7,8 +7,8 @@
 		class="support_method_radio"
 		type="radio"
 		name="support_method"
-		value="monthly"
-		{% ifequal support_method "monthly" %}checked{% endifequal %} />
+		value="constants.MONTHLY_SUPPORT_METHOD"
+		{% ifequal support_method constants.MONTHLY_SUPPORT_METHOD %}checked{% endifequal %} />
 	<label>Monthly Subscription</label>
 	</td>
 	<td align="left">
@@ -16,12 +16,12 @@
 		class="support_method_radio"
 		type="radio"
 		name="support_method"
-		value="percent"
-		{% ifequal support_method "percent" %}checked{% endifequal %}>Transaction Percent</input>
+		value="constants.PCT_SUPPORT_METHOD"
+		{% ifequal support_method constants.PCT_SUPPORT_METHOD %}checked{% endifequal %}>Transaction Percent</input>
 	</td>	
 </tr>	
 <tr>
-<td class="support_method_monthly {% ifequal support_method "percent" %}disabled{% endifequal %}">
+<td class="support_method_monthly {% ifequal support_method constants.PCT_SUPPORT_METHOD %}disabled{% endifequal %}">
 	<p>"Please charge me a membership services fee of 	
 	<input
 		type="text"
@@ -29,7 +29,7 @@
 		name="monthly_fee" 
 		value="{{ monthly_fee }}"
 		size="4"
-		{% ifequal support_method "percent" %}disabled{% endifequal %} />
+		{% ifequal support_method constants.PCT_SUPPORT_METHOD %}disabled{% endifequal %} />
 	   dollars per month."		
 	</p>
 	<span class="units"></span>
@@ -38,7 +38,7 @@
 		</li>
 	</ul>
 </td>
-<td class="support_method_percent {% ifequal support_method "monthly" %}disabled{% endifequal %}">
+<td class="support_method_percent {% ifequal support_method constants.MONTHLY_SUPPORT_METHOD %}disabled{% endifequal %}">
 	<p>
 		"Please subtract a 
 			<input
@@ -47,7 +47,7 @@
 			name="support_pct" 
 			value="{{ support_pct }}"
 			size="4"
-			{% ifequal support_method "monthly" %}disabled{% endifequal %} />
+			{% ifequal support_method constants.MONTHLY_SUPPORT_METHOD %}disabled{% endifequal %} />
 		   <span class="units"></span>
 		   <span id="support_error" class="error"></span>
 	  	% transfer service fee from my donations." 

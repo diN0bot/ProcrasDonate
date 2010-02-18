@@ -1,0 +1,22 @@
+Hi, thanks for signing up for the ProcrasDonate waitlist.
+
+We'll let you know when there is space available for you to download 
+ProcrasDonate.  While you're on the waitlist you'll get the same email updates 
+about our progress as beta testers.
+
+You can also check out our blogs if you are interested in stories and lessons 
+of procrastination
+    http://procrastinateless.wordpress.com
+or technical thoughts on our progress
+    http://proudly.procrasdonate.com
+
+To unsubscribe from the waitlist, copy and paste the following URL into 
+Firefox's address bar:
+
+    {{ settings.DOMAIN }}/{% url remove_from_waitlist waiter.remove_key %}
+
+woo!
+
+The ProcrasDonate Team
+{{ settings.EMAIL }}
+{{ settings.DOMAIN }}

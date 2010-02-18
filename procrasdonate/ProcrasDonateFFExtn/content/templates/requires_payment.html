@@ -1,0 +1,16 @@
+<ul>
+	<li>partially paid: {{ rp.is_partially_paid }}</li>
+	<li>pending: {{ rp.is_pending }}</li>
+	<li>TOTAL:
+		<ul>
+			<li>site: {{ rp.total.site.url }}</li>
+			<li>sitegroup: {{ rp.total.sitegroup.host }}, {{ rp.total.sitegroup.tag.tag }}</li>
+			<li>recipient: {{ rp.total.recipient.name }}</li>
+			<li>tag: {{ rp.total.tag.tag }}</li>
+			<li>total_time: {{ rp.total.total_time }} secs, {{ rp.total.hours }} hours</li>
+			<li>total_amount: {{ rp.total.total_amount }} cents, ${{ rp.total.dollars }}</li>
+			<li>timetype: {{ rp.total.timetype.timetype }}</li>
+			<li>datetime: {{ rp.total.friendly_datetime }}</li>
+		</ul>
+	</li>
+</ul>

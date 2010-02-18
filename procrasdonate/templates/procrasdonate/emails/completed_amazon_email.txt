@@ -1,0 +1,24 @@
+Congratulations{% if name %}, {{ name }}{% endif %}!  Your ProcrasDonate registration and payments are now both complete.  Good work.
+
+Use the icons that appear at the top of your web browser to categorize websites you are viewing as ProcrasDonation or TimeWellSpent.  The meter next to that will fill up throughout the week as you get closer to your ProcrasDonation goal.
+
+You can now access detailed charts and graphs about your time management and charitable donations at {{ settings.DOMAIN }}{% url my_progress %}  Click on the procrastination meter at the top of your web browser for a shortcut to your ProcrasDonate pages.  Then select one of the following new sidebar elements:
+
+''My Progress'' - This page provides: 1. Gauges that compare your weekly procrastination behaviors.  2. A way to categorize many Sites at once.  3. A listing of your most recent website Visits.  4. Graphs you can chang to show both website usage and time management trends. 
+
+''My Messages'' - This page is a record of all messages that you've received.  Messages will show up once a week or so at the top of your web browser while you're ProcrasDonating.  But if you miss any then you can always come back to this page.
+
+''My Impact'' - This page lists all of the donations that you've made based on a calendar year.  We are not responsible for providing you with tax records of your donations.  But we do list which donations are likely tax deductible for your convenience.
+
+''My Settings'' - This page replaces your ''Not Done Registering'' page.  Use it to review or change any of your settings.  For example, if you want to add a new charity as a beneficiary or if celebrate a pay raise by donating more, etc.
+
+That's it for now.  Have fun categorizing your websites and you'll hear from us soon.
+
+Sincerely,
+
+
+Clay Ward
+cofounder
+
+{{ settings.EMAIL }}
+{{ settings.DOMAIN }}

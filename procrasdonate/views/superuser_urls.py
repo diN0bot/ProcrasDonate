@@ -13,4 +13,7 @@ urlpatterns = patterns('',
     url(r'^recipient/votes/$', superuser_webpages.recipient_votes, name="recipient_votes"),
     # link recipient to vote
     url(r'^recipient/link_vote/(?P<vote_id>\d+)/(?P<recipient_slug>%s)/$' % slug_re, superuser_webpages.link_vote, name="link_vote"),
+
+    url(r'^logs/$' , superuser_webpages.logs, name="logs"),
+    url(r'^payments/$' , superuser_webpages.payments, name="payments"),
 )

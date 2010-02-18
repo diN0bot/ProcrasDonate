@@ -2,6 +2,7 @@
 
 {% block head %}
 	<link rel="stylesheet" type="text/css" href="{{ MEDIA_URL }}css/procrasdonate_home.css">
+	<script type="text/javascript" charset="utf-8" src="{{ MEDIA_URL }}js/home.js"></script>
 {% endblock %}
 
 {% block supermiddle %}
@@ -27,6 +28,12 @@
 						width="444"
 						height="300" />
 				</object>
+			</div>
+			<div id="below_big_video" class="hidden">
+				<img src="{{ MEDIA_URL }}img/LaptopIconElated.png" class="video_charity_logo" style="float:left;" />
+				<div class="video_charity_name"><a href="{% url splash %}">ProcrasDonate</a></div>
+				<div class="video_charity_mission">Waste less time, support good causes.</div>
+				<div class="video_charity_video hidden">__ProcrasDonate__</div>
 			</div>
 			</td>
 			<td>
@@ -58,9 +65,10 @@
 	<table id="community">
 	<tbody>
 	<tr>
-		<td id="community_left"><i>${{ total_amount|default:"0" }}</i> raised for <i>{{ total_recipients|default:"0" }}</i> good causes.</td> 
-		<td id="community_center"><i>{{ total_hours|default:"0" }}</i> hours saved.</td>
-		<td id="community_right"><i>{{ total_users|default:"0" }}</i> goals met.</td>
+		<td id="community_left"><i>${{ sum_total_pledged|default:"0"|floatformat:"2" }}</i> 
+			raised for <i>{{ sum_total_count|default:"0" }}</i> good causes.</td> 
+		<td id="community_center"><i>{{ total_hours_saved|default:"0"|floatformat:"0" }}</i> hours saved.</td>
+		<td id="community_right"><i>{{ total_goals_met|default:"0"|floatformat:"0" }}</i> goals met.</td>
 	</tr>
 	</tbody>
 	</table>
@@ -79,9 +87,15 @@
 			<div id="charities">
 				{% for r in charities %}
 					{% if r.thumbnail_url %} 
-						<a href="{% url recipient r.slug %}">
+						<div>
+						{#<a href="{% url recipient r.slug %}">#}
 							<img id="charity_{{ r.slug }}" class="charity_logo" src="{{ r.thumbnail_url }}" />
-						</a>
+							<div class="hidden charity_video_src">{{ r.promotional_video }}</div>
+							<div class="hidden charity_url">{% url recipient r.slug %}</div>
+							<div class="hidden charity_name">{{ r.name }}</div>
+							<div class="hidden charity_mission">{{ r.mission }}</div>
+						{#</a>#}
+						</div>
 					{% endif %}
 				{% endfor %}
 			</div>
@@ -100,21 +114,20 @@
 			<div id='community_menu_item'><a href="http://feedback.procrasdonate.com">Feedback</a></div>
 		</div>
 		
+		<div class="share_button">
+			{% include "procrasdonate/straight_pages/snippets/share_button.html" %}
+		</div>
+		
 		<img id="my_progress_screenshot" src="{{ MEDIA_URL }}img/MyProgressPreview_cropped.png" />
 		
-		<div id="blog_posts">
-			<h3><a href="{{ blog_posts.feed.link }}">{# {{ blog_posts.feed.title }} #}Blog: Mindful Moments</a></h3>
-			{% for post in blog_posts.entries|slice:":5" %}
-			<div class="blog_post">
-				<h4><a href="{{ post.link }}">- {{ post.title }}</a></h4>
-				{% comment %}
-				<p>{{ post.summary|truncatewords:3|safe }}
-					<span><a href="{{ post.link }}">read more</a></span>
-					{# <span><a href="{{ post.comments }}">comments</a></span> #}
-				</p>
-				{% endcomment %}
-			</div>
-			{% endfor %}
+		<div id="blog_posts" class="posts">
+			<h3><a href="http://procrastinateless.wordpress.com/">Blog: Mindful Moments</a></h3>
+			<!-- posts inserted by javascript using procrasdonate/templates/procrasdonate/snippets/post.html -->
+		</div>
+		
+		<div id="procrasdonate_tweets" class="posts">
+			<h3><a href="http://twitter.com/procrasdonate">@procrasdonate</a></h3>
+			<!-- posts inserted by javascript using procrasdonate/templates/procrasdonate/snippets/tweet.html -->
 		</div>
 	</div>
 	<table>

@@ -13,7 +13,7 @@ NEW_TYPE = 'new'
 # user facing form for editing existing instance
 EDIT_TYPE = 'edit'
 
-# users should not reference this directly.
+# users should not reference this cache directly.
 # instead, use get_form
 FORMS = { ADMIN_TYPE: {},
           NEW_TYPE: {},
@@ -69,10 +69,10 @@ def model_form_class(_model, excludes=None, includes=None):
                 fields = includes
     return klass
 
-new_forms_excludes = {#'Node':('url',),
-                      #'Behavior':('node','weight','url'),
+new_forms_excludes = {#'OldModel':('url',),
+                      #'OldModel2':('old_model','foo','bar'),
                       }
 
 edit_forms_excludes = {
-                       #'WeatherImage':('theme','code','thumbnail_width','thumbnail_height'),
+                       #'MyModel':('slug','immutable','calculated_from_post_save'),
                       }
