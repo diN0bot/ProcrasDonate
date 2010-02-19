@@ -1,3 +1,0 @@
-
-    Template.compile(["<form action=\"", ["var", ["action_url"], []], "\" method=\"get\">\n\t<input\n\t\ttype=\"image\"\n\t\tsrc=\"https:\/\/authorize.payments.amazon.com\/pba\/images\/SMSubscribeWithOutLogo.png\"\n\t\/>\n\t", ["for", ["pair"], ["var", ["parameter_pairs"], []], false, ["\n\t\t<input\n\t\t\ttype=\"hidden\"\n\t\t\tname=\"", ["var", ["pair", "name"], []], "\"\n\t\t\tvalue=\"", ["var", ["pair", "value"], []], "\"\n\t\t\/>\n\t"]], "\n\t\n\t", ["var", ["hack_html"], []], "\n<\/form>\n"], "authorize_payments");
-    

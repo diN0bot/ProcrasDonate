@@ -5,14 +5,14 @@ FastCGIServer /var/sites/ProcrasDonate/public/dispatch.fcgi -initial-env PROJECT
 
 <VirtualHost *:80>
 	ServerAdmin lucy@ProcrasDonate.com
-	ServerName  ProcrasDonate.com
-	ServerAlias ProcrasDonate.org
-	ServerAlias ProcrastDonate.com
-	ServerAlias ProcrastDonate.org
-	ServerAlias www.ProcrasDonate.com
-	ServerAlias www.ProcrasDonate.org
-	ServerAlias www.ProcrastDonate.com
-	ServerAlias www.ProcrastDonate.org
+	ServerName  procrasdonate.com
+	ServerAlias procrasdonate.org
+	ServerAlias procrastdonate.com
+	ServerAlias procrastdonate.org
+	ServerAlias www.procrasdonate.com
+	ServerAlias www.procrasdonate.org
+	ServerAlias www.procrastdonate.com
+	ServerAlias www.procrastdonate.org
 
         DocumentRoot /var/www/
 	<Directory />
@@ -26,14 +26,18 @@ FastCGIServer /var/sites/ProcrasDonate/public/dispatch.fcgi -initial-env PROJECT
 		allow from all
 	</Directory>
 
-	#RedirectMatch ^/$ /pd/
+
+	Alias /robots.txt /var/sites/ProcrasDonate/media/txt/robots.txt
+	#Redirect /robots.txt /procrasdonate_media/txt/robots.txt
 	
+	#RedirectMatch ^/$ /pd/
 	##
 	## redirect all HTTP to HTTPS
 	## http://www.cyberciti.biz/tips/howto-apache-force-https-secure-connections.html
 	## 
-	Redirect / https://procrasdonate.com/
-
+	
+	#Redirect / https://procrasdonate.com/
+	
         ErrorLog /var/log/apache2/procrasdonate.com/error.log
         LogLevel warn
         CustomLog /var/log/apache2/procrasdonate.com/access.log combined
@@ -44,15 +48,30 @@ FastCGIServer /var/sites/ProcrasDonate/public/dispatch.fcgi -initial-env PROJECT
         Alias /procrasdonate_media /var/sites/ProcrasDonate/media
         Alias / /var/sites/ProcrasDonate/public/dispatch.fcgi/
 
-        AddType text/javascript .js
+	AddType text/javascript .js
 	AddType application/x-xpinstall .xpi
 
         ExpiresActive On
         ExpiresByType text/javascript "access plus 2 hours"
-        ExpiresByType image/gif  "access plus 2 hours"
-        ExpiresByType image/jpeg "access plus 2 hours"
+        ExpiresByType image/gif  "access plus 2 days"
+        ExpiresByType image/jpeg "access plus 2 days"
         ExpiresByType text/css  "access plus 2 hours"
-        ExpiresByType image/png  "access plus 2 hours"
+        ExpiresByType image/png  "access plus 2 days"
+	ExpiresByType application/x-shockwave-flash "access plus 1 week"
+	ExpiresByType application/x-xpinstall "access plus 0 minutes"
+	ExpiresByType text/xml "access plus 0 minutes"
+
+<LocationMatch "/get/data/*">
+  ExpiresActive Off
+</LocationMatch>
+
+<LocationMatch "/procrasdonate_media/rdf/*">
+  ExpiresActive Off
+</LocationMatch>
+
+<LocationMatch "/procrasdonate_media/xpi/*">
+  ExpiresActive Off
+</LocationMatch>
 
 </VirtualHost>
 
@@ -80,6 +99,7 @@ FastCGIServer /var/sites/ProcrasDonate/public/dispatch.fcgi -initial-env PROJECT
 	</Directory>
 
 	#RedirectMatch ^/$ /pd/
+	#Redirect /robots.txt /procrasdonate_media/txt/robots.txt
 
         ErrorLog /var/log/apache2/procrasdonate.com/error.log
         LogLevel warn
@@ -89,17 +109,9 @@ FastCGIServer /var/sites/ProcrasDonate/public/dispatch.fcgi -initial-env PROJECT
         LoadModule alias_module modules/mod_alias.so
         Alias /media /usr/local/django_src/django/contrib/admin/media/
         Alias /procrasdonate_media /var/sites/ProcrasDonate/media
+        Alias /robots.txt /var/sites/ProcrasDonate/media/txt/robots.txt
         Alias / /var/sites/ProcrasDonate/public/dispatch.fcgi/
 
-        AddType text/javascript .js
-	AddType application/x-xpinstall .xpi
-
-        ExpiresActive On
-        ExpiresByType text/javascript "access plus 2 hours"
-        ExpiresByType image/gif  "access plus 2 hours"
-        ExpiresByType image/jpeg "access plus 2 hours"
-        ExpiresByType text/css  "access plus 2 hours"
-        ExpiresByType image/png  "access plus 2 hours"
 
 	SSLEngine on
         SSLOptions +StrictRequire
@@ -111,5 +123,30 @@ FastCGIServer /var/sites/ProcrasDonate/public/dispatch.fcgi -initial-env PROJECT
 	# self signed
         #SSLCertificateFile /etc/ssl/certs/server.crt
         #SSLCertificateKeyFile /etc/ssl/private/server.key 
+
+        AddType text/javascript .js
+	AddType application/x-xpinstall .xpi
+
+        ExpiresActive On
+        ExpiresByType text/javascript "access plus 2 hours"
+        ExpiresByType image/gif  "access plus 2 days"
+        ExpiresByType image/jpeg "access plus 2 days"
+        ExpiresByType text/css  "access plus 2 hours"
+        ExpiresByType image/png  "access plus 2 days"
+	ExpiresByType application/x-shockwave-flash "access plus 1 week"
+	ExpiresByType application/x-xpinstall "access plus 0 minutes"
+	ExpiresByType text/xml "access plus 0 minutes"
+
+<LocationMatch "/get/data/*">
+  ExpiresActive Off
+</LocationMatch>
+
+<LocationMatch "/procrasdonate_media/rdf/*">
+  ExpiresActive Off
+</LocationMatch>
+
+<LocationMatch "/procrasdonate_media/xpi/*">
+  ExpiresActive Off
+</LocationMatch>
 
 </VirtualHost>
