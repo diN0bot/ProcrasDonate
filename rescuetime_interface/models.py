@@ -91,7 +91,7 @@ class RescueTimeUser(models.Model):
     
     def __unicode__(self):
         return "%s gives $%s/hr to %s: %s." % (self.rescuetime_key,
-                                               self.recipient.name,
+                                               self.recipient and self.recipient.name or "no recip",
                                                self.dollars_per_hr,
                                                self.user)
                                                

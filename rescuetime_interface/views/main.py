@@ -65,6 +65,9 @@ def dashboard(request, rescuetime_key):
                     'restrict_begin': '2010-02-11',
                     'restrict_end': '2010-02-12'
                     })
+    if 'error' in data:
+        error = "We received an invalid RescueTime API key. Is it deactivated? <a href='%s'>Please try again</a>" % reverse('rt_signup')
+        return render_response(request, 'rescuetime_interface/dashboard.html', locals())
     
     pledges = []
     for row in rt.procrastination_data()['rows']:

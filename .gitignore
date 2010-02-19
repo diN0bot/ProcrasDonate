@@ -14,6 +14,7 @@ NOTES
 media/uploaded_img/*
 !media/uploaded_img/touch
 media/rdf/update.rdf
-procrasdonate/ProcrasDonateFFExtn/content/js/generated_inputjs
+procrasdonate/ProcrasDonateFFExtn/content/js/generated_input.js
 procrasdonate/ProcrasDonateFFExtn/content/js/generated_javascript.js
 procrasdonate/ProcrasDonateFFExtn/content/js/templates/all.js
+procrasdonate/ProcrasDonateFFExtn/content/templates/*.html.js
