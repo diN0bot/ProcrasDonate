@@ -77,17 +77,3 @@ model - assertion in models instance and class fields
 make_payments - logs activity regarding making payments (donations, subscriptions)
 pay - related to donation payments
 monthly_fee - related to monthly fee payments
-
-##### PROFILING #####
-
-	import time
-    times = []
-    ...
-    times.append(time.time())
-    ...
-    i = 1
-    while i < len(times):
-        print '%s->%s took %0.3f ms' % ((i-1),
-                                        i,
-                                        (times[i] - times[i-1])*1000.0)
-        i += 1
