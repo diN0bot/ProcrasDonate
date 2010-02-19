@@ -1,0 +1,113 @@
+{% extends 'adwords/superbase.html' %}
+
+{% block content %}
+	<div id="b_content">
+		
+		
+		<div class="descriptive_list_text">
+			{% block descriptive_text %}
+			{% endblock %}
+		</div>	
+			<!-- LEFT COLUMN -->
+		
+		<div id="b_left_column">	
+				
+			<table>
+				<tr><td>
+					<div class="adword_list_element">
+						<a href="{% url adword_click "simple_donation_wedding" group %}">
+							{% block adword_list_element_one %}
+							{% endblock %}
+						</a>
+					</div>
+				</td>
+				<td>
+					<div class="adword_list_description>
+						<a href="{% url adword_click "simple_donation_wedding" group %}">
+							{% block adword_list_description_one %}
+							{% endblock %}
+						</a>
+					</div>	
+				</td></tr>
+				<tr><td>						
+					<div class="adword_list_element">
+						<a href="{% url adword_click "matching_donation_wedding" group %}">
+							{% block adword_list_element_two %}
+							{% endblock %}
+						</a>
+					</div>
+				</td>
+				<td>
+					<div class="adword_list_description>
+						<a href="{% url adword_click "matching_donation_wedding" group %}">
+							{% block adword_list_description_two %}
+							{% endblock %}
+						</a>
+					</div>	
+				</td></tr>					
+				<tr><td>	
+					<div class="adword_list_element">
+						<a href="{% url adword_click "giving_circle_wedding" group %}">
+							{% block adword_list_element_three %}
+							{% endblock %}
+						</a>
+					</div>
+				</td>
+				<td>
+					<div class="adword_list_description>
+						<a href="{% url adword_click "giving_circle_wedding" group %}">
+							{% block adword_list_description_three %}
+							{% endblock %}
+						</a>
+					</div>	
+				</td></tr>	
+			</table>
+		</div>	
+		
+		<!-- RIGHT COLUMN -->
+		
+		<div id="b_right_column">	
+			<table>	
+				<tr><td>				
+					<div class="adword_list_element">
+						<a href="{% url adword_click "procrasdonate_wedding" group %}">
+							{% block adword_list_element_four %}
+							{% endblock %}
+						</a>
+					</div>
+				<td>
+					<div class="adword_list_description>
+						<a href="{% url adword_click "procrasdonate_wedding" group %}">
+							{% block adword_list_description_four %}
+							{% endblock %}
+						</a>
+					</div>	
+				</td></tr>
+				<tr><td>					
+					<div class="adword_list_element">
+						<a href="{% url adword_click "monthly_promise_wedding" group %}">
+							{% block adword_list_element_five %}
+							{% endblock %}
+						</a>
+					</div>
+				</td>
+				<td>
+					<div class="adword_list_description>
+						<a href="{% url adword_click "monthly_promise_wedding" group %}">
+							{% block adword_list_description_five %}
+							{% endblock %}
+						</a>
+					</div>	
+				</td></tr>
+				<tr>
+				<td>
+					<div id="email_list" class="extend_email_element">
+						{% include 'adwords/snippets/email_form.html' %}
+					</div>
+				</td></tr>				
+			</table>
+		</div>
+
+		
+	</div>
+{% endblock %}

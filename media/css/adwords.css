@@ -5,6 +5,12 @@
 	text-align: center;
 }
 
+ #b_content {
+	width: 70em;
+	margin: auto;
+	text-align: center;
+} 
+ 
 #a_left_column {
 	float: left;
 	width: 45em;
@@ -15,10 +21,35 @@
 	width: 35em;
 }
 
+#b_left_column {
+	float: left;
+	width: 35em;
+}
+
+#b_right_column {
+	float: left;
+	width: 35em;
+}
+
 #descriptive_text {
 	font-size: 1.4em;
 	padding-bottom: .8em;
 	padding-left: 1em;
+}
+
+.descriptive_list_text {
+	font-size: 1.3em;
+	padding-bottom: .8em;
+	padding-left: 1em;
+	margin-top: -1em;
+}
+
+.adwords_list_description {
+	font-size: 1.2em;
+	padding-right: .4em;
+}
+
+.adwords_list_image {
 }
 
 #screen_shot {
@@ -29,8 +60,21 @@
 	width: 100%;
 }
 
+.adword_list_element {
+	padding: 1em;
+}
+
+.adword_list_element img {
+	height: 12em;
+}
+ 
+.wedding_option_logo	{
+	width: 30%;
+}
+
 #email_list {
 	padding-top: 1.7em;
+	clear: both;
 }
 
 #email_waiting_list {
@@ -43,6 +87,11 @@
 }
 #email_input.user_typing {
 	color: black;
+}
+
+.extend_email_element {
+	margin-top: 3.9em;
+	margin-right: -16em;
 }
 
 /*** h1 is redefined here for adwords only. ***/

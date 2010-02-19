@@ -12,7 +12,7 @@ def adword_page(request, group):
     return render_response(request, 'adwords/landing_pages/%s.html' % group, locals())
 
 def adword_click(request, page, group):
-    return render_response(request, 'adwords/click_to_pages/%s.html' % page, locals())
+    return render_response(request, 'adwords/click_to_page_base.html', locals())
 
 def adword_done(request, page, group):
     return render_response(request, 'adwords/done_page.html', locals())
