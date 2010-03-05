@@ -1,0 +1,32 @@
+{% extends 'weddings/superbase.html' %}
+
+{% block content %}
+	<div id="page">
+		<h1>{{ wedding.title }}</h1>
+		{% for i in wedding.landing_images %}
+			{{ i.image.width }} x {{ i.image.height }}: {{ i.image.url }}
+			<img width="{{ i.image.width }}" height="{{ i.image.height }}" src="{{ i.image.url }}" />
+		{% endfor %}
+		<div class="text">{{ wedding.text }}</div>
+		
+		<input type="button" value="Donate Now" />
+		
+		<h2>Charities</h2>
+		<div class="recipients">
+			{% for recipient in wedding.recipients %}
+				<div class="recipient">
+					{{ recipient.name }}
+				</div>
+			{% endfor %}
+		</div>
+		
+		<h2>Donors</h2>
+		<div class="donors">
+			{% for donor in donors %}
+				<div class="donor">
+					{{ donor.user.name }}
+				</div>
+			{% endfor %}
+		</div>
+	</div>
+{% endblock %}

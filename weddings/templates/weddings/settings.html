@@ -1,0 +1,48 @@
+{% extends 'weddings/superbase.html' %}
+
+{% block content %}
+	<div id="page">
+		<h1>Administrative Settings for "{{ wedding.name }}"</h1>
+		
+		<form method="post">
+			{{ form }}
+			<input type="submit" value="Save" />
+		</form>
+	
+		<p><a href="{% url weddings_main wedding.slug %}">View site</a></p>
+	
+		<h2>Main Image</h2>
+		<ul>
+			{% for i in wedding.landing_images|slice:":1" %}
+				<li>
+					<input type="radio" name="landing_image" value="{{ i.id }}" />
+					<img style="max-width: 200; max-height: 200;" src="{{ i.image.url }}" />
+				</li>
+			{% endfor %}
+		</ul>
+		
+		<h2>Currently Selected Charities</h2>
+		<div class="recipients">
+			{% for tagging in selected %}
+				<div class="recipient">
+					{{ tagging.recipient.name }}
+					{{ tagging.recipient_vote.name }}
+					[remove]
+				</div>
+			{% endfor %}
+		</div>
+		
+		<h2>Suggest Charities</h2>
+		
+		<h2>Add Charities</h2>
+		<div class="recipients">
+			{% for recipient in not_selected %}
+				<div class="recipient">
+					{{ recipient.name }}
+					[add]
+				</div>
+			{% endfor %}
+		</div>
+		
+	</div>
+{% endblock %}
