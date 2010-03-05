@@ -49,8 +49,8 @@ APPS = ('procrasdonate',
         'crosstester',
         'adwords',
         'procrasdocoder',
-        'rescuetime_interface',
-        'weddings')
+        'rescuetime_interface')
+        #'weddings')
 
 EMAIL = "service@ProcrasDonate.com"
 
