@@ -1,0 +1,17 @@
+{% extends 'procrasdonate/base.html' %}
+
+{% block content %}
+	{% include 'register_submenu.html' %}
+
+	<h2>Thank Yous</h2>
+	
+	<form method="post">
+		<input type="submit" value="Save Changes" />
+		<table>
+		<tbody>
+			{{ formset }}
+	    </tbody>
+	    </table>
+	    <input type="submit" value="Save Changes" />
+    </form>
+{% endblock %}

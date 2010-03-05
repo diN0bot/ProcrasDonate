@@ -56,7 +56,10 @@
 					<span class="incomplete_action">incomplete</span>
 				{% endif %}
 			</td>
-			<td></td>
+			<td><a href="{% url edit_thank_yous %}">Thank Yous</a>
+				{% if recipient.thank_yous_incomplete %}
+					<span class="incomplete_action">incomplete</span>
+				{% endif %}</td>
 		</tr>
 		<tr>
 			<td></td>

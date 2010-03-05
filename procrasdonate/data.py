@@ -336,6 +336,9 @@ class Recipient(models.Model):
     def media_incomplete(self):
         return not self.logo or not self.promotional_video
     
+    def thank_yous_incomplete(self):
+        return self.thank_yous().count() == 0
+    
     @classmethod
     def Initialize(klass):
         models.signals.pre_save.connect(Recipient.process_videos, sender=Recipient)
@@ -1108,13 +1111,13 @@ class MetaReport(models.Model):
 
     @classmethod
     def make(klass, recipient, subject, message, type, is_draft, dtime, threshhold=0):
-        return Report(dtime=dtime,
-                      user=user,
-                      subject=subject,
-                      message=message,
-                      type=type,
-                      is_draft=is_draft,
-                      threshhold=threshhold)
+        return MetaReport(dtime=dtime,
+                          recipient=recipient,
+                          subject=subject,
+                          message=message,
+                          type=type,
+                          is_draft=is_draft,
+                          threshhold=threshhold)
             
     def deep_dict(self):
         return {'subject': self.subject,
@@ -1137,18 +1140,17 @@ class MetaReport(models.Model):
 class MetaReportMixin(object):
     """ mixed into User class """
     
-    @property
     def reports(self):
-        return Report.objects.filter(user=self).order_by('-dtime')
+        return MetaReport.objects.filter(user=self).order_by('-dtime')
 
 class MetaReportMixin_R(object):
     """ mixed into Recipient class """
     
-    def reports(self):
-        return Report.objects.filter(recipient=self).order_by('-dtime')
+    def meta_reports(self):
+        return MetaReport.objects.filter(recipient=self).order_by('-dtime')
     
-    def thankyous(self):
-        return self.reports.filter(type=MetaReport.TYPES['THANKYOU']).order_by('threshhold')
+    def thank_yous(self):
+        return self.meta_reports().filter(type=MetaReport.TYPES['THANKYOU']).order_by('threshhold')
     
 class WaitList(models.Model):
     """

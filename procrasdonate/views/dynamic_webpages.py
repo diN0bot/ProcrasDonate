@@ -18,12 +18,14 @@ from django.contrib.auth.decorators import login_required, user_passes_test
 from django.contrib.auth.forms import SetPasswordForm
 from django.contrib.auth.backends import ModelBackend
 
+from django.forms.models import modelformset_factory
+
 from procrasdonate.applib.xpi_builder import XpiBuilder
 
 from django.db.models import Avg
 
 import re
-import time
+import datetime
 
 #### HOME ###################################
 
@@ -286,7 +288,11 @@ def _organizer_submenu(request, current_slug, recipient):
                   'slug': 'media',
                   'url': reverse("edit_media")},
                   
-                  {'name': 'Promote',
+                 {'name': 'Thank Yous',
+                  'slug': 'thank_yous',
+                  'url': reverse("edit_thank_yous")},
+                  
+                 {'name': 'Promote',
                   'slug': 'promote',
                   'url': reverse("edit_promo_cards")}]:
         
@@ -515,6 +521,35 @@ def edit_weekly_blurbs(request):
 @login_required
 def edit_thank_yous(request):
     recipient = request.user.get_profile().recipient
+    
+    substate_menu_items = _organizer_submenu(request, "thank_yous", recipient)
+    submenu_id = "organizer_submenu"
+    
+    thank_yous = recipient.thank_yous()
+    if thank_yous.count() < 3:
+        for threshhold in [10, 100, 500]:
+            MetaReport.add(recipient,
+                           "Thanks for donating more than $%s to %s" % (threshhold, recipient.name),
+                           """Thanks for donating more than $%s to %s
+
+""" % (threshhold, recipient.name),
+                           MetaReport.TYPES['THANKYOU'],
+                           False,
+                           datetime.datetime.now(),
+                           threshhold)
+            
+    
+    ThankYouFormSet = modelformset_factory(MetaReport, extra=(3-thank_yous.count()),
+                                           max_num=3,
+                                           exclude=('dtime', 'type', 'recipient', 'is_draft'))
+    if request.method == 'POST':
+        formset = ThankYouFormSet(request.POST, queryset=thank_yous)
+        if formset.is_valid():
+            formset.save()
+            request.user.message_set.create(message='Changes saved')
+            return HttpResponseRedirect(reverse('recipient_organizer_dashboard'))
+    else:
+        formset = ThankYouFormSet(queryset=thank_yous)
     return render_response(request, 'procrasdonate/recipient_organizer_pages/edit_thank_yous.html', locals())
 
 @login_required
