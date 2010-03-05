@@ -29,6 +29,7 @@ urlpatterns = patterns('',
     url(r'^recipient/edit/private_information/$', dynamic_webpages.edit_private_information, name='edit_private_information'),
     url(r'^recipient/edit/media/$', dynamic_webpages.edit_media, name='edit_media'),
     url(r'^recipient/edit/promo_cards/$', dynamic_webpages.edit_promo_cards, name='edit_promo_cards'),
+    url(r'^recipient/analytics/$', dynamic_webpages.analytics, name='recipient_analytics'),
     # Recipient registration page, initiates Amazon Co-Branded UI
     url(r'^recipient/payment_registration/$', fps.payment_registration, name='payment_registration'),
     url(r'^recipient/edit/weekly_blurbs/$', dynamic_webpages.edit_weekly_blurbs, name='edit_weekly_blurbs'),

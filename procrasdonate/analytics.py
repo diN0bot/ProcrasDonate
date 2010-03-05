@@ -193,8 +193,9 @@ class GoalMixin(object):
         
         # only add goal and hours to overall total if user is
         # authorized to make payments and has non-zero rate
-        if self.authorized() and (float(self.pref('pd_dollars_per_hr')) > 0 or 
-                                  float(self.pref('tws_dollars_per_hr')) > 0):
+        # (alternate strategy: see if user has any Totals > 0 for the current year)
+        if self.tos and self.authorized() and (float(self.pref('pd_dollars_per_hr')) > 0 or 
+                                               float(self.pref('tws_dollars_per_hr')) > 0):
             if is_met:
                 KeyValue.increment(KeyValue.KEYS['total_goals_met'])
             KeyValue.increment(KeyValue.KEYS['total_goals'])
@@ -462,6 +463,53 @@ class TotalRecipient(Total):
                                            self.total_time,
                                            self.total_pledged)
 
+    @classmethod
+    def Initialize(klass):
+        model_utils.mixin(TotalRecipientMixin, Recipient)
+        
+class TotalRecipientMixin(object):
+    """ mixed into Recipient class """
+    
+    def total_this_day(self):
+        t = TotalRecipient.this_day().filter(recipient=self)
+        if len(t) > 1:
+            print "ERROR: more than one Total per recipient per day: ", t, self
+        return len(t) > 0 and t[0] or None
+    
+    def total_last_day(self):
+        t = TotalRecipient.last_day().filter(recipient=self)
+        if len(t) > 1:
+            print "ERROR: more than one Total per recipient per day: ", t, self
+        return len(t) > 0 and t[0] or None
+    
+    def total_this_week(self):
+        t = TotalRecipient.this_week().filter(recipient=self)
+        if len(t) > 1:
+            print "ERROR: more than one Total per recipient per week ", t, self
+        return len(t) > 0 and t[0] or None
+
+    def total_last_week(self):
+        print TotalRecipient.last_week()
+        t = TotalRecipient.last_week().filter(recipient=self)
+        if len(t) > 1:
+            print "ERROR: more than one Total per recipient per week ", t, self
+        return len(t) > 0 and t[0] or None
+    
+    def total_this_year(self):
+        t = TotalRecipient.this_year().filter(recipient=self)
+        if len(t) > 1:
+            print "ERROR: more than one Total per recipient per year: ", t, self
+        return len(t) > 0 and t[0] or None
+    
+    def total_forever(self):
+        t = TotalRecipient.forever().filter(recipient=self)
+        if len(t) > 1:
+            print "ERROR: more than one Total per recipient per day: ", t, self
+        return len(t) > 0 and t[0] or None
+    
+    def totals_days_this_week(self):
+        return TotalRecipient.days_this_week().filter(recipient=self)
+    
 
 class TotalRecipientVote(Total):
     """

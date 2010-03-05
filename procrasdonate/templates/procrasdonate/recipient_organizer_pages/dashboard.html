@@ -8,9 +8,17 @@
 	<h2>{{ recipient.name }}'s Dashboard</h2>
 	
 	<h3>Metrics</h3>
-	<p>total donations received in {% now "Y" %}: ${{ recipient.yearly_aggregate.total_amount|floatformat:"2"|default:"0" }}</p>
-	<p>total donations received all time: ${{ recipient.forever_aggregate.total_amount|floatformat:"2"|default:"0" }}</p>
-	<p>number of donors: {{ recipient.forever_aggregate.total_donors|floatformat:"2"|default:"0" }}</p>
+	
+	<p>total donations received in {% now "Y" %}: 
+		${{ recipient.total_this_year.total_amount|floatformat:"2"|default:"0" }}</p>
+		
+	<p>total donations received all time: 
+		${{ recipient.total_forever.total_amount|floatformat:"2"|default:"0" }}</p>
+	
+	<p>number of donors: 
+		{{ recipient.donors_count|default:"0" }}</p>
+	
+	<p><a href="{% url recipient_analytics %}">more</a></p>
 	
 	<h3>Actions
 	{% if not recipient.pd_registered %}

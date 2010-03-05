@@ -115,8 +115,11 @@ _extend(TimeTracker.prototype, {
 		var tag = site.tag();
 		
 		var pd_recipient = this.pddb.Recipient.get_or_null({ slug: "pd" });
-		//var pd_recipientpercent = this.RecipientPercent.get_or_null({ recipient_id: pd_recipient.id });
-		var pd_pct = _un_prefify_float(this.prefs.get('support_pct', constants.DEFAULT_SUPPORT_PCT)) / 100.0;
+		var support_method = this.prefs.get('support_method', constants.DEFAULT_SUPPORT_METHOD);
+		var pd_pct = 0;
+		if (support_method == constants.PERCENT_SUPPORT_METHOD) {
+			pd_pct =  _un_prefify_float(this.prefs.get('support_pct', constants.DEFAULT_SUPPORT_PCT)) / 100.0;
+		}
 		
 		var enter_at = _un_dbify_date(visit.enter_at);
 		var end_of_day     = _dbify_date(_end_of_day(enter_at));
@@ -129,6 +132,17 @@ _extend(TimeTracker.prototype, {
 		
 		var pd_dollars_per_hr = _un_prefify_float(this.prefs.get('pd_dollars_per_hr', constants.PD_DEFAULT_DOLLARS_PER_HR));
 		var tws_dollars_per_hr = _un_prefify_float(this.prefs.get('tws_dollars_per_hr', constants.TWS_DEFAULT_DOLLARS_PER_HR));
+		
+		// if the following are not met, then the rate is set to $0:
+		//   * not agreed to tos
+		//   * not authorized on amazon
+		var tos = _un_dbify_bool(self.prefs.get('tos', constants.DEFAULT_TOS));
+		var multi_auth = this.pddb.FPSMultiuseAuthorization.most_recent();
+		//logger("----------- \n tos="+tos+" multi_auth="+multi_auth+" \n"+(!tos || !multi_auth.good_to_go()));
+		if (!tos || !multi_auth.good_to_go()) {
+			pd_dollars_per_hr = 0.0;
+			tws_dollars_per_hr = 0.0;
+		}
 		
 		if (STORE_VISIT_LOGGING) logger("UPDATE TOTALS: pd dollars per hr:   "+pd_dollars_per_hr);
 		
@@ -189,6 +203,7 @@ _extend(TimeTracker.prototype, {
 			// no money changes hands
 		}
 		if (STORE_VISIT_LOGGING) logger("full amount delta = "+full_amount_delta);
+		//logger("full amount delta = "+full_amount_delta);
 		
 		/// array objects containing:
 		///	contenttype instance

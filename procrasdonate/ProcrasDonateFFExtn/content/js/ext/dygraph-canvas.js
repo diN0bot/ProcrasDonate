@@ -368,6 +368,7 @@ DygraphCanvasRenderer.prototype._renderAxis = function() {
       // The lowest tick on the y-axis often overlaps with the leftmost
       // tick on the x-axis. Shift the bottom tick up a little bit to
       // compensate if necessary.
+      //logger(" BOTTOM TICK: "+this.ylabels[0]);
       var bottomTick = this.ylabels[0];
       var fontSize = this.options.axisLabelFontSize;
       var bottom = parseInt(bottomTick.style.top) + fontSize;

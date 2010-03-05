@@ -404,6 +404,23 @@ def recipient_organizer_dashboard(request):
     return render_response(request, 'procrasdonate/recipient_organizer_pages/dashboard.html', locals())
 
 @login_required
+def analytics(request):
+    recipient_user_tagging = request.user.get_profile()
+    recipient = recipient_user_tagging.recipient
+    
+    year = Period.start_of_year()
+    payments = RecipientPayment.objects.filter(recipient=recipient, dtime__gte=year).order_by('user')
+    
+    user_payments = {}
+    for payment in payments:
+        user = payment.user
+        if not user in user_payments:
+            user_payments[user] = []
+        user_payments[user].append(payment)
+    
+    return render_response(request, 'procrasdonate/recipient_organizer_pages/analytics.html', locals())
+
+@login_required
 def edit_private_information(request):
     recipient = request.user.get_profile().recipient
     substate_menu_items = _organizer_submenu(request, "private", recipient)

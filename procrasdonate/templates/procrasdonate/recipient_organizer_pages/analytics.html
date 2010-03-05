@@ -1,0 +1,45 @@
+{% extends 'procrasdonate/base.html' %}
+
+{% block head %}
+	{{ block.super }}
+{% endblock %}
+
+{% block content %}
+	<h2>{{ recipient.name }}'s Analytics</h2>
+	
+	<h3>Donors</h3>
+	<table>
+	<tbody>
+	<tr>
+		<th>First Name</th>
+		<th>Last Name</th>
+		<th>Address</th>
+		<th>City</th>
+		<th>State</th>
+		<th>Zip</th>
+		<th>Country</th>
+	</tr>
+	{% for user,payments in user_payments.items %}
+		<tr>
+			<td>{{ user.tax_deduct_first_name }}</td>
+			<td>{{ user.tax_deduct_last_name }}</td>
+			<td>{{ user.tax_deduct_mail_address }}</td>
+			<td>{{ user.tax_deduct_city }}</td>
+			<td>{{ user.tax_deduct_state }}</td>
+			<td>{{ user.tax_deduct_zip }}</td>
+			<td>{{ user.tax_deduct_country }}</td>
+		</tr>
+		<tr>
+			<td colspan=7>
+				<ul>
+				{% for payment in payments %}
+					<li>${{ payment.total_amount_paid }} {% if not payment.settled %}(transaction pending){% endif %}</li>
+				{% endfor %}
+				</ul>
+			</td>
+		</tr>
+	{% endfor %}
+	</tbody>
+	</table>
+	
+{% endblock %}

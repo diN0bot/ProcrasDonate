@@ -32,11 +32,7 @@
 var PDChecks = function PDChecks(pddb, prefs) {
 	this.pddb = pddb;
 	this.prefs = prefs;
-<<<<<<< HEAD:procrasdonate/ProcrasDonateFFExtn/content/js/tests.js
-=======
-	
 	this.time_tracker = new TimeTracker(pddb, prefs);
->>>>>>> ad45eee9a626791837d19f378897aac3fc063032:procrasdonate/ProcrasDonateFFExtn/content/js/tests.js
 };
 PDChecks.prototype = {};
 _extend(PDChecks.prototype, {
@@ -194,7 +190,6 @@ _extend(PDChecks.prototype, {
 var PDTests = function PDTests(pddb, prefs) {
 	this.pddb = pddb;
 	this.prefs = prefs;
-<<<<<<< HEAD:procrasdonate/ProcrasDonateFFExtn/content/js/tests.js
 	
 	// create listeners
  	this.observerService = Cc['@mozilla.org/observer-service;1'].getService(
@@ -210,11 +205,6 @@ var PDTests = function PDTests(pddb, prefs) {
  	this.idle_back_flash_listener = new IdleBack_Flash_Listener(this.idleService, this.pddb, this.prefs, this.time_tracker, constants.DEFAULT_FLASH_MAX_IDLE);
  	this.private_browsing_listener = new PrivateBrowsingListener(this.observerService, this.pddb, this.prefs, this.toolbar_manager);
 
-=======
-<<<<<<< HEAD:procrasdonate/ProcrasDonateFFExtn/content/js/tests.js
-	this.time_tracker = TimeTracker(pddb, prefs);
-=======
-	
 	// create listeners
 	this.observerService = Cc['@mozilla.org/observer-service;1'].getService(
 			Components.interfaces.nsIObserverService);
@@ -228,13 +218,10 @@ var PDTests = function PDTests(pddb, prefs) {
 	this.idle_back_noflash_listener = new IdleBack_NoFlash_Listener(this.idleService, this.pddb, this.prefs, this.time_tracker, constants.DEFAULT_MAX_IDLE);
 	this.idle_back_flash_listener = new IdleBack_Flash_Listener(this.idleService, this.pddb, this.prefs, this.time_tracker, constants.DEFAULT_FLASH_MAX_IDLE);
 	this.private_browsing_listener = new PrivateBrowsingListener(this.observerService, this.pddb, this.prefs, this.toolbar_manager);
->>>>>>> ad45eee9a626791837d19f378897aac3fc063032:procrasdonate/ProcrasDonateFFExtn/content/js/tests.js
->>>>>>> 790793f52ade64240842af2e9a613bd12aa7829b:procrasdonate/ProcrasDonateFFExtn/content/js/tests.js
 };
 PDTests.prototype = {};
 _extend(PDTests.prototype, {
 
-<<<<<<< HEAD:procrasdonate/ProcrasDonateFFExtn/content/js/tests.js
  	uninit: function(event) {
  		// remove listeners
  		this.blur_focus_listener.unregister();
@@ -244,17 +231,6 @@ _extend(PDTests.prototype, {
  		this.private_browsing_listener.unregister();
  	},
 
-=======
-	uninit: function(event) {
-		// remove listeners
-		this.blur_focus_listener.unregister();
-		this.sleep_wake_listener.unregister();
-		this.idle_back_noflash_listener.unregister();
-		this.idle_back_flash_listener.unregister();
-		this.private_browsing_listener.unregister();
-	},
-	
->>>>>>> 790793f52ade64240842af2e9a613bd12aa7829b:procrasdonate/ProcrasDonateFFExtn/content/js/tests.js
 	test_update_totals: function(testrunner) {
 		var self = this;
 		
@@ -275,16 +251,13 @@ _extend(PDTests.prototype, {
 		var duration = 60;
 		
 		_iterate(['Unsorted', 'ProcrasDonate', 'TimeWellSpent'], function(key, value, index) {
-			testrunner.ok( true, "---------------- new "+ value +" url ----"+self.pddb[value]);
-			logger(">>>>>> pddb is "+self.pddb+" <<<<<<");
-			var s = "";
-			for (var k in self.pddb) { s += "\n"+k; }
-			logger(">>>>>> pddb contents "+s);
-			var before_totals = self.retrieve_totals(testrunner, url, self.pddb[value]);
-			// var url = self.visit_new_site(self.pddb[value], duration);
-			var site = self.new_site(self.pddb[value]);
-			var url = self.time_tracker.store_visit(site.url, _dbify_date(new Date()), duration);
-			//
+			testrunner.ok( true, "---------------- new "+ value +" url ----");
+			var tag = self.pddb[value];
+			var site = self.new_site(tag);
+			var url = site.url;
+			logger(" ***************************** TEST UPDATE TOTALS url="+url);
+			var before_totals = self.retrieve_totals(testrunner, url, tag);
+			self.time_tracker.store_visit(url, _dbify_date(new Date()), duration, self.pddb.Visit.TEST, self.pddb.Visit.TEST);
 			self.check_totals(testrunner, url, duration, before_totals);
 		});
 	},
@@ -334,16 +307,11 @@ _extend(PDTests.prototype, {
 	// creates site and sitegroup with specified tag first if
 	// specified tag is not Unosrted
 	// @param tag: tag instance
+	// NO LONGER USED...but probably should be.
 	//
-<<<<<<< HEAD:procrasdonate/ProcrasDonateFFExtn/content/js/tests.js
-	visit_new_site: function(self, tag, seconds) {
-		var site = self.new_site(tag);
-		self.time_tracker.store_visit(site.url, _dbify_date(new Date()), seconds);
-=======
 	visit_new_site: function(tag, seconds) {
 		var site = this.new_site(tag);
 		this.time_tracker.store_visit(site.url, _dbify_date(new Date()), seconds);
->>>>>>> 790793f52ade64240842af2e9a613bd12aa7829b:procrasdonate/ProcrasDonateFFExtn/content/js/tests.js
 		return site.url
 	},
 	
@@ -387,8 +355,9 @@ _extend(PDTests.prototype, {
 						totals[total.id] = total;
 					} else {
 						testrunner.ok(false, "While retrieving before totals, maybe expected total but found none? If " +
-								"rerunning these tests does not make this failure go away, then there is a problem." +
-								"(First run of the day causes this failure because no total for the day (and week) yet.) "+
+								"rerunning these tests does not make this failure go away, then there may be a problem." +
+								"(First run of the day causes this failure because no total for the day (and week) yet. "+
+								"New urls also cause this failure. WE EXPECT 75/99 to PASS.)"+
 								row.modelname+" id: "+value+" "+timetypes[idx].timetype+" "+times[idx]);							
 					}
 				});
@@ -402,7 +371,8 @@ _extend(PDTests.prototype, {
 	///
 	check_totals: function(testrunner, url, seconds, before_totals) {
 		var self = this;
-		var site = self.pddb.Site.get_or_null({ url: url })
+		var site = self.pddb.Site.get_or_null({ url: url });
+		logger(" ***************************** CHECK TOTALS url="+url+" site="+site);
 		var timetypes = [self.pddb.Daily, self.pddb.Weekly, self.pddb.Yearly, self.pddb.Forever];
 		var times = [_dbify_date(_end_of_day()), _dbify_date(_end_of_week()), _dbify_date(_end_of_year()), _dbify_date(_end_of_forever())];
 		
@@ -452,8 +422,10 @@ _extend(PDTests.prototype, {
 						var before_total = before_totals[total.id];
 						if (!before_total) {
 							expected_time = seconds;
+							logger(" &&&&&&&&&&&&&&  !bt RESULT expected="+expected_time+" actual="+total.total_time)
 						} else {
 							expected_time = parseFloat(before_total.total_time) + seconds;
+							logger(" &&&&&&&&&&&&&&  --- RESULT expected="+expected_time+" actual="+total.total_time)
 						}
 						testrunner.equals(expected_time, total.total_time,
 							"Total (id="+total.id+") has incorrrect total_time");

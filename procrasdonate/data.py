@@ -84,6 +84,27 @@ class User(models.Model):
     def support_pct(self):
         return self.pref('support_pct')
     
+    def tax_deduct_first_name(self):
+        return self.pref('first_name')
+    
+    def tax_deduct_last_name(self):
+        return self.pref('last_name')
+    
+    def tax_deduct_mail_address(self):
+        return self.pref('mail_address')
+    
+    def tax_deduct_city(self):
+        return self.pref('city')
+    
+    def tax_deduct_state(self):
+        return self.pref('state')
+    
+    def tax_deduct_zip(self):
+        return self.pref('zip')
+    
+    def tax_deduct_country(self):
+        return self.pref('country')
+    
     @classmethod
     def make(klass, private_key, name=None, twitter_name=None, url=None, email=None):
         """
@@ -918,6 +939,7 @@ class RecipientPayment(Payment):
     @classmethod
     def Initialize(klass):
         model_utils.mixin(RecipientPaymentMixin, User)
+        model_utils.mixin(RecipientPaymentMixin_R, Recipient)
         
     def __unicode__(self):
         return "%s paid $%s to %s, settled? %s" % (self.user.private_key,
@@ -931,6 +953,13 @@ class RecipientPaymentMixin(object):
     @property
     def recipient_payments(self):
         return RecipientPayment.objects.filter(user=self)
+    
+class RecipientPaymentMixin_R(object):
+    """ mixed into Recipient class """
+    
+    def donors_count(self):
+        return RecipientPayment.objects.filter(recipient=self).values('user').order_by().distinct().count()
+    
     
 class SitePayment(Payment):
     site = models.ForeignKey(Site)
@@ -1057,10 +1086,14 @@ class MetaReport(models.Model):
     subject = models.CharField(max_length=256)
     message = models.TextField()
     is_draft = models.BooleanField(default=True)
+    # for THANKYOUs. amount per year donated for user to receive thankyou
+    # is 0 for non-THANKYOUs
+    threshhold = models.IntegerField(default=0)
     
     @classmethod
     def Initialize(klass):
-        model_utils.mixin(MetaReportMixin, Recipient)
+        model_utils.mixin(MetaReportMixin, User)
+        model_utils.mixin(MetaReportMixin_R, Recipient)
         models.signals.pre_save.connect(MetaReport.sanitize_user_input, sender=MetaReport)
         
     @classmethod
@@ -1074,13 +1107,14 @@ class MetaReport(models.Model):
                 setattr(instance, field, v_re.sub('', getattr(instance, field)))
 
     @classmethod
-    def make(klass, recipient, subject, message, type, is_draft, dtime):
+    def make(klass, recipient, subject, message, type, is_draft, dtime, threshhold=0):
         return Report(dtime=dtime,
                       user=user,
                       subject=subject,
                       message=message,
                       type=type,
-                      is_draft=is_draft)
+                      is_draft=is_draft,
+                      threshhold=threshhold)
             
     def deep_dict(self):
         return {'subject': self.subject,
@@ -1088,15 +1122,17 @@ class MetaReport(models.Model):
                 'recipient_slug': self.recipient.slug,
                 'type': self.get_type_display().lower(),
                 'is_draft' : self.is_draft,
-                'datetime': self.dtime.ctime()}
+                'datetime': self.dtime.ctime(),
+                'threshhold': self.threshhold}
         
     def __unicode__(self):
-        return "%s. %s (%s) %s -> %s: %s" % (self.is_draft,
-                                             self.dtime,
-                                             self.recipient.slug,
-                                             self.get_type_display(),
-                                             self.subject,
-                                             self.message)
+        return "%s. %s (%s) %s (%s) -> %s: %s" % (self.is_draft,
+                                                  self.dtime,
+                                                  self.recipient.slug,
+                                                  self.get_type_display(),
+                                                  self.threshhold,
+                                                  self.subject,
+                                                  self.message)
 
 class MetaReportMixin(object):
     """ mixed into User class """
@@ -1104,6 +1140,15 @@ class MetaReportMixin(object):
     @property
     def reports(self):
         return Report.objects.filter(user=self).order_by('-dtime')
+
+class MetaReportMixin_R(object):
+    """ mixed into Recipient class """
+    
+    def reports(self):
+        return Report.objects.filter(recipient=self).order_by('-dtime')
+    
+    def thankyous(self):
+        return self.reports.filter(type=MetaReport.TYPES['THANKYOU']).order_by('threshhold')
     
 class WaitList(models.Model):
     """

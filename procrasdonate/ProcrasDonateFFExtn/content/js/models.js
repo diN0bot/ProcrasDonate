@@ -402,6 +402,7 @@ function load_models(db, pddb) {
 		 * @param r: object from server. json already loaded
 		 */
 		process_meta_report: function(r, weekly_affirmations, org_thank_yous, org_newsletters) {
+			_pprint(r, "META REPORT");
 			var is_weekly = (r.type == Report.WEEKLY); // unexpected
 			var is_announcement = (r.type == Report.ANNOUNCEMENT);
 			var is_thankyou = (r.type == Report.THANKYOU); // also unexpected for now
@@ -417,6 +418,9 @@ function load_models(db, pddb) {
 			var recipient = Recipient.get_or_null({ slug: r.recipient_slug });
 			if (!recipient) { return }
 			
+			var rdate = new Date(r.datetime);
+			var dbified_rdate = _dbify_date(rdate);
+			
 			// only receive newsletters and thankyous for
 			// recipients currently donating to (even if percent is 0)
 			if (is_newsletter || is_thankyou) {
@@ -424,12 +428,51 @@ function load_models(db, pddb) {
 					return
 				}
 			}
+			// only receive thankyous if donated past threshhold
+			if (is_thankyou) {
+				logger("is thank you");
+				var recip_type = ContentType.get_or_null({ modelname: "Recipient" });
+				var total = Total.get_or_null({
+					contenttype_id: recip_type.id,
+					content_id: recipient.id,
+					datetime: _dbify_date(_end_of_year(rdate)),
+					timetype_id: pddb.Yearly.id
+				});
+				if (!total || total.dollars() < parseFloat(r.threshhold)) {
+					logger("unmet threshhold");
+					return
+				}
+				logger("total = "+total);
+			}
 			
-			var report = Report.get_or_null({
-				datetime: _dbify_date(new Date(r.datetime)),
-				type: r.type,
-				recipient_id: recipient.id
-			});
+			var report = null;
+			var thedate = _dbify_date(new Date());
+			// if THANKYOU, we only care to receive one once a year.
+			// otherwise, exact date should match
+			if (is_thankyou) {
+				// need to match subject, too, since might receive multiple thankyous within same year
+				// (need to disambiguate threshholds via subjects...what if organizers
+				// use same subject...pd should add disambiguation to subject! 
+				// ... or add threshhold to report model)
+				Report.select({
+					type: r.type,
+					recipient_id: recipient.id,
+					subject: r.subject,
+				}, function(row) {
+					logger("report row = "+row);
+					if (_un_dbify_date(row.datetime).getFullYear() == (new Date()).getFullYear()) {
+						report = row;
+					}
+				});
+			} else {
+				report = Report.get_or_null({
+					datetime: dbified_rdate,
+					type: r.type,
+					recipient_id: recipient.id
+				});
+				thedate = _dbify_date(new Date(r.datetime));
+			}
+			
 			if (!report) {
 				Report.create({
 					message: (new Showdown.converter()).makeHtml(r.message),
@@ -438,7 +481,7 @@ function load_models(db, pddb) {
 	                recipient_id: recipient.id,
 	                sent: _dbify_bool(false),
 	                read: _dbify_bool(false),
-	                datetime: _dbify_date(new Date(r.datetime))
+	                datetime: thedate
 				});
 			}
 		},
@@ -1456,7 +1499,7 @@ function load_models(db, pddb) {
                 'error_message': self.error_message,
                 'error_code': se
 			 */
-			logger("pay process object: ");
+			logger("pay process object: "+p);
 			_pprint(p, "p = ");
 			
 			var pay = FPSMultiusePay.get_or_null({

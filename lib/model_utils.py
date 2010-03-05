@@ -6,6 +6,7 @@ import datetime
 import settings
 
 from django.shortcuts import get_object_or_404
+from django.http import Http404
 
 """
 @summary:
@@ -275,10 +276,18 @@ class ModelMixin(object):
             return klass.objects.filter(id__in=ids, **kwargs)
         else:
             return klass.objects.filter(**kwargs)
+        
+    @classmethod
+    def get_or_404(klass, **kwargs):
+        x = klass.get_or_none(**kwargs)
+        if not x:
+            raise Http404
+        else:
+            return x
 
     @classmethod
     def get_or_none(klass, **kwargs):
-        """\
+        """
         @summary:
         Convenience method: B{get_or_none} simply passes arguments through to
         klass.objects.filter()

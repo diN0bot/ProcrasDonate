@@ -1757,15 +1757,18 @@ _extend(PageController.prototype, {
 		
 		var data = this.get_trend_data(aset, bset);
 
-		this.insert_trends_graph(request,
-				"trend_chart",
-				data.A,
-				data.B,
-				this.get_trend_label(aset),
-				this.get_trend_label(bset),
-				this.get_trend_color(aset),
-				this.get_trend_color(bset, aset, true));
-		
+		//try {
+			this.insert_trends_graph(request,
+					"trend_chart",
+					data.A,
+					data.B,
+					this.get_trend_label(aset),
+					this.get_trend_label(bset),
+					this.get_trend_color(aset),
+					this.get_trend_color(bset, aset, true));
+		/*} catch(e) {
+			self.pddb.orthogonals.log("insert_trends_graph threw exception "+e.stack);
+		}*/
 		this.activate_trends_checkboxes(request);
 		
 		this.activate_substate_menu_items(request, 'trends',
@@ -1835,6 +1838,7 @@ _extend(PageController.prototype, {
 	 *    contenttype_id:content_id
 	 */
 	get_trend_label: function(d) {
+		logger(" get trend label: "+d);
 		if (!d) { return "";}
 		
 		var self = this;
@@ -1888,8 +1892,9 @@ _extend(PageController.prototype, {
 	 * @param B: list of totals for second trend line
 	 */
 	insert_trends_graph: function(request, div_id, A, B, alabel, blabel, acolor, bcolor) {
-		//_pprint(A, "A =\n");
+		//_pprint(A, "\n\nA =\n");
 		//_pprint(B, "B =\n");
+		//logger("ALABEL "+alabel+" BLABEL "+blabel);
 		
 		var data = [];
 		data.push("Date,"+alabel+","+blabel);
@@ -1949,29 +1954,32 @@ _extend(PageController.prototype, {
 		
 		init_dygraph_canvas(request.get_document());
 		init_dygraph(request.get_document());
-		g = new DateGraph(
-				request.jQuery("#"+div_id).get(0),
-				data,
-				{showRoller: false,
-				 //labelsDivWidth: 350,
-				 labelsDiv: request.jQuery("#legend").get(0),
-				 labelsSeparateLines: true,
-				 axisLabelFontSize: 14,
-				 pixelsPerXLabel: 50,
-				 pixelsPerYLabel: 50,
-				 gridLineColor: "#BBBBBB",
-				 strokeWidth: 4,
-				 highlightCircleSize: 6,
-				 colors: [acolor, bcolor],
-				 /*xAxisLabelWidth: 50,
-				 yAxisLabelWidth: 50*/
-				 });
-		
-		request.jQuery("#trend_chart").children().children().each(function() {
-			if ($(this).attr("style").match("bottom: 0px")) {
-				$(this).css("margin-bottom", "-.5em");
-			}
-		});
+		try {
+			g = new DateGraph(
+					request.jQuery("#"+div_id).get(0),
+					data,
+					{showRoller: false,
+					 //labelsDivWidth: 350,
+					 labelsDiv: request.jQuery("#legend").get(0),
+					 labelsSeparateLines: true,
+					 axisLabelFontSize: 14,
+					 pixelsPerXLabel: 50,
+					 pixelsPerYLabel: 50,
+					 gridLineColor: "#BBBBBB",
+					 strokeWidth: 4,
+					 highlightCircleSize: 6,
+					 colors: [acolor, bcolor],
+					 /*xAxisLabelWidth: 50,
+					 yAxisLabelWidth: 50*/
+					 });
+			
+			request.jQuery("#trend_chart").children().children().each(function() {
+				if ($(this).attr("style").match("bottom: 0px")) {
+					$(this).css("margin-bottom", "-.5em");
+				}
+			});
+		} catch(e) {
+		}
 					
 					//overflow: hidden; position: absolute; font-size: 10px; z-index: 10; 
 					//color: black; width: 50px; text-align: center; bottom: 0px; left: 226.533px;
