@@ -139,7 +139,7 @@ _extend(TimeTracker.prototype, {
 		var tos = _un_dbify_bool(self.prefs.get('tos', constants.DEFAULT_TOS));
 		var multi_auth = this.pddb.FPSMultiuseAuthorization.most_recent();
 		//logger("----------- \n tos="+tos+" multi_auth="+multi_auth+" \n"+(!tos || !multi_auth.good_to_go()));
-		if (!tos || !multi_auth.good_to_go()) {
+		if (!tos || !multi_auth || !multi_auth.good_to_go()) {
 			pd_dollars_per_hr = 0.0;
 			tws_dollars_per_hr = 0.0;
 		}

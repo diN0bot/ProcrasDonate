@@ -5,13 +5,25 @@
 
 	<h2>Thank Yous</h2>
 	
+	<div class="error">
+		{{ error }}
+	</div>
+	
 	<form method="post">
 		<input type="submit" value="Save Changes" />
-		<table>
-		<tbody>
-			{{ formset }}
-	    </tbody>
-	    </table>
+		{{ formset.management_form }}
+	    {% for form in formset.forms %}
+	    	<table class="formset_table {% cycle odd,even %}">
+			<tbody>
+	        {% for field in form %}
+	        	<tr>
+	            	<td>{% ifnotequal field.name "id" %}{{ field.label_tag }}{% endifnotequal %}</td>
+	            	<td>{{ field }} {{ field.errors }} <small>{{ field.help_text|safe }}</small></td>
+	            </tr>
+	        {% endfor %}
+	        </tbody>
+	    	</table>
+	    {% endfor %}
 	    <input type="submit" value="Save Changes" />
     </form>
 {% endblock %}

@@ -1091,7 +1091,9 @@ class MetaReport(models.Model):
     is_draft = models.BooleanField(default=True)
     # for THANKYOUs. amount per year donated for user to receive thankyou
     # is 0 for non-THANKYOUs
-    threshhold = models.IntegerField(default=0)
+    threshhold = models.IntegerField(default=0,
+                                     verbose_name="Total donated ($)",
+                                     help_text="<div style=\"padding: 1em;\"> </div>")
     
     @classmethod
     def Initialize(klass):

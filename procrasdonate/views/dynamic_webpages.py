@@ -541,13 +541,15 @@ def edit_thank_yous(request):
     
     ThankYouFormSet = modelformset_factory(MetaReport, extra=(3-thank_yous.count()),
                                            max_num=3,
-                                           exclude=('dtime', 'type', 'recipient', 'is_draft'))
+                                           fields=('threshhold', 'subject', 'message'))
     if request.method == 'POST':
         formset = ThankYouFormSet(request.POST, queryset=thank_yous)
         if formset.is_valid():
             formset.save()
             request.user.message_set.create(message='Changes saved')
             return HttpResponseRedirect(reverse('recipient_organizer_dashboard'))
+        else:
+            error = "Please correct the errors below"
     else:
         formset = ThankYouFormSet(queryset=thank_yous)
     return render_response(request, 'procrasdonate/recipient_organizer_pages/edit_thank_yous.html', locals())

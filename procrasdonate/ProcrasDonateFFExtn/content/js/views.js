@@ -3415,7 +3415,7 @@ _extend(PageController.prototype, {
 					
 					multi_auth: multi_auth,
 					form_params: form_params,
-					action: constants.PD_URL + constants.AUTHORIZE_MULTIUSE_URL
+					action: constants.PD_API_URL + constants.AUTHORIZE_MULTIUSE_URL
 				})
 			);
 		request.jQuery("#content").html( middle );

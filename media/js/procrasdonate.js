@@ -17,6 +17,8 @@ $(document).ready( function() {
 	/// Increase the size of all input text boxes
 	///
 	$(".organizer_form input[type=text]").attr("size", 46);
+	$(".formset_table input[type=text]").attr("size", 80);
+	$(".formset_table textarea").attr("cols", 80);
 	
 	///
 	/// On organizer registration track, we want next and prev
