@@ -153,6 +153,10 @@ def authorize_multiuse(request):
         parameters
         
     """
+    #f = open('/var/sites/ProcrasDonate/auth.log', 'w')
+    #import time
+    #f.write("\n\n %s AUTHORIZE MULTIUSE WEASELS: " % (time.time(), request))
+    #f.close()
     if not settings.DJANGO_SERVER and not request.is_secure():
         message = "must secure data via HTTPS: request=%s" % request
         Log.Error(message, "request_error")
